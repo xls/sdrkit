@@ -88,7 +88,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -142,7 +142,7 @@ Struct `BletrackerTrackerRow`. A row of the trackers of `bletracker`. The row ke
 | `trend` | choice | always | 1.0 | Whether the level rises or falls. |
 | `addresses` | whole number | always | 1.0 | The addresses it used. |
 | `last_s` | number (s) | always | 1.0 | The signal time it was last heard. |
-| `last_heard` | time | optional | 3.1 | The UTC of the last sighting, for a live source. |
+| `last_heard` | time | optional | 1.0 | The UTC of the last sighting, for a live source. |
 | `packets` | whole number | always | 1.0 | Packets heard. |
 | `separated` | yes or no | always | 1.0 | It says it is away from its owner. |
 | `status` | whole number | optional | 1.0 | The status byte, if the advertisement has one. |

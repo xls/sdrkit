@@ -14,7 +14,7 @@ Signal types: Wi-Fi.
 | Default frequency | 2.437 GHz |
 | Tuning range | 2.4 GHz to 7.125 GHz |
 | Sample rate | 20 MHz |
-| Smallest sample rate | 20 MHz |
+| Smallest sample rate | 4 MHz |
 | Signal bandwidth | 20 MHz |
 | Radio filter | 20 MHz |
 | Automatic gain | Radio AGC |
@@ -115,8 +115,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `networks` | Networks | `ssid` (text), `bssid` (text), `vendor` (text), `band` (choice), `channel` (whole number), `heard_on` (whole number), `width_hz` (frequency), `standard` (text), `security` (text), `level_dbfs` (number (dBFS)), `first_heard` (time), `last_heard` (time), `beacons` (whole number), `probe_responses` (whole number), `interval` (duration (s)), `ciphers` (text), `akm` (text), `pmf` (text), `capability` (text), `details` (text), `stations` (whole number) |
-| `stations` | Stations | `address` (text), `vendor` (text), `randomised` (yes or no), `bssid` (text), `link` (choice), `last_heard` (time), `level_dbfs` (number (dBFS)), `sent` (whole number), `received` (whole number), `probes` (whole number), `data` (whole number), `null_data` (whole number), `protected` (whole number), `ssids` (text), `generation` (whole number), `max_rate_mbps` (number (Mbit/s)), `channel` (whole number) |
+| `networks` | Networks | `ssid` (text), `bssid` (text), `vendor` (text), `band` (choice), `channel` (whole number), `heard_on` (whole number), `centre_hz` (frequency), `width_hz` (frequency), `generation` (choice), `security` (choice), `level_dbfs` (number (dBFS)), `first_heard` (time), `last_heard` (time), `beacons` (whole number), `probe_responses` (whole number), `interval` (duration (s)), `ciphers` (text), `akm` (text), `pmf` (text), `capability` (text), `details` (text), `stations` (whole number) |
+| `stations` | Stations | `address` (text), `vendor` (text), `randomised` (yes or no), `bssid` (text), `link` (choice), `last_heard` (time), `level_dbfs` (number (dBFS)), `sent` (whole number), `received` (whole number), `probes` (whole number), `data` (whole number), `null_data` (whole number), `protected` (whole number), `ssids` (text), `generation` (choice), `max_rate_mbps` (number (Mbit/s)), `channel` (whole number) |
 | `beacons` | Beacons | `signal_s` (number (s)), `channel` (whole number), `bssid` (text), `level_dbfs` (number (dBFS)), `bytes` (whole number), `details` (text), `format` (text), `mcs` (whole number), `aggregated` (yes or no) |
 | `ofdm_rates` | OFDM frames by rate | `rate_mbps` (number (Mbit/s)), `frames` (whole number) |
 | `bands` | Bands | `band` (choice), `networks` (whole number), `beacons` (whole number), `ax_be` (whole number), `wpa3_owe` (whole number), `open` (whole number), `strongest_dbfs` (number (dBFS)) |
@@ -130,7 +130,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -168,40 +168,40 @@ Struct `WifiFields`. The result fields of `wifi`.
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the input. No value before the first input. |
 | `hopping` | yes or no | always | 1.0 | The host steps through the hop list. |
 | `passive` | text | always | 1.0 | The passive note. |
-| `stations` | whole number | always | 3.1 | Client stations in the table. |
-| `ppdu_ht` | whole number | always | 3.1 | HT PPDUs whose signal field was read since the last clear. |
-| `ppdu_vht` | whole number | always | 3.1 | VHT PPDUs whose signal field was read since the last clear. |
-| `ppdu_he_su` | whole number | always | 3.1 | HE SU PPDUs whose signal field was read since the last clear. |
-| `ppdu_he_er_su` | whole number | always | 3.1 | HE ER SU PPDUs whose signal field was read since the last clear. |
-| `ppdu_he_mu` | whole number | always | 3.1 | HE MU PPDUs whose signal field was read since the last clear. |
-| `ppdu_he_tb` | whole number | always | 3.1 | HE TB PPDUs whose signal field was read since the last clear. |
-| `ppdu_he_bad_sig` | whole number | always | 3.1 | HE with a bad HE-SIG-A PPDUs whose signal field was read since the last clear. |
-| `ppdu_eht` | whole number | always | 3.1 | EHT PPDUs whose signal field was read since the last clear. |
-| `ppdu_decoded` | whole number | always | 3.1 | HT, VHT, HE and EHT PPDUs whose data was decoded. |
-| `ppdu_not_decoded_streams` | whole number | always | 3.1 | PPDUs not decoded because of two or more spatial streams. |
-| `ppdu_not_decoded_width` | whole number | always | 3.1 | PPDUs not decoded because of wider than 20 MHz. |
-| `ppdu_not_decoded_ldpc` | whole number | always | 3.1 | PPDUs not decoded because of LDPC coding. |
-| `ppdu_not_decoded_stbc` | whole number | always | 3.1 | PPDUs not decoded because of STBC. |
-| `ppdu_not_decoded_multi_user` | whole number | always | 3.1 | PPDUs not decoded because of multi-user. |
-| `ppdu_not_decoded_trigger_based` | whole number | always | 3.1 | PPDUs not decoded because of trigger-based. |
-| `ppdu_not_decoded_he_data` | whole number | always | 3.1 | PPDUs not decoded because of HE data. |
-| `ppdu_not_decoded_eht_data` | whole number | always | 3.1 | PPDUs not decoded because of EHT data. |
-| `ppdu_not_decoded_signal_field` | whole number | always | 3.1 | PPDUs not decoded because of a bad signal field. |
-| `ppdu_not_decoded_mcs` | whole number | always | 3.1 | PPDUs not decoded because of an MCS that is not decoded. |
-| `ppdu_not_decoded_length` | whole number | always | 3.1 | PPDUs not decoded because of a length that does not fit. |
-| `ppdu_not_decoded_data` | whole number | always | 3.1 | PPDUs not decoded because of data that did not decode. |
-| `ppdu_not_decoded_other` | whole number | always | 3.1 | PPDUs not decoded because of another reason. |
-| `ppdu_not_decoded_busy` | whole number | always | 3.1 | PPDUs not decoded because of the decoder was busy. |
-| `ampdu_bad_delimiters` | whole number | always | 3.1 | A-MPDU delimiters with a bad CRC or signature since the last clear. |
-| `probe_requests` | whole number | always | 3.1 | Probe requests since the last clear. |
-| `authentications` | whole number | always | 3.1 | Authentication frames since the last clear. |
-| `associations` | whole number | always | 3.1 | Association and reassociation frames since the last clear. |
-| `departures` | whole number | always | 3.1 | Deauthentication and disassociation frames since the last clear. |
-| `actions` | whole number | always | 3.1 | Action frames since the last clear. |
-| `rts` | whole number | always | 3.1 | RTS frames since the last clear. |
-| `cts` | whole number | always | 3.1 | CTS frames since the last clear. |
-| `acks` | whole number | always | 3.1 | ACK frames since the last clear. |
-| `block_acks` | whole number | always | 3.1 | Block Ack frames and requests since the last clear. |
+| `stations` | whole number | always | 1.0 | Client stations in the table. |
+| `ppdu_ht` | whole number | always | 1.0 | HT PPDUs whose signal field was read since the last clear. |
+| `ppdu_vht` | whole number | always | 1.0 | VHT PPDUs whose signal field was read since the last clear. |
+| `ppdu_he_su` | whole number | always | 1.0 | HE SU PPDUs whose signal field was read since the last clear. |
+| `ppdu_he_er_su` | whole number | always | 1.0 | HE ER SU PPDUs whose signal field was read since the last clear. |
+| `ppdu_he_mu` | whole number | always | 1.0 | HE MU PPDUs whose signal field was read since the last clear. |
+| `ppdu_he_tb` | whole number | always | 1.0 | HE TB PPDUs whose signal field was read since the last clear. |
+| `ppdu_he_bad_sig` | whole number | always | 1.0 | HE with a bad HE-SIG-A PPDUs whose signal field was read since the last clear. |
+| `ppdu_eht` | whole number | always | 1.0 | EHT PPDUs whose signal field was read since the last clear. |
+| `ppdu_decoded` | whole number | always | 1.0 | HT, VHT, HE and EHT PPDUs whose data was decoded. |
+| `ppdu_not_decoded_streams` | whole number | always | 1.0 | PPDUs not decoded because of two or more spatial streams. |
+| `ppdu_not_decoded_width` | whole number | always | 1.0 | PPDUs not decoded because of wider than 20 MHz. |
+| `ppdu_not_decoded_ldpc` | whole number | always | 1.0 | PPDUs not decoded because of LDPC coding. |
+| `ppdu_not_decoded_stbc` | whole number | always | 1.0 | PPDUs not decoded because of STBC. |
+| `ppdu_not_decoded_multi_user` | whole number | always | 1.0 | PPDUs not decoded because of multi-user. |
+| `ppdu_not_decoded_trigger_based` | whole number | always | 1.0 | PPDUs not decoded because of trigger-based. |
+| `ppdu_not_decoded_he_data` | whole number | always | 1.0 | PPDUs not decoded because of HE data. |
+| `ppdu_not_decoded_eht_data` | whole number | always | 1.0 | PPDUs not decoded because of EHT data. |
+| `ppdu_not_decoded_signal_field` | whole number | always | 1.0 | PPDUs not decoded because of a bad signal field. |
+| `ppdu_not_decoded_mcs` | whole number | always | 1.0 | PPDUs not decoded because of an MCS that is not decoded. |
+| `ppdu_not_decoded_length` | whole number | always | 1.0 | PPDUs not decoded because of a length that does not fit. |
+| `ppdu_not_decoded_data` | whole number | always | 1.0 | PPDUs not decoded because of data that did not decode. |
+| `ppdu_not_decoded_other` | whole number | always | 1.0 | PPDUs not decoded because of another reason. |
+| `ppdu_not_decoded_busy` | whole number | always | 1.0 | PPDUs not decoded because of the decoder was busy. |
+| `ampdu_bad_delimiters` | whole number | always | 1.0 | A-MPDU delimiters with a bad CRC or signature since the last clear. |
+| `probe_requests` | whole number | always | 1.0 | Probe requests since the last clear. |
+| `authentications` | whole number | always | 1.0 | Authentication frames since the last clear. |
+| `associations` | whole number | always | 1.0 | Association and reassociation frames since the last clear. |
+| `departures` | whole number | always | 1.0 | Deauthentication and disassociation frames since the last clear. |
+| `actions` | whole number | always | 1.0 | Action frames since the last clear. |
+| `rts` | whole number | always | 1.0 | RTS frames since the last clear. |
+| `cts` | whole number | always | 1.0 | CTS frames since the last clear. |
+| `acks` | whole number | always | 1.0 | ACK frames since the last clear. |
+| `block_acks` | whole number | always | 1.0 | Block Ack frames and requests since the last clear. |
 
 ### Table `networks`
 
@@ -213,11 +213,12 @@ Struct `WifiNetworkRow`. A row of the networks of `wifi`. The row key is the BSS
 | `bssid` | text | always | 1.0 | The BSSID. |
 | `vendor` | text | always | 1.0 | The vendor of the BSSID, or "(local)" for a locally administered one. |
 | `band` | choice | optional | 1.0 | The band. |
-| `channel` | whole number | always | 1.0 | The primary channel. |
-| `heard_on` | whole number | always | 1.0 | The channel the frames were heard on. |
+| `channel` | whole number | optional | 1.0 | The primary channel. No value when the frames give none and the receiver does not know its own channel. |
+| `heard_on` | whole number | optional | 1.0 | The channel the frames were heard on. No value when the receiver does not know it, as for a recording. |
+| `centre_hz` | frequency | optional | 1.0 | The centre frequency of the whole channel (all its 20 MHz parts). No value when the channel is not known. |
 | `width_hz` | frequency | always | 1.0 | The channel width. |
-| `standard` | text | always | 1.0 | The newest standard ("ax"). |
-| `security` | text | always | 1.0 | The security. |
+| `generation` | choice | optional | 1.0 | The newest amendment the network declares. No value when the band and the elements do not tell. |
+| `security` | choice | always | 1.0 | The security. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the last frame. |
 | `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
@@ -229,7 +230,7 @@ Struct `WifiNetworkRow`. A row of the networks of `wifi`. The row key is the BSS
 | `pmf` | text | always | 1.0 | Protected management frames: "required", "capable" or "". |
 | `capability` | text | always | 1.0 | The capability bits as text. |
 | `details` | text | always | 1.0 | The other elements as text. |
-| `stations` | whole number | always | 3.1 | Client stations heard with this BSSID. |
+| `stations` | whole number | always | 1.0 | Client stations heard with this BSSID. |
 
 The rows are the stations or nodes of the stack. The column `ssid` names a row. Default order: the column `level_dbfs`, highest first. Time: `first_heard`.
 
@@ -239,25 +240,25 @@ Struct `WifiStationRow`. A row of the client stations of `wifi`. The row key is 
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `address` | text | always | 3.1 | The address. |
-| `vendor` | text | always | 3.1 | The vendor of the address. |
-| `randomised` | yes or no | always | 3.1 | The address is locally administered (randomised). |
-| `bssid` | text | optional | 3.1 | The BSSID of its access point, if a frame tied it to one. |
-| `link` | choice | always | 3.1 | How far it got with its access point. |
-| `last_heard` | time | optional | 3.1 | The UTC of the last frame, for a live source. |
-| `level_dbfs` | number (dBFS) | optional | 3.1 | The level of the last frame it sent. |
-| `sent` | whole number | always | 3.1 | Frames it sent. |
-| `received` | whole number | always | 3.1 | Frames sent to it. |
-| `probes` | whole number | always | 3.1 | Probe requests it sent. |
-| `data` | whole number | always | 3.1 | Data frames to or from it. |
-| `null_data` | whole number | always | 3.1 | Null data frames it sent. |
-| `protected` | whole number | always | 3.1 | Protected frames to or from it. |
-| `ssids` | text | always | 3.1 | The SSIDs it probed for, joined with ", ". |
-| `generation` | whole number | always | 3.1 | The newest Wi-Fi generation its frames declare (0 when none). |
-| `max_rate_mbps` | number (Mbit/s) | optional | 3.1 | The highest data rate its frames declare. |
-| `channel` | whole number | optional | 3.1 | The channel of its last frame (no value when not known). |
+| `address` | text | always | 1.0 | The address. |
+| `vendor` | text | always | 1.0 | The vendor of the address. |
+| `randomised` | yes or no | always | 1.0 | The address is locally administered (randomised). |
+| `bssid` | text | optional | 1.0 | The BSSID of its access point, if a frame tied it to one. |
+| `link` | choice | always | 1.0 | How far it got with its access point. |
+| `last_heard` | time | optional | 1.0 | The UTC of the last frame, for a live source. |
+| `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the last frame it sent. |
+| `sent` | whole number | always | 1.0 | Frames it sent. |
+| `received` | whole number | always | 1.0 | Frames sent to it. |
+| `probes` | whole number | always | 1.0 | Probe requests it sent. |
+| `data` | whole number | always | 1.0 | Data frames to or from it. |
+| `null_data` | whole number | always | 1.0 | Null data frames it sent. |
+| `protected` | whole number | always | 1.0 | Protected frames to or from it. |
+| `ssids` | text | always | 1.0 | The SSIDs it probed for, joined with ", ". |
+| `generation` | choice | optional | 1.0 | The newest amendment its frames declare. No value when none does. |
+| `max_rate_mbps` | number (Mbit/s) | optional | 1.0 | The highest data rate its frames declare. |
+| `channel` | whole number | optional | 1.0 | The channel of its last frame (no value when not known). |
 
-The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
+The column `address` names a row. Default order: the column `last_heard`, highest first.
 
 ### Table `beacons`
 
@@ -266,14 +267,14 @@ Struct `WifiBeaconRow`. A row of the frame log of `wifi`.
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `signal_s` | number (s) | always | 1.0 | The signal time of the frame. |
-| `channel` | whole number | always | 1.0 | The channel the frame was heard on. |
+| `channel` | whole number | optional | 1.0 | The channel the frame was heard on. No value when the receiver does not know it. |
 | `bssid` | text | always | 1.0 | The BSSID. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
 | `bytes` | whole number | always | 1.0 | The length, FCS included. |
 | `details` | text | always | 1.0 | The summary. |
-| `format` | text | optional | 3.1 | The PPDU format of the frame ("HT", "VHT"); no value for DSSS and non-HT OFDM. |
-| `mcs` | whole number | optional | 3.1 | The MCS of an HT or VHT frame. |
-| `aggregated` | yes or no | always | 3.1 | The frame came in an A-MPDU. |
+| `format` | text | optional | 1.0 | The PPDU format of the frame ("HT", "VHT"); no value for DSSS and non-HT OFDM. |
+| `mcs` | whole number | optional | 1.0 | The MCS of an HT or VHT frame. |
+| `aggregated` | yes or no | always | 1.0 | The frame came in an A-MPDU. |
 
 The column `bssid` names a row.
 

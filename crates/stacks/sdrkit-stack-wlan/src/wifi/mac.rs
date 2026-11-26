@@ -696,6 +696,112 @@ pub fn cipher_name(c: u8) -> String {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// The security of a network, from its RSN and WPA elements and the privacy bit. Standard: IEEE Std 802.11-2020 clause
+    /// 9.4.2.24 (RSN element) and the WPA3 specification of the Wi-Fi Alliance (transition modes).
+    #[derive(Default, Serialize, Deserialize)]
+    pub enum WifiSecurity {
+        /// No security.
+        #[default]
+        Open = ("open", "Open"),
+        /// WEP (the privacy bit without RSN or WPA).
+        Wep = ("wep", "WEP"),
+        /// WPA with a pre-shared key.
+        Wpa = ("wpa", "WPA"),
+        /// WPA and WPA2 together.
+        WpaWpa2 = ("wpa_wpa2", "WPA/WPA2"),
+        /// WPA2 with a pre-shared key.
+        Wpa2 = ("wpa2", "WPA2"),
+        /// WPA2 and WPA3 together (the transition mode).
+        Wpa2Wpa3 = ("wpa2_wpa3", "WPA2/WPA3"),
+        /// WPA3 (SAE).
+        Wpa3 = ("wpa3", "WPA3"),
+        /// Opportunistic Wireless Encryption (Enhanced Open).
+        Owe = ("owe", "OWE (Enhanced Open)"),
+        /// WPA with 802.1X.
+        WpaEnterprise = ("wpa_enterprise", "WPA-Enterprise"),
+        /// WPA and WPA2 with 802.1X.
+        WpaWpa2Enterprise = ("wpa_wpa2_enterprise", "WPA/WPA2-Enterprise"),
+        /// WPA2 with 802.1X.
+        Wpa2Enterprise = ("wpa2_enterprise", "WPA2-Enterprise"),
+        /// WPA2 and WPA3 with 802.1X (the transition mode).
+        Wpa2Wpa3Enterprise = ("wpa2_wpa3_enterprise", "WPA2/WPA3-Enterprise"),
+        /// WPA3 with 802.1X, the 192-bit Suite B mode included.
+        Wpa3Enterprise = ("wpa3_enterprise", "WPA3-Enterprise"),
+    }
+}
+
+impl WifiSecurity {
+    /// The kind for a base name of [`Security::base`] and the enterprise flag. Unknown names are open.
+    pub fn of(base: &str, enterprise: bool) -> WifiSecurity {
+        use WifiSecurity as S;
+        match (base, enterprise) {
+            ("WEP", _) => S::Wep,
+            ("WPA", false) => S::Wpa,
+            ("WPA", true) => S::WpaEnterprise,
+            ("WPA/WPA2", false) => S::WpaWpa2,
+            ("WPA/WPA2", true) => S::WpaWpa2Enterprise,
+            ("WPA2", false) => S::Wpa2,
+            ("WPA2", true) => S::Wpa2Enterprise,
+            ("WPA2/WPA3", false) => S::Wpa2Wpa3,
+            ("WPA2/WPA3", true) => S::Wpa2Wpa3Enterprise,
+            ("WPA3", false) => S::Wpa3,
+            ("WPA3", true) => S::Wpa3Enterprise,
+            (b, _) if b.starts_with("OWE") => S::Owe,
+            _ => S::Open,
+        }
+    }
+
+    /// Open or OWE: no key is needed to join.
+    pub fn is_open(self) -> bool {
+        matches!(self, WifiSecurity::Open | WifiSecurity::Owe)
+    }
+
+    /// WPA3 in any mode, or OWE.
+    pub fn is_wpa3_or_owe(self) -> bool {
+        use WifiSecurity as S;
+        matches!(
+            self,
+            S::Wpa3 | S::Wpa2Wpa3 | S::Owe | S::Wpa3Enterprise | S::Wpa2Wpa3Enterprise
+        )
+    }
+}
+
+sdrkit_core::choice_enum! {
+    /// The newest 802.11 amendment a network or a station declares, with the Wi-Fi Alliance generation number where one
+    /// exists. Standard: IEEE Std 802.11-2020 clauses 15 to 21, 802.11ax-2021, 802.11be-2024.
+    #[derive(Serialize, Deserialize)]
+    pub enum WifiGeneration {
+        /// 802.11b (DSSS and CCK).
+        B = ("b", "802.11b"),
+        /// 802.11a (OFDM at 5 GHz).
+        A = ("a", "802.11a"),
+        /// 802.11g (OFDM at 2.4 GHz).
+        G = ("g", "802.11g"),
+        /// Wi-Fi 4, 802.11n (HT).
+        N = ("n", "Wi-Fi 4 (802.11n)"),
+        /// Wi-Fi 5, 802.11ac (VHT).
+        Ac = ("ac", "Wi-Fi 5 (802.11ac)"),
+        /// Wi-Fi 6, 802.11ax (HE).
+        Ax = ("ax", "Wi-Fi 6 (802.11ax)"),
+        /// Wi-Fi 7, 802.11be (EHT).
+        Be = ("be", "Wi-Fi 7 (802.11be)"),
+    }
+}
+
+impl WifiGeneration {
+    /// The generation of a Wi-Fi Alliance number: 4 HT, 5 VHT, 6 HE, 7 EHT. `None` for another number.
+    pub fn of_number(n: u8) -> Option<WifiGeneration> {
+        match n {
+            4 => Some(WifiGeneration::N),
+            5 => Some(WifiGeneration::Ac),
+            6 => Some(WifiGeneration::Ax),
+            7 => Some(WifiGeneration::Be),
+            _ => None,
+        }
+    }
+}
+
 /// Security as announced.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Security {
@@ -711,6 +817,8 @@ pub struct Security {
     pub akms: String,
     /// "required", "capable" or "no".
     pub pmf: String,
+    /// The kind, from the base name and the enterprise flag.
+    pub kind: WifiSecurity,
 }
 
 /// The security of a BSS (from RSN, WPA and the privacy bit).
@@ -775,6 +883,7 @@ pub fn security(el: &Elements, capability: u16) -> Security {
     } else {
         s.base.clone()
     };
+    s.kind = WifiSecurity::of(&s.base, s.enterprise);
     s
 }
 
@@ -849,6 +958,8 @@ pub struct Combined {
     pub centre: Option<u8>,
     /// Standard text ("a/n/ac/ax").
     pub standard: String,
+    /// The newest amendment of the standard text.
+    pub generation: Option<WifiGeneration>,
     /// Capabilities in plain words.
     pub caps: String,
 }
@@ -931,6 +1042,9 @@ pub fn combine(el: &Elements, band: Option<Band>) -> Combined {
     if el.eht_caps {
         parts.push("be");
     }
+    c.generation = parts
+        .last()
+        .and_then(|&p| <WifiGeneration as sdrkit_core::value::Choice>::from_key(p));
     c.standard = parts.join("/");
     c.caps = caps_text(el, c.width);
     c

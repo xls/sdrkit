@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 3.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_WLAN_VERSION_MAJOR 3
-#define SDRKIT_WLAN_VERSION_MINOR 1
+#define SDRKIT_WLAN_VERSION_MAJOR 4
+#define SDRKIT_WLAN_VERSION_MINOR 0
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -373,6 +373,8 @@ typedef struct sdrkit_ble_device_row {
   double periodic_interval_ms;
   // The kind of device its Appearance or beacon format declares. A value of `sdrkit_ble_device_row_device_kind`.
   int32_t device_kind;
+  // Its advertising data matches a rule of the tracker detector of `bletracker` (Find My, Tile, Chipolo, SmartTag, Google Find Hub).
+  bool tracker;
 } sdrkit_ble_device_row;
 
 // A row of the packet log of `ble`.
@@ -565,6 +567,10 @@ typedef struct sdrkit_bletracker_tracker_row {
   int64_t addresses;
   // The signal time it was last heard. Unit: s.
   double last_s;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the last sighting, for a live source. Seconds since 1970 (UTC).
+  double last_heard;
   // Packets heard.
   int64_t packets;
   // It says it is away from its owner.
@@ -619,10 +625,6 @@ typedef struct sdrkit_bletracker_tracker_row {
   bool has_service_data;
   // The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag).
   sdrkit_string service_data;
-  // True if `last_heard` holds a value.
-  bool has_last_heard;
-  // The UTC of the last sighting, for a live source. Seconds since 1970 (UTC).
-  double last_heard;
 } sdrkit_bletracker_tracker_row;
 
 // A row of the alerts of `bletracker`.
@@ -841,6 +843,54 @@ typedef enum sdrkit_wifi_network_row_band {
   SDRKIT_WIFI_NETWORK_ROW_BAND_6_GHZ = 2,
 } sdrkit_wifi_network_row_band;
 
+// The options of `generation` of `sdrkit_wifi_network_row`.
+typedef enum sdrkit_wifi_network_row_generation {
+  // 802.11b
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_B = 0,
+  // 802.11a
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_A = 1,
+  // 802.11g
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_G = 2,
+  // Wi-Fi 4 (802.11n)
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_N = 3,
+  // Wi-Fi 5 (802.11ac)
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_AC = 4,
+  // Wi-Fi 6 (802.11ax)
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_AX = 5,
+  // Wi-Fi 7 (802.11be)
+  SDRKIT_WIFI_NETWORK_ROW_GENERATION_BE = 6,
+} sdrkit_wifi_network_row_generation;
+
+// The options of `security` of `sdrkit_wifi_network_row`.
+typedef enum sdrkit_wifi_network_row_security {
+  // Open
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_OPEN = 0,
+  // WEP
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WEP = 1,
+  // WPA
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA = 2,
+  // WPA/WPA2
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA_WPA2 = 3,
+  // WPA2
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA2 = 4,
+  // WPA2/WPA3
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA2_WPA3 = 5,
+  // WPA3
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA3 = 6,
+  // OWE (Enhanced Open)
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_OWE = 7,
+  // WPA-Enterprise
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA_ENTERPRISE = 8,
+  // WPA/WPA2-Enterprise
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA_WPA2_ENTERPRISE = 9,
+  // WPA2-Enterprise
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA2_ENTERPRISE = 10,
+  // WPA2/WPA3-Enterprise
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA2_WPA3_ENTERPRISE = 11,
+  // WPA3-Enterprise
+  SDRKIT_WIFI_NETWORK_ROW_SECURITY_WPA3_ENTERPRISE = 12,
+} sdrkit_wifi_network_row_security;
+
 // A row of the networks of `wifi`. The row key is the BSSID.
 typedef struct sdrkit_wifi_network_row {
   // The number of bytes of this struct that the library wrote.
@@ -857,16 +907,26 @@ typedef struct sdrkit_wifi_network_row {
   bool has_band;
   // The band. A value of `sdrkit_wifi_network_row_band`.
   int32_t band;
-  // The primary channel.
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The primary channel. No value when the frames give none and the receiver does not know its own channel.
   int64_t channel;
-  // The channel the frames were heard on.
+  // True if `heard_on` holds a value.
+  bool has_heard_on;
+  // The channel the frames were heard on. No value when the receiver does not know it, as for a recording.
   int64_t heard_on;
+  // True if `centre_hz` holds a value.
+  bool has_centre_hz;
+  // The centre frequency of the whole channel (all its 20 MHz parts). No value when the channel is not known. A frequency in Hz.
+  double centre_hz;
   // The channel width. A frequency in Hz.
   double width_hz;
-  // The newest standard ("ax").
-  sdrkit_string standard;
-  // The security.
-  sdrkit_string security;
+  // True if `generation` holds a value.
+  bool has_generation;
+  // The newest amendment the network declares. No value when the band and the elements do not tell. A value of `sdrkit_wifi_network_row_generation`.
+  int32_t generation;
+  // The security. A value of `sdrkit_wifi_network_row_security`.
+  int32_t security;
   // The level of the last frame. Unit: dBFS.
   double level_dbfs;
   // True if `first_heard` holds a value.
@@ -911,6 +971,24 @@ typedef enum sdrkit_wifi_station_row_link {
   SDRKIT_WIFI_STATION_ROW_LINK_LEFT = 4,
 } sdrkit_wifi_station_row_link;
 
+// The options of `generation` of `sdrkit_wifi_station_row`.
+typedef enum sdrkit_wifi_station_row_generation {
+  // 802.11b
+  SDRKIT_WIFI_STATION_ROW_GENERATION_B = 0,
+  // 802.11a
+  SDRKIT_WIFI_STATION_ROW_GENERATION_A = 1,
+  // 802.11g
+  SDRKIT_WIFI_STATION_ROW_GENERATION_G = 2,
+  // Wi-Fi 4 (802.11n)
+  SDRKIT_WIFI_STATION_ROW_GENERATION_N = 3,
+  // Wi-Fi 5 (802.11ac)
+  SDRKIT_WIFI_STATION_ROW_GENERATION_AC = 4,
+  // Wi-Fi 6 (802.11ax)
+  SDRKIT_WIFI_STATION_ROW_GENERATION_AX = 5,
+  // Wi-Fi 7 (802.11be)
+  SDRKIT_WIFI_STATION_ROW_GENERATION_BE = 6,
+} sdrkit_wifi_station_row_generation;
+
 // A row of the client stations of `wifi`. The row key is the address.
 typedef struct sdrkit_wifi_station_row {
   // The number of bytes of this struct that the library wrote.
@@ -951,8 +1029,10 @@ typedef struct sdrkit_wifi_station_row {
   int64_t protected_;
   // The SSIDs it probed for, joined with ", ".
   sdrkit_string ssids;
-  // The newest Wi-Fi generation its frames declare (0 when none).
-  int64_t generation;
+  // True if `generation` holds a value.
+  bool has_generation;
+  // The newest amendment its frames declare. No value when none does. A value of `sdrkit_wifi_station_row_generation`.
+  int32_t generation;
   // True if `max_rate_mbps` holds a value.
   bool has_max_rate_mbps;
   // The highest data rate its frames declare. Unit: Mbit/s.
@@ -971,7 +1051,9 @@ typedef struct sdrkit_wifi_beacon_row {
   sdrkit_string key;
   // The signal time of the frame. Unit: s.
   double signal_s;
-  // The channel the frame was heard on.
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The channel the frame was heard on. No value when the receiver does not know it.
   int64_t channel;
   // The BSSID.
   sdrkit_string bssid;
@@ -1559,7 +1641,9 @@ typedef struct sdrkit_espnow_device_row {
   double rate;
   // The level of the last frame. Unit: dBFS.
   double level_dbfs;
-  // The channel of the last frame (0: not known).
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The channel of the last frame. No value when the receiver does not know it.
   int64_t channel;
   // The PHY rate of the last frame. Unit: kbit/s.
   int64_t phy_rate_kbps;
@@ -1597,7 +1681,9 @@ typedef struct sdrkit_espnow_frame_row {
   double time;
   // The signal time of the frame. Unit: s.
   double signal_s;
-  // The channel (0: not known).
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The channel. No value when the receiver does not know it.
   int64_t channel;
   // The PHY rate. Unit: kbit/s.
   int64_t phy_rate_kbps;
@@ -2527,10 +2613,8 @@ static inline int32_t sdrkit_wifi_networks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "wifi" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The rows are the stations or nodes of the stack.
 // The column `address` names a row.
 // Default order: the column `last_heard`, highest first.
-// Time: `last_heard`.
 static inline int32_t sdrkit_wifi_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wifi_station_row *rows,
                                                uint32_t capacity,

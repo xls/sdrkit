@@ -324,7 +324,8 @@ pub struct DsssFrame<'a> {
     pub snr_db: f64,
     /// The mean power of the despread symbols (full scale 1).
     pub power: f64,
-    /// The mean power of the input over the 32 symbols that end with the SFD, dBFS (dB relative to full scale).
+    /// The power of the signal over the 32 symbols that end with the SFD, dBFS (dB relative to full scale): the input power
+    /// less the noise that the spread of the phase steps shows.
     pub level_dbfs: f64,
 }
 
@@ -617,6 +618,8 @@ impl DsssReceiver {
             return;
         }
         let prev = self.at(h.n);
+        // A DSSS signal fills the band of the chain (its main lobe is 22 MHz wide): the input power holds the signal and the
+        // noise of the band. The frame's end takes the noise out.
         let span = (LEVEL_SYMBOLS * sps).min(h.n + 1);
         let level = (h.n + 1 - span..=h.n)
             .map(|i| self.x[(i as usize) & (RING - 1)].norm_sqr() as f64)
@@ -764,7 +767,10 @@ impl DsssReceiver {
             offset_hz: mean * 1e6 / std::f64::consts::TAU,
             snr_db: 10.0 * (1.0 / var).log10(),
             power: d.pow / k,
-            level_dbfs: sdrkit_algo_dsp::meter::power_to_db(d.level),
+            // The phase steps of the despread symbols spread by var = noise / (sps * signal) (the despread noise is 1 / sps of
+            // the input noise), so input = signal * (1 + sps * var). The correlation loss only makes var larger: the level
+            // never reads high.
+            level_dbfs: sdrkit_algo_dsp::meter::power_to_db(d.level / (1.0 + var * self.sps as f64)),
         });
     }
 }

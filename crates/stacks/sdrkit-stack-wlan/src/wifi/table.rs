@@ -1,10 +1,10 @@
 //! The `wifi` network table, the frame log, the per-band summary and what the stack publishes (the `wlan.wifi_networks`
 //! component). The table and the log are kept in the saved state.
 
-use super::mac::{
+use super::mac::{WifiGeneration, WifiSecurity,
     combine, header, is_duplicate, parse_bss, rates_text, security, summary, Bss, BssFrame,
 };
-use super::plan::{centre_mhz, hop_list, parse_channels, valid, Band};
+use super::plan::{centre_mhz, hop_list, parse_channels, valid, wide_centre_mhz, Band};
 use super::stations::{Heard, Stations};
 use super::{DsssCounters, OfdmCounters, PhyKind, PpduCounters, WifiMpdu, WifiStats};
 use crate::report::{mac_text, push_history, remove_older_rows, wall};
@@ -208,8 +208,8 @@ pub struct Network {
     pub heard_on: u32,
     /// PHY of the last frame.
     pub phy: Option<PhyKind>,
-    /// Security name.
-    pub security: String,
+    /// Security.
+    pub security: WifiSecurity,
     /// Enterprise.
     pub enterprise: bool,
     /// Ciphers.
@@ -228,6 +228,10 @@ pub struct Network {
     pub width_mhz: u32,
     /// Standard ("b/g/n/ax").
     pub standard: String,
+    /// The newest amendment of the standard.
+    pub generation: Option<WifiGeneration>,
+    /// The centre frequency of the whole channel, MHz.
+    pub centre_mhz: Option<f64>,
     /// Capabilities in plain words.
     pub caps: String,
     /// BSS color.
@@ -263,7 +267,6 @@ pub struct Network {
     /// The text of the details column.
     pub details_text: String,
     /// Client stations heard with this BSSID, as of the last publish.
-    #[serde(default)]
     pub stations: u32,
 }
 
@@ -311,11 +314,11 @@ impl Network {
     /// Whether the network passes the screen filters (the text is lower case already).
     fn shown(&self, f: &Filters) -> bool {
         (f.lower.is_empty()
-            || [&self.ssid, &self.bssid, &self.vendor, &self.security]
+            || [&self.ssid, &self.bssid, &self.vendor, self.security.label()]
                 .iter()
                 .any(|s| s.to_lowercase().contains(&f.lower)))
             && self.level_dbfs >= f.min_level_dbfs
-            && (!f.open_only || self.security == "Open" || self.security.starts_with("OWE"))
+            && (!f.open_only || self.security.is_open())
             && f.band.is_none_or(|b| self.band == Some(b))
     }
 }
@@ -340,11 +343,12 @@ impl Shaped for Network {
                 &self.vendor
             },
             band: self.band,
-            channel: i64::from(self.channel),
-            heard_on: i64::from(self.heard_on),
+            channel: (self.channel != 0).then_some(i64::from(self.channel)),
+            heard_on: (self.heard_on != 0).then_some(i64::from(self.heard_on)),
+            centre_hz: self.centre_mhz.map(|f| Hertz(f * 1e6)),
             width_hz: Hertz(f64::from(self.width_mhz) * 1e6),
-            standard: self.standard.rsplit('/').next().unwrap_or(""),
-            security: &self.security,
+            generation: self.generation,
+            security: self.security,
             level_dbfs: self.level_dbfs,
             first_heard: columns::first_heard(seen).map(Time),
             last_heard: columns::last_heard(seen).map(Time),
@@ -378,13 +382,10 @@ pub struct LogLine {
     /// Summary.
     pub info: String,
     /// The PPDU format name of an HT or VHT frame; empty otherwise.
-    #[serde(default)]
     pub format: String,
     /// The MCS of an HT or VHT frame.
-    #[serde(default)]
     pub mcs: Option<u8>,
     /// The frame came in an A-MPDU.
-    #[serde(default)]
     pub aggregated: bool,
 }
 
@@ -399,7 +400,7 @@ impl Shaped for LogLine {
     fn row(&self, _seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
         out.put(&WifiBeaconRow {
             signal_s: self.t,
-            channel: i64::from(self.ch),
+            channel: (self.ch != 0).then_some(i64::from(self.ch)),
             bssid: &self.bssid,
             level_dbfs: self.level_dbfs,
             bytes: self.len as i64,
@@ -437,7 +438,7 @@ impl Shift for Store {
 }
 
 impl objcmd::Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("wlan.wifi_networks", 2);
+    const FORMAT: StateFormat = StateFormat::new("wlan.wifi_networks", 3);
     fn clear(&mut self) {
         self.networks.clear();
         self.log.clear();
@@ -589,13 +590,12 @@ impl BandSum {
         }
         self.count += 1;
         self.beacons += n.beacons as i64;
-        self.ax_be += i64::from(n.standard.contains("ax") || n.standard.contains("be"));
-        self.wpa3_owe += i64::from(
-            n.security.starts_with("WPA3")
-                || n.security.starts_with("WPA2/WPA3")
-                || n.security.starts_with("OWE"),
-        );
-        self.open += i64::from(n.security == "Open");
+        self.ax_be += i64::from(matches!(
+            n.generation,
+            Some(WifiGeneration::Ax | WifiGeneration::Be)
+        ));
+        self.wpa3_owe += i64::from(n.security.is_wpa3_or_owe());
+        self.open += i64::from(n.security == WifiSecurity::Open);
         self.strongest = self.strongest.max(n.level_dbfs);
     }
 }
@@ -717,7 +717,7 @@ impl NetworkTable {
         n.band = band;
         n.phy = Some(phy_of(m));
         if b.frame != BssFrame::Fils {
-            n.security.clone_from(&sec.name);
+            n.security = sec.kind;
             n.enterprise = sec.enterprise;
             n.ciphers.clone_from(&sec.ciphers);
             n.akm.clone_from(&sec.akms);
@@ -728,7 +728,12 @@ impl NetworkTable {
             n.interval_tu = b.interval_tu;
             n.capability = format!("{:04X}", b.capability);
             n.width_mhz = comb.width;
+            n.centre_mhz = band.and_then(|bd| match comb.centre {
+                Some(c) if comb.width > 20 => wide_centre_mhz(bd, u32::from(c)),
+                _ => centre_mhz(bd, n.channel),
+            });
             n.standard.clone_from(&comb.standard);
+            n.generation = comb.generation;
             n.caps.clone_from(&comb.caps);
             n.bss_color = b.el.he_op.map(|o| o.color);
             n.twt = b.el.he.is_some_and(|h| h.twt_req || h.twt_resp);
@@ -765,7 +770,7 @@ impl NetworkTable {
         n.level_dbfs = m.level_dbfs;
         n.details_text = n.details();
         push_history(&mut n.history, m.level_dbfs as f32, 24);
-        let info = summary(b, comb.channel, &n.security);
+        let info = summary(b, comb.channel, n.security.label());
         self.store.log.push(LogLine {
             t: now,
             ch: m.channel,
@@ -820,6 +825,20 @@ impl NetworkTable {
         };
         if !self.stations.is_empty() {
             let _ = write!(status.summary, ", {} stations", self.stations.len());
+        }
+        if st.rate_hz > 0.0 && st.rate_hz < super::OFDM_RATE_HZ * 0.999_999 {
+            let msps = st.rate_hz / 1e6;
+            let _ = if matches!(st.band, None | Some(Band::G2)) {
+                write!(
+                    status.summary,
+                    "; at {msps:.1} Msps only 802.11b DSSS frames are received, OFDM (802.11a/g/n/ac/ax) needs 20 Msps"
+                )
+            } else {
+                write!(
+                    status.summary,
+                    "; nothing is received at {msps:.1} Msps in this band: OFDM needs 20 Msps"
+                )
+            };
         }
         let skipped: u64 = pp.not_decoded.iter().sum();
         if skipped > 0 {
@@ -960,7 +979,7 @@ impl NetworkTable {
                     null_data: s.null_data as i64,
                     protected: s.protected as i64,
                     ssids,
-                    generation: i64::from(s.generation),
+                    generation: WifiGeneration::of_number(s.generation),
                     max_rate_mbps: s.max_rate_mbps,
                     channel: (s.channel != 0).then_some(i64::from(s.channel)),
                 },

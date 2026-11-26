@@ -152,7 +152,7 @@ impl Default for BleGenParams {
             rate_hz: 4e6,
             looped: true,
             whitening: Whitening::Round,
-            packets: [test_schedule(), extended_schedule()].concat(),
+            packets: [test_schedule(), extended_schedule(), kinds_schedule()].concat(),
         }
     }
 }
@@ -242,7 +242,7 @@ fn uuids(d: &mut Vec<u8>, u: &[u16]) {
     ad::push_uuids16(d, u).expect("a UUID list of the schedule");
 }
 
-/// The eleven-packet schedule of the `ble` stack.
+/// The eleven-packet schedule of the `ble` stack. Its devices are at 0, -2.5, -4.4, -6 and -8 dB.
 pub fn test_schedule() -> Vec<GenPacket> {
     let a1 = addr("C0:FF:EE:12:34:56", true);
     let a2 = addr("00:0B:A1:5E:00:01", false);
@@ -265,10 +265,18 @@ pub fn test_schedule() -> Vec<GenPacket> {
     b.extend(7u16.to_be_bytes());
     b.push((-59i8) as u8);
     mfr(&mut d, 0x004C, &b);
-    v.push(GenPacket::new(adv(PduType::AdvNonconnInd, &a2, &d), 4e-3).offset(20e3));
+    v.push(
+        GenPacket::new(adv(PduType::AdvNonconnInd, &a2, &d), 4e-3)
+            .offset(20e3)
+            .scale(0.75),
+    );
     let mut p = scan.bytes.to_vec();
     p.extend_from_slice(&a1.bytes);
-    v.push(GenPacket::new(pdu(PduType::ScanReq, true, true, &p), 0.2e-3).offset(-15e3));
+    v.push(
+        GenPacket::new(pdu(PduType::ScanReq, true, true, &p), 0.2e-3)
+            .offset(-15e3)
+            .scale(0.6),
+    );
     let mut d = Vec::new();
     push(&mut d, ad::COMPLETE_NAME, b"Test phone");
     v.push(GenPacket::new(adv(PduType::ScanRsp, &a1, &d), 3e-3));
@@ -279,7 +287,11 @@ pub fn test_schedule() -> Vec<GenPacket> {
     url.extend(b"example");
     url.push(7);
     service(&mut d, 0xFEAA, &url);
-    v.push(GenPacket::new(adv(PduType::AdvNonconnInd, &a5, &d), 3e-3).offset(-30e3));
+    v.push(
+        GenPacket::new(adv(PduType::AdvNonconnInd, &a5, &d), 3e-3)
+            .offset(-30e3)
+            .scale(0.5),
+    );
     let mut d = Vec::new();
     uuids(&mut d, &[0xFEAA]);
     let mut tlm = vec![0x20, 0];
@@ -288,28 +300,48 @@ pub fn test_schedule() -> Vec<GenPacket> {
     tlm.extend(1234u32.to_be_bytes());
     tlm.extend(56789u32.to_be_bytes());
     service(&mut d, 0xFEAA, &tlm);
-    v.push(GenPacket::new(adv(PduType::AdvNonconnInd, &a5, &d), 3e-3).offset(-30e3));
+    v.push(
+        GenPacket::new(adv(PduType::AdvNonconnInd, &a5, &d), 3e-3)
+            .offset(-30e3)
+            .scale(0.5),
+    );
     let mut d = Vec::new();
     uuids(&mut d, &[0xFEAA]);
     let mut uid = vec![0x00, (-20i8) as u8];
     uid.extend(hex("EDD1EBEAC04E5DEFA017000000000001"));
     uid.extend([0, 0]);
     service(&mut d, 0xFEAA, &uid);
-    v.push(GenPacket::new(adv(PduType::AdvNonconnInd, &a5, &d), 3e-3).offset(-30e3));
+    v.push(
+        GenPacket::new(adv(PduType::AdvNonconnInd, &a5, &d), 3e-3)
+            .offset(-30e3)
+            .scale(0.5),
+    );
     let mut d = Vec::new();
     push(&mut d, ad::FLAGS, &[0x1A]);
     let mut rpi = hex("3C1A09775E42810DC62B94F06E13A558");
     rpi.extend([0x40, 0x08, 0x00, 0x00]);
     service(&mut d, 0xFD6F, &rpi);
-    v.push(GenPacket::new(adv(PduType::AdvNonconnInd, &a8, &d), 4e-3).offset(10e3));
+    v.push(
+        GenPacket::new(adv(PduType::AdvNonconnInd, &a8, &d), 4e-3)
+            .offset(10e3)
+            .scale(0.4),
+    );
     let mut d = Vec::new();
     push(&mut d, ad::FLAGS, &[0x1A]);
     mfr(&mut d, 0x004C, &[0x10, 0x05, 0x01, 0x18, 0x44, 0x22, 0x11]);
-    v.push(GenPacket::new(adv(PduType::AdvScanInd, &a8, &d), 3e-3).offset(10e3));
+    v.push(
+        GenPacket::new(adv(PduType::AdvScanInd, &a8, &d), 3e-3)
+            .offset(10e3)
+            .scale(0.4),
+    );
     let mut p = scan.bytes.to_vec();
     p.extend_from_slice(&a1.bytes);
     p.extend(hex("712A3B50123456020000180000004800FFFFFFFF1F05"));
-    v.push(GenPacket::new(pdu(PduType::ConnectInd, true, true, &p), 4e-3).offset(-15e3));
+    v.push(
+        GenPacket::new(pdu(PduType::ConnectInd, true, true, &p), 4e-3)
+            .offset(-15e3)
+            .scale(0.6),
+    );
     // ADV_EXT_IND with no AdvA: extended header length 6, AdvMode 0, flags ADI and AuxPtr, ADI, AuxPtr to channel 12, LE 2M.
     let aux: u32 = 12 | (100 + (1 << 13)) << 8;
     let ext = [
@@ -538,6 +570,63 @@ pub fn extended_schedule() -> Vec<GenPacket> {
             4e-3,
         )
         .offset(12e3),
+    );
+    v
+}
+
+/// One device of each kind that an Appearance declares, a Find My tracker and one device that declares nothing, at levels from
+/// -3 to -30 dB: a spread for a view that places devices by level. No names, so the named devices stay those of
+/// [`test_schedule`].
+pub fn kinds_schedule() -> Vec<GenPacket> {
+    // Appearance values by category (Assigned Numbers clause 2.6): phone, wearable audio, watch, computer, media player,
+    // thermometer, tag.
+    let kinds: [(&str, Option<u16>, f64); 7] = [
+        ("D0:4B:00:00:00:01", Some(0x0040), -3.0),
+        ("D0:4B:00:00:00:02", Some(0x0941), -6.0),
+        ("D0:4B:00:00:00:03", Some(0x00C1), -9.0),
+        ("D0:4B:00:00:00:04", Some(0x0080), -12.0),
+        ("D0:4B:00:00:00:05", Some(0x0280), -15.0),
+        ("D0:4B:00:00:00:06", Some(0x0300), -18.0),
+        ("D0:4B:00:00:00:07", Some(0x0200), -21.0),
+    ];
+    let scale = |db: f64| 10f64.powf(db / 20.0);
+    let mut v = Vec::new();
+    for (i, &(a, appearance, db)) in kinds.iter().enumerate() {
+        let mut d = Vec::new();
+        push(&mut d, ad::FLAGS, &[6]);
+        if let Some(x) = appearance {
+            push(&mut d, ad::APPEARANCE, &x.to_le_bytes());
+        }
+        v.push(
+            GenPacket::new(adv(PduType::AdvInd, &addr(a, true), &d), 3e-3)
+                .scale(scale(db))
+                .offset(-25e3 + 7e3 * i as f64),
+        );
+    }
+    // The offline finding frame of Find My: type 0x12, length 25, status, 22 bytes of key, key bits and hint.
+    let mut m = vec![0x12, 0x19, 0x10];
+    m.extend((0..22).map(|i| 0x21u8.wrapping_add(5 * i)));
+    m.extend([0x02, 0x00]);
+    let mut d = Vec::new();
+    mfr(&mut d, 0x004C, &m);
+    v.push(
+        GenPacket::new(
+            adv(PduType::AdvNonconnInd, &addr("D0:4B:00:00:00:08", true), &d),
+            3e-3,
+        )
+        .scale(scale(-24.0))
+        .offset(6e3),
+    );
+    let mut d = Vec::new();
+    push(&mut d, ad::FLAGS, &[6]);
+    mfr(&mut d, 0xFFFF, &[9, 8, 7]);
+    v.push(
+        GenPacket::new(
+            adv(PduType::AdvNonconnInd, &addr("D0:4B:00:00:00:09", true), &d),
+            3e-3,
+        )
+        .scale(scale(-30.0))
+        .offset(-6e3),
     );
     v
 }

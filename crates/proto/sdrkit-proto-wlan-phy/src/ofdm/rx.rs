@@ -44,7 +44,8 @@ pub struct OfdmFrame<'a> {
     pub offset_hz: f64,
     /// The mean signal-to-noise ratio of the subcarriers from the long training field, dB.
     pub snr_db: f64,
-    /// The mean power of the input over the long training field (guard and two symbols), dBFS (dB relative to full scale).
+    /// The power of the signal in the long training field on its 52 subcarriers, dBFS (dB relative to full scale). Noise and
+    /// other signals outside the subcarriers do not count, and the noise inside them is taken out.
     pub level_dbfs: f64,
 }
 
@@ -67,7 +68,7 @@ pub struct PpduView<'a> {
     pub noise: f32,
     /// The mean signal-to-noise ratio of the subcarriers from the long training field, dB.
     pub snr_db: f64,
-    /// The mean power of the input over the long training field, dBFS.
+    /// The power of the signal in the long training field on its 52 subcarriers, the noise taken out, dBFS.
     pub level_dbfs: f64,
 }
 
@@ -130,6 +131,8 @@ pub struct OfdmReceiver {
     weights: [f32; N_SD],
     noise: f32,
     snr_db: f64,
+    /// The power of the signal in the two long training symbols on the 52 used subcarriers, the noise taken out.
+    ltf_power: f64,
     pol: [i8; 127],
     dc: [i32; N_SD],
     sig_perm: Permutation,
@@ -184,6 +187,7 @@ impl OfdmReceiver {
             weights: [0.0; N_SD],
             noise: 1.0,
             snr_db: 0.0,
+            ltf_power: 0.0,
             pol: ieee80211_pilot_polarity(),
             dc: data_carriers(),
             sig_perm: Rate::R6.interleaver(),
@@ -431,7 +435,7 @@ impl OfdmReceiver {
         let d = from + p as u64;
         let a = self.fft_at(d - BACKOFF, d, f);
         let b = self.fft_at(d + NFFT as u64 - BACKOFF, d, f);
-        let (mut ph, mut pn) = (0f32, 0f32);
+        let (mut ph, mut pn, mut pl) = (0f32, 0f32, 0f64);
         for (i, &l) in LTF.iter().enumerate() {
             let k = bin(i as i32 - 26);
             if l == 0 {
@@ -441,12 +445,17 @@ impl OfdmReceiver {
             self.h[k] = (a[k] + b[k]) * 0.5 * l as f32;
             ph += self.h[k].norm_sqr();
             pn += (a[k] - b[k]).norm_sqr() * 0.5;
+            pl += f64::from(a[k].norm_sqr() + b[k].norm_sqr()) * 0.5;
         }
         let ph = ph / 52.0;
         if ph < 1e-20 {
             return None;
         }
         self.noise = (pn / 52.0).max(ph * 1e-5);
+        // Parseval for the unscaled transform: the mean power of a symbol is the sum of |X_k|^2 over NFFT^2. Each of the 52
+        // bins holds the noise `self.noise` (from the difference of the two symbols): what is left is the signal.
+        self.ltf_power =
+            (pl - 52.0 * f64::from(self.noise)).max(pl * 1e-3) / (NFFT * NFFT) as f64;
         for (v, h) in self.h_inv.iter_mut().zip(&self.h) {
             *v = if h.norm_sqr() > 1e-20 {
                 h.inv()
@@ -514,13 +523,6 @@ impl OfdmReceiver {
         Signal::from_bits(&self.sig_bits)
     }
 
-    /// The mean power of the input over the long training field (guard and two symbols) of a frame at `d`.
-    fn ltf_level(&self, d: u64) -> f64 {
-        let ltf = d.saturating_sub(2 * GI as u64).max(self.base)..d + 2 * NFFT as u64;
-        let n = (ltf.end - ltf.start) as f64;
-        ltf.map(|i| self.at(i).norm_sqr() as f64).sum::<f64>() / n
-    }
-
     /// Offers the PPDU at `d` that ends at `end` to `on_ppdu`; true when it took it.
     fn offer(
         &self,
@@ -538,7 +540,7 @@ impl OfdmReceiver {
             channel: &self.h,
             noise: self.noise,
             snr_db: self.snr_db,
-            level_dbfs: sdrkit_algo_dsp::meter::power_to_db(self.ltf_level(d)),
+            level_dbfs: sdrkit_algo_dsp::meter::power_to_db(self.ltf_power),
         };
         on_ppdu(&view)
     }
@@ -572,7 +574,7 @@ impl OfdmReceiver {
             }
         }
         let snr_db = self.snr_db;
-        let level = self.ltf_level(d);
+        let level = self.ltf_power;
         let stats = &mut self.stats;
         match self.data.decode(&self.llr, rate, signal.length as usize) {
             Ok((psdu, seed)) if crate::mac::fcs_ok(psdu) => {

@@ -4,7 +4,7 @@ version = "0.5.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "Wireless LAN physical layers for sdrkit: Bluetooth LE 1M advertising (link layer, advertising data, receiver), IEEE 802.11b DSSS, 802.11a/g OFDM, the 802.11ah S1G numerology, and 802.11 MAC framing"
+description = "Wireless LAN physical layers for sdrkit: Bluetooth LE on the LE 1M, LE 2M and LE Coded PHYs (link layer, advertising data, extended advertising pointers, channel selection, receiver), IEEE 802.11b DSSS, 802.11a/g OFDM, the HT, VHT, HE and EHT signal fields with HT and VHT data at 20 MHz, the 802.11ah S1G numerology, and 802.11 MAC framing"
 
 [dependencies]
 sdrkit-core = { path = "../../framework/sdrkit-core" }

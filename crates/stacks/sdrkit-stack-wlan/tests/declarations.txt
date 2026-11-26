@@ -54,6 +54,7 @@ table "devices" "Devices" cap 400
   column FieldDecl { key: "set_id", label: "Set", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "periodic_interval_ms", label: "Periodic interval", unit: "ms", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "device_kind", label: "Device kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "phone", label: "Phone" }, ChoiceDecl { key: "headset", label: "Headset" }, ChoiceDecl { key: "watch", label: "Watch" }, ChoiceDecl { key: "tracker", label: "Tracker" }, ChoiceDecl { key: "beacon", label: "Beacon" }, ChoiceDecl { key: "computer", label: "Computer" }, ChoiceDecl { key: "audio", label: "Audio" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "tracker", label: "Tracker", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 table "packets" "Packets" cap 400
   marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "signal_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -280,16 +281,17 @@ field FieldDecl { key: "acks", label: "ACKs", unit: "", kind: I64, choices: [], 
 field FieldDecl { key: "block_acks", label: "Block Acks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "rx.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "networks" "Networks" cap 300
-  marks TableMarks { label: Some(0), sort: Some((9, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(10), own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((10, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(11), own: None, delivery: None, failure: None }
   column FieldDecl { key: "ssid", label: "SSID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "bssid", label: "BSSID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "vendor", label: "Vendor", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2.4", label: "2.4 GHz" }, ChoiceDecl { key: "5", label: "5 GHz" }, ChoiceDecl { key: "6", label: "6 GHz" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Ch", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "heard_on", label: "Heard on", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "width_hz", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
-  column FieldDecl { key: "standard", label: "Std", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
-  column FieldDecl { key: "security", label: "Security", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "b", label: "802.11b" }, ChoiceDecl { key: "a", label: "802.11a" }, ChoiceDecl { key: "g", label: "802.11g" }, ChoiceDecl { key: "n", label: "Wi-Fi 4 (802.11n)" }, ChoiceDecl { key: "ac", label: "Wi-Fi 5 (802.11ac)" }, ChoiceDecl { key: "ax", label: "Wi-Fi 6 (802.11ax)" }, ChoiceDecl { key: "be", label: "Wi-Fi 7 (802.11be)" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "security", label: "Security", unit: "", kind: Choice, choices: [ChoiceDecl { key: "open", label: "Open" }, ChoiceDecl { key: "wep", label: "WEP" }, ChoiceDecl { key: "wpa", label: "WPA" }, ChoiceDecl { key: "wpa_wpa2", label: "WPA/WPA2" }, ChoiceDecl { key: "wpa2", label: "WPA2" }, ChoiceDecl { key: "wpa2_wpa3", label: "WPA2/WPA3" }, ChoiceDecl { key: "wpa3", label: "WPA3" }, ChoiceDecl { key: "owe", label: "OWE (Enhanced Open)" }, ChoiceDecl { key: "wpa_enterprise", label: "WPA-Enterprise" }, ChoiceDecl { key: "wpa_wpa2_enterprise", label: "WPA/WPA2-Enterprise" }, ChoiceDecl { key: "wpa2_enterprise", label: "WPA2-Enterprise" }, ChoiceDecl { key: "wpa2_wpa3_enterprise", label: "WPA2/WPA3-Enterprise" }, ChoiceDecl { key: "wpa3_enterprise", label: "WPA3-Enterprise" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
@@ -303,7 +305,7 @@ table "networks" "Networks" cap 300
   column FieldDecl { key: "details", label: "Details", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "stations", label: "Stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: Some((5, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(5), own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((5, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "address", label: "Address", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "vendor", label: "Vendor", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "randomised", label: "Randomised", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
@@ -318,7 +320,7 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "null_data", label: "Null data", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "protected", label: "Protected", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "ssids", label: "SSIDs", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
-  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "b", label: "802.11b" }, ChoiceDecl { key: "a", label: "802.11a" }, ChoiceDecl { key: "g", label: "802.11g" }, ChoiceDecl { key: "n", label: "Wi-Fi 4 (802.11n)" }, ChoiceDecl { key: "ac", label: "Wi-Fi 5 (802.11ac)" }, ChoiceDecl { key: "ax", label: "Wi-Fi 6 (802.11ax)" }, ChoiceDecl { key: "be", label: "Wi-Fi 7 (802.11be)" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "max_rate_mbps", label: "Max rate", unit: "Mbit/s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Ch", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "beacons" "Beacons" cap 400

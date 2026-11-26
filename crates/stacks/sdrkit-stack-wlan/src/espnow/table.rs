@@ -156,7 +156,7 @@ impl Shaped for Device {
             broadcasts: self.broadcasts as i64,
             rate: self.rate(last_s, now_s),
             level_dbfs: self.level_dbfs,
-            channel: i64::from(self.channel),
+            channel: (self.channel != 0).then_some(i64::from(self.channel)),
             phy_rate_kbps: i64::from(self.phy_rate_kbps),
             last_to: &self.last_to,
             last_payload: &self.last_payload,
@@ -218,7 +218,7 @@ impl Shaped for LogLine {
         out.put(&EspnowFrameRow {
             time: self.wall.map(Time),
             signal_s: self.t,
-            channel: i64::from(self.ch),
+            channel: (self.ch != 0).then_some(i64::from(self.ch)),
             phy_rate_kbps: i64::from(self.rate_kbps),
             short_preamble: self.short,
             from: &self.from,

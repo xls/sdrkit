@@ -74,7 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `devices` | Devices | `address` (text), `address_type` (choice), `name` (text), `level_dbfs` (number (dBFS)), `last_heard` (time), `heard` (whole number), `vendor` (text), `beacon` (text), `channels` (text), `connectable` (yes or no), `scanned` (yes or no), `manufacturer_data` (text), `first_heard` (time), `phys` (text), `extended` (yes or no), `data_outside` (yes or no), `set_id` (whole number), `periodic_interval_ms` (number (ms)), `device_kind` (choice) |
+| `devices` | Devices | `address` (text), `address_type` (choice), `name` (text), `level_dbfs` (number (dBFS)), `last_heard` (time), `heard` (whole number), `vendor` (text), `beacon` (text), `channels` (text), `connectable` (yes or no), `scanned` (yes or no), `manufacturer_data` (text), `first_heard` (time), `phys` (text), `extended` (yes or no), `data_outside` (yes or no), `set_id` (whole number), `periodic_interval_ms` (number (ms)), `device_kind` (choice), `tracker` (yes or no) |
 | `packets` | Packets | `signal_s` (number (s)), `channel` (whole number), `pdu` (text), `address` (text), `level_dbfs` (number (dBFS)), `length` (whole number (B)), `details` (text), `phy` (text) |
 | `pdu_types` | PDU types | `pdu` (text), `packets` (whole number) |
 | `device_levels` | Device levels | `device` (text), `sample` (whole number), `level_dbfs` (number (dBFS)) |
@@ -97,7 +97,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -124,13 +124,13 @@ Struct `BleFields`. The result fields of `ble`.
 | `packets_39` | whole number | always | 1.0 | Good packets on channel 39. |
 | `hopping` | yes or no | always | 1.0 | The host steps through the advertising channels. |
 | `privacy` | text | always | 1.0 | The privacy note. |
-| `packets_secondary` | whole number | always | 3.1 | Good packets on the secondary advertising channels and the periodic trains (channels 0 to 36). |
-| `packets_2m` | whole number | always | 3.1 | Good packets on the LE 2M PHY. |
-| `packets_coded` | whole number | always | 3.1 | Good packets on the LE Coded PHY. |
-| `channels_in_capture` | whole number | always | 3.1 | The BLE channels inside the capture: the primary ones are received all the time, a secondary one while a packet points to it. 0 when the centre of the input is not known. |
-| `aux_followed` | whole number | always | 3.1 | Auxiliary packets reached through the AuxPtr that pointed to them. |
-| `aux_outside` | whole number | always | 3.1 | AuxPtr fields that point to a channel outside the capture: their data cannot be received here. |
-| `periodic_trains` | whole number | always | 3.1 | Periodic advertising trains whose packets the receivers take. |
+| `packets_secondary` | whole number | always | 1.0 | Good packets on the secondary advertising channels and the periodic trains (channels 0 to 36). |
+| `packets_2m` | whole number | always | 1.0 | Good packets on the LE 2M PHY. |
+| `packets_coded` | whole number | always | 1.0 | Good packets on the LE Coded PHY. |
+| `channels_in_capture` | whole number | always | 1.0 | The BLE channels inside the capture: the primary ones are received all the time, a secondary one while a packet points to it. 0 when the centre of the input is not known. |
+| `aux_followed` | whole number | always | 1.0 | Auxiliary packets reached through the AuxPtr that pointed to them. |
+| `aux_outside` | whole number | always | 1.0 | AuxPtr fields that point to a channel outside the capture: their data cannot be received here. |
+| `periodic_trains` | whole number | always | 1.0 | Periodic advertising trains whose packets the receivers take. |
 
 ### Result fields
 
@@ -161,12 +161,13 @@ Struct `BleDeviceRow`. A row of the devices of `ble`. The row key is the address
 | `scanned` | yes or no | always | 1.0 | Another device sent a scan request to it. |
 | `manufacturer_data` | text | optional | 1.0 | The first 32 bytes of manufacturer data after the company identifier, hex, if a packet gave them. |
 | `first_heard` | time | optional | 1.0 | The UTC of the first packet. |
-| `phys` | text | always | 3.1 | The PHYs the device was heard on, as "LE 1M, LE Coded". |
-| `extended` | yes or no | always | 3.1 | The device uses extended advertising. |
-| `data_outside` | yes or no | always | 3.1 | An AuxPtr of the device points to a channel outside the capture: the row holds what the primary packets gave. |
-| `set_id` | whole number | optional | 3.1 | The advertising set id (SID) of the last extended packet, if one had it. |
-| `periodic_interval_ms` | number (ms) | optional | 3.1 | The interval of the device's periodic advertising train, if a SyncInfo gave one. |
-| `device_kind` | choice | always | 3.1 | The kind of device its Appearance or beacon format declares. |
+| `phys` | text | always | 1.0 | The PHYs the device was heard on, as "LE 1M, LE Coded". |
+| `extended` | yes or no | always | 1.0 | The device uses extended advertising. |
+| `data_outside` | yes or no | always | 1.0 | An AuxPtr of the device points to a channel outside the capture: the row holds what the primary packets gave. |
+| `set_id` | whole number | optional | 1.0 | The advertising set id (SID) of the last extended packet, if one had it. |
+| `periodic_interval_ms` | number (ms) | optional | 1.0 | The interval of the device's periodic advertising train, if a SyncInfo gave one. |
+| `device_kind` | choice | always | 1.0 | The kind of device its Appearance or beacon format declares. |
+| `tracker` | yes or no | always | 1.0 | Its advertising data matches a rule of the tracker detector of `bletracker` (Find My, Tile, Chipolo, SmartTag, Google Find Hub). |
 
 The rows are the stations or nodes of the stack. The column `name` names a row. Default order: the column `level_dbfs`, highest first. Time: `last_heard`.
 
@@ -183,7 +184,7 @@ Struct `BlePacketRow`. A row of the packet log of `ble`.
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the packet. |
 | `length` | whole number (B) | always | 1.0 | The payload length. |
 | `details` | text | always | 1.0 | The one-line summary. |
-| `phy` | text | always | 3.1 | The PHY of the packet ("LE 1M", "LE 2M", "LE Coded S=8" ...). |
+| `phy` | text | always | 1.0 | The PHY of the packet ("LE 1M", "LE 2M", "LE Coded S=8" ...). |
 
 The rows are a log: they arrive over time. The column `address` names a row. Time: `signal_s`.
 

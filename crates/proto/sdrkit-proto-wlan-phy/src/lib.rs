@@ -6,12 +6,19 @@
 //!
 //! | Module | Standard | What it holds |
 //! |---|---|---|
-//! | [`ble`] | Bluetooth Core Specification v5.4, Vol 6 Part B | channels, access address, whitening, CRC-24, advertising PDUs (parse and build), the bits on the air, and the LE 1M advertising receiver ([`ble::AdvReceiver`]) |
-//! | [`ble::ad`] | Core Specification Supplement v11, Part A | advertising data: the AD structure walk and the common structures (flags, names, UUID lists, service data, manufacturer data) |
+//! | [`ble`] | Bluetooth Core Specification v5.4, Vol 6 Part B | channels, access addresses, whitening, CRC-24, advertising PDUs (parse and build) and the receiver of one RF channel ([`ble::BleReceiver`], with [`ble::AdvReceiver`] its LE 1M advertising form) |
+//! | [`ble::ad`] | Core Specification Supplement v11, Part A | advertising data: the AD structure walk and the common structures (flags, names, UUID lists, service data, manufacturer data, appearance) |
+//! | [`ble::phy`] | Vol 6 Part B clauses 2.1, 2.2, 3.3 | the bits on the air of the LE 1M, LE 2M and LE Coded (S=2, S=8) PHYs |
+//! | [`ble::ext`] | Vol 6 Part B clauses 2.3.4.5, 2.3.4.6 | AuxPtr and SyncInfo of the extended header |
+//! | [`ble::csa`] | Vol 6 Part B clause 4.5.8 | the channel map and channel selection algorithms #1 and #2 |
 //! | [`dsss`] | IEEE Std 802.11-2020 clause 16 | 802.11b DSSS at 1 and 2 Mbit/s: Barker spreading, DBPSK and DQPSK, the scrambler, long and short PLCP preambles and headers (all four rates' LENGTH rules), the PPDU builder and the receiver ([`dsss::DsssReceiver`]) |
 //! | [`ofdm`] | IEEE Std 802.11-2020 clause 17 | 802.11a/g OFDM at all eight rates: SIGNAL, SERVICE and the scrambler seed, the coding chain (scrambler, K = 7 code, puncturing, interleaver, mapping) both ways, training fields, the PPDU builder and the burst receiver ([`ofdm::OfdmReceiver`]) |
+//! | [`sig`] | IEEE Std 802.11-2020 clause 21, 802.11ax, 802.11be | the signal fields after HT: VHT-SIG-A, VHT-SIG-B, HE-SIG-A and U-SIG |
+//! | [`ht`] | IEEE Std 802.11-2020 clause 19 | HT-mixed (802.11n), one stream at 20 MHz, BCC, MCS 0 to 7: HT-SIG, the data field both ways, the PPDU builder and the decoder of the HT part |
+//! | [`vht`] | IEEE Std 802.11-2020 clause 21 | VHT (802.11ac), one user and one stream at 20 MHz, BCC, VHT-MCS 0 to 8: the rate table and the PPDU builder |
+//! | [`ppdu`] | clauses 19, 21, 802.11ax, 802.11be | the format of a PPDU after the non-HT preamble (HT, VHT, HE, EHT) and [`ppdu::PpduDecoder`], which decodes the formats it can |
 //! | [`s1g`] | IEEE Std 802.11-2020 clause 23 | 802.11ah (S1G) numerology: widths, tone plans, MCS table, data bits per symbol, rates |
-//! | [`mac`] | IEEE Std 802.11-2020 clause 9 | MAC frames: frame control, addresses, sequence control, the FCS, management frame bodies (beacon, probe request and response), the element walk and the common elements (SSID, rates, DS parameter set, RSN, vendor specific), and builders |
+//! | [`mac`] | IEEE Std 802.11-2020 clause 9 | MAC frames: frame control, addresses, sequence control, the FCS, management frame bodies (beacon, probe request and response), the element walk and the common elements (SSID, rates, DS parameter set, RSN, vendor specific), A-MPDU de-aggregation, and builders |
 //!
 //! The receivers have benchmarks for the device in [`benchmarks`].
 //!

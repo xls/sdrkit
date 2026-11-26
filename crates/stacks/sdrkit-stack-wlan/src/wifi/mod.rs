@@ -33,11 +33,16 @@ use std::sync::Arc;
 
 /// The stack id.
 pub const ID: &str = "wifi";
-/// The lowest input rate, Hz.
-pub const MIN_RATE_HZ: f64 = 20e6;
+/// The lowest input rate, Hz. Below [`OFDM_RATE_HZ`] only the 802.11b DSSS frames of 2.4 GHz are received: the part of the
+/// 22 MHz main lobe inside the input still despreads. 4 Msps keeps a margin above the rate where it fails (about 2.5 Msps).
+pub const MIN_RATE_HZ: f64 = 4e6;
+/// The input rate that OFDM (802.11a/g/n/ac/ax) needs: one 20 MHz channel, Hz.
+pub const OFDM_RATE_HZ: f64 = 20e6;
+/// The rate of the DSSS chain below [`OFDM_RATE_HZ`]: 11 samples a symbol at 1 Msym/s, Hz.
+const DSSS_LOW_RATE_HZ: f64 = 11e6;
 /// From this rate a 5 or 6 GHz capture is split into its 20 MHz channels.
 pub const WIDE_RATE_HZ: f64 = 43.5e6;
-/// The rate both receivers run at, Hz.
+/// The rate both receivers run at from [`OFDM_RATE_HZ`] on, Hz.
 pub const CHAIN_RATE_HZ: f64 = 20e6;
 /// The work an OFDM chain may be behind its input before it stops decoding HT and VHT data fields, s.
 const BEHIND_S: f64 = 0.05;
@@ -350,9 +355,12 @@ enum Rx {
     Ofdm(Box<ofdm::OfdmReceiver>, Box<PpduDecoder>),
 }
 
-/// One 20 MHz channel: moved to 0 Hz and resampled to 20 Msps, with its receiver.
+/// One 20 MHz channel: moved to 0 Hz and resampled to the rate of its receiver (20 Msps, or 11 Msps for DSSS from a lower
+/// input rate).
 struct Chain {
     ch: Channelizer,
+    /// The output rate of the channelizer, Hz.
+    out_rate: f64,
     rx: Rx,
     buf: Vec<Complex32>,
     /// The MPDUs of HT and VHT PPDUs of one piece of input.
@@ -369,18 +377,23 @@ struct Chain {
 }
 
 impl Chain {
+    /// A chain of `width` Hz at `out_rate` Hz around `offset` Hz of an input at `rate` Hz.
+    #[allow(clippy::too_many_arguments)]
     fn new(
         rate: f64,
         offset: f64,
+        width: f64,
+        out_rate: f64,
         rx: Rx,
         t0: f64,
         band: Option<Band>,
         channel: u32,
     ) -> Option<Chain> {
-        let mut cfg = ChannelConfig::new(rate, offset, CHAIN_WIDTH_HZ, CHAIN_RATE_HZ);
+        let mut cfg = ChannelConfig::new(rate, offset, width, out_rate);
         cfg.exact_rate = true;
         Some(Chain {
             ch: Channelizer::new(cfg).ok()?,
+            out_rate,
             rx,
             buf: Vec::new(),
             extra: Vec::new(),
@@ -398,7 +411,8 @@ impl Chain {
         self.buf.clear();
         self.ch.process(x, &mut self.buf);
         let (t0, band, channel) = (self.t0, self.band, self.channel);
-        let at = |n: u64| t0 + n as f64 / CHAIN_RATE_HZ;
+        let out_rate = self.out_rate;
+        let at = |n: u64| t0 + n as f64 / out_rate;
         match &mut self.rx {
             Rx::Dsss(r) => r.process(&self.buf, |f| {
                 let rate = f.header.rate.units_100k() as f64 / 10.0;
@@ -421,7 +435,7 @@ impl Chain {
                 // When the work is more than BEHIND_S behind the signal, HT and VHT data fields are counted, not decoded.
                 dec.set_data(!self.keep_up || self.behind_s < BEHIND_S);
                 let started = std::time::Instant::now();
-                let signal_s = self.buf.len() as f64 / CHAIN_RATE_HZ * share;
+                let signal_s = self.buf.len() as f64 / out_rate * share;
                 r.process_with(
                     &self.buf,
                     |f| {
@@ -585,17 +599,30 @@ impl WifiDecoder {
         self.channel = ch;
         self.channel_offset = offset;
         let t0 = self.input as f64 / rate.max(1.0);
+        let ofdm = rate >= OFDM_RATE_HZ * 0.999_999;
         if matches!(band, None | Some(Band::G2)) {
-            if let Ok(r) = dsss::DsssReceiver::new((CHAIN_RATE_HZ / 1e6) as usize) {
+            // Below the OFDM rate the DSSS chain keeps what the input holds of the 22 MHz main lobe: the Barker correlation
+            // still finds the symbols, with less margin.
+            let (out, width) = if ofdm {
+                (CHAIN_RATE_HZ, CHAIN_WIDTH_HZ)
+            } else {
+                (DSSS_LOW_RATE_HZ, (0.85 * rate).min(0.89 * DSSS_LOW_RATE_HZ))
+            };
+            if let Ok(r) = dsss::DsssReceiver::new((out / 1e6) as usize) {
                 self.chains.extend(Chain::new(
                     rate,
                     offset,
+                    width,
+                    out,
                     Rx::Dsss(Box::new(r)),
                     t0,
                     band,
                     ch,
                 ));
             }
+        }
+        if !ofdm {
+            return;
         }
         let mut offsets: Vec<(f64, u32)> = Vec::new();
         if let (Some(b), true) = (band, rate >= WIDE_RATE_HZ && centre > 0.0) {
@@ -612,7 +639,16 @@ impl WifiDecoder {
         }
         for (off, c) in offsets {
             let r = Rx::Ofdm(Box::new(ofdm::OfdmReceiver::new()), Box::new(PpduDecoder::new()));
-            self.chains.extend(Chain::new(rate, off, r, t0, band, c));
+            self.chains.extend(Chain::new(
+                rate,
+                off,
+                CHAIN_WIDTH_HZ,
+                CHAIN_RATE_HZ,
+                r,
+                t0,
+                band,
+                c,
+            ));
         }
     }
 }
@@ -770,7 +806,10 @@ sdrkit_core::settings! {
 /// [`GraphError`] if the graph does not build or a value of `cfg` is refused.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     let b = StackGraph::of(crate::typed::shape(ID), graph(&Catalog::of(cfg)?)?)
-        .min_rate(MIN_RATE_HZ, "Wi-Fi needs a sample rate of at least 20 Msps");
+        .min_rate(
+            MIN_RATE_HZ,
+            "Wi-Fi needs a sample rate of at least 4 Msps for the 802.11b beacons of 2.4 GHz, and 20 Msps for OFDM",
+        );
     route_to(b, "table", &WifiSetting::schema())?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .command("remove", sdrkit_graph::CommandTarget::of("table", "remove"))
@@ -862,7 +901,7 @@ mod tests {
     /// An OFDM chain at 20 Msps with no offset.
     fn chain() -> Chain {
         let rx = Rx::Ofdm(Box::new(ofdm::OfdmReceiver::new()), Box::new(PpduDecoder::new()));
-        Chain::new(20e6, 0.0, rx, 0.0, Some(Band::G5), 36).unwrap()
+        Chain::new(20e6, 0.0, CHAIN_WIDTH_HZ, CHAIN_RATE_HZ, rx, 0.0, Some(Band::G5), 36).unwrap()
     }
 
     fn padded(parts: &[Vec<Complex32>]) -> Vec<Complex32> {
@@ -901,7 +940,8 @@ mod tests {
         for piece in x.chunks(5000) {
             c.run(piece, 1.0, &mut out);
         }
-        let got: Vec<(&[u8], Option<PpduFormat>, Option<u8>, bool)> = out
+        type Got<'a> = (&'a [u8], Option<PpduFormat>, Option<u8>, bool);
+        let got: Vec<Got<'_>> = out
             .iter()
             .map(|m| (&m.value.bytes[..], m.value.format, m.value.mcs, m.value.aggregated))
             .collect();

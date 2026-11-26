@@ -184,6 +184,8 @@ pub struct Device {
     pub periodic_interval_ms: Option<f64>,
     /// The kind of device.
     pub device_kind: DeviceKind,
+    /// The advertising data matched a rule of the tracker detector ([`crate::tracker::book::recognise`]).
+    pub tracker: bool,
 }
 
 impl Device {
@@ -275,6 +277,7 @@ impl Shaped for Device {
             set_id: self.set_id.map(i64::from),
             periodic_interval_ms: self.periodic_interval_ms,
             device_kind: self.device_kind,
+            tracker: self.tracker,
         });
     }
 }
@@ -348,7 +351,7 @@ impl Shift for Store {
 }
 
 impl objcmd::Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 3);
+    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 4);
     fn clear(&mut self) {
         self.devices.clear();
         self.log.clear();
@@ -632,10 +635,14 @@ impl DeviceTable {
                 d.extended = true;
                 if let Some(data) = &f.complete {
                     update_from_adv(d, &parse_ad(data), t, adv_mode);
+                    d.tracker |= crate::tracker::book::recognise(data).is_some();
                 }
             }
             _ if !matches!(t, PduType::ScanReq | PduType::ConnectInd) => {
-                update_from_adv(d, &a.info, t, adv_mode)
+                update_from_adv(d, &a.info, t, adv_mode);
+                d.tracker |= p
+                    .data()
+                    .is_some_and(|data| crate::tracker::book::recognise(data).is_some());
             }
             _ => {}
         }

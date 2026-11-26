@@ -53,7 +53,7 @@ pub struct BlePacket<'a> {
     pub deviation_hz: f64,
     /// The signal-to-noise ratio of the fitted levels, dB (40 dB at most).
     pub snr_db: f64,
-    /// The mean power of the input over the preamble and access address, dBFS (dB relative to full scale).
+    /// The mean power over the preamble and access address inside the channel filter, dBFS (dB relative to full scale).
     pub level_dbfs: f64,
     /// The PHY.
     pub phy: Phy,
@@ -137,7 +137,7 @@ pub enum ChannelPlan {
 struct Cand {
     pos: u64,
     link: usize,
-    /// The mean input power `|x|^2` over the 40 symbols before the match.
+    /// The mean power `|x|^2` after the channel filter over the 40 symbols before the match.
     power: f64,
     exact: bool,
     /// The header has been read: `targets[..count]` are (bits to decide, channel) in increasing order, and `stage` is the next.
@@ -210,16 +210,15 @@ impl Front {
     fn push(&mut self, s: Complex32) -> (u8, usize) {
         let sps = self.sps;
         let s = finite(s);
+        // The level counts the channel filter's output only: noise and other signals outside the channel do not add to it.
+        let y = self.filter.process_sample(s);
         let pi = (self.n % self.pow.len() as u64) as usize;
-        let pw = s.norm_sqr();
+        let pw = y.norm_sqr();
         self.pow_sum += (pw - self.pow[pi]) as f64;
         self.pow[pi] = pw;
         // Noise between packets makes discriminator spikes many times the deviation. Clipping them keeps the averages near the
         // signal.
-        let f = self
-            .disc
-            .process_sample(self.filter.process_sample(s))
-            .clamp(-CLIP, CLIP);
+        let f = self.disc.process_sample(y).clamp(-CLIP, CLIP);
         let k = (self.n % sps as u64) as usize;
         self.avg_sum += f - self.avg[k];
         self.avg[k] = f;
@@ -244,7 +243,7 @@ impl Front {
         }
     }
 
-    /// The mean input power over the last 40 symbols.
+    /// The mean power after the channel filter over the last 40 symbols.
     pub(super) fn power(&self) -> f64 {
         self.pow_sum.max(0.0) / self.pow.len() as f64
     }

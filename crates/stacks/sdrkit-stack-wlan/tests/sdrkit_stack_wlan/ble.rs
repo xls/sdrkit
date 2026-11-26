@@ -354,9 +354,10 @@ fn clear_save_and_restore() {
     r.configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
         .unwrap();
     feed(&mut r, &x, 65536);
-    // The five devices of the legacy schedule and the extended advertiser whose data is on channel 20.
+    // The five devices of the legacy schedule, the extended advertiser whose data is on channel 20 and the nine of the kinds
+    // schedule.
     let n = rows(Owner::results(&r), "devices").len();
-    assert_eq!(n, 6);
+    assert_eq!(n, 15);
     let log = rows(Owner::results(&r), "packets").len();
     let state = r.save_state().unwrap();
     let mut other = rx(&[]);
@@ -364,12 +365,12 @@ fn clear_save_and_restore() {
         .configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
         .unwrap();
     other.restore_state(&state).unwrap();
-    assert_eq!(rows(Owner::results(&other), "devices").len(), 6);
+    assert_eq!(rows(Owner::results(&other), "devices").len(), 15);
     assert_eq!(rows(Owner::results(&other), "packets").len(), log);
     assert!(other
         .restore_state(&StateBlob::new("wlan.wifi_networks", 2, b"{}".to_vec()))
         .is_err());
-    assert_eq!(rows(Owner::results(&other), "devices").len(), 6);
+    assert_eq!(rows(Owner::results(&other), "devices").len(), 15);
     command(&mut r, "clear", &[]).unwrap();
     assert!(rows(Owner::results(&r), "devices").is_empty());
     assert!(rows(Owner::results(&r), "packets").is_empty());
@@ -387,12 +388,13 @@ fn display_filters_limit_the_device_rows() {
         feed(&mut r, &x, 65536);
         rows(Owner::results(&r), "devices").len()
     };
-    assert_eq!(count(&[]), 6);
+    assert_eq!(count(&[]), 15);
     assert_eq!(count(&[("filter_text", Value::Text("c0:ff:EE".into()))]), 1);
     assert_eq!(count(&[("named_only", Value::Bool(true))]), 1);
-    // The test signal is at full scale: at most a device or two reach 0 dBFS, none above.
-    assert!(count(&[("min_level_dbfs", Value::F64(0.0))]) <= 2);
-    assert_eq!(count(&[("min_level_dbfs", Value::F64(-1.0))]), 6);
+    // The test signal is at full scale and the channel filter takes a little of it: no device reaches 0 dBFS.
+    assert_eq!(count(&[("min_level_dbfs", Value::F64(0.0))]), 0);
+    assert_eq!(count(&[("min_level_dbfs", Value::F64(-1.0))]), 2);
+    assert_eq!(count(&[("min_level_dbfs", Value::F64(-20.0))]), 12);
 }
 
 #[test]
@@ -609,4 +611,70 @@ fn extended_advertising_is_followed_on_the_secondary_channel_and_the_phys() {
         "{} AUX_SYNC_IND, {on_0} events on channel 0",
         sync.len()
     );
+}
+
+#[test]
+fn the_level_counts_the_channel_only_and_stays_at_or_below_full_scale() {
+    let clean = signal(BleGenParams::default(), &[], 1, 0.2);
+    let noisy = signal(BleGenParams::default(), &snr(25.0), 1, 0.2);
+    // A tone at 1.8 MHz, outside the channel, 10 dB below the signal.
+    let mut ph = 0.0f64;
+    let toned: Vec<Complex32> = noisy
+        .iter()
+        .map(|&s| {
+            ph += std::f64::consts::TAU * 1.8e6 / RATE;
+            s + Complex32::new(ph.cos() as f32, ph.sin() as f32) * 0.316
+        })
+        .collect();
+    let levels = |x: &[Complex32]| {
+        let mut r = rx(&[]);
+        r.configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
+            .unwrap();
+        feed(&mut r, x, 65536);
+        let mut v: Vec<(String, f64)> = rows(Owner::results(&r), "devices")
+            .into_iter()
+            .map(|d| (text(d, &D::ADDRESS), cnum(d, &D::LEVEL_DBFS)))
+            .collect();
+        v.sort_by(|a, b| a.0.cmp(&b.0));
+        v
+    };
+    let a = levels(&clean);
+    assert_eq!(a.len(), 15);
+    assert!(a.iter().all(|(_, l)| *l <= 0.0), "{a:?}");
+    assert!(a.iter().filter(|(_, l)| *l > -0.5).count() == 2, "{a:?}");
+    let (b, c) = (levels(&noisy), levels(&toned));
+    assert_eq!(b.len(), c.len());
+    for ((_, x), (_, y)) in b.iter().zip(&c) {
+        assert!((x - y).abs() < 0.1, "the tone outside the channel moved the level: {x} {y}");
+    }
+}
+
+#[test]
+fn the_test_signal_has_each_kind_a_tracker_and_a_spread_of_levels() {
+    let x = signal(BleGenParams::default(), &[], 1, 0.2);
+    let mut r = rx(&[]);
+    r.configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
+        .unwrap();
+    feed(&mut r, &x, 65536);
+    let devices = rows(Owner::results(&r), "devices");
+    for (i, k) in <ble::adv::DeviceKind as sdrkit_core::value::Choice>::CHOICES
+        .iter()
+        .enumerate()
+    {
+        assert!(
+            devices
+                .iter()
+                .any(|d| super::help::cell(d, &D::DEVICE_KIND) == Some(&Value::Choice(i as u16))),
+            "no device of kind {}",
+            k.key
+        );
+    }
+    let trackers: Vec<_> = devices
+        .iter()
+        .filter(|d| super::help::cell(d, &D::TRACKER) == Some(&Value::Bool(true)))
+        .collect();
+    assert_eq!(trackers.len(), 1);
+    let l: Vec<f64> = devices.iter().map(|d| cnum(d, &D::LEVEL_DBFS)).collect();
+    let (hi, lo) = l.iter().fold((f64::MIN, f64::MAX), |(h, m), &v| (h.max(v), m.min(v)));
+    assert!(hi - lo > 28.0 && hi <= 0.0, "{hi} {lo}");
 }

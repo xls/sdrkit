@@ -583,7 +583,7 @@ fn the_24_ghz_scene() {
     let d = networks(&r);
     let h = net(&d, "00:04:0E:12:34:56");
     assert_eq!(
-        (h.ssid.as_str(), h.security.as_str(), h.vendor.as_str()),
+        (h.ssid.as_str(), h.security.label(), h.vendor.as_str()),
         ("Test-Home", "WPA2", AVM)
     );
     assert_eq!((h.channel, h.heard_on, h.interval_tu), (6, 6, 100));
@@ -599,7 +599,7 @@ fn the_24_ghz_scene() {
     assert_eq!(
         (
             c.ssid.as_str(),
-            c.security.as_str(),
+            c.security.label(),
             c.vendor.as_str(),
             c.channel
         ),
@@ -609,7 +609,7 @@ fn the_24_ghz_scene() {
     assert!(hid.hidden && hid.ssid.is_empty());
     assert_eq!(
         (
-            hid.security.as_str(),
+            hid.security.label(),
             hid.interval_tu,
             hid.vendor.as_str(),
             hid.rates.as_str()
@@ -738,7 +738,7 @@ fn noise_and_too_low_a_rate() {
     );
     let mut low = rx();
     assert!(low
-        .configure(&InputInfo::new(10e6, 2437e6, 2437e6))
+        .configure(&InputInfo::new(3.5e6, 2437e6, 2437e6))
         .is_err());
     assert!(!low.ready());
     let mut y = signal(empty, &floor, 4, 0.1, 0);
@@ -771,7 +771,7 @@ fn check_56(r: &StackGraph, band: Band, p: u32) {
         let a = net(&d, "24:A4:3C:50:00:01");
         assert_eq!((a.ssid.as_str(), a.channel, a.heard_on), ("Test-5G", p, p));
         assert_eq!(
-            (a.width_mhz, a.standard.as_str(), a.security.as_str()),
+            (a.width_mhz, a.standard.as_str(), a.security.label()),
             (w(80), "a/n/ac/ax", "WPA2/WPA3")
         );
         assert_eq!(
@@ -797,14 +797,14 @@ fn check_56(r: &StackGraph, band: Band, p: u32) {
                 b.ssid.as_str(),
                 b.standard.as_str(),
                 b.width_mhz,
-                b.security.as_str(),
+                b.security.label(),
                 b.vendor.as_str()
             ),
             ("Test-Old", "a/n", 20, "WPA2", AVM)
         );
         let c = net(&d, "FC:EC:DA:12:34:56");
         assert_eq!(
-            (c.ssid.as_str(), c.standard.as_str(), c.security.as_str()),
+            (c.ssid.as_str(), c.standard.as_str(), c.security.label()),
             ("Test-ac", "a/n/ac", "WPA2")
         );
     } else {
@@ -813,7 +813,7 @@ fn check_56(r: &StackGraph, band: Band, p: u32) {
             (
                 a.ssid.as_str(),
                 a.standard.as_str(),
-                a.security.as_str(),
+                a.security.label(),
                 a.pmf.as_str()
             ),
             ("Test-6E", "ax/be", "WPA3", "required")
@@ -826,14 +826,14 @@ fn check_56(r: &StackGraph, band: Band, p: u32) {
         assert_eq!((a.bss_color, a.twt), (Some(17), true));
         let b = net(&d, "00:04:0E:77:88:99");
         assert_eq!(
-            (b.ssid.as_str(), b.security.as_str(), b.standard.as_str()),
+            (b.ssid.as_str(), b.security.label(), b.standard.as_str()),
             ("Test-6E-Open", "OWE (Enhanced Open)", "ax")
         );
         assert_eq!(
             (b.bss_color, b.pmf.as_str(), b.akm.as_str()),
             (Some(33), "required", "OWE")
         );
-        assert_eq!(net(&d, "FC:EC:DA:12:34:56").security, "WPA3");
+        assert_eq!(net(&d, "FC:EC:DA:12:34:56").security.label(), "WPA3");
     }
 }
 
@@ -1197,7 +1197,7 @@ fn the_recordings_decode_as_expected() {
             txt("vendor", &n.vendor);
             txt("band", n.band.map_or("", Band::name));
             txt("standard", &n.standard);
-            txt("security", &n.security);
+            txt("security", n.security.label());
             txt("ciphers", &n.ciphers);
             txt("akm", &n.akm);
             txt("pmf", &n.pmf);
@@ -1279,7 +1279,7 @@ fn the_harness_runs_the_descriptor() {
     let d = &wifi::WIFI;
     assert_eq!(
         (d.tuning.min_hz, d.tuning.max_hz, d.tuning.min_rate_hz),
-        (2400e6, 7125e6, 20e6)
+        (2400e6, 7125e6, 4e6)
     );
     let run = sdrkit_dev_test::Harness::new(d)
         .set(&wifi::GEN_SCENE, wifi::GenScene::G5)
@@ -1293,3 +1293,146 @@ fn the_harness_runs_the_descriptor() {
     assert!(num(&run.results, "frames_ok").unwrap() > 50.0);
     assert_eq!(num(&run.results, "channel"), Some(149.0));
 }
+
+#[test]
+fn levels_are_the_signal_at_or_below_full_scale_and_ofdm_counts_its_subcarriers_only() {
+    let levels = |x: &[Complex32]| {
+        let mut r = wifi::receiver(&config(WifiSetting::schema(), &[])).unwrap();
+        r.configure(&InputInfo::new(20e6, 2437e6, 2437e6).recording())
+            .unwrap();
+        feed(&mut r, x, 65536);
+        let mut v: Vec<(String, f64)> = rows(Owner::results(&r), "networks")
+            .into_iter()
+            .map(|n| (text(n, &N::BSSID), cnum(n, &N::LEVEL_DBFS)))
+            .collect();
+        v.sort_by(|a, b| a.0.cmp(&b.0));
+        v
+    };
+    let clean = signal(WifiGenParams::default(), &[], 1, 0.1, 0);
+    let a = levels(&clean);
+    assert_eq!(a.len(), 3);
+    assert!(a.iter().all(|(_, l)| *l <= 0.0), "{a:?}");
+    assert!(a.iter().any(|(_, l)| *l > -0.1), "the network at full power: {a:?}");
+    // With noise the level is the signal's own: the noise in the band is taken out, so it stays near the clean level.
+    let noisy = levels(&signal(WifiGenParams::default(), &snr(30.0), 1, 0.1, 0));
+    assert_eq!(noisy.len(), 3);
+    for ((_, x), (_, y)) in a.iter().zip(&noisy) {
+        assert!((x - y).abs() < 0.1, "{a:?} {noisy:?}");
+    }
+    // An OFDM frame with a tone at 9.5 MHz, between the last subcarrier and the band edge, 10 dB below it.
+    let f = GenFrame::new(
+        beacon(&BssSpec::new([2, 0, 0, 0, 0, 1], "edge", Band::G2, 6, Sec::Open)),
+        Phy::Ofdm,
+    );
+    let frames = WifiGenParams {
+        frames: vec![f],
+        ..WifiGenParams::default()
+    };
+    let x = signal(frames.clone(), &[], 1, 0.05, 0);
+    let mut ph = 0.0f64;
+    let toned: Vec<Complex32> = x
+        .iter()
+        .map(|&s| {
+            ph += std::f64::consts::TAU * 9.5e6 / 20e6;
+            s + Complex32::new(ph.cos() as f32, ph.sin() as f32) * 0.316
+        })
+        .collect();
+    let (c, t) = (levels(&x), levels(&toned));
+    assert_eq!((c.len(), t.len()), (1, 1));
+    assert!(c[0].1 <= 0.0 && (c[0].1 - t[0].1).abs() < 0.1, "{c:?} {t:?}");
+}
+
+#[test]
+fn a_recording_of_unknown_centre_publishes_no_heard_channel() {
+    let x = signal(WifiGenParams::default(), &[], 1, 0.1, 0);
+    let mut r = wifi::receiver(&config(WifiSetting::schema(), &[])).unwrap();
+    r.configure(&InputInfo::new(20e6, 0.0, 0.0).recording())
+        .unwrap();
+    feed(&mut r, &x, 65536);
+    let res = Owner::results(&r);
+    let nets = rows(res, "networks");
+    assert_eq!(nets.len(), 3);
+    for n in &nets {
+        assert_eq!(super::help::cell(n, &N::HEARD_ON), None);
+        // The DS Parameter Set of the beacon still names the channel.
+        assert!(super::help::cell(n, &N::CHANNEL).is_some());
+    }
+    assert!(rows(res, "beacons")
+        .iter()
+        .all(|b| super::help::cell(b, &B::CHANNEL).is_none()));
+}
+
+#[test]
+fn below_20_msps_the_dsss_beacons_of_2_4_ghz_are_received_and_the_status_says_what_is_not() {
+    let x = signal(
+        WifiGenParams {
+            rate_hz: 22e6,
+            ..WifiGenParams::default()
+        },
+        &snr(10.0),
+        1,
+        0.1,
+        0,
+    );
+    for rate in [wifi::MIN_RATE_HZ, 11e6, 15e6] {
+        let mut rs = sdrkit_algo_dsp::resample::FractionalResampler::with_rates(22e6, rate).unwrap();
+        let mut y: Vec<Complex32> = Vec::new();
+        rs.process(&x, &mut y);
+        let mut r = wifi::receiver(&config(WifiSetting::schema(), &[])).unwrap();
+        r.configure(&InputInfo::new(rate, 2437e6, 2437e6).recording())
+            .unwrap();
+        feed(&mut r, &y, 65536);
+        assert_eq!(rows(Owner::results(&r), "networks").len(), 3, "{rate}");
+        assert!(
+            Owner::results(&r)
+                .status()
+                .summary
+                .contains("only 802.11b DSSS frames are received"),
+            "{}",
+            Owner::results(&r).status().summary
+        );
+    }
+    // The stack's own test signal at the least rate.
+    let y = signal(
+        WifiGenParams {
+            rate_hz: wifi::MIN_RATE_HZ,
+            ..WifiGenParams::default()
+        },
+        &snr(20.0),
+        1,
+        0.1,
+        0,
+    );
+    let mut r = wifi::receiver(&config(WifiSetting::schema(), &[])).unwrap();
+    r.configure(&InputInfo::new(wifi::MIN_RATE_HZ, 2437e6, 2437e6).recording())
+        .unwrap();
+    feed(&mut r, &y, 65536);
+    assert_eq!(rows(Owner::results(&r), "networks").len(), 3);
+    let mut r = wifi::receiver(&config(WifiSetting::schema(), &[])).unwrap();
+    assert!(r
+        .configure(&InputInfo::new(wifi::MIN_RATE_HZ * 0.9, 2437e6, 2437e6).recording())
+        .is_err());
+}
+
+#[test]
+fn the_dsss_level_stays_the_signal_level_down_to_a_weak_signal() {
+    let level = |imp: &[(&str, Value)]| {
+        let x = signal(WifiGenParams::default(), imp, 1, 0.1, 0);
+        let mut r = wifi::receiver(&config(WifiSetting::schema(), &[])).unwrap();
+        r.configure(&InputInfo::new(20e6, 2437e6, 2437e6).recording())
+            .unwrap();
+        feed(&mut r, &x, 65536);
+        rows(Owner::results(&r), "networks")
+            .into_iter()
+            .map(|n| cnum(n, &N::LEVEL_DBFS))
+            .fold(f64::MIN, f64::max)
+    };
+    let clean = level(&[]);
+    // The noise estimate errs high (the correlation loss), so a weak signal reads a little low, never high.
+    for (db, below) in [(5.0, 1.0), (0.0, 2.0)] {
+        let l = level(&snr(db));
+        assert!(l < clean + 0.1 && l > clean - below, "SNR {db} dB: {l} against {clean}");
+    }
+}
+
+

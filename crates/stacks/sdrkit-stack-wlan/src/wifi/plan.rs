@@ -59,6 +59,21 @@ pub fn valid(band: Band, ch: u32) -> bool {
     }
 }
 
+/// The centre frequency in MHz of a channel of any width, from the channel number of its centre (the CCFS of the operation
+/// elements, IEEE Std 802.11-2020 clause 21.3.14). `None` for a number outside the band.
+pub fn wide_centre_mhz(band: Band, centre: u32) -> Option<f64> {
+    match band {
+        Band::G2 => centre_mhz(band, centre),
+        Band::G5 => (32..=177)
+            .contains(&centre)
+            .then(|| 5000.0 + 5.0 * f64::from(centre)),
+        Band::G6 if centre == 2 => Some(5935.0),
+        Band::G6 => (1..=233)
+            .contains(&centre)
+            .then(|| 5950.0 + 5.0 * f64::from(centre)),
+    }
+}
+
 /// The centre frequency of a channel in MHz, `None` when not a channel.
 pub fn centre_mhz(band: Band, ch: u32) -> Option<f64> {
     if !valid(band, ch) {

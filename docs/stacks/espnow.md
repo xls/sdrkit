@@ -95,7 +95,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -147,7 +147,7 @@ Struct `EspnowDeviceRow`. A row of the devices of `espnow`. The row key is the s
 | `broadcasts` | whole number | always | 1.0 | Frames to the broadcast address. |
 | `rate` | number (1/s) | always | 1.0 | Packets per second over the present window of 1 to 10 s; 0 after 10 s unheard. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the last frame. |
-| `channel` | whole number | always | 1.0 | The channel of the last frame (0: not known). |
+| `channel` | whole number | optional | 1.0 | The channel of the last frame. No value when the receiver does not know it. |
 | `phy_rate_kbps` | whole number (kbit/s) | always | 1.0 | The PHY rate of the last frame. |
 | `last_to` | text | always | 1.0 | "broadcast" or the destination of the last frame. |
 | `last_payload` | text | always | 1.0 | The payload of the last frame as hex; empty when it was encrypted. |
@@ -167,7 +167,7 @@ Struct `EspnowFrameRow`. A row of the frame log of `espnow`.
 |---|---|---|---|---|
 | `time` | time | optional | 1.0 | The UTC of the frame. No value for a recording. |
 | `signal_s` | number (s) | always | 1.0 | The signal time of the frame. |
-| `channel` | whole number | always | 1.0 | The channel (0: not known). |
+| `channel` | whole number | optional | 1.0 | The channel. No value when the receiver does not know it. |
 | `phy_rate_kbps` | whole number (kbit/s) | always | 1.0 | The PHY rate. |
 | `short_preamble` | yes or no | always | 1.0 | A DSSS frame with the short preamble. |
 | `from` | text | always | 1.0 | The sender address. |

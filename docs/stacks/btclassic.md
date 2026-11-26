@@ -74,7 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -129,7 +129,7 @@ Struct `BtclassicDeviceRow`. A row of the devices of `btclassic`. The row key is
 | `packets` | whole number | always | 1.0 | Packets heard. |
 | `last_channel_mhz` | number (MHz) | always | 1.0 | The channel of the last packet. |
 | `channels_heard` | text | always | 1.0 | The channels heard, as hex: bit k is channel k. |
-| `device_kind` | choice | always | 3.1 | The kind of device its Class of Device declares (unknown before an FHS packet). |
+| `device_kind` | choice | always | 1.0 | The kind of device its Class of Device declares (unknown before an FHS packet). |
 
 The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `level_dbfs`, highest first. Time: `first_heard`.
 

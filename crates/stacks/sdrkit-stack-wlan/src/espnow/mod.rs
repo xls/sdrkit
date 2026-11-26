@@ -25,7 +25,7 @@ use std::sync::Arc;
 /// The stack id.
 pub const ID: &str = "espnow";
 /// The lowest input rate, Hz.
-pub const MIN_RATE_HZ: f64 = crate::wifi::MIN_RATE_HZ;
+pub const MIN_RATE_HZ: f64 = crate::wifi::OFDM_RATE_HZ;
 /// The report interval, s.
 pub const REPORT_S: f64 = 0.25;
 

@@ -320,9 +320,21 @@ pub fn frame_samples(
             dsss::symbols(&bits, f.preamble, f.dsss_rate, &mut sym)?;
             let mut chips = Vec::new();
             dsss::spread(&sym, &mut chips);
-            let mut m = Linear::new(Shape::Rect, 1.0, rate_hz / dsss::CHIP_RATE)?;
-            m.push(&chips, &mut x);
-            m.flush(&mut x);
+            if rate_hz >= ofdm::SAMPLE_RATE * 0.999_999 {
+                let mut m = Linear::new(Shape::Rect, 1.0, rate_hz / dsss::CHIP_RATE)?;
+                m.push(&chips, &mut x);
+                m.flush(&mut x);
+            } else {
+                // Below 20 Msps the chips are made at two samples a chip and resampled, as a radio's filter would.
+                let mut y = Vec::new();
+                let mut m = Linear::new(Shape::Rect, 1.0, 2.0)?;
+                m.push(&chips, &mut y);
+                m.flush(&mut y);
+                // The tail carries the last chips out of the resampler's filter, however long it is.
+                let mut r = FractionalResampler::with_rates(2.0 * dsss::CHIP_RATE, rate_hz)?;
+                y.extend(std::iter::repeat_n(Complex32::default(), 4096));
+                r.process(&y, &mut x);
+            }
         }
         Phy::Ofdm => {
             let mut y = Vec::new();
@@ -336,11 +348,8 @@ pub fn frame_samples(
             }
         }
     }
-    let p = x.iter().map(|s| s.norm_sqr() as f64).sum::<f64>() / x.len().max(1) as f64;
-    if p > 0.0 {
-        let g = (1.0 / p).sqrt() as f32;
-        x.iter_mut().for_each(|s| *s *= g);
-    }
+    // Both PHYs are at unit power by construction: DSSS chips have unit magnitude and the OFDM fields have unit mean power.
+    // A scale over the whole buffer would count the filter tails and lift the frame above full scale.
     Ok(x)
 }
 

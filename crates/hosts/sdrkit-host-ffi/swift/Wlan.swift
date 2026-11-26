@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "wlan", version 3.1. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum WlanInterface {
-    public static let major = 3
-    public static let minor = 1
+    public static let major = 4
+    public static let minor = 0
 }
 
 /// The result fields of `ble`.
@@ -172,6 +172,8 @@ public struct BleDeviceRow {
     public var periodicIntervalMs: Double?
     /// The kind of device its Appearance or beacon format declares.
     public var deviceKind: DeviceKind?
+    /// Its advertising data matches a rule of the tracker detector of `bletracker` (Find My, Tile, Chipolo, SmartTag, Google Find Hub).
+    public var tracker: Bool
 
     init(_ c: sdrkit_ble_device_row) {
         key = sdrkitText(c.key)
@@ -194,6 +196,7 @@ public struct BleDeviceRow {
         setId = c.has_set_id ? c.set_id : nil
         periodicIntervalMs = c.has_periodic_interval_ms ? c.periodic_interval_ms : nil
         deviceKind = DeviceKind(rawValue: c.device_kind)
+        tracker = c.tracker
     }
 }
 
@@ -709,6 +712,30 @@ public struct WifiNetworkRow {
         case n5Ghz = 1
         case n6Ghz = 2
     }
+    public enum Generation: Int32 {
+        case b = 0
+        case a = 1
+        case g = 2
+        case n = 3
+        case ac = 4
+        case ax = 5
+        case be = 6
+    }
+    public enum Security: Int32 {
+        case `open` = 0
+        case wep = 1
+        case wpa = 2
+        case wpaWpa2 = 3
+        case wpa2 = 4
+        case wpa2Wpa3 = 5
+        case wpa3 = 6
+        case owe = 7
+        case wpaEnterprise = 8
+        case wpaWpa2Enterprise = 9
+        case wpa2Enterprise = 10
+        case wpa2Wpa3Enterprise = 11
+        case wpa3Enterprise = 12
+    }
     /// The row key.
     public var key: String
     /// The SSID, or "(hidden)".
@@ -719,16 +746,18 @@ public struct WifiNetworkRow {
     public var vendor: String
     /// The band.
     public var band: Band?
-    /// The primary channel.
-    public var channel: Int64
-    /// The channel the frames were heard on.
-    public var heardOn: Int64
+    /// The primary channel. No value when the frames give none and the receiver does not know its own channel.
+    public var channel: Int64?
+    /// The channel the frames were heard on. No value when the receiver does not know it, as for a recording.
+    public var heardOn: Int64?
+    /// The centre frequency of the whole channel (all its 20 MHz parts). No value when the channel is not known.
+    public var centreHz: Double?
     /// The channel width.
     public var widthHz: Double
-    /// The newest standard ("ax").
-    public var standard: String
+    /// The newest amendment the network declares. No value when the band and the elements do not tell.
+    public var generation: Generation?
     /// The security.
-    public var security: String
+    public var security: Security?
     /// The level of the last frame.
     public var levelDbfs: Double
     /// The UTC of the first frame.
@@ -760,11 +789,12 @@ public struct WifiNetworkRow {
         bssid = sdrkitText(c.bssid)
         vendor = sdrkitText(c.vendor)
         band = c.has_band ? Band(rawValue: c.band) : nil
-        channel = c.channel
-        heardOn = c.heard_on
+        channel = c.has_channel ? c.channel : nil
+        heardOn = c.has_heard_on ? c.heard_on : nil
+        centreHz = c.has_centre_hz ? c.centre_hz : nil
         widthHz = c.width_hz
-        standard = sdrkitText(c.standard)
-        security = sdrkitText(c.security)
+        generation = c.has_generation ? Generation(rawValue: c.generation) : nil
+        security = Security(rawValue: c.security)
         levelDbfs = c.level_dbfs
         firstHeard = c.has_first_heard ? c.first_heard : nil
         lastHeard = c.has_last_heard ? c.last_heard : nil
@@ -788,6 +818,15 @@ public struct WifiStationRow {
         case joining = 2
         case associated = 3
         case left = 4
+    }
+    public enum Generation: Int32 {
+        case b = 0
+        case a = 1
+        case g = 2
+        case n = 3
+        case ac = 4
+        case ax = 5
+        case be = 6
     }
     /// The row key.
     public var key: String
@@ -819,8 +858,8 @@ public struct WifiStationRow {
     public var protected: Int64
     /// The SSIDs it probed for, joined with ", ".
     public var ssids: String
-    /// The newest Wi-Fi generation its frames declare (0 when none).
-    public var generation: Int64
+    /// The newest amendment its frames declare. No value when none does.
+    public var generation: Generation?
     /// The highest data rate its frames declare.
     public var maxRateMbps: Double?
     /// The channel of its last frame (no value when not known).
@@ -842,7 +881,7 @@ public struct WifiStationRow {
         nullData = c.null_data
         protected = c.protected_
         ssids = sdrkitText(c.ssids)
-        generation = c.generation
+        generation = c.has_generation ? Generation(rawValue: c.generation) : nil
         maxRateMbps = c.has_max_rate_mbps ? c.max_rate_mbps : nil
         channel = c.has_channel ? c.channel : nil
     }
@@ -854,8 +893,8 @@ public struct WifiBeaconRow {
     public var key: String
     /// The signal time of the frame.
     public var signalS: Double
-    /// The channel the frame was heard on.
-    public var channel: Int64
+    /// The channel the frame was heard on. No value when the receiver does not know it.
+    public var channel: Int64?
     /// The BSSID.
     public var bssid: String
     /// The level of the frame.
@@ -874,7 +913,7 @@ public struct WifiBeaconRow {
     init(_ c: sdrkit_wifi_beacon_row) {
         key = sdrkitText(c.key)
         signalS = c.signal_s
-        channel = c.channel
+        channel = c.has_channel ? c.channel : nil
         bssid = sdrkitText(c.bssid)
         levelDbfs = c.level_dbfs
         bytes = c.bytes
@@ -1576,8 +1615,8 @@ public struct EspnowDeviceRow {
     public var rate: Double
     /// The level of the last frame.
     public var levelDbfs: Double
-    /// The channel of the last frame (0: not known).
-    public var channel: Int64
+    /// The channel of the last frame. No value when the receiver does not know it.
+    public var channel: Int64?
     /// The PHY rate of the last frame.
     public var phyRateKbps: Int64
     /// "broadcast" or the destination of the last frame.
@@ -1605,7 +1644,7 @@ public struct EspnowDeviceRow {
         broadcasts = c.broadcasts
         rate = c.rate
         levelDbfs = c.level_dbfs
-        channel = c.channel
+        channel = c.has_channel ? c.channel : nil
         phyRateKbps = c.phy_rate_kbps
         lastTo = sdrkitText(c.last_to)
         lastPayload = sdrkitText(c.last_payload)
@@ -1625,8 +1664,8 @@ public struct EspnowFrameRow {
     public var time: Double?
     /// The signal time of the frame.
     public var signalS: Double
-    /// The channel (0: not known).
-    public var channel: Int64
+    /// The channel. No value when the receiver does not know it.
+    public var channel: Int64?
     /// The PHY rate.
     public var phyRateKbps: Int64
     /// A DSSS frame with the short preamble.
@@ -1658,7 +1697,7 @@ public struct EspnowFrameRow {
         key = sdrkitText(c.key)
         time = c.has_time ? c.time : nil
         signalS = c.signal_s
-        channel = c.channel
+        channel = c.has_channel ? c.channel : nil
         phyRateKbps = c.phy_rate_kbps
         shortPreamble = c.short_preamble
         from = sdrkitText(c.from)
@@ -2228,10 +2267,8 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WifiNetworkRow.init))
     }
     /// The changed rows of the table "stations" of the stack "wifi", newest first, at most `capacity` rows.
-    /// The rows are the stations or nodes of the stack.
     /// The column `address` names a row.
     /// Default order: the column `last_heard`, highest first.
-    /// Time: `last_heard`.
     public static func wifiStations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WifiStationRow], SDRKitCode> {
         var rows = [sdrkit_wifi_station_row](repeating: sdrkit_wifi_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized

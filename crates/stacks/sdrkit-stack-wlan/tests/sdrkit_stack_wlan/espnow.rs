@@ -443,3 +443,37 @@ fn the_harness_runs_the_descriptor() {
         "v1, 10 bytes to 84:CC:A8:01:02:03: \"hello peer\""
     );
 }
+
+#[test]
+fn levels_of_the_full_power_senders_stay_at_or_below_full_scale() {
+    let levels = |phy: GenPhy, snr_db: Option<f64>| {
+        let g = WifiGenerator::new(WifiGenParams {
+            rate_hz: 20e6,
+            frames: scene(&first(), phy),
+            ..Default::default()
+        });
+        let imp = snr_db.map(snr).unwrap_or_default();
+        let x: Vec<Complex32> = impaired(Box::new(g), &imp, 3, 0.4);
+        let mut r = rx(&[]);
+        r.configure(&InputInfo::new(20e6, 2412e6, 2412e6).recording())
+            .unwrap();
+        feed(&mut r, &x, 32_768);
+        let mut l: Vec<(String, f64)> = rows(r.results(), "devices")
+            .into_iter()
+            .map(|d| (text(d, &D::ADDRESS), super::help::cnum(d, &D::LEVEL_DBFS)))
+            .collect();
+        l.sort_by(|a, b| a.0.cmp(&b.0));
+        l
+    };
+    for phy in [GenPhy::Dsss1, GenPhy::Ofdm6] {
+        let clean = levels(phy, None);
+        assert_eq!(clean.len(), 5);
+        assert!(clean.iter().all(|(_, v)| *v <= 0.0), "{phy:?}: {clean:?}");
+        // With noise the level is the signal's own: the noise in the band is taken out.
+        let noisy = levels(phy, Some(30.0));
+        assert_eq!(noisy.len(), 5);
+        for ((_, x), (_, y)) in clean.iter().zip(&noisy) {
+            assert!((x - y).abs() < 0.1, "{phy:?}: {clean:?} {noisy:?}");
+        }
+    }
+}
