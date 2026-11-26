@@ -180,6 +180,8 @@
   "countries": [
     {
       "code": "AT",
+      "name": "Austria",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -187,6 +189,8 @@
     },
     {
       "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -194,6 +198,8 @@
     },
     {
       "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -201,6 +207,8 @@
     },
     {
       "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -208,6 +216,8 @@
     },
     {
       "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -215,6 +225,8 @@
     },
     {
       "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -222,6 +234,8 @@
     },
     {
       "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -229,6 +243,8 @@
     },
     {
       "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -236,6 +252,8 @@
     },
     {
       "code": "FI",
+      "name": "Finland",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -243,6 +261,8 @@
     },
     {
       "code": "FR",
+      "name": "France",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -250,6 +270,8 @@
     },
     {
       "code": "DE",
+      "name": "Germany",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -257,6 +279,8 @@
     },
     {
       "code": "GR",
+      "name": "Greece",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -264,6 +288,8 @@
     },
     {
       "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -271,6 +297,8 @@
     },
     {
       "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -278,6 +306,8 @@
     },
     {
       "code": "IT",
+      "name": "Italy",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -285,6 +315,8 @@
     },
     {
       "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -292,6 +324,8 @@
     },
     {
       "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -299,6 +333,8 @@
     },
     {
       "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -306,6 +342,8 @@
     },
     {
       "code": "MT",
+      "name": "Malta",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -313,6 +351,8 @@
     },
     {
       "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -320,6 +360,8 @@
     },
     {
       "code": "PL",
+      "name": "Poland",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -327,6 +369,8 @@
     },
     {
       "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -334,6 +378,8 @@
     },
     {
       "code": "RO",
+      "name": "Romania",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -341,6 +387,8 @@
     },
     {
       "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -348,6 +396,8 @@
     },
     {
       "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -355,6 +405,8 @@
     },
     {
       "code": "ES",
+      "name": "Spain",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -362,6 +414,8 @@
     },
     {
       "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -369,6 +423,8 @@
     },
     {
       "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -376,6 +432,8 @@
     },
     {
       "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -383,6 +441,8 @@
     },
     {
       "code": "NO",
+      "name": "Norway",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -390,6 +450,8 @@
     },
     {
       "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -397,6 +459,8 @@
     },
     {
       "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
       "groups": [
         "dect_1880"
       ],
@@ -404,6 +468,8 @@
     },
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "dect_1880"
       ],
@@ -420,6 +486,8 @@
     },
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "dect_us"
       ],
@@ -427,6 +495,8 @@
     },
     {
       "code": "CA",
+      "name": "Canada",
+      "itu": 2,
       "groups": [
         "dect_us"
       ],
@@ -434,6 +504,8 @@
     },
     {
       "code": "JP",
+      "name": "Japan",
+      "itu": 3,
       "groups": [
         "dect_jp"
       ],

@@ -172,6 +172,8 @@
   "countries": [
     {
       "code": "JP",
+      "name": "Japan",
+      "itu": 3,
       "groups": [
         "isdbs_jp"
       ],

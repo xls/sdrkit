@@ -1737,6 +1737,8 @@
   "countries": [
     {
       "code": "AT",
+      "name": "Austria",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1744,6 +1746,8 @@
     },
     {
       "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1751,6 +1755,8 @@
     },
     {
       "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1758,6 +1764,8 @@
     },
     {
       "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1765,6 +1773,8 @@
     },
     {
       "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1772,6 +1782,8 @@
     },
     {
       "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1779,6 +1791,8 @@
     },
     {
       "code": "DE",
+      "name": "Germany",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1786,6 +1800,8 @@
     },
     {
       "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1793,6 +1809,8 @@
     },
     {
       "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1800,6 +1818,8 @@
     },
     {
       "code": "ES",
+      "name": "Spain",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1807,6 +1827,8 @@
     },
     {
       "code": "FI",
+      "name": "Finland",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1814,6 +1836,8 @@
     },
     {
       "code": "FR",
+      "name": "France",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1821,6 +1845,8 @@
     },
     {
       "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1828,6 +1854,8 @@
     },
     {
       "code": "GR",
+      "name": "Greece",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1835,6 +1863,8 @@
     },
     {
       "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1842,6 +1872,8 @@
     },
     {
       "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1849,6 +1881,8 @@
     },
     {
       "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1856,6 +1890,8 @@
     },
     {
       "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1863,6 +1899,8 @@
     },
     {
       "code": "IT",
+      "name": "Italy",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1870,6 +1908,8 @@
     },
     {
       "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1877,6 +1917,8 @@
     },
     {
       "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1884,6 +1926,8 @@
     },
     {
       "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1891,6 +1935,8 @@
     },
     {
       "code": "MT",
+      "name": "Malta",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1898,6 +1944,8 @@
     },
     {
       "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1905,6 +1953,8 @@
     },
     {
       "code": "NO",
+      "name": "Norway",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1912,6 +1962,8 @@
     },
     {
       "code": "PL",
+      "name": "Poland",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1919,6 +1971,8 @@
     },
     {
       "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1926,6 +1980,8 @@
     },
     {
       "code": "RO",
+      "name": "Romania",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1933,6 +1989,8 @@
     },
     {
       "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1940,6 +1998,8 @@
     },
     {
       "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],
@@ -1947,6 +2007,8 @@
     },
     {
       "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
       "groups": [
         "airband_833"
       ],

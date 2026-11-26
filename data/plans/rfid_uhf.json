@@ -113,6 +113,8 @@
   "countries": [
     {
       "code": "AT",
+      "name": "Austria",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -120,6 +122,8 @@
     },
     {
       "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -127,6 +131,8 @@
     },
     {
       "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -134,6 +140,8 @@
     },
     {
       "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -141,6 +149,8 @@
     },
     {
       "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -148,6 +158,8 @@
     },
     {
       "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -155,6 +167,8 @@
     },
     {
       "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -162,6 +176,8 @@
     },
     {
       "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -169,6 +185,8 @@
     },
     {
       "code": "FI",
+      "name": "Finland",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -176,6 +194,8 @@
     },
     {
       "code": "FR",
+      "name": "France",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -183,6 +203,8 @@
     },
     {
       "code": "DE",
+      "name": "Germany",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -190,6 +212,8 @@
     },
     {
       "code": "GR",
+      "name": "Greece",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -197,6 +221,8 @@
     },
     {
       "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -204,6 +230,8 @@
     },
     {
       "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -211,6 +239,8 @@
     },
     {
       "code": "IT",
+      "name": "Italy",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -218,6 +248,8 @@
     },
     {
       "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -225,6 +257,8 @@
     },
     {
       "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -232,6 +266,8 @@
     },
     {
       "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -239,6 +275,8 @@
     },
     {
       "code": "MT",
+      "name": "Malta",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -246,6 +284,8 @@
     },
     {
       "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -253,6 +293,8 @@
     },
     {
       "code": "PL",
+      "name": "Poland",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -260,6 +302,8 @@
     },
     {
       "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -267,6 +311,8 @@
     },
     {
       "code": "RO",
+      "name": "Romania",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -274,6 +320,8 @@
     },
     {
       "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -281,6 +329,8 @@
     },
     {
       "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -288,6 +338,8 @@
     },
     {
       "code": "ES",
+      "name": "Spain",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -295,6 +347,8 @@
     },
     {
       "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -302,6 +356,8 @@
     },
     {
       "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -309,6 +365,8 @@
     },
     {
       "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -316,6 +374,8 @@
     },
     {
       "code": "NO",
+      "name": "Norway",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -323,6 +383,8 @@
     },
     {
       "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -330,6 +392,8 @@
     },
     {
       "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
       "groups": [
         "rfid_uhf_eu"
       ],
@@ -337,6 +401,8 @@
     },
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "rfid_uhf_au"
       ],
@@ -344,6 +410,8 @@
     },
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "rfid_uhf_us"
       ],

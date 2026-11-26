@@ -266,6 +266,8 @@
   "countries": [
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "elrs_au915",
         "elrs_au433"
@@ -274,6 +276,8 @@
     },
     {
       "code": "NZ",
+      "name": "New Zealand",
+      "itu": 3,
       "groups": [
         "elrs_au915",
         "elrs_au433"
@@ -282,6 +286,8 @@
     },
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "elrs_fcc915",
         "elrs_us433",
@@ -291,6 +297,8 @@
     },
     {
       "code": "CA",
+      "name": "Canada",
+      "itu": 2,
       "groups": [
         "elrs_fcc915",
         "elrs_us433",
@@ -300,6 +308,8 @@
     },
     {
       "code": "IN",
+      "name": "India",
+      "itu": 3,
       "groups": [
         "elrs_in866"
       ],
@@ -307,6 +317,8 @@
     },
     {
       "code": "TH",
+      "name": "Thailand",
+      "itu": 3,
       "groups": [
         "elrs_th920"
       ],

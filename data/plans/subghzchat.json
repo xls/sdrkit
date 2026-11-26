@@ -127,6 +127,8 @@
   "countries": [
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "subghzchat_au"
       ],

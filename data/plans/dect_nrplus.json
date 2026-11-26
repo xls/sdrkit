@@ -29,6 +29,8 @@
   "countries": [
     {
       "code": "AT",
+      "name": "Austria",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -36,6 +38,8 @@
     },
     {
       "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -43,6 +47,8 @@
     },
     {
       "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -50,6 +56,8 @@
     },
     {
       "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -57,6 +65,8 @@
     },
     {
       "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -64,6 +74,8 @@
     },
     {
       "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -71,6 +83,8 @@
     },
     {
       "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -78,6 +92,8 @@
     },
     {
       "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -85,6 +101,8 @@
     },
     {
       "code": "FI",
+      "name": "Finland",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -92,6 +110,8 @@
     },
     {
       "code": "FR",
+      "name": "France",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -99,6 +119,8 @@
     },
     {
       "code": "DE",
+      "name": "Germany",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -106,6 +128,8 @@
     },
     {
       "code": "GR",
+      "name": "Greece",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -113,6 +137,8 @@
     },
     {
       "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -120,6 +146,8 @@
     },
     {
       "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -127,6 +155,8 @@
     },
     {
       "code": "IT",
+      "name": "Italy",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -134,6 +164,8 @@
     },
     {
       "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -141,6 +173,8 @@
     },
     {
       "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -148,6 +182,8 @@
     },
     {
       "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -155,6 +191,8 @@
     },
     {
       "code": "MT",
+      "name": "Malta",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -162,6 +200,8 @@
     },
     {
       "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -169,6 +209,8 @@
     },
     {
       "code": "PL",
+      "name": "Poland",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -176,6 +218,8 @@
     },
     {
       "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -183,6 +227,8 @@
     },
     {
       "code": "RO",
+      "name": "Romania",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -190,6 +236,8 @@
     },
     {
       "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -197,6 +245,8 @@
     },
     {
       "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -204,6 +254,8 @@
     },
     {
       "code": "ES",
+      "name": "Spain",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -211,6 +263,8 @@
     },
     {
       "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -218,6 +272,8 @@
     },
     {
       "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -225,6 +281,8 @@
     },
     {
       "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -232,6 +290,8 @@
     },
     {
       "code": "NO",
+      "name": "Norway",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -239,6 +299,8 @@
     },
     {
       "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],
@@ -246,6 +308,8 @@
     },
     {
       "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
       "groups": [
         "dect_nrplus_europe"
       ],

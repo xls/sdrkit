@@ -43,6 +43,8 @@
   "countries": [
     {
       "code": "CN",
+      "name": "China",
+      "itu": 3,
       "groups": [
         "railway_cir_china"
       ],

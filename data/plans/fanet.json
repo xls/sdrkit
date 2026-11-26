@@ -212,6 +212,8 @@
   "countries": [
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "fanet_au"
       ],
@@ -219,6 +221,8 @@
     },
     {
       "code": "NZ",
+      "name": "New Zealand",
+      "itu": 3,
       "groups": [
         "fanet_nz"
       ],
@@ -226,6 +230,8 @@
     },
     {
       "code": "CN",
+      "name": "China",
+      "itu": 3,
       "groups": [
         "fanet_cn_jp"
       ],
@@ -233,6 +239,8 @@
     },
     {
       "code": "JP",
+      "name": "Japan",
+      "itu": 3,
       "groups": [
         "fanet_cn_jp"
       ],
@@ -240,6 +248,8 @@
     },
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "fanet_us"
       ],
@@ -247,6 +257,8 @@
     },
     {
       "code": "CA",
+      "name": "Canada",
+      "itu": 2,
       "groups": [
         "fanet_us"
       ],
@@ -254,6 +266,8 @@
     },
     {
       "code": "IN",
+      "name": "India",
+      "itu": 3,
       "groups": [
         "fanet_in"
       ],
@@ -261,6 +275,8 @@
     },
     {
       "code": "KR",
+      "name": "South Korea",
+      "itu": 3,
       "groups": [
         "fanet_kr"
       ],
@@ -268,6 +284,8 @@
     },
     {
       "code": "IL",
+      "name": "Israel",
+      "itu": 1,
       "groups": [
         "fanet_il"
       ],

@@ -43,6 +43,8 @@
   "countries": [
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "cv2x_us"
       ],

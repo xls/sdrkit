@@ -43,6 +43,8 @@
   "countries": [
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "eot_north_america"
       ],
@@ -50,6 +52,8 @@
     },
     {
       "code": "CA",
+      "name": "Canada",
+      "itu": 2,
       "groups": [
         "eot_north_america"
       ],
@@ -57,6 +61,8 @@
     },
     {
       "code": "MX",
+      "name": "Mexico",
+      "itu": 2,
       "groups": [
         "eot_north_america"
       ],

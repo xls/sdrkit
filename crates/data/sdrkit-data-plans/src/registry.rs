@@ -190,23 +190,18 @@ fn user_plan_file(plan: &ChannelPlan) -> PlanFile {
     file
 }
 
-/// Joins checked plan files into one: the groups in file order; for each country, the entry that names it first and the
-/// others added to it in file order; for each ITU region, the entries added in file order.
+/// Joins checked plan files into one: the groups in file order; for each country, the entry that names it and lists the
+/// most groups (the first such entry on a tie), with the other entries of the country added to it in file order; for
+/// each ITU region, the entries added in file order.
 fn join(files: Vec<(String, PlanFile)>) -> PlanFile {
     let mut out = PlanFile {
         format: data::FORMAT_VERSION,
         ..PlanFile::default()
     };
-    let mut additions: Vec<CountryEntry> = Vec::new();
+    let mut all: Vec<CountryEntry> = Vec::new();
     for (_, f) in files {
         out.groups.extend(f.groups);
-        for c in f.countries {
-            if defines(&c) && !out.countries.iter().any(|o| o.code == c.code) {
-                out.countries.push(c);
-            } else {
-                additions.push(c);
-            }
-        }
+        all.extend(f.countries);
         for r in f.regions {
             match out.regions.iter_mut().find(|o| o.itu == r.itu) {
                 Some(o) => merge_region(o, r),
@@ -214,7 +209,20 @@ fn join(files: Vec<(String, PlanFile)>) -> PlanFile {
             }
         }
     }
-    for c in additions {
+    // The main entry of each country: it names the country, and of those it lists the most groups.
+    let mut main: Vec<usize> = Vec::new();
+    for (i, c) in all.iter().enumerate().filter(|(_, c)| defines(c)) {
+        match main.iter_mut().find(|m| all[**m].code == c.code) {
+            Some(m) if c.groups.len() > all[*m].groups.len() => *m = i,
+            Some(_) => {}
+            None => main.push(i),
+        }
+    }
+    out.countries = main.iter().map(|&i| all[i].clone()).collect();
+    for (i, c) in all.into_iter().enumerate() {
+        if main.contains(&i) {
+            continue;
+        }
         match out.countries.iter_mut().find(|o| o.code == c.code) {
             Some(o) => merge_country(o, c),
             None => out.countries.push(c),

@@ -228,6 +228,8 @@
   "countries": [
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "aprs_na"
       ],
@@ -235,6 +237,8 @@
     },
     {
       "code": "CA",
+      "name": "Canada",
+      "itu": 2,
       "groups": [
         "aprs_na"
       ],
@@ -242,6 +246,8 @@
     },
     {
       "code": "MX",
+      "name": "Mexico",
+      "itu": 2,
       "groups": [
         "aprs_na"
       ],
@@ -249,6 +255,8 @@
     },
     {
       "code": "CO",
+      "name": "Colombia",
+      "itu": 2,
       "groups": [
         "aprs_na"
       ],
@@ -256,6 +264,8 @@
     },
     {
       "code": "CL",
+      "name": "Chile",
+      "itu": 2,
       "groups": [
         "aprs_na"
       ],
@@ -263,6 +273,8 @@
     },
     {
       "code": "PE",
+      "name": "Peru",
+      "itu": 2,
       "groups": [
         "aprs_na"
       ],
@@ -270,6 +282,8 @@
     },
     {
       "code": "BR",
+      "name": "Brazil",
+      "itu": 2,
       "groups": [
         "aprs_br"
       ],
@@ -277,6 +291,8 @@
     },
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "aprs_au"
       ],
@@ -291,6 +307,8 @@
     },
     {
       "code": "NZ",
+      "name": "New Zealand",
+      "itu": 3,
       "groups": [
         "aprs_nz"
       ],
@@ -298,6 +316,8 @@
     },
     {
       "code": "JP",
+      "name": "Japan",
+      "itu": 3,
       "groups": [
         "aprs_jp"
       ],
@@ -305,6 +325,8 @@
     },
     {
       "code": "CN",
+      "name": "China",
+      "itu": 3,
       "groups": [
         "aprs_jp"
       ],
@@ -312,6 +334,8 @@
     },
     {
       "code": "TW",
+      "name": "Taiwan",
+      "itu": 3,
       "groups": [
         "aprs_jp"
       ],

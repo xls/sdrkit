@@ -58,6 +58,8 @@
   "countries": [
     {
       "code": "AT",
+      "name": "Austria",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -65,6 +67,8 @@
     },
     {
       "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -72,6 +76,8 @@
     },
     {
       "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -79,6 +85,8 @@
     },
     {
       "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -86,6 +94,8 @@
     },
     {
       "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -93,6 +103,8 @@
     },
     {
       "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -100,6 +112,8 @@
     },
     {
       "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -107,6 +121,8 @@
     },
     {
       "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -114,6 +130,8 @@
     },
     {
       "code": "FI",
+      "name": "Finland",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -121,6 +139,8 @@
     },
     {
       "code": "FR",
+      "name": "France",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -128,6 +148,8 @@
     },
     {
       "code": "DE",
+      "name": "Germany",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -135,6 +157,8 @@
     },
     {
       "code": "GR",
+      "name": "Greece",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -142,6 +166,8 @@
     },
     {
       "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -149,6 +175,8 @@
     },
     {
       "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -156,6 +184,8 @@
     },
     {
       "code": "IT",
+      "name": "Italy",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -163,6 +193,8 @@
     },
     {
       "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -170,6 +202,8 @@
     },
     {
       "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -177,6 +211,8 @@
     },
     {
       "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -184,6 +220,8 @@
     },
     {
       "code": "MT",
+      "name": "Malta",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -191,6 +229,8 @@
     },
     {
       "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -198,6 +238,8 @@
     },
     {
       "code": "PL",
+      "name": "Poland",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -205,6 +247,8 @@
     },
     {
       "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -212,6 +256,8 @@
     },
     {
       "code": "RO",
+      "name": "Romania",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -219,6 +265,8 @@
     },
     {
       "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -226,6 +274,8 @@
     },
     {
       "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -233,6 +283,8 @@
     },
     {
       "code": "ES",
+      "name": "Spain",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],
@@ -240,6 +292,8 @@
     },
     {
       "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
       "groups": [
         "dvbsh_s_band"
       ],

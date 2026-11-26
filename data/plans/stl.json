@@ -4,7 +4,11 @@
   "countries": [
     {
       "code": "US",
-      "groups": ["stl_us"],
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "stl_us"
+      ],
       "unverified_reason": "the aural STL band of 47 CFR 74.502 was read from the text that a law library site publishes"
     }
   ],
@@ -27,7 +31,9 @@
           "service": "broadcasting",
           "start_hz": 944000000,
           "end_hz": 952000000,
-          "modes": ["stl"],
+          "modes": [
+            "stl"
+          ],
           "modulation": "wfm",
           "channel_width_hz": 25000,
           "raster": {

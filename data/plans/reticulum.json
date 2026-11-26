@@ -115,6 +115,8 @@
   "countries": [
     {
       "code": "AU",
+      "name": "Australia",
+      "itu": 3,
       "groups": [
         "reticulum_au"
       ],
@@ -122,6 +124,8 @@
     },
     {
       "code": "NZ",
+      "name": "New Zealand",
+      "itu": 3,
       "groups": [
         "reticulum_nz"
       ],
@@ -129,6 +133,8 @@
     },
     {
       "code": "US",
+      "name": "United States",
+      "itu": 2,
       "groups": [
         "reticulum_us"
       ],
@@ -136,6 +142,8 @@
     },
     {
       "code": "CA",
+      "name": "Canada",
+      "itu": 2,
       "groups": [
         "reticulum_us"
       ],

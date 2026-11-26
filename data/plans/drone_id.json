@@ -155,6 +155,8 @@
   "countries": [
     {
       "code": "AT",
+      "name": "Austria",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -163,6 +165,8 @@
     },
     {
       "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -171,6 +175,8 @@
     },
     {
       "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -179,6 +185,8 @@
     },
     {
       "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -187,6 +195,8 @@
     },
     {
       "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -195,6 +205,8 @@
     },
     {
       "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -203,6 +215,8 @@
     },
     {
       "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -211,6 +225,8 @@
     },
     {
       "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -219,6 +235,8 @@
     },
     {
       "code": "FI",
+      "name": "Finland",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -227,6 +245,8 @@
     },
     {
       "code": "FR",
+      "name": "France",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -235,6 +255,8 @@
     },
     {
       "code": "DE",
+      "name": "Germany",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -243,6 +265,8 @@
     },
     {
       "code": "GR",
+      "name": "Greece",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -251,6 +275,8 @@
     },
     {
       "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -259,6 +285,8 @@
     },
     {
       "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -267,6 +295,8 @@
     },
     {
       "code": "IT",
+      "name": "Italy",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -275,6 +305,8 @@
     },
     {
       "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -283,6 +315,8 @@
     },
     {
       "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -291,6 +325,8 @@
     },
     {
       "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -299,6 +335,8 @@
     },
     {
       "code": "MT",
+      "name": "Malta",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -307,6 +345,8 @@
     },
     {
       "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -315,6 +355,8 @@
     },
     {
       "code": "PL",
+      "name": "Poland",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -323,6 +365,8 @@
     },
     {
       "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -331,6 +375,8 @@
     },
     {
       "code": "RO",
+      "name": "Romania",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -339,6 +385,8 @@
     },
     {
       "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -347,6 +395,8 @@
     },
     {
       "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -355,6 +405,8 @@
     },
     {
       "code": "ES",
+      "name": "Spain",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -363,6 +415,8 @@
     },
     {
       "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -371,6 +425,8 @@
     },
     {
       "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -379,6 +435,8 @@
     },
     {
       "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -387,6 +445,8 @@
     },
     {
       "code": "NO",
+      "name": "Norway",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -395,6 +455,8 @@
     },
     {
       "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
@@ -403,6 +465,8 @@
     },
     {
       "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
       "groups": [
         "flarm",
         "ogn"
