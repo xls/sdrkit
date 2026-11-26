@@ -1,0 +1,62 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "fy3_mpt",
+      "name": "Fengyun-3 MPT X-band downlink",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5"
+      },
+      "verified": false,
+      "unverified_reason": "the band is the ITU table; the 7.78 GHz carrier and its width are from memory (unconfirmed)",
+      "note": "Worldwide: the satellites are received wherever they pass.",
+      "bands": [
+        {
+          "name": "Meteorological-satellite X band 7750 to 7900 MHz",
+          "service": "meteorological_aids",
+          "start_hz": 7750000000.0,
+          "end_hz": 7900000000.0,
+          "modes": [
+            "fy3_mpt"
+          ],
+          "channels": [
+            {
+              "name": "FY-3 MPT X band 7.78 GHz (unconfirmed)",
+              "centre_hz": 7780000000.0,
+              "width_hz": 28000000.0
+            }
+          ],
+          "note": "stack fy3_mpt; 7750 to 7900 MHz is the non-geostationary meteorological-satellite space-to-Earth allocation of ITU Radio Regulations Article 5; the carrier of each FY-3 satellite is (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "fy3_mpt"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "fy3_mpt"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "fy3_mpt"
+      ]
+    }
+  ]
+}

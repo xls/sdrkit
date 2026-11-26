@@ -1,0 +1,63 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "scada_us",
+      "name": "SCADA radio, United States (multiple address systems)",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "MAS 928 to 929 MHz",
+          "service": "land_mobile",
+          "start_hz": 928000000.0,
+          "end_hz": 929000000.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 928006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; the 928 and 952 MHz multiple address bands of 47 CFR Part 101 carry SCADA polling (unconfirmed)"
+        },
+        {
+          "name": "MAS 952 to 960 MHz",
+          "service": "land_mobile",
+          "start_hz": 952000000.0,
+          "end_hz": 960000000.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 952006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "scada_us"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

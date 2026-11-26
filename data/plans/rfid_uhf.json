@@ -108,6 +108,35 @@
           }
         }
       ]
+    },
+    {
+      "id": "rfid_uhf_jp",
+      "name": "UHF RFID, Japan (916.7 to 923.5 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T106 and STD-T107, 920 MHz-band RFID equipment",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band 916.7 to 923.5 MHz and the 200 kHz raster are from memory (unconfirmed)",
+      "bands": [
+        {
+          "name": "UHF RFID 916.7 to 923.5 MHz",
+          "service": "short_range",
+          "start_hz": 916700000.0,
+          "end_hz": 923500000.0,
+          "modes": [
+            "rfid_uhf"
+          ],
+          "channel_width_hz": 200000,
+          "raster": {
+            "first_hz": 916800000.0,
+            "step_hz": 200000
+          },
+          "note": "stack rfid_uhf; the raster is the 200 kHz reader channel (unconfirmed)"
+        }
+      ]
     }
   ],
   "countries": [
@@ -416,6 +445,15 @@
         "rfid_uhf_us"
       ],
       "unverified_reason": "the FCC rules"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "rfid_uhf_jp"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
     }
   ]
 }

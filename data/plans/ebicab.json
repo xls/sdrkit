@@ -1,0 +1,62 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "ebicab",
+      "name": "Eurobalise up-link",
+      "kind": "other",
+      "source": {
+        "publisher": "UNISIG",
+        "title": "SUBSET-036, FFFIS for Eurobalise",
+        "date": "not recorded",
+        "number": "SUBSET-036"
+      },
+      "verified": false,
+      "unverified_reason": "the 4.234 MHz up-link and the width are from memory of SUBSET-036 (unconfirmed)",
+      "note": "Worldwide where Eurobalise (ETCS) is installed.",
+      "bands": [
+        {
+          "name": "Eurobalise up-link 4.234 MHz",
+          "service": "short_range",
+          "start_hz": 3700000.0,
+          "end_hz": 4800000.0,
+          "modes": [
+            "ebicab"
+          ],
+          "channels": [
+            {
+              "name": "Eurobalise up-link 4.234 MHz",
+              "centre_hz": 4234000.0,
+              "width_hz": 1000000.0
+            }
+          ],
+          "note": "stack ebicab; the balise answers the 27.095 MHz tele-powering signal of the train on 4.234 MHz (unconfirmed width)"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "ebicab"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "ebicab"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "ebicab"
+      ]
+    }
+  ]
+}

@@ -315,6 +315,13 @@
           "$ref": "#/$defs/presets",
           "description": "Its presets."
         },
+        "services": {
+          "description": "Modes whose state in the country differs from in service.",
+          "items": {
+            "$ref": "#/$defs/service"
+          },
+          "type": "array"
+        },
         "sources": {
           "description": "The documents that say which plans the country uses and its presets.",
           "items": {
@@ -553,6 +560,42 @@
       "required": [
         "itu",
         "name"
+      ],
+      "type": "object"
+    },
+    "service": {
+      "additionalProperties": false,
+      "description": "The state of one mode in one country: a mode that is out of service has no channels there.",
+      "properties": {
+        "ended": {
+          "description": "The date the service ended.",
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+          "type": "string"
+        },
+        "in_service": {
+          "default": true,
+          "description": "False when the technology is no longer in service in the country.",
+          "type": "boolean"
+        },
+        "mode": {
+          "description": "The stack id of the mode.",
+          "pattern": "^[a-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "note": {
+          "description": "A note; a mode out of service without a source says in it that the end is unconfirmed.",
+          "type": "string"
+        },
+        "sources": {
+          "description": "The announcements or regulator documents that say so.",
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode"
       ],
       "type": "object"
     },

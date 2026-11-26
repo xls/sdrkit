@@ -1,0 +1,60 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "wavebuoy",
+      "name": "Datawell wave buoy HF link",
+      "kind": "other",
+      "source": {
+        "publisher": "Datawell",
+        "title": "Waverider receiver and HF link manuals",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the 30.475 MHz default of the stack is its only value; the buoy frequency is set per buoy and was not read from a published table (unconfirmed)",
+      "bands": [
+        {
+          "name": "Wave buoy HF link 29.7 to 40 MHz",
+          "service": "short_range",
+          "start_hz": 29700000.0,
+          "end_hz": 40000000.0,
+          "modes": [
+            "wavebuoy"
+          ],
+          "channels": [
+            {
+              "name": "Wave buoy 30.475 MHz (unconfirmed)",
+              "centre_hz": 30475000.0,
+              "width_hz": 16000
+            }
+          ],
+          "note": "stack wavebuoy; the buoys use frequencies of the 27 to 40 MHz range under national licences (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "wavebuoy"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "wavebuoy"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "wavebuoy"
+      ]
+    }
+  ]
+}

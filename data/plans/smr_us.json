@@ -1,0 +1,145 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "smr_us",
+      "name": "Specialised mobile radio, 800 and 900 MHz, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "SMR 800 MHz base 851 to 866 MHz",
+          "service": "land_mobile",
+          "start_hz": 851000000.0,
+          "end_hz": 866000000.0,
+          "modes": [
+            "ltr",
+            "edacs",
+            "opensky"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 851012500.0,
+            "step_hz": 12500
+          },
+          "note": "stacks ltr, edacs and opensky; the 800 MHz SMR base-transmit band of 47 CFR Part 90 Subpart S; the channels of a system are not public (unconfirmed edges)"
+        },
+        {
+          "name": "SMR 900 MHz base 935 to 940 MHz",
+          "service": "land_mobile",
+          "start_hz": 935000000.0,
+          "end_hz": 940000000.0,
+          "modes": [
+            "ltr",
+            "edacs",
+            "opensky"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 935012500.0,
+            "step_hz": 12500
+          },
+          "note": "stacks ltr, edacs and opensky; the 900 MHz SMR band (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "ltr_us",
+      "name": "LTR trunking, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "smr_us"
+      ]
+    },
+    {
+      "id": "edacs_us",
+      "name": "EDACS trunking, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "smr_us"
+      ]
+    },
+    {
+      "id": "opensky_us",
+      "name": "OpenSky trunking, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "smr_us"
+      ]
+    },
+    {
+      "id": "gsc_us",
+      "name": "GSC paging, United States (929 to 932 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Paging 929 to 932 MHz",
+          "service": "land_mobile",
+          "start_hz": 929000000,
+          "end_hz": 932000000,
+          "modes": [
+            "gsc"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 929012500,
+            "step_hz": 12500
+          },
+          "note": "stack gsc; the paging band of the United States (unconfirmed raster)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "ltr_us",
+        "edacs_us",
+        "opensky_us",
+        "gsc_us"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

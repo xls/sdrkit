@@ -1,0 +1,60 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "globalstar",
+      "name": "Globalstar terminal uplink, 1.6 GHz",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5"
+      },
+      "verified": false,
+      "unverified_reason": "the allocation is the ITU table (footnote 5.364); the 1.23 MHz CDMA raster from 1610.615 MHz is (unconfirmed)",
+      "note": "Worldwide where Globalstar serves.",
+      "bands": [
+        {
+          "name": "Globalstar uplink 1610 to 1618.25 MHz",
+          "service": "mobile",
+          "start_hz": 1610000000.0,
+          "end_hz": 1618250000.0,
+          "modes": [
+            "globalstar"
+          ],
+          "channel_width_hz": 1230000.0,
+          "raster": {
+            "first_hz": 1610615000.0,
+            "step_hz": 1230000.0
+          },
+          "note": "stack globalstar; the mobile-satellite earth-to-space band 1610 to 1626.5 MHz of ITU Radio Regulations Article 5 (5.364), the Globalstar part below 1618.25 MHz; the carrier raster is (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "globalstar"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "globalstar"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "globalstar"
+      ]
+    }
+  ]
+}

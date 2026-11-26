@@ -231,6 +231,19 @@ impl PlanSet {
             .collect()
     }
 
+    /// The state of `stack` in the country `code` when it is out of service there: the last entry of the country files
+    /// that says so. `None` while the mode is in service or the files say nothing.
+    pub(crate) fn out_of_service(&self, stack: &str, code: &str) -> Option<sdrkit_data_plans::ServiceState> {
+        self.countries
+            .iter()
+            .filter(|c| c.code == code)
+            .flat_map(|c| &c.services)
+            .filter(|s| s.mode == stack)
+            .last()
+            .filter(|s| !s.in_service)
+            .cloned()
+    }
+
     /// The ITU region of the country `code`.
     pub(crate) fn itu(&self, code: &str) -> Option<u8> {
         self.countries

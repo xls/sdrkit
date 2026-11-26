@@ -669,6 +669,10 @@ fn merge_country(into: &mut CountryEntry, c: CountryEntry) {
         into.note = c.note;
     }
     into.sources.extend(c.sources);
+    for sv in c.services {
+        into.services.retain(|x| x.mode != sv.mode);
+        into.services.push(sv);
+    }
 }
 
 /// Checks a plan: its id, names, frequencies, widths, rasters and sizes. Every problem is listed.

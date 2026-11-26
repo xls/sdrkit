@@ -21,9 +21,395 @@
           "modes": [
             "npr70"
           ],
-          "note": "stack npr70; the usual dial 437 MHz"
+          "note": "stack npr70; the usual dial 437 MHz",
+          "channels": [
+            {
+              "name": "NPR70 437.0 MHz (stack default)",
+              "centre_hz": 437000000.0,
+              "width_hz": 2000000.0
+            }
+          ]
         }
       ]
+    },
+    {
+      "id": "npr70_r1",
+      "name": "New Packet Radio, amateur 70 cm, IARU Region 1 and Japan (430 to 440 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU Region 1 VHF/UHF/Microwave band plan, 430 to 440 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)",
+      "bands": [
+        {
+          "name": "Amateur 70 cm 430 to 440 MHz",
+          "service": "amateur",
+          "start_hz": 430000000.0,
+          "end_hz": 440000000.0,
+          "modes": [
+            "npr70"
+          ],
+          "channels": [
+            {
+              "name": "NPR70 437.0 MHz (stack default)",
+              "centre_hz": 437000000.0,
+              "width_hz": 2000000.0
+            }
+          ],
+          "note": "stack npr70; the Region 1 and Japanese allocation is 430 to 440 MHz; the digital sub-band of the national plan applies (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "npr70_420",
+      "name": "New Packet Radio, amateur 70 cm, Australia and the United States (420 to 450 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "WIA",
+        "title": "Australian amateur band plan, 70 cm; FCC 47 CFR 97.301",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)",
+      "bands": [
+        {
+          "name": "Amateur 70 cm 420 to 450 MHz",
+          "service": "amateur",
+          "start_hz": 420000000.0,
+          "end_hz": 450000000.0,
+          "modes": [
+            "npr70"
+          ],
+          "channels": [
+            {
+              "name": "NPR70 437.0 MHz (stack default)",
+              "centre_hz": 437000000.0,
+              "width_hz": 2000000.0
+            }
+          ],
+          "note": "stack npr70; 420 to 450 MHz in Australia and the United States (the United States shares it with radiolocation; unconfirmed national sub-bands)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "name": "Austria",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "MT",
+      "name": "Malta",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "RO",
+      "name": "Romania",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "npr70_r1"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "npr70_420"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "npr70_420"
+      ],
+      "unverified_reason": "the amateur 70 cm allocations are from the band plans of the national societies as remembered (unconfirmed)"
     }
   ]
 }

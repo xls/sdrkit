@@ -19,6 +19,7 @@ const NO_FIXED_FREQUENCY: &[(&str, &str)] = &[
     ("dvbs", "satellite transponders belong to an orbital position, not to a country; the host lists those of the satellite the dish points at"),
     ("satbeacon", "satellite beacons belong to an orbital position, not to a country; the host lists those of the satellite the dish points at"),
     ("bgan", "the BGAN forward carriers belong to the satellite and change with the load; the stack finds them in the L band"),
+    ("multitone", "on-site and hospital paging systems are licensed to one site each; no public channel list exists, and the stack measures whatever carrier the user tunes"),
     ("tones", "selective-call tones and codes on whatever voice channel the user tunes"),
     ("iono", "chirp sounders sweep the whole HF range; the stack listens wherever the user tunes"),
     ("meter", "a measurement of whatever signal the user tunes"),
@@ -109,6 +110,8 @@ const NOT_USED: &[(&str, &str, &str)] = &[
         "AU US DE GB JP",
         "CDR is the digital radio system of China",
     ),
+    ("mpt1327", "US JP", "MPT 1327 is the trunking standard of the United Kingdom and the countries that followed it; it is not deployed in the United States or Japan"),
+    ("opensky", "DE GB JP", "OpenSky is a United States trunking product; it is not deployed in these countries"),
     ("dvb_terrestrial", "US JP", "the TV standard of the country in plans/countries.json is ATSC or ISDB-T"),
     ("isdbtsb", "AU US DE GB", "ISDB-T and its one-segment service are the TV system of Japan and South America"),
     ("dvbc2", "AU JP", "the countries of plans/countries.json list cable TV as absent"),
@@ -138,43 +141,11 @@ const NOT_USED: &[(&str, &str, &str)] = &[
 
 /// The gaps that are still to fill: the stack and the countries of the table where it has no known frequency.
 const OPEN: &[(&str, &str)] = &[
-    ("stl", "AU DE GB JP"),
-    ("fy3_mpt", "AU US DE GB JP"),
-    ("noaa_gac", "AU US DE GB JP"),
-    ("goes_cda", "AU US DE GB JP"),
-    ("goes_mdl", "AU US DE GB JP"),
-    ("gk2a_cdas", "AU US DE GB JP"),
-    ("sband_ccsds", "AU US DE GB JP"),
-    ("meshcore", "JP"),
-    ("loraaprs", "JP"),
-    ("meshcom", "AU US JP"),
-    ("globalstar", "AU US DE GB JP"),
-    ("goes_dcs", "AU US DE GB JP"),
-    ("lora_sat", "AU US DE GB JP"),
-    ("qo100", "AU US DE GB JP"),
-    ("mpt1327", "AU US DE GB JP"),
-    ("ltr", "AU US DE GB JP"),
-    ("edacs", "AU US DE GB JP"),
-    ("pager", "AU US DE GB JP"),
-    ("multitone", "AU US DE GB JP"),
-    ("opensky", "AU US DE GB JP"),
-    ("gsc", "AU US DE GB JP"),
-    ("scada", "AU US DE GB JP"),
-    ("ebicab", "AU US DE GB JP"),
-    ("cv2x", "AU DE GB JP"),
-    ("subghzchat", "JP"),
-    ("mioty", "AU US DE GB JP"),
-    ("dect_nrplus", "AU US DE GB JP"),
-    ("npr70", "AU US DE GB JP"),
-    ("flarm", "AU US JP"),
-    ("ogn", "AU US JP"),
-    ("mavlink_sik", "AU US DE GB JP"),
-    ("pactor1", "AU US DE GB JP"),
-    ("wavebuoy", "AU US DE GB JP"),
-    ("pactor2", "AU US DE GB JP"),
-    ("pactor3", "AU US DE GB JP"),
-    ("pactor4", "AU US DE GB JP"),
-    ("rfid_uhf", "JP"),
+    ("ltr", "AU DE GB JP"),
+    ("edacs", "AU DE GB JP"),
+    ("opensky", "AU"),
+    ("gsc", "AU DE GB JP"),
+    ("scada", "AU DE GB JP"),
 ];
 
 fn data() -> Data {
@@ -334,4 +305,19 @@ fn cell_stacks_offer_the_bands_of_the_country() {
         }
     }
     assert!(problems.is_empty(), "{}", problems.join("\n"));
+}
+
+/// A mode that a country entry lists as out of service has no channels there, and the helper says why; the same mode is
+/// in service elsewhere.
+#[test]
+fn a_mode_out_of_service_has_no_channels_and_a_reason() {
+    let d = data();
+    let au = Region::new("AU").expect("a country code");
+    let why = d.service_end("umts", &au).expect("umts is out of service in AU");
+    assert_eq!(why.ended, "2024");
+    assert!(why.why("AU").contains("not in service"));
+    assert!(d.stack_channels("umts", &au).expect("channels").is_empty());
+    assert!(d.service_end("gsm", &au).is_some());
+    let us = Region::new("US").expect("a country code");
+    assert!(d.service_end("umts", &us).is_none());
 }

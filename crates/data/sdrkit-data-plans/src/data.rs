@@ -539,6 +539,38 @@ impl Presets {
     }
 }
 
+/// The state of one mode in one country: a mode that is out of service there has no channels for the country.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceState {
+    /// The stack id of the mode ("umts", "gsm").
+    pub mode: String,
+    /// False when the technology is no longer in service in the country. Absent means true.
+    #[serde(default = "in_service_default", skip_serializing_if = "is_true")]
+    pub in_service: bool,
+    /// The date the service ended ("2024", "2024-10" or "2024-10-28"). Empty if not known.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub ended: String,
+    /// The announcements or regulator documents that say so.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sources: Vec<Source>,
+    /// A note; a mode that is out of service without a source says in it that the end is unconfirmed.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub note: String,
+}
+
+fn in_service_default() -> bool {
+    true
+}
+
+impl ServiceState {
+    /// One line that says why the mode has no channels: "umts is not in service in AU (ended 2024)".
+    pub fn why(&self, country: &str) -> String {
+        let when = if self.ended.is_empty() { String::new() } else { format!(" (ended {})", self.ended) };
+        format!("{} is not in service in {country}{when}", self.mode)
+    }
+}
+
 /// One country: its ISO 3166 code, name and ITU region, the groups it uses and its presets.
 ///
 /// For each plan kind, a country uses the groups it lists of that kind. If it lists none of a kind, it uses its ITU region's
@@ -573,6 +605,9 @@ pub struct CountryEntry {
     /// The documents that say which plans the country uses and its presets.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sources: Vec<Source>,
+    /// The modes whose state in the country differs from "in service", each with its end and sources.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub services: Vec<ServiceState>,
     /// A note.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub note: String,
@@ -1068,6 +1103,21 @@ pub fn check(files: &[(String, PlanFile)], known: &Known) -> Vec<DataError> {
                 }
             }
             check_presets(&mut p, &format!("{path}.presets"), &c.presets);
+            for (j, sv) in c.services.iter().enumerate() {
+                let sp = format!("{path}.services[{j}]");
+                if !is_id(&sv.mode) {
+                    p.add(&format!("{sp}.mode"), format!("{:?} is not a stack id", sv.mode));
+                }
+                if !sv.ended.is_empty() && !is_date(&sv.ended) {
+                    p.add(&format!("{sp}.ended"), "a date is YYYY, YYYY-MM or YYYY-MM-DD");
+                }
+                if !sv.in_service && sv.sources.is_empty() && !sv.note.contains("unconfirmed") {
+                    p.add(&format!("{sp}.sources"), "a mode that is out of service names a source or says in the note that it is unconfirmed");
+                }
+                for (k, so) in sv.sources.iter().enumerate() {
+                    check_source(&mut p, &format!("{sp}.sources[{k}]"), so);
+                }
+            }
             for (j, s) in c.sources.iter().enumerate() {
                 check_source(&mut p, &format!("{path}.sources[{j}]"), s);
             }

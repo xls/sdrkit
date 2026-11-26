@@ -40,7 +40,7 @@ pub mod schema;
 pub use compile::band_channels;
 pub use data::{
     Band, BandChannel, BandGroup, CellNumbers, CellSystem, Cellular, CountryEntry, DataError,
-    Duplex, Naming, Numbering, PlanFile, Presets, Raster, RdsVariant, RegionEntry, Service, Source,
+    ServiceState, Duplex, Naming, Numbering, PlanFile, Presets, Raster, RdsVariant, RegionEntry, Service, Source,
     SyncRaster,
 };
 pub use model::{

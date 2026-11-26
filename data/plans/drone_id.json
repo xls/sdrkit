@@ -150,6 +150,129 @@
       "include": [
         "flarm_europe"
       ]
+    },
+    {
+      "id": "flarm_au",
+      "name": "FLARM and OGN trackers, Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "FLARM Technology",
+        "title": "Frequency zones of the FLARM radio",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)",
+      "bands": [
+        {
+          "name": "FLARM and OGN Australia",
+          "service": "short_range",
+          "start_hz": 917000000.0,
+          "end_hz": 922000000.0,
+          "modes": [
+            "flarm",
+            "ogn"
+          ],
+          "channel_width_hz": 5000000.0,
+          "note": "stacks flarm and ogn; the Australian zone 917 to 922 MHz (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "flarm_us",
+      "name": "FLARM and OGN trackers, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "FLARM Technology",
+        "title": "Frequency zones of the FLARM radio",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)",
+      "bands": [
+        {
+          "name": "FLARM and OGN United States",
+          "service": "short_range",
+          "start_hz": 902000000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "flarm",
+            "ogn"
+          ],
+          "channel_width_hz": 26000000.0,
+          "note": "stacks flarm and ogn; the United States zone, a hopping scheme in 902 to 928 MHz (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "flarm_jp",
+      "name": "FLARM and OGN trackers, Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "FLARM Technology",
+        "title": "Frequency zones of the FLARM radio",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)",
+      "bands": [
+        {
+          "name": "FLARM and OGN Japan",
+          "service": "short_range",
+          "start_hz": 920600000.0,
+          "end_hz": 923400000.0,
+          "modes": [
+            "flarm",
+            "ogn"
+          ],
+          "channel_width_hz": 2800000.0,
+          "note": "stacks flarm and ogn; the Japanese zone in the 920 MHz band of ARIB STD-T108 (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "ogn_au",
+      "name": "OGN trackers, Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "FLARM Technology",
+        "title": "Frequency zones of the FLARM radio",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)",
+      "include": [
+        "flarm_au"
+      ]
+    },
+    {
+      "id": "ogn_us",
+      "name": "OGN trackers, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "FLARM Technology",
+        "title": "Frequency zones of the FLARM radio",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)",
+      "include": [
+        "flarm_us"
+      ]
+    },
+    {
+      "id": "ogn_jp",
+      "name": "OGN trackers, Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "FLARM Technology",
+        "title": "Frequency zones of the FLARM radio",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)",
+      "include": [
+        "flarm_jp"
+      ]
     }
   ],
   "countries": [
@@ -472,6 +595,36 @@
         "ogn"
       ],
       "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "flarm_au",
+        "ogn_au"
+      ],
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "flarm_us",
+        "ogn_us"
+      ],
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "flarm_jp",
+        "ogn_jp"
+      ],
+      "unverified_reason": "FLARM and OGN use national zones; the bands are from memory of the zone table (unconfirmed)"
     }
   ],
   "regions": [

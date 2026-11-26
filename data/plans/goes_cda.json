@@ -1,0 +1,62 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "goes_cda",
+      "name": "GOES telemetry downlinks",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5"
+      },
+      "verified": false,
+      "unverified_reason": "the band is the ITU table; the 1693 MHz carrier is the default of the stack and not confirmed (unconfirmed)",
+      "note": "GOES satellites serve the Americas; the data are listed for every country.",
+      "bands": [
+        {
+          "name": "Meteorological-satellite 1670 to 1710 MHz",
+          "service": "meteorological_aids",
+          "start_hz": 1670000000.0,
+          "end_hz": 1710000000.0,
+          "modes": [
+            "goes_cda"
+          ],
+          "channels": [
+            {
+              "name": "GOES telemetry 1693.0 MHz (unconfirmed)",
+              "centre_hz": 1693000000.0,
+              "width_hz": 80000
+            }
+          ],
+          "note": "stack goes_cda; 1670 to 1710 MHz is the meteorological-satellite space-to-Earth allocation of ITU Radio Regulations Article 5; (unconfirmed) carrier"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "goes_cda"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "goes_cda"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "goes_cda"
+      ]
+    }
+  ]
+}

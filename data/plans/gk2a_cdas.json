@@ -1,0 +1,61 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "gk2a_cdas",
+      "name": "GEO-KOMPSAT-2A data link",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5"
+      },
+      "verified": false,
+      "unverified_reason": "the band is the ITU table; the carrier is not known and 1692.14 MHz (the LRIT downlink) is listed as the nearest known value (unconfirmed)",
+      "bands": [
+        {
+          "name": "Meteorological-satellite 1670 to 1710 MHz",
+          "service": "meteorological_aids",
+          "start_hz": 1670000000.0,
+          "end_hz": 1710000000.0,
+          "modes": [
+            "gk2a_cdas"
+          ],
+          "channels": [
+            {
+              "name": "GK-2A downlink 1692.14 MHz (unconfirmed)",
+              "centre_hz": 1692140000.0,
+              "width_hz": 4660000.0
+            }
+          ],
+          "note": "stack gk2a_cdas; the data link carrier is not known; the value is the LRIT downlink of GK-2A (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "gk2a_cdas"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "gk2a_cdas"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "gk2a_cdas"
+      ]
+    }
+  ]
+}

@@ -231,6 +231,130 @@
           ]
         }
       ]
+    },
+    {
+      "id": "mavlink_sik_r1",
+      "name": "SiK telemetry radios, Europe (433 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "3D Robotics / RFD",
+        "title": "SiK radio firmware documentation (433 and 915 MHz air frequency settings)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "SiK 433 MHz",
+          "service": "short_range",
+          "start_hz": 433000000.0,
+          "end_hz": 435000000.0,
+          "modes": [
+            "mavlink_sik"
+          ],
+          "channels": [
+            {
+              "name": "SiK 433.92 MHz",
+              "centre_hz": 433920000.0,
+              "width_hz": 500000
+            }
+          ],
+          "note": "stack mavlink_sik; the 433 MHz ISM band of Europe (433.05 to 434.79 MHz; unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "mavlink_sik_americas",
+      "name": "SiK telemetry radios, the Americas (915 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "3D Robotics / RFD",
+        "title": "SiK radio firmware documentation (433 and 915 MHz air frequency settings)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "SiK 915 MHz",
+          "service": "short_range",
+          "start_hz": 902000000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "mavlink_sik"
+          ],
+          "channels": [
+            {
+              "name": "SiK 915.0 MHz",
+              "centre_hz": 915000000.0,
+              "width_hz": 500000
+            }
+          ],
+          "note": "stack mavlink_sik; the 902 to 928 MHz band of 47 CFR 15.247; the radios hop across it"
+        }
+      ]
+    },
+    {
+      "id": "mavlink_sik_au",
+      "name": "SiK telemetry radios, Australia (915 to 928 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "3D Robotics / RFD",
+        "title": "SiK radio firmware documentation (433 and 915 MHz air frequency settings)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "SiK 915 to 928 MHz",
+          "service": "short_range",
+          "start_hz": 915000000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "mavlink_sik"
+          ],
+          "channels": [
+            {
+              "name": "SiK 921.5 MHz (unconfirmed)",
+              "centre_hz": 921500000.0,
+              "width_hz": 500000
+            }
+          ],
+          "note": "stack mavlink_sik; the Australian LIPD class licence band (unconfirmed centre)"
+        }
+      ]
+    },
+    {
+      "id": "mavlink_sik_jp",
+      "name": "SiK telemetry radios, Japan (920 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T108, 920 MHz-band telemeter, telecontrol and data transmission radio equipment",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "SiK 920 MHz Japan",
+          "service": "short_range",
+          "start_hz": 920600000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "mavlink_sik"
+          ],
+          "channels": [
+            {
+              "name": "SiK 921.0 MHz (unconfirmed)",
+              "centre_hz": 921000000.0,
+              "width_hz": 500000
+            }
+          ],
+          "note": "stack mavlink_sik; ARIB STD-T108 band (unconfirmed)"
+        }
+      ]
     }
   ],
   "countries": [
@@ -239,9 +363,19 @@
       "name": "Australia",
       "itu": 3,
       "groups": [
-        "sik_au"
+        "sik_au",
+        "mavlink_sik_au"
       ],
       "unverified_reason": "the mapping of the country to the band is not confirmed by a public document"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "mavlink_sik_jp"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
     }
   ],
   "regions": [
@@ -251,7 +385,8 @@
       "groups": [
         "rc_links_2g4",
         "sik_r1",
-        "wfb_wifi"
+        "wfb_wifi",
+        "mavlink_sik_r1"
       ]
     },
     {
@@ -260,7 +395,8 @@
       "groups": [
         "rc_links_2g4",
         "sik_americas",
-        "wfb_wifi"
+        "wfb_wifi",
+        "mavlink_sik_americas"
       ]
     },
     {

@@ -270,7 +270,22 @@ pub fn json_schema() -> Value {
                 ("verified", json!({ "type": "boolean", "default": false, "description": "The groups and presets have been compared with the sources." })),
                 ("unverified_reason", text("Why the groups and presets are not verified.")),
                 ("sources", list_of("source", "The documents that say which plans the country uses and its presets.")),
+                ("services", list_of("service", "Modes whose state in the country differs from in service.")),
                 ("note", text("A note.")),
+            ],
+        ),
+    );
+    defs.insert(
+        "service".into(),
+        object(
+            "The state of one mode in one country: a mode that is out of service has no channels there.",
+            &["mode"],
+            vec![
+                ("mode", json!({ "type": "string", "pattern": "^[a-z0-9_-]{1,64}$", "description": "The stack id of the mode." })),
+                ("in_service", json!({ "type": "boolean", "default": true, "description": "False when the technology is no longer in service in the country." })),
+                ("ended", json!({ "type": "string", "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$", "description": "The date the service ended." })),
+                ("sources", list_of("source", "The announcements or regulator documents that say so.")),
+                ("note", text("A note; a mode out of service without a source says in it that the end is unconfirmed.")),
             ],
         ),
     );

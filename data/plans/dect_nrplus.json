@@ -21,7 +21,107 @@
           "modes": [
             "dect_nrplus"
           ],
-          "note": "stack dect_nrplus; channel 1657 at 1881.792 MHz is the usual dial"
+          "note": "stack dect_nrplus; channel 1657 at 1881.792 MHz is the usual dial",
+          "channels": [
+            {
+              "name": "DECT NR+ channel 1657 (1881.792 MHz)",
+              "centre_hz": 1881792000.0,
+              "width_hz": 1728000.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dect_nrplus_au",
+      "name": "DECT NR+, Australia (1880 to 1900 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 636-2, DECT-2020 New Radio; Part 2: Radio reception and transmission requirements",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the national band is from memory (unconfirmed); not compared with the regulator table",
+      "bands": [
+        {
+          "name": "DECT NR+ 1880 to 1900 MHz",
+          "service": "mobile",
+          "start_hz": 1880000000.0,
+          "end_hz": 1900000000.0,
+          "modes": [
+            "dect_nrplus"
+          ],
+          "channels": [
+            {
+              "name": "DECT NR+ channel 1657 (1881.792 MHz)",
+              "centre_hz": 1881792000.0,
+              "width_hz": 1728000.0
+            }
+          ],
+          "note": "stack dect_nrplus; 1880 to 1900 MHz is the Australian DECT band (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "dect_nrplus_us",
+      "name": "DECT NR+, United States (1920 to 1930 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 636-2, DECT-2020 New Radio; Part 2: Radio reception and transmission requirements",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the national band is from memory (unconfirmed); not compared with the regulator table",
+      "bands": [
+        {
+          "name": "DECT NR+ 1920 to 1930 MHz",
+          "service": "mobile",
+          "start_hz": 1920000000.0,
+          "end_hz": 1930000000.0,
+          "modes": [
+            "dect_nrplus"
+          ],
+          "channels": [
+            {
+              "name": "DECT NR+ 1924.7 MHz (unconfirmed)",
+              "centre_hz": 1924704000.0,
+              "width_hz": 1728000.0
+            }
+          ],
+          "note": "stack dect_nrplus; 1920 to 1930 MHz is the US unlicensed PCS band of the DECT 6.0 devices (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "dect_nrplus_jp",
+      "name": "DECT NR+, Japan (1893.5 to 1906.1 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 636-2, DECT-2020 New Radio; Part 2: Radio reception and transmission requirements",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the national band is from memory (unconfirmed); not compared with the regulator table",
+      "bands": [
+        {
+          "name": "DECT NR+ 1893.5 to 1906.1 MHz",
+          "service": "mobile",
+          "start_hz": 1893500000.0,
+          "end_hz": 1906100000.0,
+          "modes": [
+            "dect_nrplus"
+          ],
+          "channels": [
+            {
+              "name": "DECT NR+ 1895.0 MHz (unconfirmed)",
+              "centre_hz": 1895000000.0,
+              "width_hz": 1728000.0
+            }
+          ],
+          "note": "stack dect_nrplus; 1893.5 to 1906.1 MHz is the Japanese DECT band (unconfirmed)"
         }
       ]
     }
@@ -314,6 +414,33 @@
         "dect_nrplus_europe"
       ],
       "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "dect_nrplus_au"
+      ],
+      "unverified_reason": "the national band is from memory (unconfirmed); not compared with the regulator table"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "dect_nrplus_us"
+      ],
+      "unverified_reason": "the national band is from memory (unconfirmed); not compared with the regulator table"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "dect_nrplus_jp"
+      ],
+      "unverified_reason": "the national band is from memory (unconfirmed); not compared with the regulator table"
     }
   ]
 }

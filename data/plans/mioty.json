@@ -22,7 +22,83 @@
           "modes": [
             "mioty"
           ],
-          "note": "stack mioty; the dial 868.18 MHz, the middle of the 24 carriers"
+          "note": "stack mioty; the dial 868.18 MHz, the middle of the 24 carriers",
+          "channel_width_hz": 60000
+        }
+      ]
+    },
+    {
+      "id": "mioty_us",
+      "name": "mioty, United States (902 to 928 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 357, Low Throughput Networks (LTN); Protocols for radio interface B (mioty)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the values are from memory of the regional profiles and not compared with the standard (unconfirmed)",
+      "bands": [
+        {
+          "name": "mioty US 902 to 928 MHz",
+          "service": "short_range",
+          "start_hz": 902000000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "mioty"
+          ],
+          "channel_width_hz": 26000000.0,
+          "note": "stack mioty; the channels inside the band are not listed (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "mioty_au",
+      "name": "mioty, Australia (915 to 928 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 357, Low Throughput Networks (LTN); Protocols for radio interface B (mioty)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the values are from memory of the regional profiles and not compared with the standard (unconfirmed)",
+      "bands": [
+        {
+          "name": "mioty AU 915 to 928 MHz",
+          "service": "short_range",
+          "start_hz": 915000000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "mioty"
+          ],
+          "channel_width_hz": 13000000.0,
+          "note": "stack mioty; the channels inside the band are not listed (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "mioty_jp",
+      "name": "mioty, Japan (920.6 to 928 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 357, Low Throughput Networks (LTN); Protocols for radio interface B (mioty)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the values are from memory of the regional profiles and not compared with the standard (unconfirmed)",
+      "bands": [
+        {
+          "name": "mioty JP 920.6 to 928 MHz",
+          "service": "short_range",
+          "start_hz": 920600000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "mioty"
+          ],
+          "channel_width_hz": 7400000.0,
+          "note": "stack mioty; ARIB STD-T108 band; the channels inside are not listed (unconfirmed)"
         }
       ]
     }
@@ -315,6 +391,33 @@
         "mioty_europe"
       ],
       "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "mioty_au"
+      ],
+      "unverified_reason": "the values are from memory of the regional profiles and not compared with the standard (unconfirmed)"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "mioty_us"
+      ],
+      "unverified_reason": "the values are from memory of the regional profiles and not compared with the standard (unconfirmed)"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "mioty_jp"
+      ],
+      "unverified_reason": "the values are from memory of the regional profiles and not compared with the standard (unconfirmed)"
     }
   ]
 }

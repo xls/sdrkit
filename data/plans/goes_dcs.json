@@ -1,0 +1,56 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "goes_dcs",
+      "name": "GOES data collection system uplink",
+      "kind": "other",
+      "source": {
+        "publisher": "NOAA",
+        "title": "NOAA KLM User's Guide (POES HRPT and recorder downlinks)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the uplink band 401.7 to 402.1 MHz is from memory (unconfirmed)",
+      "note": "Worldwide: the transmitters are received where a platform sends.",
+      "bands": [
+        {
+          "name": "GOES DCS uplink 401.7 to 402.1 MHz",
+          "service": "meteorological_aids",
+          "start_hz": 401700000.0,
+          "end_hz": 402100000.0,
+          "modes": [
+            "goes_dcs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 400000,
+          "note": "stack goes_dcs; one band of platform transmitters (unconfirmed edges); platform channels are assigned one by one by the operator"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "goes_dcs"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "goes_dcs"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "goes_dcs"
+      ]
+    }
+  ]
+}

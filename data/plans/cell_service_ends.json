@@ -1,0 +1,37 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "services": [
+        {
+          "mode": "gsm",
+          "in_service": false,
+          "ended": "2018",
+          "note": "the three national networks closed GSM between 2016 and 2018; the year is from memory (unconfirmed); GSM-R of the railways is a separate stack"
+        },
+        {
+          "mode": "umts",
+          "in_service": false,
+          "ended": "2024",
+          "sources": [
+            {
+              "publisher": "Telstra",
+              "title": "3G network closure announcement",
+              "date": "2024-10-28"
+            },
+            {
+              "publisher": "Australian Government (Department of Infrastructure, Transport, Regional Development, Communications and the Arts)",
+              "title": "3G network shutdowns: information for consumers",
+              "date": "2024"
+            }
+          ],
+          "note": "the networks of Telstra, Optus and TPG closed 3G in 2024 (Telstra on 28 October 2024)"
+        }
+      ]
+    }
+  ]
+}

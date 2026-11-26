@@ -1,0 +1,88 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "noaa_gac",
+      "name": "NOAA POES (KLM) downlinks",
+      "kind": "other",
+      "source": {
+        "publisher": "NOAA",
+        "title": "NOAA KLM User's Guide (POES HRPT and recorder downlinks)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the HRPT carriers are the values of the NOAA KLM guide as remembered; the recorder S-band carrier 2247.5 MHz is (unconfirmed)",
+      "note": "Worldwide: the satellites are received wherever they pass.",
+      "bands": [
+        {
+          "name": "NOAA HRPT, L band",
+          "service": "meteorological_aids",
+          "start_hz": 1690000000.0,
+          "end_hz": 1710000000.0,
+          "modes": [
+            "noaa_gac"
+          ],
+          "channels": [
+            {
+              "name": "NOAA 19 HRPT 1698.0 MHz",
+              "centre_hz": 1698000000.0,
+              "width_hz": 3000000.0
+            },
+            {
+              "name": "NOAA 15 HRPT 1702.5 MHz",
+              "centre_hz": 1702500000.0,
+              "width_hz": 3000000.0
+            },
+            {
+              "name": "NOAA 18 HRPT 1707.0 MHz",
+              "centre_hz": 1707000000.0,
+              "width_hz": 3000000.0
+            }
+          ],
+          "note": "stack noaa_gac; HRPT is the live link; the recorder playback (GAC) goes to the ground stations on S band"
+        },
+        {
+          "name": "NOAA recorder playback, S band",
+          "service": "meteorological_aids",
+          "start_hz": 2240000000.0,
+          "end_hz": 2255000000.0,
+          "modes": [
+            "noaa_gac"
+          ],
+          "channels": [
+            {
+              "name": "NOAA S band 2247.5 MHz (unconfirmed)",
+              "centre_hz": 2247500000.0,
+              "width_hz": 3730000.0
+            }
+          ],
+          "note": "stack noaa_gac; (unconfirmed) S-band carrier of the data playback to the command and data acquisition stations"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "noaa_gac"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "noaa_gac"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "noaa_gac"
+      ]
+    }
+  ]
+}

@@ -122,6 +122,37 @@
           ]
         }
       ]
+    },
+    {
+      "id": "subghzchat_jp",
+      "name": "Sub-GHz chat, Japan (920 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T108, 920 MHz-band telemeter, telecontrol and data transmission radio equipment",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "ISM 920 MHz Japan",
+          "service": "short_range",
+          "start_hz": 920600000.0,
+          "end_hz": 928000000.0,
+          "modes": [
+            "subghzchat"
+          ],
+          "channels": [
+            {
+              "name": "920.8 MHz (unconfirmed)",
+              "centre_hz": 920800000.0,
+              "width_hz": 200000
+            }
+          ],
+          "note": "stack subghzchat; the 433.92 MHz default of the stack is not an allowed band in Japan (unconfirmed)"
+        }
+      ]
     }
   ],
   "countries": [
@@ -133,6 +164,15 @@
         "subghzchat_au"
       ],
       "unverified_reason": "the mapping of the country to the plan is from the class licence, whose items were not read"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "subghzchat_jp"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
     }
   ],
   "regions": [

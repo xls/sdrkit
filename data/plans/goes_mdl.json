@@ -1,0 +1,61 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "goes_mdl",
+      "name": "GOES N-series multi-use data link",
+      "kind": "other",
+      "source": {
+        "publisher": "NOAA",
+        "title": "GOES N Series Data Book",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the 1681.478 MHz carrier is from memory of the data book (unconfirmed)",
+      "note": "GOES satellites serve the Americas; the data are listed for every country.",
+      "bands": [
+        {
+          "name": "GOES MDL",
+          "service": "meteorological_aids",
+          "start_hz": 1680000000.0,
+          "end_hz": 1683000000.0,
+          "modes": [
+            "goes_mdl"
+          ],
+          "channels": [
+            {
+              "name": "GOES-13/14/15 MDL 1681.478 MHz",
+              "centre_hz": 1681478000.0,
+              "width_hz": 320000
+            }
+          ],
+          "note": "stack goes_mdl; (unconfirmed) carrier of the multi-use data link of GOES-13, 14 and 15"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "goes_mdl"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "goes_mdl"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "goes_mdl"
+      ]
+    }
+  ]
+}

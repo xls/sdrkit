@@ -1,0 +1,76 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "qo100",
+      "name": "QO-100 (Es'hail-2) amateur transponders, through a Ku LNB",
+      "kind": "other",
+      "source": {
+        "publisher": "AMSAT-DL",
+        "title": "QO-100 Amateur Radio Transponders band plan",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the downlink plan is from the published AMSAT-DL band plan as remembered (unconfirmed); the intermediate frequencies assume a 9750 MHz LNB oscillator",
+      "note": "Footprint: Africa, Europe, the Middle East and Asia to Brazil; listed for every country.",
+      "bands": [
+        {
+          "name": "QO-100 downlink as IF (LNB 9750 MHz)",
+          "service": "amateur",
+          "start_hz": 739000000.0,
+          "end_hz": 750000000.0,
+          "modes": [
+            "qo100"
+          ],
+          "channels": [
+            {
+              "name": "NB beacon 10489.500 MHz (IF 739.5)",
+              "centre_hz": 739500000.0,
+              "width_hz": 5000
+            },
+            {
+              "name": "NB transponder 10489.55 to 10489.80 MHz",
+              "centre_hz": 739675000.0,
+              "width_hz": 250000
+            },
+            {
+              "name": "NB beacon 10489.990 MHz (IF 739.99)",
+              "centre_hz": 739990000.0,
+              "width_hz": 5000
+            },
+            {
+              "name": "Wideband transponder 10491 to 10499 MHz",
+              "centre_hz": 745000000.0,
+              "width_hz": 8000000.0
+            }
+          ],
+          "note": "stack qo100; the radio tunes the LNB output: RF minus 9750 MHz; the narrowband transponder is 10489.50 to 10489.99 MHz and the wideband one is 10491 to 10499 MHz (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "qo100"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "qo100"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "qo100"
+      ]
+    }
+  ]
+}

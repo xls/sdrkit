@@ -1,0 +1,63 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "lora_sat",
+      "name": "LoRa satellites",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5",
+        "clause": "5.282 (435 to 438 MHz amateur satellite)"
+      },
+      "verified": false,
+      "unverified_reason": "the band is the ITU table; 436.8 MHz is the usual LoRa satellite channel of the FOSSA missions (unconfirmed)",
+      "note": "Worldwide: the satellites are received wherever they pass.",
+      "bands": [
+        {
+          "name": "Amateur satellite 435 to 438 MHz",
+          "service": "amateur",
+          "start_hz": 435000000.0,
+          "end_hz": 438000000.0,
+          "modes": [
+            "lora_sat"
+          ],
+          "channels": [
+            {
+              "name": "LoRa satellite 436.8 MHz (unconfirmed)",
+              "centre_hz": 436800000.0,
+              "width_hz": 250000
+            }
+          ],
+          "note": "stack lora_sat; the satellites also use other bands that are not listed here"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "lora_sat"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "lora_sat"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "lora_sat"
+      ]
+    }
+  ]
+}

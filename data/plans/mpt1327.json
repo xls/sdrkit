@@ -1,0 +1,381 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "mpt1327_r1",
+      "name": "MPT 1327 trunking, Europe (VHF and UHF land mobile)",
+      "kind": "other",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "Land mobile bands 146 to 174 MHz and 410 to 470 MHz (ERC Report 25, the European Common Allocation Table)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "VHF land mobile 146 to 174 MHz",
+          "service": "land_mobile",
+          "start_hz": 146000000.0,
+          "end_hz": 174000000.0,
+          "modes": [
+            "mpt1327"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 146006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack mpt1327; the channels of one system are not public (unconfirmed edges)"
+        },
+        {
+          "name": "UHF land mobile 450 to 470 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 470000000.0,
+          "modes": [
+            "mpt1327"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack mpt1327; (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "mpt1327_au",
+      "name": "MPT 1327 trunking, Australia (UHF land mobile)",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 403 to 520 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "UHF land mobile 450 to 520 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 520000000.0,
+          "modes": [
+            "mpt1327"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack mpt1327; the channels of one system are not public (unconfirmed edges)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "name": "Austria",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "MT",
+      "name": "Malta",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "RO",
+      "name": "Romania",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "mpt1327_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "mpt1327_au"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

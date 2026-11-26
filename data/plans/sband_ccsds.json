@@ -1,0 +1,81 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "sband_ccsds",
+      "name": "CCSDS S-band space-to-Earth links",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5"
+      },
+      "verified": false,
+      "unverified_reason": "the band is the ITU table; the two named carriers are the stack default and the NOAA S-band value, both (unconfirmed)",
+      "bands": [
+        {
+          "name": "Space research S band 2200 to 2290 MHz",
+          "service": "meteorological_aids",
+          "start_hz": 2200000000.0,
+          "end_hz": 2290000000.0,
+          "modes": [
+            "sband_ccsds"
+          ],
+          "channels": [
+            {
+              "name": "S band 2215 MHz (unconfirmed)",
+              "centre_hz": 2215000000.0,
+              "width_hz": 4000000.0
+            },
+            {
+              "name": "S band 2247.5 MHz (unconfirmed)",
+              "centre_hz": 2247500000.0,
+              "width_hz": 4000000.0
+            }
+          ],
+          "note": "stack sband_ccsds; 2200 to 2290 MHz is the space-to-Earth allocation for space research and Earth exploration satellites in ITU Radio Regulations Article 5; spacecraft carriers are assigned one by one"
+        },
+        {
+          "name": "S band tuning raster",
+          "service": "meteorological_aids",
+          "start_hz": 2200000000.0,
+          "end_hz": 2290000000.0,
+          "modes": [
+            "sband_ccsds"
+          ],
+          "channel_width_hz": 5000000.0,
+          "raster": {
+            "first_hz": 2202500000.0,
+            "step_hz": 5000000.0
+          },
+          "note": "stack sband_ccsds; a 5 MHz tuning raster across the allocation, not a channel plan"
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "sband_ccsds"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "sband_ccsds"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "sband_ccsds"
+      ]
+    }
+  ]
+}

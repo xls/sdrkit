@@ -1,0 +1,410 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "pactor_hf_r1",
+      "name": "Amateur HF data segments, IARU Region 1 and 3 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segment edges are from memory of the IARU HF band plans (unconfirmed)",
+      "bands": [
+        {
+          "name": "80 m data 3.58 to 3.6 MHz",
+          "service": "amateur",
+          "start_hz": 3580000.0,
+          "end_hz": 3600000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 20000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "40 m data 7.04 to 7.06 MHz",
+          "service": "amateur",
+          "start_hz": 7040000.0,
+          "end_hz": 7060000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 20000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "30 m data 10.14 to 10.15 MHz",
+          "service": "amateur",
+          "start_hz": 10140000.0,
+          "end_hz": 10150000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 10000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "20 m data 14.07 to 14.1 MHz",
+          "service": "amateur",
+          "start_hz": 14070000.0,
+          "end_hz": 14099500.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 29500.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "17 m data 18.09 to 18.11 MHz",
+          "service": "amateur",
+          "start_hz": 18095000.0,
+          "end_hz": 18109000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 14000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "15 m data 21.07 to 21.12 MHz",
+          "service": "amateur",
+          "start_hz": 21070000.0,
+          "end_hz": 21120000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 50000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "12 m data 24.91 to 24.93 MHz",
+          "service": "amateur",
+          "start_hz": 24915000.0,
+          "end_hz": 24929000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 14000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "10 m data 28.07 to 28.19 MHz",
+          "service": "amateur",
+          "start_hz": 28070000.0,
+          "end_hz": 28190000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 120000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "pactor1_r1",
+      "name": "PACTOR 1, IARU Region 1 and 3 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r1",
+      "include": [
+        "pactor_hf_r1"
+      ]
+    },
+    {
+      "id": "pactor2_r1",
+      "name": "PACTOR 2, IARU Region 1 and 3 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r1",
+      "include": [
+        "pactor_hf_r1"
+      ]
+    },
+    {
+      "id": "pactor3_r1",
+      "name": "PACTOR 3, IARU Region 1 and 3 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r1",
+      "include": [
+        "pactor_hf_r1"
+      ]
+    },
+    {
+      "id": "pactor4_r1",
+      "name": "PACTOR 4, IARU Region 1 and 3 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r1",
+      "include": [
+        "pactor_hf_r1"
+      ]
+    },
+    {
+      "id": "pactor_hf_r2",
+      "name": "Amateur HF data segments, the Americas, IARU Region 2 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segment edges are from memory of the IARU HF band plans (unconfirmed)",
+      "bands": [
+        {
+          "name": "80 m data 3.58 to 3.6 MHz",
+          "service": "amateur",
+          "start_hz": 3580000.0,
+          "end_hz": 3600000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 20000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "40 m data 7.07 to 7.125 MHz",
+          "service": "amateur",
+          "start_hz": 7070000.0,
+          "end_hz": 7125000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 55000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "30 m data 10.14 to 10.15 MHz",
+          "service": "amateur",
+          "start_hz": 10140000.0,
+          "end_hz": 10150000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 10000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "20 m data 14.07 to 14.1 MHz",
+          "service": "amateur",
+          "start_hz": 14070000.0,
+          "end_hz": 14100000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 30000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "17 m data 18.1 to 18.11 MHz",
+          "service": "amateur",
+          "start_hz": 18100000.0,
+          "end_hz": 18110000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 10000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "15 m data 21.07 to 21.12 MHz",
+          "service": "amateur",
+          "start_hz": 21070000.0,
+          "end_hz": 21125000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 55000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "12 m data 24.92 to 24.93 MHz",
+          "service": "amateur",
+          "start_hz": 24920000.0,
+          "end_hz": 24930000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 10000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        },
+        {
+          "name": "10 m data 28.07 to 28.3 MHz",
+          "service": "amateur",
+          "start_hz": 28070000.0,
+          "end_hz": 28300000.0,
+          "modes": [
+            "pactor1",
+            "pactor2",
+            "pactor3",
+            "pactor4"
+          ],
+          "channel_width_hz": 230000.0,
+          "note": "stacks pactor1 to pactor4; the PACTOR data segment of the band plan (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "pactor1_r2",
+      "name": "PACTOR 1, the Americas, IARU Region 2 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r2",
+      "include": [
+        "pactor_hf_r2"
+      ]
+    },
+    {
+      "id": "pactor2_r2",
+      "name": "PACTOR 2, the Americas, IARU Region 2 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r2",
+      "include": [
+        "pactor_hf_r2"
+      ]
+    },
+    {
+      "id": "pactor3_r2",
+      "name": "PACTOR 3, the Americas, IARU Region 2 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r2",
+      "include": [
+        "pactor_hf_r2"
+      ]
+    },
+    {
+      "id": "pactor4_r2",
+      "name": "PACTOR 4, the Americas, IARU Region 2 (HF digital segments)",
+      "kind": "other",
+      "source": {
+        "publisher": "IARU",
+        "title": "IARU HF band plan, narrow-band digital segments",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the segments of the group pactor_hf_r2",
+      "include": [
+        "pactor_hf_r2"
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "pactor1_r1",
+        "pactor2_r1",
+        "pactor3_r1",
+        "pactor4_r1"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "pactor1_r2",
+        "pactor2_r2",
+        "pactor3_r2",
+        "pactor4_r2"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "pactor1_r1",
+        "pactor2_r1",
+        "pactor3_r1",
+        "pactor4_r1"
+      ]
+    }
+  ]
+}

@@ -84,6 +84,16 @@ fn every_dial(data: &Data) -> Result<Vec<DefaultDial>, DataError> {
 }
 
 impl Data {
+    /// Says whether the mode `stack` is out of service in the country of `region`: the country entry of a plan file lists
+    /// it with `in_service: false`. The answer holds the end date, the sources and [`ServiceState::why`], so that a host
+    /// can say "umts is not in service in AU (ended 2024)". `None` while the mode is in service. [`Data::stack_channels`]
+    /// returns no channels for a mode that this call answers for.
+    pub fn service_end(&self, stack: &str, region: &Region) -> Option<sdrkit_data_plans::ServiceState> {
+        self.plans.out_of_service(stack, region.of_stack(stack).country())
+    }
+}
+
+impl Data {
     /// The countries that have at least one plan, by code: the regions that a host offers. The names are those of the
     /// country rows of the plan files.
     pub fn regions(&self) -> Vec<RegionChoice> {
@@ -152,6 +162,9 @@ impl Data {
         region: &Region,
     ) -> Result<Vec<PlanChannel>, DataError> {
         let country = region.of_stack(stack).country();
+        if self.service_end(stack, region).is_some() {
+            return Ok(Vec::new());
+        }
         let mut out = self
             .plans
             .find(stack, country, recipe(stack).is_some())

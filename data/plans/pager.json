@@ -1,0 +1,217 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "pager_us",
+      "name": "Paging, United States (929 to 932 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Parts 22 and 90 (paging and land mobile radio)",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Paging 929 to 932 MHz",
+          "service": "land_mobile",
+          "start_hz": 929000000.0,
+          "end_hz": 932000000.0,
+          "modes": [
+            "pager"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 25000,
+          "raster": {
+            "first_hz": 929012500.0,
+            "step_hz": 25000
+          },
+          "note": "stack pager; the 929 to 932 MHz paging band of 47 CFR Part 22 with a 25 kHz raster (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "pager_de",
+      "name": "Paging, Germany (Cityruf, 466 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "BNetzA",
+        "title": "Frequenzplan, Cityruf paging channels near 466 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Cityruf 466 MHz",
+          "service": "land_mobile",
+          "start_hz": 465900000.0,
+          "end_hz": 466300000.0,
+          "modes": [
+            "pager"
+          ],
+          "modulation": "nfm",
+          "channels": [
+            {
+              "name": "Cityruf 466.075 MHz",
+              "centre_hz": 466075000.0,
+              "width_hz": 25000
+            },
+            {
+              "name": "Cityruf 466.175 MHz",
+              "centre_hz": 466175000.0,
+              "width_hz": 25000
+            },
+            {
+              "name": "Cityruf 466.230 MHz",
+              "centre_hz": 466230000.0,
+              "width_hz": 25000
+            }
+          ],
+          "note": "stack pager; (unconfirmed) channel list"
+        }
+      ]
+    },
+    {
+      "id": "pager_gb",
+      "name": "Paging, United Kingdom (VHF 153 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "Ofcom",
+        "title": "UK Frequency Allocation Table, land mobile paging",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "VHF paging 153 MHz",
+          "service": "land_mobile",
+          "start_hz": 153000000.0,
+          "end_hz": 153100000.0,
+          "modes": [
+            "pager"
+          ],
+          "modulation": "nfm",
+          "channels": [
+            {
+              "name": "POCSAG 153.025 MHz (unconfirmed)",
+              "centre_hz": 153025000.0,
+              "width_hz": 12500
+            }
+          ],
+          "note": "stack pager; (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "pager_au",
+      "name": "Paging, Australia (VHF land mobile 148 to 150.05 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 148 to 150.05 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Land mobile 148 to 150.05 MHz",
+          "service": "land_mobile",
+          "start_hz": 148000000.0,
+          "end_hz": 150050000.0,
+          "modes": [
+            "pager"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 148006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack pager; the land mobile allocation in which pager systems work; the channels of one operator are not public (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "pager_jp",
+      "name": "Paging, Japan (429 MHz specified low-power band)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T67, specified low-power radio station for telemeter, telecontrol and data transmission, 429 MHz band",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Specified low power 429 MHz",
+          "service": "short_range",
+          "start_hz": 429175000.0,
+          "end_hz": 429737500.0,
+          "modes": [
+            "pager"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 429175000.0,
+            "step_hz": 12500
+          },
+          "note": "stack pager; the 429 MHz band of specified low-power stations (unconfirmed edges)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "pager_us"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "pager_de"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "pager_gb"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "pager_au"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "pager_jp"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

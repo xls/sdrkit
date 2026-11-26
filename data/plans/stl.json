@@ -10,6 +10,312 @@
         "stl_us"
       ],
       "unverified_reason": "the aural STL band of 47 CFR 74.502 was read from the text that a law library site publishes"
+    },
+    {
+      "code": "AT",
+      "name": "Austria",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "MT",
+      "name": "Malta",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "RO",
+      "name": "Romania",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "stl_uhf"
+      ],
+      "unverified_reason": "the 942 to 960 MHz allocation applies in the region; national STL channels not read (unconfirmed)"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "stl_jp"
+      ],
+      "unverified_reason": "950 to 958 MHz band from memory (unconfirmed)"
     }
   ],
   "groups": [
@@ -41,6 +347,67 @@
             "step_hz": 25000
           },
           "note": "stack stl; the raster is the 25 kHz segments, the first centred on 944.0125 MHz; a link stacks segments to at most 300 kHz, or 500 kHz for twenty segments; 942 to 944 MHz is kept for stations licensed before 21 November 1984 and is not in this band"
+        }
+      ]
+    },
+    {
+      "id": "stl_uhf",
+      "name": "Aural studio-to-transmitter links, 942 to 960 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5, Table of Frequency Allocations",
+        "date": "2024",
+        "number": "RR Art. 5"
+      },
+      "verified": false,
+      "unverified_reason": "the band 942 to 960 MHz is the allocation of the table; the studio link channels inside it are national and were not read (unconfirmed)",
+      "bands": [
+        {
+          "name": "Aural STL 942 to 960 MHz",
+          "service": "broadcasting",
+          "start_hz": 942000000.0,
+          "end_hz": 960000000.0,
+          "modes": [
+            "stl"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 25000,
+          "raster": {
+            "first_hz": 942012500,
+            "step_hz": 25000
+          },
+          "note": "stack stl; the 942 to 960 MHz fixed and mobile allocation of ITU Radio Regulations Article 5, with a 25 kHz raster as in the United States plan; the national assignments inside it were not read (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "stl_jp",
+      "name": "Aural studio-to-transmitter links, Japan (950 to 958 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "MIC Japan",
+        "title": "Radio equipment rules, 950 MHz band for broadcasting auxiliary links",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the 950 to 958 MHz band is from memory (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Aural STL 950 to 958 MHz",
+          "service": "broadcasting",
+          "start_hz": 950000000.0,
+          "end_hz": 958000000.0,
+          "modes": [
+            "stl"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 25000,
+          "raster": {
+            "first_hz": 950012500,
+            "step_hz": 25000
+          },
+          "note": "stack stl; (unconfirmed) band edges"
         }
       ]
     }

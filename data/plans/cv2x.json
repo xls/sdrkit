@@ -38,6 +38,130 @@
           ]
         }
       ]
+    },
+    {
+      "id": "cv2x_au",
+      "name": "Australia (5855 to 5925 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Radiocommunications (Intelligent Transport Systems) Class Licence 2017",
+        "date": "not recorded",
+        "clause": "5855 to 5925 MHz"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national decision (unconfirmed); 3GPP band 47 is 5855 to 5925 MHz",
+      "bands": [
+        {
+          "name": "C-V2X Australia (5855 to 5925 MHz)",
+          "service": "land_mobile",
+          "start_hz": 5855000000.0,
+          "end_hz": 5925000000.0,
+          "modes": [
+            "cv2x"
+          ],
+          "channels": [
+            {
+              "name": "C-V2X 5900 MHz (10 MHz)",
+              "centre_hz": 5900000000.0,
+              "width_hz": 10000000.0
+            },
+            {
+              "name": "C-V2X 5910 MHz (10 MHz)",
+              "centre_hz": 5910000000.0,
+              "width_hz": 10000000.0
+            },
+            {
+              "name": "C-V2X 5920 MHz (10 MHz)",
+              "centre_hz": 5920000000.0,
+              "width_hz": 10000000.0
+            }
+          ],
+          "note": "stack cv2x; the ITS class licence band (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "cv2x_eu",
+      "name": "the EU and the UK (5875 to 5925 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "ECC Decision (08)01 on ITS in 5875 to 5925 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national decision (unconfirmed); 3GPP band 47 is 5855 to 5925 MHz",
+      "bands": [
+        {
+          "name": "C-V2X the EU and the UK (5875 to 5925 MHz)",
+          "service": "land_mobile",
+          "start_hz": 5875000000.0,
+          "end_hz": 5925000000.0,
+          "modes": [
+            "cv2x"
+          ],
+          "channels": [
+            {
+              "name": "C-V2X 5900 MHz (10 MHz)",
+              "centre_hz": 5900000000.0,
+              "width_hz": 10000000.0
+            },
+            {
+              "name": "C-V2X 5910 MHz (10 MHz)",
+              "centre_hz": 5910000000.0,
+              "width_hz": 10000000.0
+            },
+            {
+              "name": "C-V2X 5920 MHz (10 MHz)",
+              "centre_hz": 5920000000.0,
+              "width_hz": 10000000.0
+            }
+          ],
+          "note": "stack cv2x; the ITS safety band of the CEPT decision for ITS (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "cv2x_jp",
+      "name": "Japan (5895 to 5925 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "MIC Japan",
+        "title": "Allocation for vehicle-to-everything communications in the 5.9 GHz band",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national decision (unconfirmed); 3GPP band 47 is 5855 to 5925 MHz",
+      "bands": [
+        {
+          "name": "C-V2X Japan (5895 to 5925 MHz)",
+          "service": "land_mobile",
+          "start_hz": 5895000000.0,
+          "end_hz": 5925000000.0,
+          "modes": [
+            "cv2x"
+          ],
+          "channels": [
+            {
+              "name": "C-V2X 5900 MHz (10 MHz)",
+              "centre_hz": 5900000000.0,
+              "width_hz": 10000000.0
+            },
+            {
+              "name": "C-V2X 5910 MHz (10 MHz)",
+              "centre_hz": 5910000000.0,
+              "width_hz": 10000000.0
+            },
+            {
+              "name": "C-V2X 5920 MHz (10 MHz)",
+              "centre_hz": 5920000000.0,
+              "width_hz": 10000000.0
+            }
+          ],
+          "note": "stack cv2x; the 5.9 GHz band for ITS (the 760 MHz band is the other ITS band of Japan) (unconfirmed)"
+        }
+      ]
     }
   ],
   "countries": [
@@ -49,6 +173,312 @@
         "cv2x_us"
       ],
       "unverified_reason": "the FCC rules of the United States"
+    },
+    {
+      "code": "AT",
+      "name": "Austria",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "MT",
+      "name": "Malta",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "RO",
+      "name": "Romania",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "cv2x_eu"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "cv2x_au"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "cv2x_jp"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
     }
   ]
 }

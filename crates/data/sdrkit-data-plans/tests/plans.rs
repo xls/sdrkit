@@ -961,3 +961,23 @@ fn the_cellular_bands_of_the_standards_match_the_cellular_plan_file() {
         .collect();
     assert_eq!(from_file, table);
 }
+
+#[test]
+fn a_country_entry_says_that_a_mode_is_out_of_service() {
+    let ok = r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[
+        {"mode":"umts","in_service":false,"ended":"2024","sources":[{"publisher":"Telstra","title":"3G closure","date":"2024-10-28"}]}]}]}"#;
+    let mut plans = Plans::new();
+    api::import_as(&mut plans, ok, PlanFormat::Json, "", "").expect("a service state loads");
+    let au = plans.country_rows().find(|c| c.code == "AU").expect("AU");
+    assert_eq!(au.services.len(), 1);
+    assert!(!au.services[0].in_service);
+    assert_eq!(au.services[0].why("AU"), "umts is not in service in AU (ended 2024)");
+    // A mode out of service needs a source or an "unconfirmed" note, and a valid date.
+    for bad in [
+        r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[{"mode":"umts","in_service":false}]}]}"#,
+        r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[{"mode":"umts","in_service":false,"ended":"soon","note":"unconfirmed"}]}]}"#,
+    ] {
+        let mut p = Plans::new();
+        assert!(api::import_as(&mut p, bad, PlanFormat::Json, "", "").is_err(), "{bad}");
+    }
+}

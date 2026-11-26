@@ -1,0 +1,204 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "meshcore_jp",
+      "name": "MeshCore, Japan (920 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T108, 920 MHz-band telemeter, telecontrol and data transmission radio equipment",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "LoRa Alliance",
+          "title": "RP002-1.0.4 LoRaWAN Regional Parameters (US902-928, AU915-928, AS923)",
+          "date": "not recorded"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "LoRa 920 MHz Japan",
+          "service": "short_range",
+          "start_hz": 920600000.0,
+          "end_hz": 923600000.0,
+          "modes": [
+            "meshcore"
+          ],
+          "channels": [
+            {
+              "name": "LoRa 923.2 MHz (AS923-1 JP)",
+              "centre_hz": 923200000.0,
+              "width_hz": 250000
+            },
+            {
+              "name": "LoRa 923.4 MHz (AS923-1 JP)",
+              "centre_hz": 923400000.0,
+              "width_hz": 250000
+            }
+          ],
+          "note": "stack meshcore; the two LoRaWAN channels of AS923 for Japan are used as the nearest public plan (unconfirmed for MeshCore)"
+        }
+      ]
+    },
+    {
+      "id": "loraaprs_jp",
+      "name": "LoRa APRS, Japan (430 MHz amateur)",
+      "kind": "other",
+      "source": {
+        "publisher": "JARL",
+        "title": "Amateur band plan of Japan, 430 to 440 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "Amateur 70 cm 430 to 440 MHz",
+          "service": "amateur",
+          "start_hz": 430000000.0,
+          "end_hz": 440000000.0,
+          "modes": [
+            "loraaprs"
+          ],
+          "channels": [
+            {
+              "name": "LoRa APRS 433.775 MHz (unconfirmed use in Japan)",
+              "centre_hz": 433775000.0,
+              "width_hz": 125000
+            }
+          ],
+          "note": "stack loraaprs; the IARU channel 433.775 MHz (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "meshcom_au",
+      "name": "MeshCom, Australia (70 cm amateur)",
+      "kind": "other",
+      "source": {
+        "publisher": "WIA",
+        "title": "Australian amateur band plan, 70 cm",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "Amateur 70 cm",
+          "service": "amateur",
+          "start_hz": 420000000.0,
+          "end_hz": 450000000.0,
+          "modes": [
+            "meshcom"
+          ],
+          "channels": [
+            {
+              "name": "MeshCom 433.175 MHz (unconfirmed)",
+              "centre_hz": 433175000.0,
+              "width_hz": 125000
+            }
+          ],
+          "note": "stack meshcom; the 433.175 MHz LoRa channel of the MeshCom firmware in the amateur 70 cm band (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "meshcom_us",
+      "name": "MeshCom, the United States (70 cm amateur)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARRL",
+        "title": "US amateur band plan, 70 cm; 47 CFR 97.301",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "Amateur 70 cm",
+          "service": "amateur",
+          "start_hz": 420000000.0,
+          "end_hz": 450000000.0,
+          "modes": [
+            "meshcom"
+          ],
+          "channels": [
+            {
+              "name": "MeshCom 433.175 MHz (unconfirmed)",
+              "centre_hz": 433175000.0,
+              "width_hz": 125000
+            }
+          ],
+          "note": "stack meshcom; the 433.175 MHz LoRa channel of the MeshCom firmware in the amateur 70 cm band (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "meshcom_jp",
+      "name": "MeshCom, Japan (70 cm amateur)",
+      "kind": "other",
+      "source": {
+        "publisher": "JARL",
+        "title": "Amateur band plan of Japan, 430 to 440 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)",
+      "bands": [
+        {
+          "name": "Amateur 70 cm",
+          "service": "amateur",
+          "start_hz": 430000000.0,
+          "end_hz": 440000000.0,
+          "modes": [
+            "meshcom"
+          ],
+          "channels": [
+            {
+              "name": "MeshCom 433.175 MHz (unconfirmed)",
+              "centre_hz": 433175000.0,
+              "width_hz": 125000
+            }
+          ],
+          "note": "stack meshcom; the 433.175 MHz LoRa channel of the MeshCom firmware in the amateur 70 cm band (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "meshcore_jp",
+        "loraaprs_jp",
+        "meshcom_jp"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "meshcom_au"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "meshcom_us"
+      ],
+      "unverified_reason": "the band is from memory of the national rule (unconfirmed)"
+    }
+  ]
+}
