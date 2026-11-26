@@ -262,6 +262,26 @@ pub struct PresetsSlot {
     pub preset_default: bool,
 }
 
+/// Why a stack offers no channels, or fewer, in a country: the mode, or a part of it, is out of service there.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct PresetsServiceInfo {
+    /// The number of bytes of the struct.
+    pub size: u32,
+    /// The mode, or a part of it, is out of service in the country. False: the rest of the struct is empty.
+    pub out_of_service: bool,
+    /// Only a part of the mode ended; the channels of the part that remains stay in the lists.
+    pub partial: bool,
+    /// `year` holds a value.
+    pub has_year: bool,
+    /// The year the service ended.
+    pub year: i32,
+    /// The date the service ended as the data gives it ("2024", "2024-10" or "2024-10-28"). Empty if not known.
+    pub ended: Str,
+    /// One sentence for a person: "3G (UMTS) was switched off in Australia in 2024".
+    pub sentence: Str,
+}
+
 sized_structs!(
     PresetsHit,
     PresetsView,
@@ -275,6 +295,7 @@ sized_structs!(
     PresetsSetting,
     PresetsSlotQuery,
     PresetsSlot,
+    PresetsServiceInfo,
 );
 
 /// What one presets handle holds: the data folder and the buffers behind the views of its calls.
@@ -291,6 +312,7 @@ struct State {
     dial: (String, String, String),
     settings: Vec<PresetSetting>,
     slots: Vec<SlotRow>,
+    service_end: (String, String),
     message: String,
 }
 
@@ -498,6 +520,7 @@ pub unsafe extern "C" fn sdrkit_presets_open(folder: *const c_char, presets: *mu
             dial: Default::default(),
             settings: Vec::new(),
             slots: Vec::new(),
+            service_end: Default::default(),
             message: String::new(),
         };
         let state = Some(Arc::new(Mutex::new(state)));
@@ -1273,6 +1296,48 @@ pub unsafe extern "C" fn sdrkit_presets_meshtastic_slot_read(
             current: r.current,
             preset_default: r.preset_default,
             ..PresetsSlot::default()
+        });
+        Ok(())
+    })
+}
+
+/// Writes to `end` whether the stack of `query`, or a part of it, is out of service in its country, the year it ended
+/// and one sentence for a person ("3G (UMTS) was switched off in Australia in 2024"): why `sdrkit_presets_channels`
+/// lists no channels, or only those of the part that remains. The sentence names the country as the data does and the
+/// service by the generation word of the stack's name. The city, the submode and the frequency of the query are not
+/// used. Its strings are views, valid until the next `sdrkit_presets_service_end` on `presets`. Returns
+/// `SDRKIT_E_BAD_ARGUMENT` for a country that is not a code of two letters.
+#[no_mangle]
+pub unsafe extern "C" fn sdrkit_presets_service_end(
+    presets: Handle,
+    query: *const PresetsQuery,
+    end: *mut PresetsServiceInfo,
+) -> i32 {
+    // SAFETY: the caller's contract.
+    let (q, out) = unsafe { (sized_in(query), Out::new(end)) };
+    run(presets, |st| {
+        let (q, out) = (q?, out?);
+        // SAFETY: the caller's contract: the strings of the query are NUL-terminated or NULL.
+        let (stack, country) = unsafe { (str_in(q.stack)?, str_in(q.country)?) };
+        let region = Region::new(country).map_err(|e| fault(SDRKIT_E_BAD_ARGUMENT, &e.to_string()))?;
+        let name = sdrkit_host_catalog::all()
+            .into_iter()
+            .find(|d| d.id == stack)
+            .map_or(stack, |d| d.name);
+        let Some((state, sentence)) = st.data.service_end_why(stack, name, &region) else {
+            st.service_end = Default::default();
+            out.put(PresetsServiceInfo::default());
+            return Ok(());
+        };
+        st.service_end = (state.ended.clone(), sentence);
+        out.put(PresetsServiceInfo {
+            out_of_service: true,
+            partial: state.remains.is_some(),
+            has_year: state.year().is_some(),
+            year: state.year().unwrap_or(0),
+            ended: Str::of(&st.service_end.0),
+            sentence: Str::of(&st.service_end.1),
+            ..PresetsServiceInfo::default()
         });
         Ok(())
     })

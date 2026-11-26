@@ -213,6 +213,27 @@ fn a12_an_unassigned_mid_returns_no_station() {
     assert_eq!(count(rx.results(), "frames_bad"), 1);
 }
 
+/// The test signal of the descriptor places AIS 1 and 2 against the frequency the session listens on: a session on
+/// 162.0 MHz or on 161.975 MHz (the first channel of the list) decodes the frames and finds the stations.
+#[test]
+fn ais_test_signal_decodes_where_the_session_listens() {
+    let rate = 250e3;
+    for tuned in [162.0e6, 161.975e6] {
+        let cfg = sdrkit_core::GenConfig::new(rate, sdrkit_core::Values::defaults(&(AIS.settings)()))
+            .with_seed(1)
+            .with_tuned_hz(Some(tuned));
+        let mut g = (AIS.make_generator.expect("a test signal"))(&cfg).expect("the generator");
+        let x = generate(g.as_mut(), 12.0);
+        let mut rx = receiver(&AIS, None, &[]);
+        configure(rx.as_mut(), rate, tuned, tuned);
+        let _ = run(rx.as_mut(), &x, 8192);
+        let (ok, bad) = (count(rx.results(), "frames_ok"), count(rx.results(), "frames_bad"));
+        // Off 162.0 MHz a start inside a long burst can fail its CRC once; the frame itself decodes.
+        assert!(ok > 40 && bad * 20 <= ok, "at {tuned} Hz: {ok} frames, {bad} bad");
+        assert!(count(rx.results(), "stations") > 3, "at {tuned} Hz");
+    }
+}
+
 #[test]
 fn ais_channel_limit_takes_effect() {
     let rate = 250e3;

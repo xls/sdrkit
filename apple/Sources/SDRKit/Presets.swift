@@ -54,6 +54,16 @@ public struct PresetSlot: Equatable, Sendable {
     public var presetDefault: Bool
 }
 
+/// Why a stack offers no channels, or fewer, in a country: the mode, or a part of it, is out of service there.
+public struct PresetServiceEnd: Equatable, Sendable {
+    /// The year the service ended, if the data gives it.
+    public var endedYear: Int?
+    /// Only a part of the mode ended; the channels of the part that remains stay in `channels(stack:country:city:)`.
+    public var partial: Bool
+    /// One sentence for a person: "3G (UMTS) was switched off in Australia in 2024".
+    public var sentence: String
+}
+
 /// A data folder: plans, known stations, cities and frequency entries. The engine holds no regional data; a host asks
 /// this object for the plain values of a country and sets them on the engine and the stacks.
 ///
@@ -260,6 +270,17 @@ public final class Presets {
         return out
     }
 
+    /// Returns why `stack` offers no channels, or fewer, in `country` (ISO 3166 alpha-2): the mode, or a part of it,
+    /// is out of service there. Nil while it is in service. Throws `SDRKIT_E_BAD_ARGUMENT` for a country that is not a
+    /// code of two letters.
+    public func serviceEnd(stack: String, country: String) throws -> PresetServiceEnd? {
+        var e = sdrkit_presets_service_info.sized
+        try query(stack, country, nil, nil, nil) { try ok(sdrkit_presets_service_end(handle, $0, &e)) }
+        guard e.out_of_service else { return nil }
+        return PresetServiceEnd(
+            endedYear: e.has_year ? Int(e.year) : nil, partial: e.partial, sentence: copy(e.sentence))
+    }
+
     /// Returns the Meshtastic frequency slots of `preset` (nil: LongFast) in `region`, lowest first, as the table
     /// `slots` of a running stack `meshtastic` lists them. `region` is a Meshtastic region ("ANZ"), a band plan of the
     /// mesh stacks ("EU 868") or a country code. The slot of `channelNumber` (from 1), else of `channelName` (nil: the
@@ -318,4 +339,5 @@ extension sdrkit_presets_country: SDRKitSized {}
 extension sdrkit_presets_setting: SDRKitSized {}
 extension sdrkit_presets_slot_query: SDRKitSized {}
 extension sdrkit_presets_slot: SDRKitSized {}
+extension sdrkit_presets_service_info: SDRKitSized {}
 #endif

@@ -286,6 +286,19 @@ pub fn json_schema() -> Value {
                 ("ended", json!({ "type": "string", "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$", "description": "The date the service ended." })),
                 ("sources", list_of("source", "The announcements or regulator documents that say so.")),
                 ("note", text("A note; a mode out of service without a source says in it that the end is unconfirmed.")),
+                ("name", text("The name of the service that ended when it is a part of the stack (\"public GSM\"). Required with remains.")),
+                ("remains", def_ref("service_part", "The part of the stack that stays in service: the channels in its bands remain.")),
+            ],
+        ),
+    );
+    defs.insert(
+        "service_part".into(),
+        object(
+            "The part of a stack that stays in service in a country where the rest of the stack ended.",
+            &["name", "bands"],
+            vec![
+                ("name", text("Its name for a person (\"railway GSM-R\").")),
+                ("bands", texts("The names of its bands, as the band groups that list the stack name them.")),
             ],
         ),
     );

@@ -465,6 +465,18 @@ final class SDRKitTests: XCTestCase {
         XCTAssertEqual(try presets.dials(stack: "dvbt", country: "AU"), [])
     }
 
+    func testPresetsSayWhyAModeIsOutOfService() throws {
+        let presets = try Presets(folder: dataFolder)
+        let umts = try XCTUnwrap(try presets.serviceEnd(stack: "umts", country: "AU"))
+        XCTAssertEqual(umts.endedYear, 2024)
+        XCTAssertFalse(umts.partial)
+        XCTAssertEqual(umts.sentence, "3G (UMTS) was switched off in Australia in 2024")
+        XCTAssertEqual(try presets.channels(stack: "umts", country: "AU"), [])
+        let gsm = try XCTUnwrap(try presets.serviceEnd(stack: "gsmr", country: "AU"))
+        XCTAssertEqual(gsm.sentence, "2G (GSM) was switched off in Australia in 2018")
+        XCTAssertNil(try presets.serviceEnd(stack: "umts", country: "US"))
+    }
+
     func testPersonalPlansAreChannelsOfTheirStack() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("sdrkit-swift-\(getpid())")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

@@ -244,13 +244,15 @@ fn every_stack_has_a_known_frequency_where_its_system_is_used() {
         let free = NO_FIXED_FREQUENCY
             .iter()
             .any(|(id, _)| *id == r.stack || *id == r.family);
+        // A mode that the data marks out of service in the country has no channels there.
+        let ended = Region::new(r.country).is_ok_and(|c| d.service_end(r.stack, &c).is_some());
         let unused = NOT_USED
             .iter()
             .any(|(s, c, _)| *s == r.stack && holds(c, r.country));
         let open = OPEN
             .iter()
             .any(|(s, c)| *s == r.stack && holds(c, r.country));
-        if gap && !free && !unused && !open {
+        if gap && !free && !unused && !open && !ended {
             problems.push(format!(
                 "{} {}: no known frequency ({})",
                 r.stack, r.country, r.blurb
@@ -315,9 +317,24 @@ fn a_mode_out_of_service_has_no_channels_and_a_reason() {
     let au = Region::new("AU").expect("a country code");
     let why = d.service_end("umts", &au).expect("umts is out of service in AU");
     assert_eq!(why.ended, "2024");
-    assert!(why.why("AU").contains("not in service"));
     assert!(d.stack_channels("umts", &au).expect("channels").is_empty());
-    assert!(d.service_end("gsm", &au).is_some());
+    let (_, sentence) = d.service_end_why("umts", "3G UMTS cells", &au).expect("a sentence");
+    assert_eq!(sentence, "3G (UMTS) was switched off in Australia in 2024");
     let us = Region::new("US").expect("a country code");
     assert!(d.service_end("umts", &us).is_none());
+    assert!(d.service_end_why("umts", "3G UMTS cells", &us).is_none());
+}
+
+/// Public GSM ended in Australia, and the railway GSM-R there lies outside the bands of the GSM stack: the stack has no
+/// channels in AU, and the sentence says so. Elsewhere it keeps its bands.
+#[test]
+fn gsm_is_out_of_service_in_australia() {
+    let d = data();
+    let au = Region::new("AU").expect("a country code");
+    let (end, sentence) = d.service_end_why("gsmr", "2G GSM / GSM-R", &au).expect("GSM ended in AU");
+    assert_eq!((end.year(), end.remains), (Some(2018), None));
+    assert_eq!(sentence, "2G (GSM) was switched off in Australia in 2018");
+    assert!(d.stack_channels("gsmr", &au).expect("channels").is_empty());
+    let de = Region::new("DE").expect("a country code");
+    assert!(d.service_end("gsmr", &de).is_none());
 }

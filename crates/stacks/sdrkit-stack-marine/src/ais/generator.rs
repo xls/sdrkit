@@ -694,9 +694,11 @@ sdrkit_core::settings! {
     }
 }
 
-/// The generator the descriptor makes: the port demo with the test-signal settings.
+/// The generator the descriptor makes: the port demo with the test-signal settings. The channels sit at their own
+/// frequencies against the radio centre: the frequency a session listens on ([`GenConfig::tuned_hz`]), else 162.0 MHz.
 pub fn from_config(cfg: &GenConfig) -> Box<dyn Generator> {
     let s = &cfg.settings;
+    let centre = cfg.tuned_hz().filter(|f| *f > 0.0).unwrap_or(super::receiver::PAIRS[0]);
     let opts = DemoOptions {
         vessels: s.get(&GEN_VESSELS) as usize,
         seed: cfg.seed,
@@ -704,6 +706,7 @@ pub fn from_config(cfg: &GenConfig) -> Box<dyn Generator> {
         render: Render {
             rate: cfg.rate_hz,
             duration_s: 0.0,
+            tune_offset_hz: centre - super::receiver::PAIRS[0],
             ..Default::default()
         },
         ..Default::default()

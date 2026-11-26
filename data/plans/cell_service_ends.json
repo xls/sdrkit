@@ -8,10 +8,10 @@
       "itu": 3,
       "services": [
         {
-          "mode": "gsm",
+          "mode": "gsmr",
           "in_service": false,
           "ended": "2018",
-          "note": "the three national networks closed GSM between 2016 and 2018; the year is from memory (unconfirmed); GSM-R of the railways is a separate stack"
+          "note": "the three national networks closed GSM between 2016 and 2018; the year is from memory (unconfirmed). The railways of Australia run GSM-R in the 1800 MHz band (downlink 1865 to 1880 MHz, per secondary sources), outside the 860 to 960 MHz that the stack tunes, so no channel of the stack remains"
         },
         {
           "mode": "umts",

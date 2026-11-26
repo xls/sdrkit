@@ -557,17 +557,66 @@ pub struct ServiceState {
     /// A note; a mode that is out of service without a source says in it that the end is unconfirmed.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub note: String,
+    /// The name of the service that ended when it is a part of the stack ("public GSM"). Empty when the whole stack
+    /// ended.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    /// The part of the stack that stays in service: the channels in its bands remain. Absent when no channel remains.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub remains: Option<ServicePart>,
+}
+
+/// The part of a stack that stays in service in a country where the rest of the stack ended.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServicePart {
+    /// Its name for a person ("railway GSM-R").
+    pub name: String,
+    /// The names of its bands, as the band groups that list the stack name them ("R-GSM 900 extension").
+    pub bands: Vec<String>,
 }
 
 fn in_service_default() -> bool {
     true
 }
 
+/// The generation word that starts the stack name `stack_name` ("3G" of "3G UMTS cells"), if it has one.
+fn generation(stack_name: &str) -> Option<&str> {
+    let w = stack_name.split_whitespace().next()?;
+    let digits = w.strip_suffix('G')?;
+    (!digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit())).then_some(w)
+}
+
 impl ServiceState {
-    /// One line that says why the mode has no channels: "umts is not in service in AU (ended 2024)".
-    pub fn why(&self, country: &str) -> String {
-        let when = if self.ended.is_empty() { String::new() } else { format!(" (ended {})", self.ended) };
-        format!("{} is not in service in {country}{when}", self.mode)
+    /// The year the service ended, if the data gives it.
+    pub fn year(&self) -> Option<i32> {
+        self.ended.get(..4)?.parse().ok()
+    }
+
+    /// One sentence for a person that says why the stack named `stack_name` offers no channels, or fewer, in the
+    /// country named `country`: "3G (UMTS) was switched off in Australia in 2024"; "2G (GSM) is no longer in service in
+    /// Australia" when the year is not known; "2G public GSM was switched off in Australia in 2018; railway GSM-R
+    /// channels remain" when a part remains. The service is the generation word and the next word of the stack name,
+    /// or the stack name if it starts with no generation word; [`ServiceState::name`] replaces the next word.
+    pub fn why(&self, country: &str, stack_name: &str) -> String {
+        let generation = generation(stack_name);
+        let what = match (generation, self.name.as_str()) {
+            (Some(g), "") => match stack_name.split_whitespace().nth(1) {
+                Some(tech) => format!("{g} ({tech})"),
+                None => g.to_owned(),
+            },
+            (Some(g), name) => format!("{g} {name}"),
+            (None, "") => stack_name.to_owned(),
+            (None, name) => name.to_owned(),
+        };
+        let mut s = match self.year() {
+            Some(y) => format!("{what} was switched off in {country} in {y}"),
+            None => format!("{what} is no longer in service in {country}"),
+        };
+        if let Some(r) = &self.remains {
+            s.push_str(&format!("; {} channels remain", r.name));
+        }
+        s
     }
 }
 
@@ -1116,6 +1165,14 @@ pub fn check(files: &[(String, PlanFile)], known: &Known) -> Vec<DataError> {
                 }
                 for (k, so) in sv.sources.iter().enumerate() {
                     check_source(&mut p, &format!("{sp}.sources[{k}]"), so);
+                }
+                if let Some(r) = &sv.remains {
+                    if sv.name.trim().is_empty() {
+                        p.add(&format!("{sp}.name"), "a mode with a part that remains names the part that ended");
+                    }
+                    if r.name.trim().is_empty() || r.bands.iter().all(|b| b.trim().is_empty()) {
+                        p.add(&format!("{sp}.remains"), "a part that remains has a name and at least one band");
+                    }
                 }
             }
             for (j, s) in c.sources.iter().enumerate() {

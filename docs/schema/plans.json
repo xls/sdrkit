@@ -582,9 +582,17 @@
           "pattern": "^[a-z0-9_-]{1,64}$",
           "type": "string"
         },
+        "name": {
+          "description": "The name of the service that ended when it is a part of the stack (\"public GSM\"). Required with remains.",
+          "type": "string"
+        },
         "note": {
           "description": "A note; a mode out of service without a source says in it that the end is unconfirmed.",
           "type": "string"
+        },
+        "remains": {
+          "$ref": "#/$defs/service_part",
+          "description": "The part of the stack that stays in service: the channels in its bands remain."
         },
         "sources": {
           "description": "The announcements or regulator documents that say so.",
@@ -596,6 +604,28 @@
       },
       "required": [
         "mode"
+      ],
+      "type": "object"
+    },
+    "service_part": {
+      "additionalProperties": false,
+      "description": "The part of a stack that stays in service in a country where the rest of the stack ended.",
+      "properties": {
+        "bands": {
+          "description": "The names of its bands, as the band groups that list the stack name them.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Its name for a person (\"railway GSM-R\").",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "bands"
       ],
       "type": "object"
     },

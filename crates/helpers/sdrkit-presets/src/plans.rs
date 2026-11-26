@@ -244,6 +244,26 @@ impl PlanSet {
             .cloned()
     }
 
+    /// The edges, Hz, of each band named in `names` among the bands of every group that name `stack`.
+    pub(crate) fn band_edges(&self, stack: &str, names: &[String]) -> Vec<(f64, f64)> {
+        self.groups
+            .iter()
+            .flat_map(|g| &g.bands)
+            .filter(|b| b.modes.iter().any(|m| m == stack) && names.contains(&b.name))
+            .map(|b| (b.start_hz, b.end_hz))
+            .collect()
+    }
+
+    /// The name of the country `code` in the country entries. Empty if no entry names it.
+    pub(crate) fn country_name(&self, code: &str) -> &str {
+        self.countries
+            .iter()
+            .filter(|c| c.code == code)
+            .map(|c| c.name.as_str())
+            .find(|n| !n.is_empty())
+            .unwrap_or("")
+    }
+
     /// The ITU region of the country `code`.
     pub(crate) fn itu(&self, code: &str) -> Option<u8> {
         self.countries

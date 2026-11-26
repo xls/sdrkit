@@ -17,6 +17,7 @@
  *     sdrkit_presets_name_of(presets, 226.5e6, ids, n, &place)   names a frequency
  *     sdrkit_presets_dial(presets, &query, &dial)                where a stack starts in a country
  *     sdrkit_presets_settings(presets, engine, &query, &n)       the settings of a stack in a country, ready to set
+ *     sdrkit_presets_service_end(presets, &query, &end)          why a stack has no channels in a country
  *     sdrkit_presets_close(presets)
  *
  * Handles. sdrkit_presets_open() returns a presets handle. It is not a handle of an engine: only the calls of this
@@ -255,6 +256,24 @@ typedef struct sdrkit_presets_slot {
     bool preset_default;
 } sdrkit_presets_slot;
 
+// Why a stack offers no channels, or fewer, in a country: the mode, or a part of it, is out of service there.
+typedef struct sdrkit_presets_service_info {
+    // The number of bytes of the struct.
+    uint32_t size;
+    // The mode, or a part of it, is out of service in the country. False: the rest of the struct is empty.
+    bool out_of_service;
+    // Only a part of the mode ended; the channels of the part that remains stay in the lists.
+    bool partial;
+    // `year` holds a value.
+    bool has_year;
+    // The year the service ended.
+    int32_t year;
+    // The date the service ended as the data gives it ("2024", "2024-10" or "2024-10-28"). Empty if not known.
+    struct sdrkit_string ended;
+    // One sentence for a person: "3G (UMTS) was switched off in Australia in 2024".
+    struct sdrkit_string sentence;
+} sdrkit_presets_service_info;
+
 #define SDRKIT_PRESETS_HIT_INIT {sizeof(sdrkit_presets_hit), 0, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0}
 #define SDRKIT_PRESETS_VIEW_INIT {sizeof(sdrkit_presets_view), 0, 0, 0, 0, 0}
 #define SDRKIT_PRESETS_LABEL_INIT {sizeof(sdrkit_presets_label), 0, 0, 0, 0, {0}, {0}, 0, 0, 0}
@@ -267,6 +286,7 @@ typedef struct sdrkit_presets_slot {
 #define SDRKIT_PRESETS_SETTING_INIT {sizeof(sdrkit_presets_setting), {0}, {0}}
 #define SDRKIT_PRESETS_SLOT_QUERY_INIT {sizeof(sdrkit_presets_slot_query), 0, 0, 0, 0}
 #define SDRKIT_PRESETS_SLOT_INIT {sizeof(sdrkit_presets_slot), 0, 0, 0, 0}
+#define SDRKIT_PRESETS_SERVICE_INFO_INIT {sizeof(sdrkit_presets_service_info), 0, 0, 0, 0, {0}, {0}}
 
 #ifdef __cplusplus
 extern "C" {
@@ -498,6 +518,16 @@ int32_t sdrkit_presets_settings(SDRKIT_HANDLE presets,
 int32_t sdrkit_presets_setting_read(SDRKIT_HANDLE presets,
                                     uint32_t index,
                                     struct sdrkit_presets_setting *setting);
+
+// Writes to `end` whether the stack of `query`, or a part of it, is out of service in its country, the year it ended
+// and one sentence for a person ("3G (UMTS) was switched off in Australia in 2024"): why `sdrkit_presets_channels`
+// lists no channels, or only those of the part that remains. The sentence names the country as the data does and the
+// service by the generation word of the stack's name. The city, the submode and the frequency of the query are not
+// used. Its strings are views, valid until the next `sdrkit_presets_service_end` on `presets`. Returns
+// `SDRKIT_E_BAD_ARGUMENT` for a country that is not a code of two letters.
+int32_t sdrkit_presets_service_end(SDRKIT_HANDLE presets,
+                                   const struct sdrkit_presets_query *query,
+                                   struct sdrkit_presets_service_info *end);
 
 #ifdef __cplusplus
 }  // extern "C"

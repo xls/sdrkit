@@ -112,7 +112,19 @@ int main(int argc, char **argv) {
     query.country = "X";
     CHECK(sdrkit_presets_frequencies(presets, &query, &n) == SDRKIT_E_BAD_ARGUMENT);
     query.country = "AU";
+    /* Why a stack has no channels in a country: 3G ended in Australia in 2024, GSM in 2018. */
+    sdrkit_presets_service_info end = SDRKIT_PRESETS_SERVICE_INFO_INIT;
+    query.stack = "umts";
+    OK(sdrkit_presets_service_end(presets, &query, &end));
+    CHECK(end.out_of_service && !end.partial && end.has_year && end.year == 2024 && string_is(end.ended, "2024"));
+    CHECK(string_is(end.sentence, "3G (UMTS) was switched off in Australia in 2024"));
+    query.stack = "gsmr";
+    OK(sdrkit_presets_service_end(presets, &query, &end));
+    CHECK(end.out_of_service && !end.partial && end.year == 2018);
+    CHECK(string_is(end.sentence, "2G (GSM) was switched off in Australia in 2018"));
     query.stack = "dvbt";
+    OK(sdrkit_presets_service_end(presets, &query, &end));
+    CHECK(!end.out_of_service && !end.has_year && end.sentence.len == 0);
 
     /* The Meshtastic slots of a region with no session: ANZ LongFast has 52, slot 20 at 919.875 MHz is current. */
     sdrkit_presets_slot_query slots = SDRKIT_PRESETS_SLOT_QUERY_INIT;

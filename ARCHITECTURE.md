@@ -671,7 +671,8 @@ sets plain values, and every command finds the data folder with `data_folder`. T
 chosen region in its own settings file, `tui.conf` in the storage folder (else `~/.sdrkit`); the engine has no region.
 A host in C or Swift gets the same lookups from the presets part of the C API: `sdrkit_presets_channels`,
 `sdrkit_presets_dial` and `sdrkit_presets_settings` give the channels, the start frequency and the settings of a stack
-in a country, and the Swift class `Presets` wraps them.
+in a country, `sdrkit_presets_service_end` says why a stack has no channels where its mode is out of service ("3G
+(UMTS) was switched off in Australia in 2024"), and the Swift class `Presets` wraps them.
 
 ## The C API
 

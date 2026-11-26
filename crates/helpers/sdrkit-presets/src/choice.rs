@@ -84,12 +84,31 @@ fn every_dial(data: &Data) -> Result<Vec<DefaultDial>, DataError> {
 }
 
 impl Data {
-    /// Says whether the mode `stack` is out of service in the country of `region`: the country entry of a plan file lists
-    /// it with `in_service: false`. The answer holds the end date, the sources and [`ServiceState::why`], so that a host
-    /// can say "umts is not in service in AU (ended 2024)". `None` while the mode is in service. [`Data::stack_channels`]
-    /// returns no channels for a mode that this call answers for.
+    /// Says whether the mode `stack`, or a part of it, is out of service in the country of `region`: the country entry
+    /// of a plan file lists it with `in_service: false`. The answer holds the end date, the sources, the part that
+    /// remains and [`ServiceState::why`], so that a host can say "3G (UMTS) was switched off in Australia in 2024".
+    /// `None` while the mode is in service. [`Data::stack_channels`] returns no channels for a mode that this call
+    /// answers for, or only those of the bands of the part that remains.
     pub fn service_end(&self, stack: &str, region: &Region) -> Option<sdrkit_data_plans::ServiceState> {
         self.plans.out_of_service(stack, region.of_stack(stack).country())
+    }
+
+    /// [`Data::service_end`] and its sentence for a person ([`ServiceState::why`]) for the stack named `stack_name`,
+    /// with the name of the country from the country entries (else its code).
+    pub fn service_end_why(
+        &self,
+        stack: &str,
+        stack_name: &str,
+        region: &Region,
+    ) -> Option<(sdrkit_data_plans::ServiceState, String)> {
+        let end = self.service_end(stack, region)?;
+        let code = region.of_stack(stack).country();
+        let country = match self.plans.country_name(code) {
+            "" => code,
+            name => name,
+        };
+        let why = end.why(country, stack_name);
+        Some((end, why))
     }
 }
 
@@ -162,9 +181,13 @@ impl Data {
         region: &Region,
     ) -> Result<Vec<PlanChannel>, DataError> {
         let country = region.of_stack(stack).country();
-        if self.service_end(stack, region).is_some() {
-            return Ok(Vec::new());
-        }
+        let remains = match self.service_end(stack, region) {
+            Some(end) => match end.remains {
+                Some(part) => Some(self.plans.band_edges(stack, &part.bands)),
+                None => return Ok(Vec::new()),
+            },
+            None => None,
+        };
         let mut out = self
             .plans
             .find(stack, country, recipe(stack).is_some())
@@ -206,6 +229,9 @@ impl Data {
         }
         if out.is_empty() {
             out = self.family_plan_channels(stack, country)?;
+        }
+        if let Some(edges) = &remains {
+            out.retain(|c| edges.iter().any(|(lo, hi)| (*lo..=*hi).contains(&c.frequency_hz)));
         }
         let own = self.user_channels(stack, country);
         out.retain(|c| !own.iter().any(|o| (o.frequency_hz - c.frequency_hz).abs() < 0.5));
@@ -262,6 +288,39 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).expect("a test folder");
         dir
+    }
+
+    /// A stack of two services where one ended keeps only the channels of the bands of the part that remains.
+    #[test]
+    fn a_part_that_remains_keeps_the_channels_of_its_bands() {
+        let root = folder("remains");
+        std::fs::create_dir_all(root.join("plans")).expect("plans");
+        let band = |name: &str, lo: f64| {
+            format!(
+                r#"{{"name":"{name}","service":"mobile","start_hz":{lo},"end_hz":{hi},"modes":["gsmr"],
+                    "channels":[{{"name":"{name} 1","centre_hz":{c},"width_hz":200000}}]}}"#,
+                hi = lo + 400e3,
+                c = lo + 200e3
+            )
+        };
+        let file = format!(
+            r#"{{"format":1,"groups":[{{"id":"gsmr_test","name":"GSM","kind":"other",
+                "source":{{"publisher":"3GPP","title":"Radio transmission and reception","number":"TS 45.005","date":"Release 17"}},
+                "verified":false,"unverified_reason":"a test","bands":[{},{}]}}],
+              "countries":[{{"code":"AU","name":"Australia","itu":3,"groups":["gsmr_test"],"unverified_reason":"a test",
+                "services":[{{"mode":"gsmr","in_service":false,"ended":"2018","note":"unconfirmed","name":"public GSM",
+                  "remains":{{"name":"railway GSM-R","bands":["Railway"]}}}}]}}]}}"#,
+            band("Public", 935e6),
+            band("Railway", 921e6)
+        );
+        std::fs::write(root.join("plans/test.json"), file).expect("the plan file");
+        let d = Data::open(&root).expect("the folder");
+        let au = Region::new("AU").expect("a code");
+        let left = d.stack_channels("gsmr", &au).expect("channels");
+        assert_eq!(left.iter().map(|c| c.frequency_hz).collect::<Vec<_>>(), [921.2e6]);
+        let (_, why) = d.service_end_why("gsmr", "2G GSM / GSM-R", &au).expect("an end");
+        assert_eq!(why, "2G public GSM was switched off in Australia in 2018; railway GSM-R channels remain");
+        let _ = std::fs::remove_dir_all(root);
     }
 
     #[test]

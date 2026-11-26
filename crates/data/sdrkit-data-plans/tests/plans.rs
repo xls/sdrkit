@@ -971,11 +971,29 @@ fn a_country_entry_says_that_a_mode_is_out_of_service() {
     let au = plans.country_rows().find(|c| c.code == "AU").expect("AU");
     assert_eq!(au.services.len(), 1);
     assert!(!au.services[0].in_service);
-    assert_eq!(au.services[0].why("AU"), "umts is not in service in AU (ended 2024)");
+    assert_eq!(au.services[0].year(), Some(2024));
+    assert_eq!(au.services[0].why("Australia", "3G UMTS cells"), "3G (UMTS) was switched off in Australia in 2024");
+    let mut unknown = au.services[0].clone();
+    unknown.ended.clear();
+    assert_eq!(unknown.why("Australia", "2G GSM / GSM-R"), "2G (GSM) is no longer in service in Australia");
+    assert_eq!(unknown.why("Australia", "Pager"), "Pager is no longer in service in Australia");
+    // A stack of two services: one ended, the channels of the other remain.
+    let split = r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[
+        {"mode":"gsmr","in_service":false,"ended":"2018","note":"unconfirmed","name":"public GSM",
+         "remains":{"name":"railway GSM-R","bands":["R-GSM 900 extension"]}}]}]}"#;
+    let mut plans = Plans::new();
+    api::import_as(&mut plans, split, PlanFormat::Json, "", "").expect("a part that remains loads");
+    let au = plans.country_rows().find(|c| c.code == "AU").expect("AU");
+    assert_eq!(
+        au.services[0].why("Australia", "2G GSM / GSM-R"),
+        "2G public GSM was switched off in Australia in 2018; railway GSM-R channels remain"
+    );
     // A mode out of service needs a source or an "unconfirmed" note, and a valid date.
     for bad in [
         r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[{"mode":"umts","in_service":false}]}]}"#,
         r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[{"mode":"umts","in_service":false,"ended":"soon","note":"unconfirmed"}]}]}"#,
+        r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[{"mode":"gsmr","in_service":false,"note":"unconfirmed","remains":{"name":"railway GSM-R","bands":["R-GSM 900 extension"]}}]}]}"#,
+        r#"{"format":1,"countries":[{"code":"AU","name":"Australia","itu":3,"services":[{"mode":"gsmr","in_service":false,"note":"unconfirmed","name":"public GSM","remains":{"name":"railway GSM-R","bands":[]}}]}]}"#,
     ] {
         let mut p = Plans::new();
         assert!(api::import_as(&mut p, bad, PlanFormat::Json, "", "").is_err(), "{bad}");
