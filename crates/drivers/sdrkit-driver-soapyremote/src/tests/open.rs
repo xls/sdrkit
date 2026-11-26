@@ -221,6 +221,7 @@ fn the_open_transcript_of_an_rtl_sdr() {
             call::SET_SAMPLE_RATE,
             call::GET_SAMPLE_RATE,
             call::SET_FREQUENCY,
+            call::GET_FREQUENCY,
             call::SET_GAIN_MODE,
             call::SET_GAIN,
             call::SETUP_STREAM,
@@ -230,15 +231,16 @@ fn the_open_transcript_of_an_rtl_sdr() {
     assert_eq!(reqs[i].bytes, hex(SET_RATE));
     assert_eq!(reqs[i + 1].bytes, hex(GET_RATE));
     assert_eq!(reqs[i + 2].bytes, hex(SET_FREQ));
-    assert_eq!(reqs[i + 3].bytes, hex(GAIN_MODE_OFF));
-    assert_eq!(reqs[i + 4].bytes, hex(SET_GAIN));
+    assert_eq!(reqs[i + 3].call, call::GET_FREQUENCY);
+    assert_eq!(reqs[i + 4].bytes, hex(GAIN_MODE_OFF));
+    assert_eq!(reqs[i + 5].bytes, hex(SET_GAIN));
     let st = f.stream().unwrap();
     let (dp, sp) = *st.ports.lock().unwrap();
     assert_eq!(
-        reqs[i + 5].bytes,
+        reqs[i + 6].bytes,
         setup_with(&dp.to_string(), &sp.to_string())
     );
-    assert_eq!(reqs[i + 6].bytes, hex(ACTIVATE));
+    assert_eq!(reqs[i + 7].bytes, hex(ACTIVATE));
     // The first acknowledgement came between set-up and activate, with the window of the requested buffer.
     let acks = st.acks.lock().unwrap().clone();
     assert_eq!(acks[0].1.to_vec(), hex(ACK0));

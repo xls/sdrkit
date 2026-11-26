@@ -120,6 +120,8 @@ pub(crate) struct Inner {
     pub pending_len: AtomicUsize,
     pub retired: Mutex<Consumer<Slot>>,
     pub clients: Mutex<Vec<ClientEntry>>,
+    /// Clients that left with requests that were not carried out, and when: snapshots show them for a while.
+    pub departed: Mutex<Vec<(Arc<crate::client::ClientShared>, Instant)>>,
     pub listeners: Mutex<Vec<ListenerEntry>>,
     events: Mutex<VecDeque<Event>>,
     pub next_id: AtomicU64,
@@ -238,6 +240,7 @@ impl Hub {
             clients: Mutex::new(Vec::new()),
             listeners: Mutex::new(Vec::new()),
             events: Mutex::new(VecDeque::new()),
+            departed: Mutex::new(Vec::new()),
             next_id: AtomicU64::new(1),
             blocks: AtomicU64::new(0),
             samples: AtomicU64::new(0),
@@ -463,9 +466,10 @@ impl Feeder {
     }
 }
 
-/// Queues `chunk` of `n` samples on the ring of `s`, or counts it as dropped when the ring is full.
+/// Queues `chunk` of `n` samples on the ring of `s` of an engaged client, or counts it as dropped when the ring is full.
 fn offer(s: &mut Slot, chunk: &Arc<Chunk>, n: u64, inner: &Inner) {
-    if s.tx.is_abandoned() {
+    // A probe that has not asked for a stream gets nothing.
+    if s.tx.is_abandoned() || !s.shared.engaged.load(Ordering::Relaxed) {
         return;
     }
     match s.tx.push(chunk.clone()) {

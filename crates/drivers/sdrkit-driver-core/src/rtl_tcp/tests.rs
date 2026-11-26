@@ -76,8 +76,8 @@ fn chosen_any_and_pinned_rates() {
     assert_eq!(p(&t).unwrap().rate, 3_000_000);
     let t = tune(10.0 * M, &[server(ServerMode::Rtl), exact]);
     assert_eq!(p(&t).unwrap().rate, 10_000_000);
-    let any = ("anyrate", Value::Bool(true));
-    let t = tune(2.0 * M, &[any.clone(), ("customrate", Value::Hz(30.0 * M))]);
+    let any = server(ServerMode::Any);
+    let t = tune(30.0 * M, std::slice::from_ref(&any));
     assert_eq!(p(&t).unwrap().rate, 30_000_000);
     let t = tune(0.05 * M, std::slice::from_ref(&any));
     assert_eq!(p(&t).unwrap().rate, 100_000);
@@ -134,6 +134,10 @@ fn pinning_rules() {
     assert_eq!(feed(&mut d, 1.0 * M, 2.4 * M), None);
     assert_eq!(feed(&mut d, 0.99 * M, 2.4 * M), None);
     assert_eq!(feed(&mut d, 3.0 * M, 2.4 * M), Some(1.0 * M));
+    // Less than asked and not steady, as a slow link gives it: not pinned.
+    for x in [1.31, 1.12, 1.47, 1.2, 1.38, 1.05] {
+        assert_eq!(feed(&mut d, x * M, 2.4 * M), None);
+    }
     // An obeying server, within 4 %.
     for _ in 0..10 {
         assert_eq!(feed(&mut d, 2.45 * M, 2.4 * M), None);
@@ -194,7 +198,10 @@ fn opens_streams_and_retunes_live() {
     // The usual rates and the gain steps of the tuner (29 for the R820T, 0 to 49.6 dB).
     let caps = src.capabilities();
     assert_eq!(caps.common_rates_hz.len(), 7);
-    assert_eq!(plan(caps.common_rates_hz[0], ServerMode::Rtl).unwrap().rate, 900_001);
+    assert_eq!(
+        plan(caps.common_rates_hz[0], ServerMode::Rtl).unwrap().rate,
+        900_001
+    );
     assert_eq!(caps.gain_steps_db.len(), 29);
     assert_eq!(caps.gain_steps_db.last(), Some(&49.6));
     let (w, mut r) = cu8_ring();

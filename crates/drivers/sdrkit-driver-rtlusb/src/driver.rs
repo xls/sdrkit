@@ -32,7 +32,7 @@ sdrkit_core::choice_enum! {
 }
 
 /// The frequency correction.
-pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
+pub const PPM: Setting<field::F64> = sdrkit_driver_core::form::PPM
     .range(-200.0, 200.0, 0.1)
     .help(
         "The clock error of the dongle in ppm, positive if its clock runs fast (signals then show a little low). Dongles \
@@ -40,25 +40,29 @@ pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction",
     );
 /// Direct sampling below 24 MHz.
 pub const DIRECT_SAMPLING: Setting<field::Choice<DirectSampling>> =
-    Setting::choice("ds", "Direct sampling (HF)", DirectSampling::Off).help(
+    sdrkit_driver_core::form::direct_sampling(DirectSampling::Off).help(
         "Below 24 MHz, sample the antenna input on the I or the Q input of the ADC and leave the tuner off. An RTL-SDR Blog \
          V3 has its HF input on Q; other dongles need a change to the board. A Blog V4 receives HF through its own \
          upconverter and does not use this.",
     );
 /// Offset tuning of a zero-IF tuner.
 pub const OFFSET_TUNING: Setting<field::Bool> =
-    Setting::new("offset_tuning", "Offset tuning", "", false).help(
+    Setting::new("offset_tuning", "Offset tuning", "", false)
+        .section(sdrkit_driver_core::form::CORRECTIONS_SECTION)
+        .help(
         "Tune an E4000 tuner 85 % of half the sample rate away and shift back in the demodulator, so that the DC spike of \
          the tuner is not at the centre. An R820T or R828D tuner has an IF of its own and does not use this.",
     );
 /// The digital AGC of the RTL2832U.
 pub const RTL_AGC: Setting<field::Bool> = Setting::new("rtl_agc", "RTL2832U digital gain", "", false)
-    .section("advanced")
+    .section(sdrkit_driver_core::form::GAIN_SECTION)
+    .advanced()
     .help("The digital gain stage of the RTL2832U after the ADC. Off: the samples keep the level that the tuner gives.");
 
 /// The detector loops of the tuner as the automatic gain.
 pub const TUNER_AGC: Setting<field::Bool> = Setting::new("tuner_agc", "Tuner AGC loops", "", false)
-    .section("advanced")
+    .section(sdrkit_driver_core::form::GAIN_SECTION)
+    .advanced()
     .help(
         "With automatic gain on, let the detectors of the tuner set its gain. Off: the driver holds a fixed tuner gain that it \
          chooses from the level of the samples, which keeps strong stations nearby from overloading the dongle.",
@@ -67,16 +71,16 @@ pub const TUNER_AGC: Setting<field::Bool> = Setting::new("tuner_agc", "Tuner AGC
 sdrkit_core::settings! {
     /// The own settings of the RTL2832U driver.
     pub enum RtlSetting {
-        /// [`PPM`].
-        Ppm = PPM,
-        /// [`DIRECT_SAMPLING`].
-        DirectSampling = DIRECT_SAMPLING,
-        /// [`OFFSET_TUNING`].
-        OffsetTuning = OFFSET_TUNING,
         /// [`RTL_AGC`].
         RtlAgc = RTL_AGC,
         /// [`TUNER_AGC`].
         TunerAgc = TUNER_AGC,
+        /// [`PPM`].
+        Ppm = PPM,
+        /// [`OFFSET_TUNING`].
+        OffsetTuning = OFFSET_TUNING,
+        /// [`DIRECT_SAMPLING`].
+        DirectSampling = DIRECT_SAMPLING,
     }
 }
 

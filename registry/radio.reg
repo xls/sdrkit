@@ -34,10 +34,10 @@ radio.event.radio.lost fields=LostEvent since=1.0
 radio.event.radio.overflow fields=OverflowEvent since=1.0
 radio.event.radio.restart fields=RestartEvent since=1.0
 radio.setting.centre_hz type=hz unit=Hz since=1.0
-radio.setting.rate type=hz unit=Hz since=1.0
-radio.setting.bandwidth type=hz unit=Hz since=1.0
 radio.setting.gain type=f64 unit=dB since=1.0
 radio.setting.agc type=bool unit= since=1.0
+radio.setting.rate type=hz unit=Hz since=1.0
+radio.setting.bandwidth type=hz unit=Hz since=1.0
 radio.setting.rate_exact type=bool unit= since=1.0
 radio.setting.bias_tee type=bool unit= since=1.0
 radio.command.reconnect args= reply= since=1.0

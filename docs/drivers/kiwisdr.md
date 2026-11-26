@@ -20,10 +20,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -33,12 +33,12 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
+| `passband` | Passband | choice | `5000` | `3000` (±3.0 kHz), `5000` (±5.0 kHz), `5900` (±5.9 kHz), `max` (Widest the receiver allows) | The half-width of the IQ filter of the receiver around the tuned frequency. The receiver sends 12 kHz of spectrum. A passband wider than the rate of the receiver allows is refused. |
+| `swap_iq` | Swap I and Q | yes or no | false |  | Mirrors the spectrum. Turn it on if signals that belong above the frequency appear below it. |
 | `password` | Password | text | empty |  | Only if the owner set one. Never shown in names, logs or the status. |
 | `tlimit_password` | Time-limit exemption password | text | empty |  | Some owners give regular listeners a password that lifts the time limit of a session. |
 | `user_name` | Your name, shown to the owner | text | `sdrkit` |  | Shown in the listener list of the receiver, so the owner knows who listens. At most 32 characters. |
 | `location` | Your location, shown to the owner | text | empty |  | Shown to the owner and to other listeners. At most 64 characters. If empty, nothing is sent. |
-| `passband` | Passband | choice | `5000` | `3000` (±3.0 kHz), `5000` (±5.0 kHz), `5900` (±5.9 kHz), `max` (Widest the receiver allows) | The half-width of the IQ filter of the receiver around the tuned frequency. The receiver sends 12 kHz of spectrum. A passband wider than the rate of the receiver allows is refused. |
-| `swap_iq` | Swap I and Q | yes or no | false |  | Mirrors the spectrum. Turn it on if signals that belong above the frequency appear below it. |
 | `users` | Show other listeners | yes or no | true |  | Asks the receiver every 10 s who else is connected. |
 | `waterfall` | Receiver's waterfall | yes or no | false |  | Also shows the wide waterfall of the receiver. It opens a second connection to the receiver. |
 | `wf_zoom` | Waterfall zoom | whole number | 0 | 0 to 14 | 0 shows the whole range. Each step halves the span around the tuned frequency. |

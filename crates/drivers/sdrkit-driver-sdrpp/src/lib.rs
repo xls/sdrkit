@@ -60,13 +60,14 @@ impl WireType {
 
 /// The sample format the server sends.
 pub const SAMPLE_FORMAT: Setting<field::Choice<WireType>> =
-    Setting::choice("sample_type", "Sample format", WireType::I16).help(
+    sdrkit_driver_core::form::format(WireType::I16).help(
         "What the server sends. 16-bit keeps weak signals beside strong ones. 8-bit needs half the network (2 bytes per \
          sample) and lets a slow link carry a higher rate. Float is exact but takes 8 bytes per sample (at 10 Msps: 160, 320 \
          and 640 Mbit/s).",
     );
 /// The server compresses each packet.
 pub const COMPRESSION: Setting<field::Bool> = Setting::new("compression", "Compression", "", false)
+    .section(sdrkit_driver_core::form::LINK_SECTION)
     .restart()
     .help(
         "The server compresses each packet (zstd). Less network, more CPU on both ends. Most useful with 8-bit or 16-bit \
@@ -74,11 +75,13 @@ pub const COMPRESSION: Setting<field::Bool> = Setting::new("compression", "Compr
     );
 /// The driver never moves the gain sliders of the server.
 pub const SERVER_GAIN: Setting<field::Bool> =
-    Setting::new("server_gain", "Leave the gain to the server", "", false).help(
+    Setting::new("server_gain", "Leave the gain to the server", "", false)
+        .section(sdrkit_driver_core::form::GAIN_SECTION)
+        .help(
         "The driver never moves the gain sliders of the server. The gain stays as set on the server (or by its AGC).",
     );
 /// The frequency correction.
-pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
+pub const PPM: Setting<field::F64> = sdrkit_driver_core::form::PPM
     .range(-200.0, 200.0, 0.1)
     .help(
         "The clock error of the radio in ppm, positive when its clock runs fast (signals show a little low). The driver asks \
@@ -88,14 +91,14 @@ pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction",
 sdrkit_core::settings! {
     /// The own settings of the SDR++ server driver.
     pub enum SdrppSetting {
-        /// [`SAMPLE_FORMAT`].
-        SampleFormat = SAMPLE_FORMAT,
-        /// [`COMPRESSION`].
-        Compression = COMPRESSION,
         /// [`SERVER_GAIN`].
         ServerGain = SERVER_GAIN,
         /// [`PPM`].
         Ppm = PPM,
+        /// [`SAMPLE_FORMAT`].
+        SampleFormat = SAMPLE_FORMAT,
+        /// [`COMPRESSION`].
+        Compression = COMPRESSION,
     }
 }
 

@@ -108,7 +108,7 @@ A radio has at most one share. A share can have several listeners, for example o
 
 A share takes the samples as the radio gives them. It never sets the sample rate or the frequency of the radio by itself, and it never stops a stack of this program from doing so. You can run a stack on the same radio at the same time.
 
-A client that is slow loses only its own samples. Each client has its own queue (`client_queue_ms`); a full queue drops samples for that client alone. The radio and the stacks of this program are not held up. A client that loses samples for longer than `drop_after_s` is disconnected.
+A client that is slow loses only its own samples. The status line of the share names each client that loses samples: "client 3: 12 % dropped, the link is too slow for 2.4 Msps". Each client has its own queue (`client_queue_ms`); a full queue drops samples for that client alone. The radio and the stacks of this program are not held up. A client that loses samples for longer than `drop_after_s` is disconnected.
 
 Samples of 8 and 16 bits reach a client with the bytes that the radio gave.
 
@@ -116,7 +116,7 @@ Samples of 8 and 16 bits reach a client with the bytes that the radio gave.
 
 | Setting | Default | What it does |
 |---|---|---|
-| `control` | `follow` | Who steers the radio. See below. |
+| `control` | `remote` | Who steers the radio. See below. |
 | `max_clients` | 8 | The most clients at one time. |
 | `client_queue_ms` | 500 | The time of signal that waits for a slow client. |
 | `drop_after_s` | 5 | A client that loses samples for this long is disconnected. |
@@ -133,6 +133,20 @@ A change of `max_clients`, `client_queue_ms`, `drop_after_s`, `allow` or `format
 | `follow` | Nothing. A request to tune, to set the rate or the gain is not carried out and is counted. The client is told the value in force, so a client that sets the radio when it connects stays connected and shows what it gets. |
 | `remote` | One client sets the frequency, the rate, the bandwidth and (with `remote_gain`) the gain of the radio, while no stack of this program reads the radio. It is the client that the command `grant` names, or else the client that connected first. When a stack of this program starts on the radio, the stack steers and the client gets the answer of `follow`. A rate that the user of this program set on the radio is not changed. |
 | `slice` | Each client gets its own frequency and rate inside what the radio captures. The radio does not move. A request outside the capture is refused. |
+
+A new share has the control `remote`: with no stack of this program on the radio, the first client steers, and while a stack reads the radio, the clients follow it.
+
+A client of the control `remote` can ask for a rate below the lowest rate of the radio, down to 48 kHz. The radio then runs at its lowest rate, and the share brings the samples down to the client's rate around the centre of the radio, for that client alone. A client that asks for less than a rate that the user of this program set gets its rate the same way. A phone on Wi-Fi can so take 250 to 500 kHz of a HackRF, whose lowest rate is 2 MHz.
+
+#### What our own clients do
+
+The SoapyRemote driver of this library reads the frequency and the rate back after it set them, and uses the values that the server has. When the server does not let it tune (the control `follow`) and the wanted frequency lies inside what the server sends, the session tunes to it inside the capture. When the frequency lies outside, the start or the retune fails with the reason: "the server holds this radio at 100 MHz, 8 MHz wide, and does not let clients tune; 106.5 MHz is outside it". The status line of the radio says whether the client steers the radio or follows the server.
+
+The rtl_tcp protocol reads nothing back. The rtl_tcp driver finds a server that sends another rate than it asked for from the rate that arrives, and takes that rate.
+
+Both drivers read the link while the stream runs. When a stream gets clearly less than its rate for two windows in a row, the driver gives a notice, and the status line of the radio says "the link drops 12 % of the samples" until the stream gets its rate again. The driver keeps no figure of the link and does not change the rate. Over Wi-Fi, a lower rate is the cure: a client of the control `remote` can ask for one below the lowest rate of the radio, as above. The samples that do not arrive count as lost.
+
+The SoapyRemote driver streams over TCP unless its setting `transport` says `udp`. Over Wi-Fi, UDP loses datagrams, and each loss is a hole in the sound; TCP sends them again, and a short stall of the link costs a short wait. The driver counts a gap in the time stamps of the server, or in the sequence of the datagrams, as lost samples.
 
 ### Who may connect, and who may transmit
 
@@ -164,9 +178,13 @@ The fields of a share show its format, rate and centre, the count of clients and
 
 The events are `share.client_joined`, `share.client_left` (with the reason: closed, too slow, kicked, share stopped), `share.refused` (address not allowed, too many clients) and `share.listen_failed`.
 
+A client is a connection that asks for a setting or for a stream. A SoapyRemote client also opens a connection that only reads the device information, and one that carries the log of the server: these are not clients, get no samples, and raise no event. An rtl_tcp client streams from the connect on and is a client at once.
+
+The status line of the share says, for each client, what it asked for and did not get, once for each kind of request: "client 3 asked for 106.5 MHz: not carried out, this share follows the server's own tuning; it gets 100 MHz".
+
 ### Discovery
 
-A SoapyRemote listener on an address that other computers reach answers the searches of SoapyRemote clients (SSDP on UDP port 1900), so the radio shows in their lists. A listener on `127.0.0.1` does not answer searches. If the port 1900 cannot be opened, the listener works without discovery, and a client names the address.
+A SoapyRemote listener on an address that other computers reach answers the searches of SoapyRemote clients (SSDP on UDP port 1900), so the radio shows in their lists. The answer names the radio in the header `X-SDRKIT-RADIO` ("HackRF One 0000c66c"). The device information names it too: the key `label` of the answer to a search of devices, and the keys `name` and `model` of the hardware information; the hardware key is the model without the serial number. The rtl_tcp greeting states the tuner of an RTL dongle, and the R820T for other radios. A listener on `127.0.0.1` does not answer searches. If the port 1900 cannot be opened, the listener works without discovery, and a client names the address.
 
 ### From the command line
 
@@ -177,14 +195,14 @@ sdrkit serve usb:rtl: --freq 104.9 --rate 2.4M
 # Listen to FM here and serve the same dongle to rtl_tcp and SoapyRemote clients:
 sdrkit serve usb:rtl: --stack fm --freq 104.9 --rtl-tcp 1234 --soapy 55132
 
-# Let one client steer a HackRF, for this computer only:
-sdrkit serve usb:hackrf: --control remote --soapy 127.0.0.1:55132
+# Let one client steer a HackRF, for this computer only (remote is the default without --stack):
+sdrkit serve usb:hackrf: --soapy 127.0.0.1:55132
 
 # The test signal of the FM stack as an rtl_tcp server, to try a client without a radio:
 sdrkit serve synth:fm --rate 1.024M --rtl-tcp 127.0.0.1:1234
 ```
 
-`sdrkit serve` prints where it listens, each client that comes and goes, and a status line. Ctrl-C stops it. On another computer, open the radio with `sdrkit run fm --source rtl_tcp:<host>:1234 --freq 104.9`.
+`sdrkit serve` prints where it listens, each client that comes and goes, and a status line. Ctrl-C stops it. Without `--control`, it takes `remote` when no `--stack` is given, since nobody on this computer steers the radio then, and `follow` with `--stack`. On another computer, open the radio with `sdrkit run fm --source rtl_tcp:<host>:1234 --freq 104.9`.
 
 ### From a program
 

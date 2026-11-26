@@ -56,7 +56,14 @@ impl Context<'_> {
     pub fn request(&mut self, request: Request) -> Answer {
         let a = self.control.request(self.handle, &request);
         self.handle.count_request(a == Answer::Refused);
+        self.handle.note_answer(&request, &a);
         a
+    }
+
+    /// The value in force of the setting that `request` names, as the owner's [`Control::in_force`] says. It is not a
+    /// request and is not counted.
+    pub fn in_force(&self, request: Request) -> Option<Request> {
+        self.control.in_force(self.handle, &request)
     }
 
     /// Writes `bytes` to the client's connection. A protocol whose stream shares the connection must not reply, because the
@@ -64,6 +71,12 @@ impl Context<'_> {
     pub fn reply(&mut self, bytes: &[u8]) -> bool {
         let h = self.handle;
         write_patient(self.conn, bytes, &mut || h.stopping()).is_ok()
+    }
+
+    /// Counts the connection as a client from now on, for a request that the protocol answers without the owner (a
+    /// setting of the transmit side).
+    pub fn engage(&mut self) {
+        self.handle.engage();
     }
 
     /// Ends the client after the present call.

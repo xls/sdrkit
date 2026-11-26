@@ -48,8 +48,8 @@ pub const TX_OUTPUT: Setting<field::I64> = Setting::new("txoutput", "Output", ""
 /// one schema.
 pub const TX_PPM: Setting<field::F64> =
     Setting::new("tx_ppm", "Transmit frequency correction", "ppm", 0.0)
-    .range(-200.0, 200.0, 0.01)
-    .help("The clock error in ppm, positive when the clock runs fast.");
+        .range(-200.0, 200.0, 0.01)
+        .help("The clock error in ppm, positive when the clock runs fast.");
 
 sdrkit_core::settings! {
     /// The own transmit settings of the SoapyRemote driver. They follow [`TxSetting`].

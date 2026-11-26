@@ -6,6 +6,7 @@
 pub mod address;
 mod error;
 pub mod file;
+pub mod form;
 pub mod gain;
 pub mod iiod;
 pub mod loss;
@@ -38,6 +39,7 @@ pub use radio::{
 };
 pub use radio::{tx_schema, TxSetting, TX_BANDWIDTH, TX_FREQUENCY, TX_POWER, TX_RATE};
 pub use radio::{BUFFER_PCT, DELIVERED_PCT, LINK_DOWN, PROBLEM, RADIO_LOST, SAMPLES, TX_OUTPUT_DBM};
+pub mod linkwatch;
 pub use ring::{ring, Gap, RingReader, RingStats, RingWriter, RING_CAPACITY};
 
 /// The rates a radio offers: any rate between `min_hz` and `max_hz`, or only the listed ranges if there are some.

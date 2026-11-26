@@ -13,6 +13,8 @@ use std::time::{Duration, Instant};
 
 /// The SSDP search target of a SoapyRemote server.
 pub const SEARCH_TARGET: &str = "urn:schemas-pothosware-com:service:soapyRemote:1";
+/// The header of an SSDP answer that names the radio a server serves ("HackRF One"). Servers of this library send it.
+pub const RADIO_HEADER: &str = "X-SDRKIT-RADIO";
 /// The SSDP IPv4 group and port.
 pub const SSDP_V4: SocketAddr =
     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(239, 255, 255, 250)), 1900);
@@ -64,6 +66,8 @@ pub struct SsdpMessage {
     pub port: u16,
     /// The `SERVER` text.
     pub server: String,
+    /// The radio that the server names in [`RADIO_HEADER`], or empty.
+    pub radio: String,
     /// The `CACHE-CONTROL` max-age.
     pub max_age: Duration,
 }
@@ -78,6 +82,7 @@ struct Headers<'a> {
     location: Option<&'a str>,
     cache_control: Option<&'a str>,
     server: Option<&'a str>,
+    radio: Option<&'a str>,
 }
 
 /// Reads an SSDP message. `None` if it is not about a SoapyRemote server.
@@ -100,6 +105,7 @@ pub fn parse_ssdp(text: &str) -> Option<SsdpMessage> {
                 "location" => h.location = v,
                 "cache-control" => h.cache_control = v,
                 "server" => h.server = v,
+                k if k.eq_ignore_ascii_case(RADIO_HEADER) => h.radio = v,
                 _ => {}
             }
         }
@@ -150,6 +156,7 @@ pub fn parse_ssdp(text: &str) -> Option<SsdpMessage> {
         uuid,
         port,
         server: h.server.unwrap_or_default().to_owned(),
+        radio: h.radio.unwrap_or_default().to_owned(),
         max_age,
     })
 }
@@ -165,6 +172,8 @@ pub struct Found {
     pub port: u16,
     /// The `SERVER` text (SSDP), or empty.
     pub server: String,
+    /// The radio that the server names, or empty.
+    pub radio: String,
     /// When the entry ages out.
     pub expires: Instant,
 }
@@ -195,6 +204,7 @@ impl Collector {
                 ip: from,
                 port: m.port,
                 server: m.server.clone(),
+                radio: m.radio.clone(),
                 expires: now + m.max_age,
             },
             now,
@@ -211,6 +221,9 @@ impl Collector {
                 }
                 if e.server.is_empty() {
                     e.server = f.server;
+                }
+                if e.radio.is_empty() {
+                    e.radio = f.radio;
                 }
                 e.expires = e.expires.max(f.expires);
             }
@@ -519,6 +532,7 @@ pub fn service_found(s: &Service, from: IpAddr, now: Instant) -> Option<Found> {
         ip,
         port: s.port,
         server: String::new(),
+        radio: String::new(),
         expires: now + DEFAULT_MAX_AGE,
     })
 }

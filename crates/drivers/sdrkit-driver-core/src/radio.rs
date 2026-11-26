@@ -2,6 +2,7 @@
 //! that wraps a [`Source`].
 
 use crate::address::{self, AddressPart};
+use crate::form;
 use crate::ring::{RingStats, RingWriter};
 use crate::{
     Capabilities, DriverError, RateLimits, Retuned, Source, Started, StreamLayout, TxLimits,
@@ -21,41 +22,53 @@ use std::sync::Arc;
 /// The frequency of the centre of the samples, after any converter. An open radio limits it to the range that the radio
 /// tunes.
 pub const CENTRE: Setting<field::Hz> =
-    Setting::new("centre_hz", "Centre frequency", "Hz", 100e6).range(0.0, 1e12, 1.0);
-/// The sample rate. 0 lets the driver choose. An open radio limits it to the rates that the radio has.
-pub const RATE: Setting<field::Hz> = Setting::new("rate", "Sample rate", "Hz", 0.0)
+    Setting::new(form::CENTRE_FORM.key, form::CENTRE_FORM.label, "Hz", 100e6).range(0.0, 1e12, 1.0);
+/// The overall gain, used when [`AGC`] is off. An open radio limits it to the gain range and the step of the radio; a
+/// radio without a gain to set has it fixed.
+pub const GAIN: Setting<field::F64> = Setting::new(form::GAIN_FORM.key, form::GAIN_FORM.label, "dB", 30.0)
+    .range(-100.0, 200.0, 1.0)
+    .section(form::GAIN_SECTION);
+/// The radio's own automatic gain control. A radio without one has it fixed off.
+pub const AGC: Setting<field::Bool> =
+    Setting::new(form::AGC_FORM.key, form::AGC_FORM.label, "", true).section(form::GAIN_SECTION);
+/// The sample rate. 0 lets the driver choose. An open radio limits it to the rates that the radio has and lists the
+/// rates of the radio, or the usual rates inside its range ([`form::USUAL_RATES_HZ`]).
+pub const RATE: Setting<field::Hz> = Setting::new(form::RATE_FORM.key, form::RATE_FORM.label, "Hz", 0.0)
     .range(0.0, 1e9, 1.0)
+    .section(form::RATE_SECTION)
     .zero_means("Automatic")
     .help("The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic.");
 /// The analogue filter. 0 lets the driver choose from the rate. An open radio limits it to the widths of its filter
-/// ([`Capabilities::bandwidth_hz`]); a radio whose filter cannot be set has it fixed.
-pub const BANDWIDTH: Setting<field::Hz> = Setting::new("bandwidth", "Bandwidth", "Hz", 0.0)
-    .range(0.0, 1e9, 1.0)
-    .zero_means("From the sample rate")
-    .help("The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate.");
-/// The gain, used when [`AGC`] is off. An open radio limits it to the gain range of the radio.
-pub const GAIN: Setting<field::F64> =
-    Setting::new("gain", "Gain", "dB", 30.0).range(-100.0, 200.0, 0.0);
-/// The radio's own automatic gain control.
-pub const AGC: Setting<field::Bool> = Setting::new("agc", "Automatic gain", "", true);
+/// ([`Capabilities::bandwidth_hz`]) and lists them; a radio whose filter cannot be set has it fixed.
+pub const BANDWIDTH: Setting<field::Hz> =
+    Setting::new(form::BANDWIDTH_FORM.key, form::BANDWIDTH_FORM.label, "Hz", 0.0)
+        .range(0.0, 1e9, 1.0)
+        .section(form::RATE_SECTION)
+        .zero_means("From the sample rate")
+        .help("The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate.");
 /// Send [`RATE`] as it is, even where the driver would pick another rate.
-pub const RATE_EXACT: Setting<field::Bool> = Setting::new("rate_exact", "Exact rate", "", false)
-    .help("Sends the rate as it is, even outside the rates the driver picks.");
-/// The bias tee: power on the antenna input.
-pub const BIAS_TEE: Setting<field::Bool> = Setting::new("bias_tee", "Bias tee", "", false);
+pub const RATE_EXACT: Setting<field::Bool> =
+    Setting::new(form::RATE_EXACT_FORM.key, form::RATE_EXACT_FORM.label, "", false)
+        .section(form::RATE_SECTION)
+        .help("Sends the rate as it is, even outside the rates the driver picks.");
+/// The bias tee: power on the antenna input. A radio without one has it fixed off.
+pub const BIAS_TEE: Setting<field::Bool> =
+    Setting::new(form::BIAS_TEE_FORM.key, form::BIAS_TEE_FORM.label, "", false)
+        .section(form::ANTENNA_SECTION);
 sdrkit_core::settings! {
-    /// The settings every radio has. A driver's own settings follow them in its schema.
+    /// The settings every radio has, in the order of their sections ([`form::SECTIONS`]). A driver's own settings
+    /// follow them in its schema.
     pub enum RadioSetting {
         /// [`CENTRE`].
         Centre = CENTRE,
-        /// [`RATE`].
-        Rate = RATE,
-        /// [`BANDWIDTH`].
-        Bandwidth = BANDWIDTH,
         /// [`GAIN`].
         Gain = GAIN,
         /// [`AGC`].
         Agc = AGC,
+        /// [`RATE`].
+        Rate = RATE,
+        /// [`BANDWIDTH`].
+        Bandwidth = BANDWIDTH,
         /// [`RATE_EXACT`].
         RateExact = RATE_EXACT,
         /// [`BIAS_TEE`].
@@ -138,6 +151,7 @@ pub fn tx_schema(own: &[&dyn DeclareSetting], limits: &TxLimits) -> Arc<Schema> 
         &rate_list(&limits.common_rates_hz, &limits.rates),
     );
     limit_filter(&mut decls[at(TxSetting::Bandwidth)], limits.bandwidth_hz);
+    width_list(&mut decls[at(TxSetting::Bandwidth)], &[]);
     let (min, max, step) = limits.power_db;
     let power = &mut decls[at(TxSetting::Power)];
     if max > min {
@@ -181,17 +195,35 @@ fn common_in_range(decl: &mut SettingDecl, values: &[f64]) {
     decl.common.values = v;
 }
 
-/// The common rates: those of `common` inside the ranges of `rates` (any, if it lists none), or the single rates of
-/// `rates` when `common` is empty and it lists only such.
+/// The rates to list for a radio with `rates`: those of `common` inside its ranges (any, if it lists none); else its
+/// single rates, when it lists only such; else the usual rates ([`form::USUAL_RATES_HZ`]) inside its ranges. What the
+/// link carries now ([`RateLimits::steady_hz`]) never shortens the list.
 fn rate_list(common: &[Hz], rates: &RateLimits) -> Vec<Hz> {
+    let inside = |x: &Hz| rates.ranges.is_empty() || rates.ranges.iter().any(|(a, b)| (a..=b).contains(&x));
     if !common.is_empty() {
-        let inside = |x: &Hz| rates.ranges.is_empty() || rates.ranges.iter().any(|(a, b)| (a..=b).contains(&x));
         return common.iter().copied().filter(inside).collect();
     }
-    if rates.ranges.iter().all(|(a, b)| a == b) {
+    if !rates.ranges.is_empty() && rates.ranges.iter().all(|(a, b)| a == b) {
         return rates.ranges.iter().map(|(a, _)| *a).collect();
     }
-    Vec::new()
+    form::USUAL_RATES_HZ.iter().copied().filter(inside).collect()
+}
+
+/// Lists the widths of a filter that can be set: `common`, or the usual widths ([`form::USUAL_WIDTHS_HZ`]) when it is
+/// empty, inside the range of `decl`. A fixed filter lists none.
+fn width_list(decl: &mut SettingDecl, common: &[Hz]) {
+    if decl.fixed {
+        decl.common.values.clear();
+        return;
+    }
+    common_in_range(decl, if common.is_empty() { &form::USUAL_WIDTHS_HZ } else { common });
+}
+
+/// Fixes `decl`, a setting that the radio does not have, at `value`, without common values.
+fn absent(decl: &mut SettingDecl, value: Value) {
+    decl.fixed = true;
+    decl.default = value;
+    decl.common.values.clear();
 }
 
 /// Limits the rate `decl` to the lowest and the highest rate of `rates`, if they are known.
@@ -425,7 +457,7 @@ impl DriverDescriptor {
             Err(e) => panic!("{e}"),
         };
         KindDecl {
-            schema: Arc::new(Schema::of(&settings)),
+            schema: Arc::new(kind_schema(&settings, self.produces)),
             radio_commands: Arc::new(Commands::of(&commands)),
             radio_results: Arc::new(results),
             kind_commands: Arc::new(kind_commands),
@@ -438,6 +470,29 @@ impl DriverDescriptor {
         let own: usize = self.settings.iter().map(|g| g.len()).sum();
         SettingId((RadioSetting::SETTINGS.len() + own + i) as u16)
     }
+}
+
+/// The schema of `settings` for a kind that `produces` these streams: the rate with the usual rates inside the rates of
+/// the streams, and the filter width with the usual widths up to the highest rate (those rates, if no usual width is
+/// below it).
+fn kind_schema(settings: &[&dyn DeclareSetting], produces: &[StreamFormat]) -> Schema {
+    let mut decls = Schema::of(settings).settings().to_vec();
+    let min = produces.iter().map(|p| p.min_rate_hz).fold(f64::INFINITY, f64::min);
+    let max = produces.iter().map(|p| p.max_rate_hz).fold(0.0, f64::max);
+    let min = min.min(max);
+    let rates = RateLimits {
+        min_hz: min,
+        max_hz: max,
+        ranges: if min == max { vec![(min, max)] } else { Vec::new() },
+        steady_hz: None,
+    };
+    // The range stays as declared: a driver takes a rate outside its streams in its own way, and an open radio narrows it.
+    let listed = rate_list(&[], &rates);
+    decls[RadioSetting::Rate.id().index()].common.values = listed.clone();
+    let widths: Vec<Hz> = form::USUAL_WIDTHS_HZ.iter().copied().filter(|w| *w <= max).collect();
+    decls[RadioSetting::Bandwidth.id().index()].common.values =
+        if widths.is_empty() { listed } else { widths };
+    Schema::new(decls).expect("the settings of a kind make a valid schema")
 }
 
 impl KindDecl {
@@ -869,10 +924,11 @@ impl OpenRadio {
 
     /// Narrows the ranges of frequency, rate, filter width and gain to what the open radio can do, and moves their
     /// defaults and the values held into the ranges. The common values of rate, width and gain are those of
-    /// [`Capabilities`] inside the ranges. The rate range runs from the lowest to the highest rate of the radio
-    /// ([`Capabilities::rates`]); inside it the driver picks the nearest rate that it runs. The width range is
-    /// [`Capabilities::bandwidth_hz`]; a radio whose filter cannot be set has [`BANDWIDTH`] fixed at 0. A value of 0
-    /// that has a meaning stays valid. A radio without automatic gain control has [`AGC`] fixed off. The settings that
+    /// [`Capabilities`] inside the ranges, the usual rates and widths ([`form`]) where the radio lists none. The rate
+    /// range runs from the lowest to the highest rate of the radio ([`Capabilities::rates`]); inside it the driver picks
+    /// the nearest rate that it runs. The width range is [`Capabilities::bandwidth_hz`]; a radio whose filter cannot be
+    /// set has [`BANDWIDTH`] fixed at 0. A value of 0 that has a meaning stays valid. A radio without a gain to set has
+    /// [`GAIN`] fixed, one without automatic gain control or a bias tee has [`AGC`] or [`BIAS_TEE`] fixed off. The settings that
     /// the open radio adds ([`Source::settings`]) follow, then its transmit settings ([`Source::tx_schema`]). It returns
     /// [`DriverError::Schema`] if they do not make a schema with those of the kind.
     fn narrow(&mut self) -> Result<(), DriverError> {
@@ -893,20 +949,22 @@ impl OpenRadio {
             &rate_list(&caps.common_rates_hz, &caps.rates),
         );
         limit_filter(&mut decls[at(RadioSetting::Bandwidth)], caps.bandwidth_hz);
-        if caps.bandwidth_hz.is_some() {
-            common_in_range(
-                &mut decls[at(RadioSetting::Bandwidth)],
-                &caps.common_bandwidths_hz,
-            );
+        width_list(
+            &mut decls[at(RadioSetting::Bandwidth)],
+            &caps.common_bandwidths_hz,
+        );
+        match caps.gain_db.filter(|(min, max, _)| max > min) {
+            Some((min, max, step)) => {
+                limit(&mut decls[at(RadioSetting::Gain)], min, max, step);
+                common_in_range(&mut decls[at(RadioSetting::Gain)], &caps.gain_steps_db);
+            }
+            None => absent(&mut decls[at(RadioSetting::Gain)], Value::F64(0.0)),
         }
-        if let Some((min, max, step)) = caps.gain_db.filter(|(min, max, _)| max > min) {
-            limit(&mut decls[at(RadioSetting::Gain)], min, max, step);
-        }
-        common_in_range(&mut decls[at(RadioSetting::Gain)], &caps.gain_steps_db);
         if !caps.has_agc {
-            let agc = &mut decls[RadioSetting::Agc.id().index()];
-            agc.fixed = true;
-            agc.default = Value::Bool(false);
+            absent(&mut decls[at(RadioSetting::Agc)], Value::Bool(false));
+        }
+        if !caps.has_bias_tee {
+            absent(&mut decls[at(RadioSetting::BiasTee)], Value::Bool(false));
         }
         decls.extend(self.source.settings());
         self.tx = self.source.tx_schema().map(|t| {

@@ -90,7 +90,7 @@ fn protocol2_open_sends_the_documented_packets() {
     );
     // Samples, I first.
     assert!(all(&take(&mut r, 2000), 0.5, -0.25, 1e-6));
-    src.retune(&d.tune(7_074_000.0, 192_000.0, Some(-10.0), &[("swapiq", on())]))
+    src.retune(&d.tune(7_074_000.0, 192_000.0, Some(-10.0), &[("swap_iq", on())]))
         .unwrap();
     std::thread::sleep(Duration::from_millis(30));
     drain(&mut r);

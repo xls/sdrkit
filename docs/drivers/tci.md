@@ -19,10 +19,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 

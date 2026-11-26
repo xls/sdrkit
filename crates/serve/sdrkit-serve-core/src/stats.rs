@@ -1,6 +1,8 @@
 //! The counters of a hub as a snapshot, and the events of its listeners and clients. Counters are atomics that the feeder and
 //! the writers update; a snapshot copies them and never locks anything the feeder uses.
 
+use crate::client::ClientShared;
+use crate::control::{Answer, Request};
 use crate::hub::{lock, Inner};
 use crate::slice::Slice;
 use sdrkit_graph::stream::SampleType;
@@ -99,8 +101,13 @@ pub struct ClientStats {
     pub requests: u64,
     /// Requests that were refused.
     pub refused_requests: u64,
-    /// Its slice, if it has one.
+    /// Its slice, if it has one. A client with only a rate of its own has a slice at the capture centre.
     pub slice: Option<Slice>,
+    /// True once it asked for a setting or a stream. A connection that only reads the device information is not
+    /// engaged: it is not a client of the share.
+    pub engaged: bool,
+    /// The last request of each kind that was not carried out as asked, with its answer.
+    pub not_done: Vec<(Request, Answer)>,
     /// True once its writer has stopped.
     pub closed: bool,
 }
@@ -147,33 +154,44 @@ pub struct Snapshot {
     pub clients: Vec<ClientStats>,
 }
 
+/// The counters of client `s` now.
+fn client_stats(s: &ClientShared, inner: &Inner) -> ClientStats {
+    let r = |a: &std::sync::atomic::AtomicU64| a.load(Ordering::Relaxed);
+    ClientStats {
+        id: s.id,
+        listener: s.listener,
+        peer: s.peer,
+        protocol: s.protocol,
+        wire: s.wire(),
+        since: s.since,
+        bytes: r(&s.bytes),
+        samples: r(&s.samples),
+        dropped_samples: r(&s.dropped_samples),
+        dropped_chunks: r(&s.dropped_chunks),
+        drop_events: r(&s.drop_events),
+        gaps: r(&s.gaps),
+        queue_fill: s.fill.load(Ordering::Relaxed),
+        queue_capacity: s.capacity,
+        requests: r(&s.requests),
+        refused_requests: r(&s.refused),
+        slice: lock(&s.slice).map(|mut sl| {
+            if s.follow_centre.load(Ordering::Acquire) {
+                sl.centre_hz = inner.capture().1.centre_hz;
+            }
+            sl
+        }),
+        engaged: s.engaged.load(Ordering::Acquire),
+        not_done: lock(&s.not_done).clone(),
+        closed: s.closed.load(Ordering::Acquire),
+    }
+}
+
+/// The counters of the hub now. Clients that left a moment ago with requests not carried out come too, closed.
 pub(crate) fn snapshot(inner: &Inner) -> Snapshot {
     let r = |a: &std::sync::atomic::AtomicU64| a.load(Ordering::Relaxed);
-    let clients: Vec<ClientStats> = lock(&inner.clients)
+    let mut clients: Vec<ClientStats> = lock(&inner.clients)
         .iter()
-        .map(|c| {
-            let s = &c.shared;
-            ClientStats {
-                id: s.id,
-                listener: s.listener,
-                peer: s.peer,
-                protocol: s.protocol,
-                wire: s.wire(),
-                since: s.since,
-                bytes: r(&s.bytes),
-                samples: r(&s.samples),
-                dropped_samples: r(&s.dropped_samples),
-                dropped_chunks: r(&s.dropped_chunks),
-                drop_events: r(&s.drop_events),
-                gaps: r(&s.gaps),
-                queue_fill: s.fill.load(Ordering::Relaxed),
-                queue_capacity: s.capacity,
-                requests: r(&s.requests),
-                refused_requests: r(&s.refused),
-                slice: *lock(&s.slice),
-                closed: s.closed.load(Ordering::Acquire),
-            }
-        })
+        .map(|c| client_stats(&c.shared, inner))
         .collect();
     let listeners = lock(&inner.listeners)
         .iter()
@@ -185,7 +203,7 @@ pub(crate) fn snapshot(inner: &Inner) -> Snapshot {
                 addr: s.addr,
                 protocol: s.protocol,
                 since: s.since,
-                clients: mine.clone().filter(|c| !c.closed).count(),
+                clients: mine.clone().filter(|c| !c.closed && c.engaged).count(),
                 accepted: r(&s.accepted),
                 refused_allow: r(&s.refused_allow),
                 refused_full: r(&s.refused_full),
@@ -193,6 +211,12 @@ pub(crate) fn snapshot(inner: &Inner) -> Snapshot {
             }
         })
         .collect();
+    // After the listeners, whose byte counts hold those of the clients that left.
+    clients.extend(
+        lock(&inner.departed)
+            .iter()
+            .map(|(s, _)| client_stats(s, inner)),
+    );
     let (format, capture) = inner.capture();
     Snapshot {
         format,

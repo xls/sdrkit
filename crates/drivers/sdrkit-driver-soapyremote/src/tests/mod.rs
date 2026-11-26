@@ -134,6 +134,11 @@ pub fn values(driver: &dyn SourceDriver, set: &[(&str, Value)]) -> Values {
         ("agc", Value::Bool(false)),
         ("gain", Value::F64(29.7)),
         ("serverlog", Value::Bool(false)),
+        // The fake server streams over UDP; the default transport is TCP.
+        (
+            "transport",
+            Value::Choice(sdrkit_core::Choice::index(crate::StreamProt::Udp)),
+        ),
     ];
     for (key, value) in defaults.iter().chain(set) {
         v.set(schema.id(key).unwrap(), value).unwrap();

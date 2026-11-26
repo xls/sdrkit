@@ -20,10 +20,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -33,13 +33,13 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
+| `gainmodel` | Gain model | yes or no | false |  | Scales the level by the gains below (62 dB in all is the nominal level), to test gain control. |
+| `lna_gain` | LNA gain | whole number (dB) | 24 | 0 to 40 |  |
+| `vga_gain` | VGA gain | whole number (dB) | 24 | 0 to 62 |  |
+| `amp` | RF amplifier | yes or no | true |  | Adds 14 dB. |
 | `pace` | Speed | number (x real time) | 1 | 0.05 to 1 | 1 plays in real time. Lower values play in slow motion, for slow test machines. |
 | `benchmark` | As fast as possible | yes or no | false |  | Plays as fast as the receiver takes the samples, to measure its speed. |
 | `quantize` | 8-bit quantisation | yes or no | true |  | Rounds I and Q to 8 bits like the converter of a low-cost radio, with noise of one step and its clipping 12 dB above the nominal level. |
-| `gainmodel` | Gain model | yes or no | false |  | Scales the level by the gains below (62 dB in all is the nominal level), to test gain control. |
-| `lna` | LNA gain | number (dB) | 24 | 0 to 40 |  |
-| `vga` | VGA gain | number (dB) | 24 | 0 to 62 |  |
-| `amp` | Amplifier | yes or no | true |  | Adds 14 dB. |
 | `gen_seed` | Seed | whole number | 1 | 0 to 9007199254740991 | The same seed gives the same signal. |
 | `gen_level_dbfs` | Level | number (dBFS) | 0 | -150 to 20 | The signal's mean power; 0 dBFS is a mean power of 1. |
 | `gen_noise` | Noise | choice | `off` | `off` (Off), `snr` (SNR in the signal's bandwidth), `cn0` (C/N0), `esn0` (Es/N0), `ebn0` (Eb/N0), `floor` (Fixed floor) | How the noise level is given. |

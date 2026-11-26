@@ -261,24 +261,6 @@ public enum RadioSettings {
     public static func setRadioCentreHz(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "centre_hz", value))
     }
-    /// Sample rate.
-    public static func radioRate(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
-        var v: Double = 0
-        let code = sdrkit_typed_setting_get_f64(handle, "rate", &v)
-        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
-    }
-    public static func setRadioRate(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "rate", value))
-    }
-    /// Bandwidth.
-    public static func radioBandwidth(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
-        var v: Double = 0
-        let code = sdrkit_typed_setting_get_f64(handle, "bandwidth", &v)
-        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
-    }
-    public static func setRadioBandwidth(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "bandwidth", value))
-    }
     /// Gain.
     public static func radioGain(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
         var v: Double = 0
@@ -296,6 +278,24 @@ public enum RadioSettings {
     }
     public static func setRadioAgc(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "agc", value))
+    }
+    /// Sample rate.
+    public static func radioRate(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "rate", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setRadioRate(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "rate", value))
+    }
+    /// Bandwidth.
+    public static func radioBandwidth(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "bandwidth", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setRadioBandwidth(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "bandwidth", value))
     }
     /// Exact rate.
     public static func radioRateExact(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {

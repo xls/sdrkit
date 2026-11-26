@@ -19,10 +19,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -32,10 +32,10 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `sample_type` | Sample format | choice | `i16` | `i8` (8-bit), `i16` (16-bit), `f32` (32-bit float) | What the server sends. 16-bit keeps weak signals beside strong ones. 8-bit needs half the network (2 bytes per sample) and lets a slow link carry a higher rate. Float is exact but takes 8 bytes per sample (at 10 Msps: 160, 320 and 640 Mbit/s). |
-| `compression` | Compression | yes or no | false |  | The server compresses each packet (zstd). Less network, more CPU on both ends. Most useful with 8-bit or 16-bit samples. |
 | `server_gain` | Leave the gain to the server | yes or no | false |  | The driver never moves the gain sliders of the server. The gain stays as set on the server (or by its AGC). |
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error of the radio in ppm, positive when its clock runs fast (signals show a little low). The driver asks the server for the corrected frequency. The sample rate is not corrected. |
+| `format` | Sample format | choice | `i16` | `i8` (8-bit), `i16` (16-bit), `f32` (32-bit float) | What the server sends. 16-bit keeps weak signals beside strong ones. 8-bit needs half the network (2 bytes per sample) and lets a slow link carry a higher rate. Float is exact but takes 8 bytes per sample (at 10 Msps: 160, 320 and 640 Mbit/s). |
+| `compression` | Compression | yes or no | false |  | The server compresses each packet (zstd). Less network, more CPU on both ends. Most useful with 8-bit or 16-bit samples. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.
 

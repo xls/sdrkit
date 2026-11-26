@@ -10,10 +10,12 @@ use std::time::{Duration, Instant};
 /// The speed of the playback: 1 is real time, lower values are slow motion.
 pub const PACE: Setting<field::F64> = Setting::new("pace", "Speed", "x real time", 1.0)
     .range(0.05, 1.0, 0.05)
+    .section(crate::form::OTHER_SECTION)
     .help("1 plays in real time. Lower values play in slow motion, for slow test machines.");
 /// Play as fast as the reader takes the samples.
 pub const BENCHMARK: Setting<field::Bool> =
     Setting::new("benchmark", "As fast as possible", "", false)
+        .section(crate::form::OTHER_SECTION)
         .help("Plays as fast as the receiver takes the samples, to measure its speed.");
 
 /// Samples per block for files and generators.

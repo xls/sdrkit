@@ -54,6 +54,7 @@ sdrkit_core::choice_enum! {
 /// What the stream holds.
 pub const DELIVERY: Setting<field::Choice<Delivery>> =
     Setting::choice("delivery", "Delivery", Delivery::Iq)
+        .section(sdrkit_driver_core::form::LINK_SECTION)
         .restart()
         .help(
             "IQ for sdrkit's decoders receives 5.4 kHz of spectrum from the USB audio of the server, so the SSB, CW and data \
@@ -62,43 +63,54 @@ pub const DELIVERY: Setting<field::Choice<Delivery>> =
         );
 /// The passband width of the demodulator of the server. 0 takes the width of the mode.
 pub const PASSBAND: Setting<field::Hz> =
-    Setting::new("passband", "Passband (0 = the mode's)", "Hz", 0.0)
+    Setting::new("passband", "Passband", "Hz", 0.0)
         .range(0.0, 200_000.0, 50.0)
+        .zero_means("The mode's")
+        .section(sdrkit_driver_core::form::RATE_SECTION)
         .help(
             "The passband width of the demodulator of the server. 0 takes the width of the mode.",
         );
 /// The squelch of the server. -150 is off.
 pub const SQUELCH: Setting<field::F64> = Setting::new("squelch", "Server squelch", "dB", -150.0)
     .range(-150.0, 0.0, 1.0)
+    .section(sdrkit_driver_core::form::OTHER_SECTION)
     .help("The server mutes its audio below this level. -150 is off.");
 /// The audio frequency of a single-signal decoder. 0 lets the server choose.
 pub const SECONDARY_OFFSET: Setting<field::Hz> = Setting::new(
     "secondary_offset",
-    "Decoder audio frequency (0 = the server's)",
+    "Decoder audio frequency",
     "Hz",
     0.0,
 )
 .range(0.0, 6000.0, 10.0)
+.zero_means("The server's")
+.section(sdrkit_driver_core::form::OTHER_SECTION)
 .help("The audio frequency of a single-signal decoder (BPSK31, RTTY).");
 /// The DMR time slots the server decodes.
 pub const DMR_SLOT: Setting<field::Choice<DmrSlot>> =
     Setting::choice("dmr_slot", "DMR time slot", DmrSlot::Both)
+        .section(sdrkit_driver_core::form::OTHER_SECTION)
         .help("The DMR time slots that the server decodes.");
 /// Moves the centre frequency of the shared radio for every listener.
 pub const MOVE_CENTRE: Setting<field::Bool> =
-    Setting::new("move_centre", "Move the server's centre frequency", "", false).help(
+    Setting::new("move_centre", "Move the server's centre frequency", "", false)
+        .section(sdrkit_driver_core::form::OTHER_SECTION)
+        .help(
         "Retunes the shared radio for every listener, on servers that allow it. Some need the magic key the operator gave you.",
     );
 /// The key some servers ask for before a listener can move the centre frequency.
 pub const MAGIC_KEY: Setting<field::Text> = Setting::new("magic_key", "Magic key", "", "")
+    .section(sdrkit_driver_core::form::LINK_SECTION)
     .help("The key some servers ask for before a listener can move the centre frequency.");
 /// The HTTP user of a password-protected web proxy.
 pub const USER: Setting<field::Text> = Setting::new("user", "HTTP user (proxy login)", "", "")
+    .section(sdrkit_driver_core::form::LINK_SECTION)
     .restart()
     .help("Only for a receiver behind a password-protected web proxy.");
 /// The HTTP password of a password-protected web proxy.
 pub const PASSWORD: Setting<field::Text> =
     Setting::new("password", "HTTP password (proxy login)", "", "")
+        .section(sdrkit_driver_core::form::LINK_SECTION)
         .restart()
         .help(
             "Only for a receiver behind a password-protected web proxy. Over ws:// or http:// the password goes unencrypted.",
@@ -107,10 +119,16 @@ pub const PASSWORD: Setting<field::Text> =
 sdrkit_core::settings! {
     /// The own settings of the OpenWebRX driver.
     pub enum OwrxSetting {
-        /// [`DELIVERY`].
-        Delivery = DELIVERY,
         /// [`PASSBAND`].
         Passband = PASSBAND,
+        /// [`DELIVERY`].
+        Delivery = DELIVERY,
+        /// [`MAGIC_KEY`].
+        MagicKey = MAGIC_KEY,
+        /// [`USER`].
+        User = USER,
+        /// [`PASSWORD`].
+        Password = PASSWORD,
         /// [`SQUELCH`].
         Squelch = SQUELCH,
         /// [`SECONDARY_OFFSET`].
@@ -119,12 +137,6 @@ sdrkit_core::settings! {
         DmrSlot = DMR_SLOT,
         /// [`MOVE_CENTRE`].
         MoveCentre = MOVE_CENTRE,
-        /// [`MAGIC_KEY`].
-        MagicKey = MAGIC_KEY,
-        /// [`USER`].
-        User = USER,
-        /// [`PASSWORD`].
-        Password = PASSWORD,
     }
 }
 

@@ -20,10 +20,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -33,15 +33,15 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
+| `passband` | Passband | frequency | 0 Hz | 0 Hz to 200 kHz | The passband width of the demodulator of the server. 0 takes the width of the mode. |
 | `delivery` | Delivery | choice | `iq` | `iq` (IQ for sdrkit's decoders), `audio` (Server demodulates) | IQ for sdrkit's decoders receives 5.4 kHz of spectrum from the USB audio of the server, so the SSB, CW and data decoders of sdrkit run on it. The AGC of the server sets the level. Server demodulates gives the FM, AM, SSB or digital voice audio of the server. |
-| `passband` | Passband (0 = the mode's) | frequency | 0 Hz | 0 Hz to 200 kHz | The passband width of the demodulator of the server. 0 takes the width of the mode. |
-| `squelch` | Server squelch | number (dB) | -150 | -150 to 0 | The server mutes its audio below this level. -150 is off. |
-| `secondary_offset` | Decoder audio frequency (0 = the server's) | frequency | 0 Hz | 0 Hz to 6 kHz | The audio frequency of a single-signal decoder (BPSK31, RTTY). |
-| `dmr_slot` | DMR time slot | choice | `3` | `1` (Slot 1), `2` (Slot 2), `3` (Both) | The DMR time slots that the server decodes. |
-| `move_centre` | Move the server's centre frequency | yes or no | false |  | Retunes the shared radio for every listener, on servers that allow it. Some need the magic key the operator gave you. |
 | `magic_key` | Magic key | text | empty |  | The key some servers ask for before a listener can move the centre frequency. |
 | `user` | HTTP user (proxy login) | text | empty |  | Only for a receiver behind a password-protected web proxy. |
 | `password` | HTTP password (proxy login) | text | empty |  | Only for a receiver behind a password-protected web proxy. Over ws:// or http:// the password goes unencrypted. |
+| `squelch` | Server squelch | number (dB) | -150 | -150 to 0 | The server mutes its audio below this level. -150 is off. |
+| `secondary_offset` | Decoder audio frequency | frequency | 0 Hz | 0 Hz to 6 kHz | The audio frequency of a single-signal decoder (BPSK31, RTTY). |
+| `dmr_slot` | DMR time slot | choice | `3` | `1` (Slot 1), `2` (Slot 2), `3` (Both) | The DMR time slots that the server decodes. |
+| `move_centre` | Move the server's centre frequency | yes or no | false |  | Retunes the shared radio for every listener, on servers that allow it. Some need the magic key the operator gave you. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.
 

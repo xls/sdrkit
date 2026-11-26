@@ -21,10 +21,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -34,8 +34,8 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `lna_db` | Gain stage: LNA | whole number (dB) | -1 | -1 to 40 | The receive IF gain, 0 to 40 dB in 8 dB steps; a value between steps is rounded down. -1 follows the gain. Start at 16 dB and raise LNA and VGA by about the same amount. |
-| `vga_db` | Gain stage: VGA | whole number (dB) | -1 | -1 to 62 | The receive baseband gain, 0 to 62 dB in 2 dB steps; an odd value is rounded down. -1 follows the gain. |
+| `lna_gain` | LNA gain | whole number (dB) | -1 | -1 to 40 | The receive IF gain, 0 to 40 dB in 8 dB steps; a value between steps is rounded down. -1 follows the gain. Start at 16 dB and raise LNA and VGA by about the same amount. |
+| `vga_gain` | VGA gain | whole number (dB) | -1 | -1 to 62 | The receive baseband gain, 0 to 62 dB in 2 dB steps; an odd value is rounded down. -1 follows the gain. |
 | `amp` | RF amplifier | yes or no | false |  | The front-end amplifier, about 11 dB, less at high frequencies. The antenna port takes at most -5 dBm: more can damage the device. Use an attenuator for strong signals. |
 | `clock_out` | Clock output | yes or no | false |  | A 10 MHz, 3.3 V square wave on CLKOUT for a high-impedance load, to lock another device. |
 

@@ -114,29 +114,22 @@ where
 
 /// Round I and Q to 8 bits.
 pub const QUANTIZE: Setting<field::Bool> = Setting::new("quantize", "8-bit quantisation", "", true)
+    .section(crate::form::OTHER_SECTION)
     .help("Rounds I and Q to 8 bits like the converter of a low-cost radio, with noise of one step and its clipping 12 dB above the nominal level.");
 /// Scale the level by the gains below.
 pub const GAIN_MODEL: Setting<field::Bool> = Setting::new("gainmodel", "Gain model", "", false)
+    .section(crate::form::GAIN_SECTION)
     .help("Scales the level by the gains below (62 dB in all is the nominal level), to test gain control.");
 /// The gain of the low-noise amplifier of the model.
-pub const LNA: Setting<field::F64> =
-    Setting::new("lna", "LNA gain", "dB", 24.0).range(0.0, 40.0, 8.0);
+pub const LNA: Setting<field::I64> = crate::form::lna_gain(24, 40.0).range(0.0, 40.0, 8.0);
 /// The gain of the variable amplifier of the model.
-pub const VGA: Setting<field::F64> =
-    Setting::new("vga", "VGA gain", "dB", 24.0).range(0.0, 62.0, 2.0);
+pub const VGA: Setting<field::I64> = crate::form::vga_gain(24, 62.0).range(0.0, 62.0, 2.0);
 /// The amplifier of the model, 14 dB.
-pub const AMP: Setting<field::Bool> =
-    Setting::new("amp", "Amplifier", "", true).help("Adds 14 dB.");
+pub const AMP: Setting<field::Bool> = crate::form::rf_amp(true).help("Adds 14 dB.");
 
 sdrkit_core::settings! {
     /// The own settings of the test-signal driver. The generator settings ([`GenSetting`]) follow them.
     pub enum SynthSetting {
-        /// [`PACE`].
-        Pace = PACE,
-        /// [`BENCHMARK`].
-        Benchmark = BENCHMARK,
-        /// [`QUANTIZE`].
-        Quantize = QUANTIZE,
         /// [`GAIN_MODEL`].
         GainModel = GAIN_MODEL,
         /// [`LNA`].
@@ -145,6 +138,12 @@ sdrkit_core::settings! {
         Vga = VGA,
         /// [`AMP`].
         Amp = AMP,
+        /// [`PACE`].
+        Pace = PACE,
+        /// [`BENCHMARK`].
+        Benchmark = BENCHMARK,
+        /// [`QUANTIZE`].
+        Quantize = QUANTIZE,
     }
 }
 
@@ -245,7 +244,7 @@ impl Options {
         let pacing = Pacing::of(v);
         let scale = v
             .get(&GAIN_MODEL)
-            .then(|| gain_model_scale(v.get(&LNA), v.get(&VGA), v.get(&AMP)));
+            .then(|| gain_model_scale(v.get(&LNA) as f64, v.get(&VGA) as f64, v.get(&AMP)));
         Options {
             pacing,
             quantize: v.get(&QUANTIZE),
@@ -868,12 +867,12 @@ mod tests {
         let (changed, made) = stream(
             n,
             BLOCK,
-            &[("vga", Value::F64(10.0)), ("amp", Value::Bool(false))],
+            &[("vga_gain", Value::I64(10)), ("amp", Value::Bool(false))],
         );
         assert!(plain == changed, "the stream changed");
         assert_eq!(made, 1, "the generator was made again");
         // `lna` is a setting that the ramp declares: a change makes it again.
-        let (_, made) = stream(n, BLOCK, &[("lna", Value::F64(10.0))]);
+        let (_, made) = stream(n, BLOCK, &[("lna_gain", Value::I64(10))]);
         assert_eq!(made, 2);
     }
 
@@ -928,7 +927,7 @@ mod tests {
         assert_eq!(r.wait(4096, Duration::from_secs(2)), 4096);
         std::thread::sleep(Duration::from_millis(20));
         let mut set = base.to_vec();
-        set.push(("lna", Value::F64(10.0)));
+        set.push(("lna_gain", Value::I64(10)));
         let t = Instant::now();
         src.apply(&values(&d, &set)).unwrap();
         let took = t.elapsed();
@@ -955,7 +954,7 @@ mod tests {
         assert_eq!(r.wait(BLOCK, Duration::from_secs(2)), BLOCK);
         std::thread::sleep(Duration::from_millis(20));
         let mut set = base.to_vec();
-        set.push(("lna", Value::F64(10.0)));
+        set.push(("lna_gain", Value::I64(10)));
         let t = Instant::now();
         src.apply(&values(&d, &set)).unwrap();
         let took = t.elapsed();

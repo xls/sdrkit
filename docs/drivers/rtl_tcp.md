@@ -19,10 +19,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -32,11 +32,9 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `server` | Server radio | choice | `auto` | `auto` (Auto), `rtl` (RTL-SDR (up to 2.56 Msps)), `other` (Other radio (up to 20 Msps)) | RTL-SDR: a real RTL-SDR, which drops samples above 2.56 Msps. Other radio: any rate from 0.25 to 20 Msps. Auto: an RTL-SDR unless the server greets as another radio or the stack needs more than 2.56 Msps. |
-| `anyrate` | Allow any sample rate | yes or no | false |  | Only limits of 0.1 to 40 Msps. 8-bit I/Q at 10 Msps is 160 Mbit/s, more than most Wi-Fi gives. Lost samples show in the status with the measured speed. |
-| `customrate` | Custom sample rate | frequency | 0 Hz | 0 Hz to 40 MHz | Applies only with Allow any sample rate. 0 takes the rate the stack needs. |
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error in ppm, positive if the clock runs fast (signals show up a little low). Dongles without a TCXO are often 20 to 100 ppm off. |
-| `ds` | Direct sampling (HF) | choice | `auto` | `auto` (Auto), `off` (Off), `i` (I input), `q` (Q input) | I or Q samples HF directly below 24 MHz (a V3 has its HF input on Q). Auto leaves it to the server: a Blog V4 upconverts HF itself. |
+| `ds` | Direct sampling | choice | `auto` | `auto` (Auto), `off` (Off), `i` (I input), `q` (Q input) | I or Q samples HF directly below 24 MHz (a V3 has its HF input on Q). Auto leaves it to the server: a Blog V4 upconverts HF itself. |
+| `server` | Server radio | choice | `auto` | `auto` (Auto), `rtl` (RTL-SDR (up to 2.56 Msps)), `other` (Other radio (up to 20 Msps)), `any` (Any rate (0.1 to 40 Msps)) | RTL-SDR: a real RTL-SDR, which drops samples above 2.56 Msps. Other radio: any rate from 0.25 to 20 Msps. Any rate: 0.1 to 40 Msps; 8-bit I/Q at 10 Msps is 160 Mbit/s, more than most Wi-Fi gives. Auto: an RTL-SDR unless the server greets as another radio or the stack needs more than 2.56 Msps. |
 | `server_rate` | Rate of the server | frequency | 0 Hz | 0 Hz to 40 MHz | The rate the server sends whatever it is asked. The driver finds it. 0 means none was found. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.

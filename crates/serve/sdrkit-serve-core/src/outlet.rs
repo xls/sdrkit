@@ -145,7 +145,8 @@ impl Outlet for ConnOutlet {
             write_patient(self.conn.as_mut(), p, stop)?;
             let n = (p.len() / ss) as u64;
             part.first_sample += n;
-            part.time_ns = time_ns(part.first_sample, part.rate_hz);
+            part.time_ns =
+                info.time_ns + time_ns(part.first_sample - info.first_sample, part.rate_hz);
             part.gap = Gap::None;
         }
         Ok(())

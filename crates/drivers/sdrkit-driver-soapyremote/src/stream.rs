@@ -191,6 +191,8 @@ pub(crate) struct Flow {
     pub last: Mutex<Option<Throughput>>,
     /// The requested rate, as f64 bits.
     pub asked: AtomicU64,
+    /// The rate of the stream as the server read it back, as f64 bits.
+    pub rate: AtomicU64,
 }
 
 impl Flow {
@@ -201,6 +203,14 @@ impl Flow {
     /// The requested rate (0 before the first).
     pub fn asked(&self) -> Hz {
         f64::from_bits(self.asked.load(Ordering::Relaxed))
+    }
+    /// Records the rate that the server read back.
+    pub fn set_rate(&self, r: Hz) {
+        self.rate.store(r.to_bits(), Ordering::Relaxed);
+    }
+    /// The rate that the server read back (0 before the first).
+    pub fn rate(&self) -> Hz {
+        f64::from_bits(self.rate.load(Ordering::Relaxed))
     }
 }
 
@@ -220,6 +230,31 @@ pub(crate) fn read_headers(
         }
     }
 }
+
+/// The samples missing before message `h` of a stream at `rate`, from its time stamp and `expect_ns`, the end of the
+/// message before, which it moves on; `None` for a message without a time, or when no message with a time came before.
+/// A jump of more than [`TIME_RESET`] is a new count of the server, not a loss.
+fn time_gap(expect_ns: &mut Option<i64>, rate: Hz, h: &DgHeader) -> Option<u64> {
+    if h.flags & HAS_TIME == 0 || rate <= 0.0 {
+        *expect_ns = None;
+        return None;
+    }
+    let expect = *expect_ns;
+    if h.elems > 0 {
+        *expect_ns = Some(h.time + (h.elems as f64 * 1e9 / rate) as i64);
+    }
+    let jump = h.time - expect?;
+    let tol = (TIME_TOLERANCE * 1e9 / rate) as i64;
+    if jump <= tol || jump > TIME_RESET.as_nanos() as i64 {
+        return Some(0);
+    }
+    Some((jump as f64 * rate / 1e9).round() as u64)
+}
+
+/// A jump of the time stamps of at most this many samples is the rounding of the server, not a loss.
+const TIME_TOLERANCE: f64 = 4.0;
+/// A jump of the time stamps longer than this is a new count of the server, not a loss.
+const TIME_RESET: Duration = Duration::from_secs(5);
 
 /// The status socket is read after this many datagrams, and whenever the data socket is quiet.
 const STATUS_EVERY: u32 = 256;
@@ -264,6 +299,8 @@ pub(crate) struct RxShared {
     pub notices: Notices,
     /// `host:port` of the server, for log lines.
     pub label: String,
+    /// The live reading of the link.
+    pub link: Arc<sdrkit_driver_core::linkwatch::LinkWatch>,
 }
 
 /// The receive side of a stream that is set up, owned by the radio's thread.
@@ -290,6 +327,8 @@ pub(crate) struct RxStream {
     win_bytes: u64,
     win_elems: u64,
     win_asked: Hz,
+    /// The time stamp that the next message should have, ns, after a message with a time.
+    expect_ns: Option<i64>,
 }
 
 impl RxStream {
@@ -309,6 +348,7 @@ impl RxStream {
         sh: RxShared,
     ) -> Result<RxStream, DriverError> {
         sockets.data.set_read_timeout(Some(timing.slice))?;
+        sh.link.restarted();
         Ok(RxStream {
             data: sockets.data,
             status: sockets.status,
@@ -332,6 +372,7 @@ impl RxStream {
             win_bytes: 0,
             win_elems: 0,
             win_asked: 0.0,
+            expect_ns: None,
         })
     }
 
@@ -433,8 +474,8 @@ impl RxStream {
             stats.malformed.fetch_add(1, Ordering::Relaxed);
             return Ok(());
         }
-        match seq_event(self.next, h.seq) {
-            SeqEvent::InOrder => {}
+        let mut lost = match seq_event(self.next, h.seq) {
+            SeqEvent::InOrder => 0,
             SeqEvent::Late => {
                 stats.late.fetch_add(1, Ordering::Relaxed);
                 return Ok(());
@@ -442,16 +483,22 @@ impl RxStream {
             SeqEvent::Lost(d) => {
                 let d = u64::from(d);
                 stats.lost_datagrams.fetch_add(d, Ordering::Relaxed);
-                stats
-                    .lost_samples
-                    .fetch_add(d * self.last_elems, Ordering::Relaxed);
                 if let Some(k) = self.lost_log.count(d) {
                     self.sh.notices.log(format!(
                         "{k} datagrams lost on the network in the last 10 s (use a wired connection, a lower rate, or a \
                          smaller IQ format)"
                     ));
                 }
+                d * self.last_elems
             }
+        };
+        // The time stamps count what the server dropped for this client too, and what UDP lost, exactly.
+        if let Some(gap) = time_gap(&mut self.expect_ns, self.sh.flow.rate(), &h) {
+            lost = gap;
+        }
+        if lost > 0 {
+            stats.lost_samples.fetch_add(lost, Ordering::Relaxed);
+            sink.lost(lost);
         }
         self.next = h.seq.wrapping_add(1);
         if self.next.wrapping_sub(self.acked) >= ack_trigger(self.window) {
@@ -522,6 +569,15 @@ impl RxStream {
                 asked_hz: asked,
             };
             *crate::lock(&self.sh.flow.last) = Some(t);
+            let rate = self.sh.flow.rate();
+            if self.sh.link.window(t.achieved_hz, rate) {
+                self.sh.notices.warn(format!(
+                    "SoapyRemote {}: about {} Msps of {} arrive: the link is too slow for this rate, and samples are lost",
+                    self.sh.label,
+                    sdrkit_driver_core::fmt_m(t.achieved_hz),
+                    sdrkit_driver_core::fmt_m(rate)
+                ));
+            }
             (self.win_start, self.win_bytes, self.win_elems) = (Some(now), 0, 0);
         }
     }

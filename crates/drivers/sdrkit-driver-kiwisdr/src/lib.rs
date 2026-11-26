@@ -56,11 +56,13 @@ sdrkit_core::choice_enum! {
 
 /// The password of the receiver.
 pub const PASSWORD: Setting<field::Text> = Setting::new("password", "Password", "", "")
+    .section(sdrkit_driver_core::form::LINK_SECTION)
     .restart()
     .help("Only if the owner set one. Never shown in names, logs or the status.");
 /// The password that lifts the time limit of a session.
 pub const TLIMIT_PASSWORD: Setting<field::Text> =
     Setting::new("tlimit_password", "Time-limit exemption password", "", "")
+        .section(sdrkit_driver_core::form::LINK_SECTION)
         .restart()
         .help(
             "Some owners give regular listeners a password that lifts the time limit of a session.",
@@ -68,6 +70,7 @@ pub const TLIMIT_PASSWORD: Setting<field::Text> =
 /// The name shown to the owner.
 pub const USER_NAME: Setting<field::Text> =
     Setting::new("user_name", "Your name, shown to the owner", "", "sdrkit")
+        .section(sdrkit_driver_core::form::LINK_SECTION)
         .restart()
         .help("Shown in the listener list of the receiver, so the owner knows who listens. At most 32 characters.");
 /// The location shown to the owner.
@@ -77,22 +80,26 @@ pub const LOCATION: Setting<field::Text> = Setting::new(
     "",
     "",
 )
+.section(sdrkit_driver_core::form::LINK_SECTION)
 .restart()
 .help(
     "Shown to the owner and to other listeners. At most 64 characters. If empty, nothing is sent.",
 );
 /// The passband of the IQ filter.
 pub const PASSBAND: Setting<field::Choice<Passband>> =
-    Setting::choice("passband", "Passband", Passband::P5000).help(
+    Setting::choice("passband", "Passband", Passband::P5000)
+        .section(sdrkit_driver_core::form::RATE_SECTION)
+        .help(
         "The half-width of the IQ filter of the receiver around the tuned frequency. The receiver sends 12 kHz of spectrum. \
          A passband wider than the rate of the receiver allows is refused.",
     );
 /// Swap I and Q.
-pub const SWAP_IQ: Setting<field::Bool> = Setting::new("swap_iq", "Swap I and Q", "", false).help(
+pub const SWAP_IQ: Setting<field::Bool> = sdrkit_driver_core::form::SWAP_IQ.help(
     "Mirrors the spectrum. Turn it on if signals that belong above the frequency appear below it.",
 );
 /// Ask the receiver for its listener list.
 pub const USERS: Setting<field::Bool> = Setting::new("users", "Show other listeners", "", true)
+    .section(sdrkit_driver_core::form::OTHER_SECTION)
     .help("Asks the receiver every 10 s who else is connected.");
 /// Open the waterfall of the receiver.
 pub const WATERFALL: Setting<field::Bool> = Setting::new(
@@ -101,6 +108,7 @@ pub const WATERFALL: Setting<field::Bool> = Setting::new(
     "",
     false,
 )
+.section(sdrkit_driver_core::form::OTHER_SECTION)
 .restart()
 .help(
     "Also shows the wide waterfall of the receiver. It opens a second connection to the receiver.",
@@ -108,10 +116,15 @@ pub const WATERFALL: Setting<field::Bool> = Setting::new(
 /// The zoom of the waterfall.
 pub const WF_ZOOM: Setting<field::I64> = Setting::new("wf_zoom", "Waterfall zoom", "", 0)
     .range(0.0, 14.0, 1.0)
+    .section(sdrkit_driver_core::form::OTHER_SECTION)
     .help("0 shows the whole range. Each step halves the span around the tuned frequency.");
 sdrkit_core::settings! {
     /// The own settings of the KiwiSDR driver.
     pub enum KiwiSetting {
+        /// [`PASSBAND`].
+        Passband = PASSBAND,
+        /// [`SWAP_IQ`].
+        SwapIq = SWAP_IQ,
         /// [`PASSWORD`].
         Password = PASSWORD,
         /// [`TLIMIT_PASSWORD`].
@@ -120,10 +133,6 @@ sdrkit_core::settings! {
         UserName = USER_NAME,
         /// [`LOCATION`].
         Location = LOCATION,
-        /// [`PASSBAND`].
-        Passband = PASSBAND,
-        /// [`SWAP_IQ`].
-        SwapIq = SWAP_IQ,
         /// [`USERS`].
         Users = USERS,
         /// [`WATERFALL`].

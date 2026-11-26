@@ -144,8 +144,8 @@ pub fn example_values() -> Values {
     values(&[
         ("centre_hz", Value::Hz(433.92e6)),
         ("rate", Value::Hz(8e6)),
-        ("lna_db", Value::I64(16)),
-        ("vga_db", Value::I64(20)),
+        ("lna_gain", Value::I64(16)),
+        ("vga_gain", Value::I64(20)),
     ])
 }
 

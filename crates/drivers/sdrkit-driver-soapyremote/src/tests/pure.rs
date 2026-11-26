@@ -306,7 +306,6 @@ fn the_settings_the_radio_reveals_are_checked() {
     let ok = values(
         &d,
         &[
-            ("rfgr", Value::I64(9)),
             ("antenna", Value::Text("B".into())),
             ("clocksrc", Value::Text("gpsdo".into())),
         ],
@@ -314,10 +313,6 @@ fn the_settings_the_radio_reveals_are_checked() {
     assert_eq!(f.check(&ok), Ok(()));
     let refused = |key: &str, v: Value| f.check(&values(&d, &[(key, v)])).unwrap_err();
     let own = |s: SoapyRemoteSetting| DriverError::Refused { id: own_id(s) };
-    assert_eq!(
-        refused("rfgr", Value::I64(10)),
-        own(SoapyRemoteSetting::RfState)
-    );
     assert_eq!(
         refused("antenna", Value::Text("C".into())),
         own(SoapyRemoteSetting::Antenna)
@@ -349,12 +344,9 @@ fn the_settings_the_radio_reveals_are_checked() {
             id: RadioSetting::Rate.id()
         })
     );
-    // A radio without an RF stage takes no RF state.
-    let plain = Facts::default();
-    assert_eq!(
-        plain.check(&values(&d, &[("rfgr", Value::I64(0))])),
-        Err(own(SoapyRemoteSetting::RfState))
-    );
+    // A radio without an RF stage has no setting of an RF state.
+    assert!(d.descriptor().decl().schema().id("rfgr").is_err());
+    assert_eq!(Facts::default().rf_state(&ok), None);
 }
 
 #[test]

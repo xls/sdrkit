@@ -144,7 +144,7 @@ fn the_driver_settings() {
     let own = |s: SdrppSetting| schema.setting(sdrkit_driver_core::own_id(s)).unwrap();
     assert_eq!(
         own(SdrppSetting::SampleFormat).field.key.as_ref(),
-        "sample_type"
+        "format"
     );
     assert!(own(SdrppSetting::Compression).restart);
     assert!(!own(SdrppSetting::SampleFormat).restart && !own(SdrppSetting::Ppm).restart);
@@ -157,7 +157,7 @@ fn the_driver_settings() {
         0.0,
         None,
         &[
-            ("sample_type", wire(WireType::F32)),
+            ("format", wire(WireType::F32)),
             ("compression", Value::Bool(true)),
             ("ppm", Value::F64(1.5)),
         ],
@@ -322,7 +322,7 @@ fn start_retune_and_stop() {
         8.0 * M,
         100e6,
         Some(21.0),
-        &[("sample_type", wire(WireType::I8))],
+        &[("format", wire(WireType::I8))],
     )));
     assert_eq!(s.rate_hz, 10e6);
     assert!(f.wait(3.0, |s| s.has("start")), "{:?}", f.state().log);
@@ -349,7 +349,7 @@ fn start_retune_and_stop() {
         8.0 * M,
         100e6,
         Some(5.0),
-        &[("sample_type", wire(WireType::I8))],
+        &[("format", wire(WireType::I8))],
     )));
     assert!(f.wait(3.0, |s| s.has(&format!("action {LIN_ID}=5"))));
     assert!(!f.state().has("stop"));
@@ -360,7 +360,7 @@ fn start_retune_and_stop() {
         1e9,
         Some(5.0),
         &[
-            ("sample_type", wire(WireType::I8)),
+            ("format", wire(WireType::I8)),
             ("ppm", Value::F64(10.0)),
         ],
     )));
@@ -481,7 +481,7 @@ fn the_driver_reconnects() {
             2.2 * M,
             100e6,
             Some(10.0),
-            &[("sample_type", wire(WireType::I8))],
+            &[("format", wire(WireType::I8))],
         ),
     );
     assert!(!read(&mut r, 1000, 3.0).is_empty());

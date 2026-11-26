@@ -402,10 +402,10 @@ fn settings_are_declared_per_profile() {
     };
     assert_eq!(
         keys(Model::HermesLite2),
-        ["ppm", "swapiq", "txtimeout", "n2adr", "hl2pa"]
+        ["ppm", "swap_iq", "txtimeout", "n2adr", "hl2pa"]
     );
-    assert_eq!(keys(Model::RedPitaya), ["ppm", "swapiq", "txtimeout"]);
-    assert_eq!(keys(Model::Hpsdr2), ["ppm", "swapiq", "txtimeout"]);
+    assert_eq!(keys(Model::RedPitaya), ["ppm", "swap_iq", "txtimeout"]);
+    assert_eq!(keys(Model::Hpsdr2), ["ppm", "swap_iq", "txtimeout"]);
     let schema = descriptor(Model::HermesLite2).decl().schema().clone();
     let n2adr = schema.setting(schema.id("n2adr").unwrap()).unwrap();
     assert_eq!(n2adr.default, Value::Bool(true));
@@ -751,7 +751,7 @@ fn open_sends_the_transcript_and_streams() {
     let v = take(&mut r, 2000);
     assert!(all(&v, 0.5, -0.25, 1e-6), "{:?}", &v[..4]);
     // swapiq on.
-    src.retune(&d.tune(7_074_000.0, 150_000.0, Some(20.0), &[("swapiq", on())]))
+    src.retune(&d.tune(7_074_000.0, 150_000.0, Some(20.0), &[("swap_iq", on())]))
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));
     drain(&mut r);
@@ -845,7 +845,7 @@ fn red_pitaya_cycle_gain_and_range() {
     assert!(!has(&l, "specified for up to"), "{l:?}");
     assert!(fake.wait_reg(0x00, 0x0300_0004));
     assert!(fake.wait_reg(0x02, 50_100_000));
-    let swap = [("swapiq", on())];
+    let swap = [("swap_iq", on())];
     src.retune(&d.tune(50_100_000.0, 384_000.0, None, &swap))
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));

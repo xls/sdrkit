@@ -22,23 +22,25 @@ use std::thread::JoinHandle;
 
 /// Start again from the beginning at the end of the file.
 pub const LOOP: Setting<field::Bool> = Setting::new("loop", "Loop", "", false)
+    .section(crate::form::OTHER_SECTION)
     .help("Starts again from the beginning at the end of the file.");
 /// The rate of a raw file whose name does not give it. 0 takes the rate from the file.
 pub const FILE_RATE: Setting<field::Hz> = Setting::new("file_rate", "Rate of the file", "Hz", 0.0)
     .range(0.0, 100e6, 1.0)
+    .section(crate::form::RATE_SECTION)
     .help("For a raw file whose name does not give its rate. 0 takes the rate from the file.");
 
 sdrkit_core::settings! {
     /// The own settings of the file driver.
     pub enum FileSetting {
+        /// [`FILE_RATE`].
+        FileRate = FILE_RATE,
         /// [`PACE`].
         Pace = PACE,
         /// [`LOOP`].
         Loop = LOOP,
         /// [`BENCHMARK`].
         Benchmark = BENCHMARK,
-        /// [`FILE_RATE`].
-        FileRate = FILE_RATE,
     }
 }
 

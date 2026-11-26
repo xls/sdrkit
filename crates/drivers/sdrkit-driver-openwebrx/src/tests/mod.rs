@@ -314,15 +314,15 @@ fn the_descriptor() {
     assert_eq!(
         own,
         [
-            "delivery",
             "passband",
+            "delivery",
+            "magic_key",
+            "user",
+            "password",
             "squelch",
             "secondary_offset",
             "dmr_slot",
-            "move_centre",
-            "magic_key",
-            "user",
-            "password"
+            "move_centre"
         ]
     );
     let restart: Vec<_> = OwrxSetting::schema()

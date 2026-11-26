@@ -328,22 +328,6 @@ static inline int32_t sdrkit_radio_set_centre_hz(SDRKIT_HANDLE handle, double va
   return sdrkit_typed_setting_set_f64(handle, "centre_hz", value);
 }
 
-// The setting "rate" (Sample rate) of every radio. A frequency in Hz. The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic.
-static inline int32_t sdrkit_radio_get_rate(SDRKIT_HANDLE handle, double *value) {
-  return sdrkit_typed_setting_get_f64(handle, "rate", value);
-}
-static inline int32_t sdrkit_radio_set_rate(SDRKIT_HANDLE handle, double value) {
-  return sdrkit_typed_setting_set_f64(handle, "rate", value);
-}
-
-// The setting "bandwidth" (Bandwidth) of every radio. A frequency in Hz. The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate.
-static inline int32_t sdrkit_radio_get_bandwidth(SDRKIT_HANDLE handle, double *value) {
-  return sdrkit_typed_setting_get_f64(handle, "bandwidth", value);
-}
-static inline int32_t sdrkit_radio_set_bandwidth(SDRKIT_HANDLE handle, double value) {
-  return sdrkit_typed_setting_set_f64(handle, "bandwidth", value);
-}
-
 // The setting "gain" (Gain) of every radio. Unit: dB.
 static inline int32_t sdrkit_radio_get_gain(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gain", value);
@@ -358,6 +342,22 @@ static inline int32_t sdrkit_radio_get_agc(SDRKIT_HANDLE handle, bool *value) {
 }
 static inline int32_t sdrkit_radio_set_agc(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "agc", value);
+}
+
+// The setting "rate" (Sample rate) of every radio. A frequency in Hz. The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic.
+static inline int32_t sdrkit_radio_get_rate(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "rate", value);
+}
+static inline int32_t sdrkit_radio_set_rate(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "rate", value);
+}
+
+// The setting "bandwidth" (Bandwidth) of every radio. A frequency in Hz. The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate.
+static inline int32_t sdrkit_radio_get_bandwidth(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "bandwidth", value);
+}
+static inline int32_t sdrkit_radio_set_bandwidth(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "bandwidth", value);
 }
 
 // The setting "rate_exact" (Exact rate) of every radio. Sends the rate as it is, even outside the rates the driver picks.

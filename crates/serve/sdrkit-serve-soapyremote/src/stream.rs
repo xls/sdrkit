@@ -178,7 +178,12 @@ impl Outlet for StreamOutlet {
             }
             let n = part.len() / bpe;
             sent(
-                l.send_one(n as i32, part, time_ns(index, info.rate_hz), stop),
+                l.send_one(
+                    n as i32,
+                    part,
+                    info.time_ns + time_ns(index - info.first_sample, info.rate_hz),
+                    stop,
+                ),
                 off,
             )?;
             index += n as u64;

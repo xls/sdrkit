@@ -47,14 +47,14 @@ use std::time::Duration;
 // ---- Settings ----
 
 /// The frequency correction.
-pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
+pub const PPM: Setting<field::F64> = sdrkit_driver_core::form::PPM
     .range(-200.0, 200.0, 0.1)
     .help(
         "The clock error of the radio in ppm, positive when its clock runs fast (signals then show a little low). 0: no \
          correction.",
     );
 /// Swap I and Q.
-pub const SWAP_IQ: Setting<field::Bool> = Setting::new("swapiq", "Swap I and Q", "", false).help(
+pub const SWAP_IQ: Setting<field::Bool> = sdrkit_driver_core::form::SWAP_IQ.help(
     "Mirror the spectrum if signals show on the wrong side of the tuned frequency. The two words of each sample are taken the \
      other way round.",
 );
@@ -62,16 +62,21 @@ pub const SWAP_IQ: Setting<field::Bool> = Setting::new("swapiq", "Swap I and Q",
 pub const TX_TIMEOUT: Setting<field::F64> =
     Setting::new("txtimeout", "Transmit time limit", "s", 180.0)
         .range(10.0, 600.0, 10.0)
+        .section(sdrkit_driver_core::form::OTHER_SECTION)
         .help("The longest time one transmission can last. Then sdrkit ends it.");
 /// The N2ADR filter board of a Hermes-Lite 2.
-pub const N2ADR: Setting<field::Bool> = Setting::new("n2adr", "N2ADR filter board", "", true).help(
+pub const N2ADR: Setting<field::Bool> = Setting::new("n2adr", "N2ADR filter board", "", true)
+    .section(sdrkit_driver_core::form::OTHER_SECTION)
+    .help(
     "Switch the low-pass filter for the band on the N2ADR filter board. Its relays are on the open-collector outputs. Above \
      30 MHz no filter is switched in. Without the board this changes nothing. With several receivers open, the filter for the \
      highest frequency among them is used.",
 );
 /// The power amplifier of a Hermes-Lite 2.
 pub const HL2_PA: Setting<field::Bool> =
-    Setting::new("hl2pa", "Hermes-Lite 2 power amplifier", "", false).help(
+    Setting::new("hl2pa", "Hermes-Lite 2 power amplifier", "", false)
+        .section(sdrkit_driver_core::form::OTHER_SECTION)
+        .help(
         "Switch its PA on while transmitting. Off: only the low-level exciter output is used.",
     );
 

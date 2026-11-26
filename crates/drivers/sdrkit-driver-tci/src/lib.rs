@@ -34,6 +34,7 @@ pub const DEFAULT_MAX_FREQ: Hz = 6e9;
 /// The receiver whose IQ the driver takes, counted from 0.
 pub const RECEIVER: Setting<field::I64> = Setting::new("receiver", "Receiver", "", 0)
     .range(0.0, (proto::MAX_RECEIVERS - 1) as f64, 1.0)
+    .section(sdrkit_driver_core::form::OTHER_SECTION)
     .restart()
     .help(
         "The receiver of the server whose IQ to take, counted from 0. A receiver the server does not have is refused.",

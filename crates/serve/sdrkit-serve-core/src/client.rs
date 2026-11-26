@@ -2,7 +2,7 @@
 //! converts them to the format of the client's outlet (or to its slice) and sends them there, and a reader thread that runs
 //! the protocol's parser on the bytes the client sends.
 
-use crate::control::Control;
+use crate::control::{Answer, Control, Request};
 use crate::format::{self, convert};
 use crate::hub::{lock, Chunk, Gap, Inner, Slot};
 use crate::outlet::{write_patient, FrameInfo, Outlet, OutletError};
@@ -56,7 +56,14 @@ pub(crate) struct ClientShared {
     pub hangup: AtomicBool,
     pub closed: AtomicBool,
     pub slice: Mutex<Option<Slice>>,
+    /// The slice keeps the centre of the capture: the client has only a rate of its own.
+    pub follow_centre: AtomicBool,
     pub slice_changed: AtomicBool,
+    /// The client asked for a setting or set up a stream. Until then it is a probe: it gets no samples and is not
+    /// counted.
+    pub engaged: AtomicBool,
+    /// The last request of each kind that was not carried out as asked, with its answer.
+    pub not_done: Mutex<Vec<(Request, Answer)>>,
     /// A new outlet for the writer (`Some(None)` removes the outlet), and its flag.
     outlet: OutletSlot,
     outlet_changed: AtomicBool,
@@ -153,9 +160,57 @@ impl ClientHandle {
     pub fn source_format(&self) -> SampleType {
         self.inner.capture().0
     }
-    /// The client's slice, or `None` when it gets the whole capture.
+    /// The client's slice of its own centre, or `None` when it gets the capture centre (the whole capture, or a lower
+    /// rate of its own, see [`ClientHandle::rate_hz`]).
     pub fn slice(&self) -> Option<Slice> {
+        if self.shared.follow_centre.load(Ordering::Acquire) {
+            return None;
+        }
         *lock(&self.shared.slice)
+    }
+    /// The client's own rate, from its slice or from [`ClientHandle::set_rate`]; `None` when it gets the capture rate.
+    pub fn rate_hz(&self) -> Option<f64> {
+        lock(&self.shared.slice).map(|s| s.rate_hz)
+    }
+    /// Gives the client a rate of its own (`Some`) around the centre of the capture, which it follows when the capture is
+    /// tuned; `None` gives it the whole capture again. The writer takes it from its next chunk on.
+    ///
+    /// # Errors
+    ///
+    /// [`SliceError`] if the rate is not positive, is above the capture rate or has no resampler; the client then keeps
+    /// what it had.
+    pub fn set_rate(&self, rate_hz: Option<f64>) -> Result<(), SliceError> {
+        let slice = match rate_hz {
+            Some(r) => {
+                let s = Slice {
+                    centre_hz: self.capture().centre_hz,
+                    rate_hz: r,
+                };
+                s.check(&self.capture())?;
+                Some(s)
+            }
+            None => None,
+        };
+        *lock(&self.shared.slice) = slice;
+        self.shared
+            .follow_centre
+            .store(slice.is_some(), Ordering::Release);
+        self.shared.slice_changed.store(true, Ordering::Release);
+        Ok(())
+    }
+    /// True once the client asked for a setting or set up a stream: it is counted and gets samples.
+    pub fn engaged(&self) -> bool {
+        self.shared.engaged.load(Ordering::Acquire)
+    }
+    /// Counts the client from now on, and tells the owner that it joined.
+    pub(crate) fn engage(&self) {
+        if !self.shared.engaged.swap(true, Ordering::AcqRel) {
+            self.inner.event(Event::ClientJoined {
+                client: self.shared.id,
+                listener: self.shared.listener,
+                peer: self.shared.peer,
+            });
+        }
     }
     /// Gives the client its own centre and rate inside the capture (`Some`), or the whole capture again (`None`). The writer
     /// takes it from its next chunk on. A slice that falls outside the capture after a retune gives zero samples until it
@@ -170,12 +225,16 @@ impl ClientHandle {
             s.check(&self.capture())?;
         }
         *lock(&self.shared.slice) = slice;
+        self.shared.follow_centre.store(false, Ordering::Release);
         self.shared.slice_changed.store(true, Ordering::Release);
         Ok(())
     }
     /// Sends the client's stream to `outlet` from the next chunk on; `None` stops the stream. The writer drops the old
     /// outlet.
     pub fn set_outlet(&self, outlet: Option<Box<dyn Outlet>>) {
+        if outlet.is_some() {
+            self.engage();
+        }
         *lock(&self.shared.outlet) = Some(outlet);
         self.shared.outlet_changed.store(true, Ordering::Release);
         self.shared.wake();
@@ -192,9 +251,24 @@ impl ClientHandle {
         self.shared.wake();
     }
     pub(crate) fn count_request(&self, refused: bool) {
+        self.engage();
         self.shared.requests.fetch_add(1, Ordering::Relaxed);
         if refused {
             self.shared.refused.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+    /// Keeps `request` with its `answer` when the request was not carried out as asked: the last one of each kind.
+    pub(crate) fn note_answer(&self, request: &Request, answer: &Answer) {
+        let done = match answer {
+            Answer::Accepted => true,
+            Answer::Refused => false,
+            Answer::Adjusted(got) => got == request,
+        };
+        let mut kept = lock(&self.shared.not_done);
+        let same = |r: &Request| std::mem::discriminant(r) == std::mem::discriminant(request);
+        kept.retain(|(r, _)| !same(r));
+        if !done {
+            kept.push((*request, *answer));
         }
     }
 }
@@ -263,7 +337,10 @@ pub(crate) fn start(
         hangup: AtomicBool::new(false),
         closed: AtomicBool::new(false),
         slice: Mutex::new(None),
+        follow_centre: AtomicBool::new(false),
         slice_changed: AtomicBool::new(false),
+        engaged: AtomicBool::new(false),
+        not_done: Mutex::new(Vec::new()),
         outlet: Mutex::new(None),
         outlet_changed: AtomicBool::new(false),
         writer: Mutex::new(None),
@@ -289,6 +366,10 @@ pub(crate) fn start(
         shared: shared.clone(),
         inner: inner.clone(),
     };
+    // A protocol that streams from the connect on (rtl_tcp) has its client at once.
+    if shared.wire.load(Ordering::Relaxed) != NO_WIRE {
+        handle.engage();
+    }
     let (parser, control, queue_ms) = (session.parser, control.clone(), inner.config.tx_queue_ms);
     let reader = std::thread::Builder::new()
         .name(format!("sdrkit-serve-r{id}"))
@@ -335,6 +416,9 @@ impl Writer {
         self.outlet = None;
         self.conn.shutdown();
         self.shared.closed.store(true, Ordering::Release);
+        if !self.shared.engaged.load(Ordering::Acquire) {
+            return;
+        }
         self.inner.event(Event::ClientLeft {
             client: self.shared.id,
             listener: self.shared.listener,
@@ -355,6 +439,7 @@ impl Writer {
         let mut next_index: Option<u64> = None;
         let mut slicer: Option<Slicer> = None;
         let mut want = *lock(&s.slice);
+        let mut follow = s.follow_centre.load(Ordering::Acquire);
         let mut buf = Vec::new();
         let mut scratch = Vec::new();
         loop {
@@ -398,6 +483,10 @@ impl Writer {
             let wire = outlet.format();
             if s.slice_changed.swap(false, Ordering::Acquire) {
                 want = *lock(&s.slice);
+                follow = s.follow_centre.load(Ordering::Acquire);
+            }
+            if let (Some(w), true) = (want.as_mut(), follow) {
+                w.centre_hz = chunk.capture.centre_hz;
             }
             slicer = match (want, slicer.take()) {
                 (None, _) => None,

@@ -41,6 +41,9 @@ pub const DEFAULT_ALLOW: &str =
 pub const DEFAULT_HOST: &str = "0.0.0.0";
 /// The events a share keeps for the host. The oldest go first.
 const EVENT_CAP: usize = 256;
+/// The lowest rate that a client gets from a share. Below the lowest rate of the radio, the share brings the capture
+/// down to the client's rate in the client's writer thread.
+pub const OWN_RATE_FLOOR_HZ: f64 = 48e3;
 
 sdrkit_core::choice_enum! {
     /// Who sets the frequency, the rate and the gain of a shared radio.
@@ -106,9 +109,12 @@ sdrkit_core::choice_enum! {
     }
 }
 
+/// The control of a new share: the first client steers while no session of the host reads the radio, and follows
+/// otherwise.
+const DEFAULT_CONTROL: ShareControl = ShareControl::Remote;
 /// Who steers the radio.
 pub const CONTROL: Setting<field::Choice<ShareControl>> =
-    Setting::choice("control", "Control", ShareControl::Follow).help(
+    Setting::choice("control", "Control", DEFAULT_CONTROL).help(
         "Follow: the host alone tunes; a request of a client to tune, to set the rate or the gain is not carried out, and \
          the client is told the value in force. Remote: \
          the client that the command `grant` names, or else the client that connected first, steers the radio while no \
@@ -698,9 +704,16 @@ impl ShareState {
         lock(&self.tx_grants).contains(&client)
     }
 
-    /// Answers a request of a client that steers. What the radio can take is queued for the control thread.
-    fn remote(&self, request: &Request) -> Answer {
+    /// Answers a request of a client that steers. What the radio can take is queued for the control thread. A rate
+    /// below what the radio can be set to, or below a rate that the host set, is the client's own: its writer brings
+    /// the capture down to it around the centre of the radio.
+    fn remote(&self, client: &ClientHandle, request: &Request) -> Answer {
         let l = &self.limits;
+        if let Request::Rate { hz } = *request {
+            if let Some(a) = self.own_rate(client, hz) {
+                return a;
+            }
+        }
         let within =
             |v: f64, lo: f64, hi: f64| v.is_finite() && (hi <= lo || (lo..=hi).contains(&v));
         let gain = self.remote_gain.load(Ordering::Relaxed);
@@ -735,6 +748,31 @@ impl ShareState {
             sh.wake.notify_all();
         }
         Answer::Accepted
+    }
+
+    /// The answer to a rate request `hz` of a steering client that the radio does not carry out: the radio goes to its
+    /// lowest rate (unless the host set the rate) and the client gets `hz` from it. `None` for a rate that the radio
+    /// takes; the client then gets the capture rate again.
+    fn own_rate(&self, client: &ClientHandle, hz: f64) -> Option<Answer> {
+        let l = &self.limits;
+        let fixed = self.rate_fixed.load(Ordering::Relaxed);
+        let below = !fixed && hz < l.min_rate_hz && l.min_rate_hz > 0.0;
+        let under_fixed = fixed && hz < client.capture().rate_hz;
+        if !(hz.is_finite() && hz >= OWN_RATE_FLOOR_HZ && (below || under_fixed)) {
+            let _ = client.set_rate(None);
+            return None;
+        }
+        if below {
+            lock(&self.pending).push(Request::Rate { hz: l.min_rate_hz });
+            if let Some(sh) = self.engine.upgrade() {
+                sh.wake.notify_all();
+            }
+        }
+        // The capture is at least the lowest rate of the radio, which is above `hz`.
+        Some(match client.set_rate(Some(hz)) {
+            Ok(()) => Answer::Accepted,
+            Err(_) => Answer::Refused,
+        })
     }
 
     /// Answers a request of a client for its own slice of the capture. A request for another setting of the radio gets
@@ -803,7 +841,7 @@ impl Control for Policy {
         }
         let answer = match s.control() {
             ShareControl::Slice => s.slice(client, request),
-            ShareControl::Remote if s.steers(client.id()) => s.remote(request),
+            ShareControl::Remote if s.steers(client.id()) => s.remote(client, request),
             ShareControl::Follow | ShareControl::Remote => s.in_force(request),
         };
         let count = if answer == Answer::Accepted {
@@ -813,6 +851,13 @@ impl Control for Policy {
         };
         count.fetch_add(1, Ordering::Relaxed);
         answer
+    }
+
+    fn in_force(&self, _client: &ClientHandle, request: &Request) -> Option<Request> {
+        match self.0.in_force(request) {
+            Answer::Adjusted(r) => Some(r),
+            _ => None,
+        }
     }
 
     /// Takes the transmit ring of a client that `grant` lets transmit, while the engine setting `transmit_allowed` is
@@ -1004,6 +1049,60 @@ pub(crate) struct ShareOwner {
     problem: Option<String>,
     /// The row keys of the clients in the table.
     shown_clients: Vec<u64>,
+    /// The refusals of each client that the status line names: the client, when, and the lines.
+    refusals: Vec<(u64, f64, Vec<String>)>,
+    /// The tuner type that the rtl_tcp greeting states.
+    rtl_tuner: u32,
+    /// The counters of each client at the start of its loss window.
+    loss_seen: std::collections::HashMap<u64, LossSeen>,
+}
+
+/// The counters of one client at the start of a loss window, and the part it lost over the window before.
+struct LossSeen {
+    at: f64,
+    sent: u64,
+    dropped: u64,
+    part: f64,
+}
+
+/// The window over which the status line counts the samples that a client lost, s.
+const LOSS_WINDOW_S: f64 = 3.0;
+/// How long the status line names the refusals of a client that left, s.
+const REFUSAL_KEEP_S: f64 = 30.0;
+/// The part of its samples that a client loses before the status line names it.
+const LOSS_NOTE: f64 = 0.01;
+
+/// A request as the status line names it: "106.5 MHz", "a rate of 2.4 Msps".
+fn asked_text(r: &Request) -> String {
+    match *r {
+        Request::Frequency { hz } => format!("{} MHz", sdrkit_driver_core::fmt_m(hz)),
+        Request::Rate { hz } => format!("a rate of {} Msps", sdrkit_driver_core::fmt_m(hz)),
+        Request::Bandwidth { hz } => {
+            format!("a bandwidth of {} MHz", sdrkit_driver_core::fmt_m(hz))
+        }
+        Request::Gain { db } => format!("a gain of {db} dB"),
+        Request::Agc { on } => format!("automatic gain {}", if on { "on" } else { "off" }),
+        Request::BiasTee { on } => format!("the bias tee {}", if on { "on" } else { "off" }),
+        Request::Correction { ppm } => format!("a correction of {ppm} ppm"),
+        Request::Other { name, .. } => format!("the setting {name}"),
+    }
+}
+
+/// Why a request was not carried out as asked, and what the client got.
+fn why_not(control: ShareControl, steers: bool, host_reads: bool, answer: &Answer) -> String {
+    let why = match control {
+        ShareControl::Follow => "this share follows the server's own tuning",
+        ShareControl::Remote if host_reads => {
+            "a session of the server reads the radio and steers it"
+        }
+        ShareControl::Remote if !steers => "another client steers the radio",
+        ShareControl::Remote => "the radio or the server does not take this value",
+        ShareControl::Slice => "it does not fit inside the capture",
+    };
+    match answer {
+        Answer::Adjusted(got) => format!("not carried out, {why}; it gets {}", asked_text(got)),
+        _ => format!("not carried out, {why}"),
+    }
 }
 
 impl ShareOwner {
@@ -1036,8 +1135,7 @@ impl ShareOwner {
     /// listener on one address opens no stream port on the others; a listener on every address leaves it to the client.
     fn protocol(&self, p: ShareProtocol, host: &str) -> Arc<dyn Protocol> {
         match p {
-            // The greeting of a dongle with an R820T tuner: every rtl_tcp client takes it.
-            ShareProtocol::RtlTcp => Arc::new(sdrkit_serve_rtltcp::RtlTcp::rtl_sdr(5)),
+            ShareProtocol::RtlTcp => Arc::new(sdrkit_serve_rtltcp::RtlTcp::rtl_sdr(self.rtl_tuner)),
             ShareProtocol::SoapyRemote => {
                 let s = SoapyRemote::new(Arc::clone(&self.net), self.device.clone(), &self.uuid);
                 let every = host.trim().is_empty()
@@ -1071,7 +1169,8 @@ impl ShareOwner {
             && !info.addr.ip().is_loopback()
         {
             // A search finds the server only if the port of the discovery is free; a client can still name the address.
-            self.ssdp = Ssdp::start(&self.net, &self.uuid, &l.host, l.port).ok();
+            let name = self.device.info.get("name").map_or("", String::as_str);
+            self.ssdp = Ssdp::start(&self.net, &self.uuid, &l.host, l.port, name).ok();
         }
         Ok(l.port)
     }
@@ -1248,7 +1347,7 @@ impl ShareOwner {
         let first = snap
             .clients
             .iter()
-            .filter(|c| !c.closed)
+            .filter(|c| !c.closed && c.engaged)
             .map(|c| c.id)
             .min();
         self.state
@@ -1275,7 +1374,8 @@ impl ShareOwner {
         }
         let grants = lock(&self.state.tx_grants).clone();
         let mut shown = Vec::with_capacity(snap.clients.len());
-        for c in snap.clients.iter().filter(|c| !c.closed) {
+        // A connection that only read the device information, or carries the log of a client, is no client.
+        for c in snap.clients.iter().filter(|c| !c.closed && c.engaged) {
             let protocol = if c.protocol == "rtl_tcp" {
                 ShareProtocol::RtlTcp
             } else {
@@ -1314,7 +1414,94 @@ impl ShareOwner {
             self.results.remove_row(&CLIENTS, &gone.to_string());
         }
         self.shown_clients = shown;
+        let line = self.client_notes(&snap, now);
+        self.results.results_mut().update_status(|st| {
+            let changed = st.summary != line;
+            st.summary = line;
+            changed
+        });
         self.write_fields(Some(&snap));
+    }
+
+    /// The status line of the share: for each client, what it asked for and did not get, once per kind of request, and
+    /// the part of its samples that it lost over the last few seconds.
+    fn client_notes(&mut self, snap: &sdrkit_serve_core::Snapshot, now: f64) -> String {
+        let control = self.state.control();
+        let host_reads = self.state.host_reads.load(Ordering::Relaxed);
+        let mut parts = Vec::new();
+        for c in snap.clients.iter().filter(|c| c.engaged) {
+            let steers = self.state.steers(c.id);
+            let said: Vec<String> = c
+                .not_done
+                .iter()
+                .map(|(asked, answer)| {
+                    format!(
+                        "client {} asked for {}: {}",
+                        c.id,
+                        asked_text(asked),
+                        why_not(control, steers, host_reads, answer)
+                    )
+                })
+                .collect();
+            if !said.is_empty() {
+                self.refusals.retain(|(id, _, _)| *id != c.id);
+                self.refusals.push((c.id, now, said));
+            }
+            if c.closed {
+                continue;
+            }
+            let (rate, part) = self.loss_of(c, snap.capture, now);
+            if part >= LOSS_NOTE {
+                parts.push(format!(
+                    "client {}: {:.0} % dropped, the link is too slow for {} Msps",
+                    c.id,
+                    part * 100.0,
+                    sdrkit_driver_core::fmt_m(rate)
+                ));
+            }
+        }
+        self.loss_seen
+            .retain(|id, _| snap.clients.iter().any(|c| c.id == *id && !c.closed));
+        // A client that left after a refusal (ours fails its start) is still named for a while.
+        let open = |id: u64| snap.clients.iter().any(|c| c.id == id && !c.closed);
+        self.refusals
+            .retain(|(id, at, _)| open(*id) || now - *at < REFUSAL_KEEP_S);
+        let mut all: Vec<String> = self.refusals.iter().flat_map(|r| r.2.clone()).collect();
+        all.extend(parts);
+        all.join("; ")
+    }
+
+    /// The rate of client `c` and the part of its samples that it lost over the last window of [`LOSS_WINDOW_S`].
+    fn loss_of(
+        &mut self,
+        c: &sdrkit_serve_core::ClientStats,
+        capture: Slice,
+        now: f64,
+    ) -> (f64, f64) {
+        let rate = c.slice.map_or(capture.rate_hz, |s| s.rate_hz);
+        // Dropped samples are counted at the capture rate, sent samples at the client's rate.
+        let scale = if capture.rate_hz > 0.0 {
+            rate / capture.rate_hz
+        } else {
+            1.0
+        };
+        let e = self.loss_seen.entry(c.id).or_insert(LossSeen {
+            at: now,
+            sent: c.samples,
+            dropped: c.dropped_samples,
+            part: 0.0,
+        });
+        if now - e.at >= LOSS_WINDOW_S {
+            let sent = c.samples.saturating_sub(e.sent) as f64;
+            let dropped = c.dropped_samples.saturating_sub(e.dropped) as f64 * scale;
+            e.part = if sent + dropped > 0.0 {
+                dropped / (sent + dropped)
+            } else {
+                0.0
+            };
+            (e.at, e.sent, e.dropped) = (now, c.samples, c.dropped_samples);
+        }
+        (rate, e.part)
     }
 
     fn write_fields(&mut self, snap: Option<&sdrkit_serve_core::Snapshot>) {
@@ -1516,6 +1703,26 @@ impl Share {
     }
 }
 
+/// The tuner type of the rtl_tcp greeting for a radio named `name`: the tuner of an RTL dongle, else the R820T, whose
+/// greeting every rtl_tcp client takes.
+fn rtl_tuner(name: &str) -> u32 {
+    use sdrkit_driver_core::rtl_tcp::TUNERS;
+    name.split_whitespace()
+        .find_map(|w| TUNERS.iter().position(|t| t.eq_ignore_ascii_case(w)))
+        .map_or(5, |i| i as u32 + 1)
+}
+
+/// The model of a radio named `name`: the name without a last word of hexadecimal digits, which is part of a serial
+/// number ("HackRF One 0000c66c" is a "HackRF One").
+fn model(name: &str) -> &str {
+    match name.trim_end().rsplit_once(' ') {
+        Some((head, tail)) if tail.len() >= 4 && tail.chars().all(|c| c.is_ascii_hexdigit()) => {
+            head
+        }
+        _ => name.trim_end(),
+    }
+}
+
 /// The name of the one gain element of a share: the overall gain of the radio, which the radio's own driver spreads
 /// over its stages.
 const GAIN_ELEMENT: &str = "GAIN";
@@ -1542,14 +1749,25 @@ fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
             r.ranges.iter().map(|(lo, hi)| range(*lo, *hi)).collect()
         }
     };
-    let gain = caps.gain_db.map_or(range(0.0, 0.0), |(lo, hi, step)| Range {
-        min: lo,
-        max: hi,
-        step,
-    });
+    // Below its lowest rate a client gets its own rate out of the capture (`ShareState::own_rate`).
+    let rx_rates = |r: &sdrkit_driver_core::RateLimits| {
+        let mut v = rates(r);
+        let lowest = v.iter().map(|x| x.min).fold(f64::INFINITY, f64::min);
+        if lowest.is_finite() && lowest > OWN_RATE_FLOOR_HZ {
+            v.insert(0, range(OWN_RATE_FLOOR_HZ, lowest));
+        }
+        v
+    };
+    let gain = caps
+        .gain_db
+        .map_or(range(0.0, 0.0), |(lo, hi, step)| Range {
+            min: lo,
+            max: hi,
+            step,
+        });
     let rx = Side {
         freqs: vec![range(caps.min_freq_hz, caps.max_freq_hz)],
-        rates: rates(&caps.rates),
+        rates: rx_rates(&caps.rates),
         gain,
         elements: elements(gain),
         agc: caps.has_agc,
@@ -1573,10 +1791,13 @@ fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
             .unwrap_or_default(),
         antennas: vec!["TX".into()],
     });
+    let mut info = sdrkit_serve_soapyremote::Kwargs::new();
+    info.insert("name".into(), name.to_owned());
+    info.insert("model".into(), model(name).to_owned());
     Device {
         driver: driver.to_owned(),
-        hardware: name.to_owned(),
-        info: Default::default(),
+        hardware: model(name).to_owned(),
+        info,
         rx,
         tx,
         bias_tee: false,
@@ -1633,7 +1854,7 @@ impl Shared {
         let state = Arc::new(ShareState {
             feeder: Mutex::new(None),
             feeder_new: AtomicBool::new(false),
-            control: AtomicU8::new(ShareControl::Follow.index() as u8),
+            control: AtomicU8::new(DEFAULT_CONTROL.index() as u8),
             remote_gain: AtomicBool::new(true),
             host_reads: AtomicBool::new(r.feed.readers() > 0),
             rate_fixed: AtomicBool::new(!r.rate_is_automatic()),
@@ -1710,6 +1931,9 @@ impl Shared {
             session: session_key(session),
             problem: None,
             shown_clients: Vec::new(),
+            loss_seen: std::collections::HashMap::new(),
+            refusals: Vec::new(),
+            rtl_tuner: rtl_tuner(&caps.name),
         };
         owner.make_hub();
         owner.publish(self.facilities.clock.now());

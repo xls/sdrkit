@@ -256,7 +256,8 @@ impl Lists {
                 self.profiles.iter(),
             ),
         );
-        let mut out = vec![SettingDecl::new(profile, Value::Choice(0)).with_help(
+        let other = sdrkit_driver_core::form::OTHER_SECTION;
+        let mut out = vec![SettingDecl::new(profile, Value::Choice(0)).with_section(other).with_help(
             "Keep the server's never changes it. Follow the tuning switches to a profile that covers the frequency. A named \
              profile is selected. A change of profile changes the band for every listener of the receiver.",
         )];
@@ -270,7 +271,7 @@ impl Lists {
                 "Server demodulator",
                 choices(&[], demods.iter()),
             );
-            out.push(SettingDecl::new(field, Value::Choice(at as u16)).with_help(
+            out.push(SettingDecl::new(field, Value::Choice(at as u16)).with_section(other).with_help(
                 "The demodulator of the server for Server demodulates. A demodulator that the server cannot run now is refused.",
             ));
             let field = FieldDecl::with_choices(
@@ -278,7 +279,7 @@ impl Lists {
                 "Server decoder",
                 choices(&[("", "Off")], self.decoders.iter()),
             );
-            out.push(SettingDecl::new(field, Value::Choice(0)).with_help(
+            out.push(SettingDecl::new(field, Value::Choice(0)).with_section(other).with_help(
                 "The server decodes FT8, WSPR, PSK and others itself, and sdrkit shows its decodes. A decoder that needs a \
                  demodulator other than the one in use is refused.",
             ));

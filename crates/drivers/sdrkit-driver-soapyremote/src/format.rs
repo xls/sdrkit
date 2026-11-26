@@ -85,6 +85,10 @@ pub fn choose_format(
             if has(n) {
                 return n;
             }
+            // An 8-bit radio goes as 8 bits: half the bytes of CS16 on the network, and nothing lost.
+            if matches!(n, Format::Cu8 | Format::Cs8) && has(Format::Cs8) {
+                return Format::Cs8;
+            }
         }
         if has(Format::Cs16) {
             Format::Cs16

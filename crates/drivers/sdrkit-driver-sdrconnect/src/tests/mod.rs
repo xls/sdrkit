@@ -51,6 +51,22 @@ fn text(t: &str) -> Value {
     Value::Text(t.into())
 }
 
+/// `v` with the settings that `src` added when it opened, and its antenna set to `name`.
+fn with_antenna(src: &dyn Source, v: &Values, name: &str) -> Values {
+    let mut decls = v.schema().settings().to_vec();
+    decls.extend(src.settings());
+    let schema = Arc::new(sdrkit_core::Schema::new(decls).unwrap());
+    let mut out = Values::defaults(&schema);
+    for (i, _) in v.schema().settings().iter().enumerate() {
+        let id = SettingId(i as u16);
+        out.set(id, v.value(id).unwrap()).unwrap();
+    }
+    let id = schema.id("antenna").unwrap();
+    let at = schema.setting(id).unwrap().field.choices.iter().position(|c| c.key == name).unwrap();
+    out.set(id, &Value::Choice(at as u16)).unwrap();
+    out
+}
+
 fn tuner(t: Tuner) -> Value {
     Value::Choice(sdrkit_core::Choice::index(t))
 }
@@ -370,7 +386,7 @@ fn keeping_the_server_rate_sends_no_rate() {
     let f = Fake::start(Cfg::default());
     let server = Value::Choice(sdrkit_core::Choice::index(RateSource::Server));
     let mut src = drv(&f)
-        .open(&f.addr(), &tune(2e6, 100e6, &[("sample_rate", server)]))
+        .open(&f.addr(), &tune(2e6, 100e6, &[("rate_source", server)]))
         .unwrap();
     let (st, _r, _) = start(&mut src, 1 << 16);
     assert_eq!(st.rate_hz, 100_000.0);
@@ -387,11 +403,10 @@ fn keeping_the_server_rate_sends_no_rate() {
 fn a_dropped_connection_is_reconnected_with_the_settings() {
     let f = Fake::start(Cfg::default());
     let mut src = drv(&f)
-        .open(
-            &f.addr(),
-            &tune(100_000.0, 14.2e6, &[("antenna", text("Tuner 1 Hi-Z"))]),
-        )
+        .open(&f.addr(), &tune(100_000.0, 14.2e6, &[]))
         .unwrap();
+    let t = with_antenna(&*src, &tune(100_000.0, 14.2e6, &[]), "Tuner 1 Hi-Z");
+    src.apply(&t).unwrap();
     let (_, mut r, _) = start(&mut src, 1 << 18);
     assert_eq!(read_n(&mut r, 1000, 3.0).len(), 1000);
     f.drop_client();
@@ -531,11 +546,9 @@ fn settings_out_of_range_are_refused() {
         .err()
         .unwrap();
     assert_eq!(e, refused(lna));
-    let e = src
-        .apply(&tune(100_000.0, 100e6, &[("antenna", text("Antenna Z"))]))
-        .err()
-        .unwrap();
-    assert_eq!(e, refused(own_id(SdrconnectSetting::Antenna)));
+    // The antenna is a choice of the names that SDRconnect listed: no other name can be set.
+    let listed: Vec<String> = src.settings()[0].field.choices.iter().map(|c| c.key.to_string()).collect();
+    assert!(listed.len() > 1 && listed[0].is_empty(), "{listed:?}");
     src.stop();
     // The schema refuses values of the wrong kind or out of its range.
     let schema = DESCRIPTOR.decl().schema().clone();

@@ -160,6 +160,8 @@ sdrkit_core::choice_enum! {
         Rtl = ("rtl", "RTL-SDR (up to 2.56 Msps)"),
         /// Another radio behind rtl_tcp.
         Other = ("other", "Other radio (up to 20 Msps)"),
+        /// Any rate the stack or the rate setting asks for.
+        Any = ("any", "Any rate (0.1 to 40 Msps)"),
     }
 }
 
@@ -179,61 +181,36 @@ sdrkit_core::choice_enum! {
 
 /// How the server is treated.
 pub const SERVER: Setting<field::Choice<ServerMode>> =
-    Setting::choice("server", "Server radio", ServerMode::Auto).help(
-        "RTL-SDR: a real RTL-SDR, which drops samples above 2.56 Msps. Other radio: any rate from 0.25 to 20 Msps. Auto: an \
-         RTL-SDR unless the server greets as another radio or the stack needs more than 2.56 Msps.",
-    );
-/// Allow any rate from 0.1 to 40 Msps.
-pub const ANY_RATE: Setting<field::Bool> = Setting::new("anyrate", "Allow any sample rate", "", false)
-    .section("advanced")
-    .help(
-        "Only limits of 0.1 to 40 Msps. 8-bit I/Q at 10 Msps is 160 Mbit/s, more than most Wi-Fi gives. Lost samples show in \
-         the status with the measured speed.",
-    );
-/// The rate with [`ANY_RATE`]. 0 takes the rate of the stack.
-pub const CUSTOM_RATE: Setting<field::Hz> =
-    Setting::new("customrate", "Custom sample rate", "Hz", 0.0)
-        .range(0.0, 40e6, 1e5)
-        .help("Applies only with Allow any sample rate. 0 takes the rate the stack needs.");
-/// The frequency correction.
-pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
-    .range(-200.0, 200.0, 1.0)
-    .help(
-        "The clock error in ppm, positive if the clock runs fast (signals show up a little low). Dongles without a TCXO are often \
-         20 to 100 ppm off.",
-    );
+    Setting::choice("server", "Server radio", ServerMode::Auto)
+        .section(crate::form::LINK_SECTION)
+        .help(
+            "RTL-SDR: a real RTL-SDR, which drops samples above 2.56 Msps. Other radio: any rate from 0.25 to 20 Msps. Any rate: \
+             0.1 to 40 Msps; 8-bit I/Q at 10 Msps is 160 Mbit/s, more than most Wi-Fi gives. Auto: an RTL-SDR unless the server \
+             greets as another radio or the stack needs more than 2.56 Msps.",
+        );
+/// The frequency correction, in whole ppm: the protocol sends an integer.
+pub const PPM: Setting<field::F64> = crate::form::PPM.range(-200.0, 200.0, 1.0).help(
+    "The clock error in ppm, positive if the clock runs fast (signals show up a little low). Dongles without a TCXO are often \
+     20 to 100 ppm off.",
+);
 /// Direct sampling below 24 MHz.
 pub const DIRECT_SAMPLING: Setting<field::Choice<DirectSampling>> =
-    Setting::choice("ds", "Direct sampling (HF)", DirectSampling::Auto).help(
+    crate::form::direct_sampling(DirectSampling::Auto).help(
         "I or Q samples HF directly below 24 MHz (a V3 has its HF input on Q). Auto leaves it to the server: a Blog V4 upconverts \
          HF itself.",
     );
 /// The rate a server keeps whatever rate is requested. The driver sets it. 0: none found.
-pub const SERVER_RATE: Setting<field::Hz> = Setting::new(
-    "server_rate",
-    "Rate of the server",
-    "Hz",
-    0.0,
-)
-.range(0.0, 40e6, 1.0)
-.section("advanced")
-.help(
-    "The rate the server sends whatever it is asked. The driver finds it. 0 means none was found.",
-);
+pub const SERVER_RATE: Setting<field::Hz> = crate::form::SERVER_RATE;
 
 sdrkit_core::settings! {
-    /// The own settings of the rtl_tcp driver.
+    /// The own settings of the rtl_tcp driver, in the order of their sections.
     pub enum RtlSetting {
-        /// [`SERVER`].
-        Server = SERVER,
-        /// [`ANY_RATE`].
-        AnyRate = ANY_RATE,
-        /// [`CUSTOM_RATE`].
-        CustomRate = CUSTOM_RATE,
         /// [`PPM`].
         Ppm = PPM,
         /// [`DIRECT_SAMPLING`].
         DirectSampling = DIRECT_SAMPLING,
+        /// [`SERVER`].
+        Server = SERVER,
         /// [`SERVER_RATE`].
         ServerRate = SERVER_RATE,
     }
@@ -272,10 +249,6 @@ static DESCRIPTOR: DriverDescriptor = DriverDescriptor {
 pub struct Options {
     /// The `server` setting.
     pub server: ServerMode,
-    /// Allow any sample rate.
-    pub anyrate: bool,
-    /// The custom rate in Hz (0: the rate of the stack).
-    pub customrate_hz: Hz,
     /// Frequency correction.
     pub ppm: f64,
     /// Direct sampling.
@@ -292,8 +265,6 @@ impl Options {
             .map(|r| r.round() as u32);
         Options {
             server: v.get(&SERVER),
-            anyrate: v.get(&ANY_RATE),
-            customrate_hz: v.get(&CUSTOM_RATE),
             ppm: v.get(&PPM),
             ds: v.get(&DIRECT_SAMPLING),
             pinned,
@@ -331,30 +302,23 @@ pub struct RatePlan {
 pub fn plan_rate(o: &Options, v: &Values, greeting_other: bool) -> Result<RatePlan, DriverError> {
     let rate_chosen = v.get(&RATE_EXACT);
     let mode_rate = Some(v.get(&RATE)).filter(|r| *r > 0.0);
-    let wanted = if o.anyrate && o.customrate_hz > 0.0 {
-        Some(o.customrate_hz)
-    } else {
-        mode_rate
-    };
+    let wanted = mode_rate;
     let mut note = None;
-    let class = if o.anyrate {
-        RateClass::Any
-    } else {
-        match o.server {
-            ServerMode::Rtl => RateClass::Rtl,
-            ServerMode::Other => RateClass::Other,
-            ServerMode::Auto if greeting_other => RateClass::Other,
-            ServerMode::Auto => match wanted {
-                Some(w) if w > RTL_STEADY * 1.0001 => {
-                    note = Some(format!(
-                        "the server greets as an RTL-SDR but {} Msps was asked for; samples may drop if this really is an RTL-SDR",
-                        crate::fmt_m(w)
-                    ));
-                    RateClass::Other
-                }
-                _ => RateClass::Rtl,
-            },
-        }
+    let class = match o.server {
+        ServerMode::Any => RateClass::Any,
+        ServerMode::Rtl => RateClass::Rtl,
+        ServerMode::Other => RateClass::Other,
+        ServerMode::Auto if greeting_other => RateClass::Other,
+        ServerMode::Auto => match wanted {
+            Some(w) if w > RTL_STEADY * 1.0001 => {
+                note = Some(format!(
+                    "the server greets as an RTL-SDR but {} Msps was asked for; samples may drop if this really is an RTL-SDR",
+                    crate::fmt_m(w)
+                ));
+                RateClass::Other
+            }
+            _ => RateClass::Rtl,
+        },
     };
     if let Some(p) = o.pinned {
         return Ok(RatePlan {
@@ -400,6 +364,13 @@ pub const COMMON_RATES_MSPS: [f64; 25] = [
     0.25, 0.9, 1.0, 1.024, 1.4, 1.536, 1.792, 1.92, 2.0, 2.048, 2.16, 2.4, 2.5, 2.56, 2.88, 3.0,
     3.2, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0, 16.0, 20.0,
 ];
+
+/// True if `measured` lies within 2 % of a common rate.
+fn is_common_rate(measured: Hz) -> bool {
+    COMMON_RATES_MSPS
+        .iter()
+        .any(|m| (m * 1e6 - measured).abs() <= 0.02 * m * 1e6)
+}
 
 /// Snaps a measured rate: the nearest common rate within 2 %, else rounded to 10 kHz.
 pub fn snap_server_rate(measured: Hz) -> Hz {
@@ -465,6 +436,18 @@ impl PinDetector {
             return None;
         }
         let snapped = snap_server_rate(median);
+        // Less than asked is also what a slow link gives, but a link does not hold a common rate steadily: a server that
+        // holds a lower rate gives one common rate in two readings of three.
+        if asked > 0.0 && median < asked {
+            let steady = r
+                .iter()
+                .filter(|x| (*x - median).abs() <= 0.02 * median)
+                .count()
+                >= 2;
+            if !(steady && is_common_rate(median)) {
+                return None;
+            }
+        }
         if pinned == Some(snapped) && snapped == asked {
             return None;
         }
@@ -495,6 +478,8 @@ struct AddrState {
     last: Mutex<Option<Throughput>>,
     window: Mutex<Window>,
     detector: Mutex<PinDetector>,
+    /// The live reading of the link of the stream.
+    link: crate::linkwatch::LinkWatch,
 }
 
 #[derive(Debug, Default)]
@@ -730,6 +715,7 @@ impl Radio for RtlRadio {
         self.send_changed(cmd::RATE, plan.rate)?;
         if self.rate != plan.rate {
             self.rate = plan.rate;
+            self.state.link.restarted();
             let mut w = lock(&self.state.window);
             (w.start, w.bytes, w.asked) = (None, 0, f64::from(plan.rate));
         }
@@ -779,6 +765,7 @@ impl Radio for RtlRadio {
         let mut sock = self.sock.try_clone()?;
         abort.register(sock.as_ref());
         let _ = sock.set_read_timeout(Some(self.stall));
+        self.state.link.restarted();
         Ok(RtlStream {
             sock,
             label: self.label.clone(),
@@ -824,7 +811,7 @@ impl Radio for RtlRadio {
                 ranges: vec![(p, p)],
                 steady_hz: None,
             }
-        } else if self.opts.anyrate {
+        } else if self.opts.server == ServerMode::Any {
             RateLimits {
                 min_hz: 0.1e6,
                 max_hz: ANY_MAX,
@@ -883,12 +870,19 @@ impl Radio for RtlRadio {
 
     fn status(&self) -> String {
         match *lock(&self.state.last) {
-            Some(t) => format!(
-                "{} Msps from {}, {:.1} Mbit/s",
-                crate::fmt_m(t.achieved_hz),
-                self.label,
-                t.mbit_s
-            ),
+            Some(t) => {
+                let mut s = format!(
+                    "{} Msps from {}, {:.1} Mbit/s",
+                    crate::fmt_m(t.achieved_hz),
+                    self.label,
+                    t.mbit_s
+                );
+                if let Some(d) = crate::linkwatch::drop_text(self.state.link.part()) {
+                    s.push_str(", ");
+                    s.push_str(&d);
+                }
+                s
+            }
             None => String::new(),
         }
     }
@@ -942,6 +936,14 @@ impl RtlStream {
         };
         let Some(t) = reading else { return };
         *lock(&self.state.last) = Some(t);
+        if self.state.link.window(t.achieved_hz, t.asked_hz) {
+            ctx.notices.warn(format!(
+                "rtl_tcp {}: about {} Msps of {} arrive: the link is too slow for this rate, and samples are lost",
+                self.label,
+                crate::fmt_m(t.achieved_hz),
+                crate::fmt_m(t.asked_hz)
+            ));
+        }
         let pinned = *lock(&self.state.pinned);
         let pin = lock(&self.state.detector).reading(
             t.achieved_hz,

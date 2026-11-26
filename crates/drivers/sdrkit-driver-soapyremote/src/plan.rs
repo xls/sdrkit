@@ -420,6 +420,8 @@ pub(crate) enum Control {
         /// How a value is written.
         form: ModuleForm,
     },
+    /// The RF gain state of a gain-reduction radio: sent with the gain ([`gain_plan`]), -1 lets the gain set it.
+    RfState,
     /// One gain element (call 704), in dB.
     Stage {
         /// The name of the element.
@@ -557,7 +559,7 @@ pub(crate) fn module_setting(info: &ArgInfo, radio_value: Option<&str>) -> Optio
 }
 
 /// The gain elements that are settings of their own: none for a radio with one element or an element without a range, and
-/// not the RF stage of a gain-reduction radio (it has [`RF_STATE`](crate::RF_STATE)).
+/// not the RF stage of a gain-reduction radio (it has the setting of [`rf_state_setting`]).
 pub(crate) fn stages(elements: &[Element]) -> impl Iterator<Item = &Element> {
     let any = elements.len() >= 2 && elements.iter().all(|e| e.range.max > e.range.min);
     let rf = rf_stage(elements).is_some();
@@ -589,6 +591,21 @@ pub(crate) fn stage_setting(e: &Element, at_open: Option<f64>) -> RunTime {
                  gives this element.",
                 e.name
             )),
+    }
+}
+
+/// The setting of the RF gain state of a radio whose RF stage spans `rf`: only a radio with gain reduction stages has it.
+pub(crate) fn rf_state_setting(rf: Range) -> RunTime {
+    let field = FieldDecl::new("rfgr", "RF gain state", "", ValueKind::I64);
+    RunTime {
+        control: Control::RfState,
+        decl: SettingDecl::new(field, Value::I64(-1))
+            .with_range(-1.0, rf.max.max(0.0), 1.0)
+            .with_section("Gain stages")
+            .with_help(
+                "The RF gain stage (LNA state) of this radio. 0 is the most gain. Higher states reduce it. -1 lets the gain \
+                 set both stages. Any other state makes the gain drive the IF stage only.",
+            ),
     }
 }
 

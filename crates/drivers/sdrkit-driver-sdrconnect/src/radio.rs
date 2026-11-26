@@ -11,7 +11,7 @@ use crate::{
 };
 use sdrkit_core::net::{NetError, Transport};
 use sdrkit_core::Results;
-use sdrkit_core::{Hz, Values};
+use sdrkit_core::{Hz, SettingDecl, Values};
 use sdrkit_driver_core::net::{self, Abort};
 use sdrkit_driver_core::runner::{Notices, Radio, RadioStream, Sink, StreamCtx};
 use sdrkit_driver_core::ws::{self, tls, Message, ReadError, Reader, Writer};
@@ -353,6 +353,15 @@ impl SdrRadio {
 
 impl Radio for SdrRadio {
     type Stream = SdrStream;
+
+    /// The antenna setting, once SDRconnect listed the antennas of the radio.
+    fn settings(&self) -> Vec<SettingDecl> {
+        let e = lock(&self.entry);
+        match e.report.as_ref().and_then(|r| r.antennas.as_deref()) {
+            Some(list) if !list.is_empty() => vec![crate::antenna_setting(list)],
+            _ => Vec::new(),
+        }
+    }
 
     fn readings(&mut self, results: &mut Results) {
         let e = lock(&self.entry);

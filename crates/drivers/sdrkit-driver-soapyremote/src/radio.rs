@@ -13,7 +13,7 @@ use crate::stream::{Flow, RxShared, RxSockets, RxStream, StreamStats};
 use crate::wire::{self, Wire, PROT_KEY};
 use crate::{
     lock, Mtu, SoapyError, SoapyRemoteSetting, StreamProt, Timing, ANTENNA, CLOCK_SOURCE, FORMAT,
-    MTU, PPM, REMOTE, RF_STATE, SERVER_LOG, TIME_SOURCE, TRANSPORT, WINDOW,
+    MTU, PPM, REMOTE, SERVER_LOG, TIME_SOURCE, TRANSPORT, WINDOW,
 };
 use crate::{
     write_items, ARRIVING, DATAGRAM, DRIVER, HARDWARE, HARDWARE_INFO, LATE, LOG_DROPPED,
@@ -25,6 +25,7 @@ use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use sdrkit_core::net::{DatagramOptions, NetError, Transport};
 use sdrkit_core::Results;
 use sdrkit_core::{Hz, SettingDecl, SettingSet, Value, Values};
+use sdrkit_driver_core::linkwatch::LinkWatch;
 use sdrkit_driver_core::net::{self, Abort};
 use sdrkit_driver_core::runner::{Notices, Radio};
 use sdrkit_driver_core::{
@@ -143,6 +144,19 @@ impl Facts {
         }
     }
 
+    /// The id and the value of the RF gain state setting, for a radio that has one.
+    pub fn rf_state(&self, values: &Values) -> Option<(sdrkit_core::SettingId, i64)> {
+        let i = self
+            .run_time
+            .iter()
+            .position(|r| r.control == Control::RfState)?;
+        let id = crate::DESCRIPTOR.run_time_id(i);
+        match values.value(id) {
+            Some(Value::I64(v)) => Some((id, *v)),
+            _ => Some((id, -1)),
+        }
+    }
+
     /// Checks that the radio accepts the values of the settings that are known only once it is open.
     ///
     /// # Errors
@@ -150,9 +164,10 @@ impl Facts {
     /// [`DriverError::Refused`] with the setting the radio cannot take.
     pub fn check(&self, values: &Values) -> Result<(), DriverError> {
         let refused = |s: SoapyRemoteSetting| Err(DriverError::Refused { id: own_id(s) });
-        let rf = values.get(&RF_STATE);
-        if rf >= 0 && !self.rf_stage().is_some_and(|(r, _)| in_range(r, rf as f64)) {
-            return refused(SoapyRemoteSetting::RfState);
+        if let Some((id, rf)) = self.rf_state(values) {
+            if rf >= 0 && !self.rf_stage().is_some_and(|(r, _)| in_range(r, rf as f64)) {
+                return Err(DriverError::Refused { id });
+            }
         }
         let listed =
             |want: &str, list: &[String]| want.is_empty() || list.iter().any(|a| a == want);
@@ -296,6 +311,10 @@ pub(crate) struct Ctx {
     pub format: Mutex<Option<Format>>,
     /// The stream transport of the last open (the transmitter streams the same way).
     pub tcp: AtomicBool,
+    /// The radio was set up once: a frequency outside what a server holds is refused from the second set-up on.
+    pub set_up: AtomicBool,
+    /// The live reading of the link of the stream.
+    pub link: Arc<LinkWatch>,
 }
 
 impl Ctx {
@@ -317,6 +336,8 @@ impl Ctx {
             remote: Mutex::default(),
             format: Mutex::new(None),
             tcp: AtomicBool::new(false),
+            set_up: AtomicBool::new(false),
+            link: Arc::default(),
         }
     }
 }
@@ -399,6 +420,12 @@ fn dir_ch(n: u32, dir: i8) -> Packer {
     p
 }
 
+/// A frequency that the server reads back this far from the one sent is held by the server, Hz. A tuner's own steps
+/// are smaller.
+const HELD_TOLERANCE_HZ: f64 = 1e3;
+/// The part of the capture around its centre that a session can tune to: the edges are the radio's filter.
+const USABLE: f64 = 0.9;
+
 /// The local address of the same family as `server`, any port.
 pub(crate) fn any_local(server: IpAddr) -> SocketAddr {
     match server {
@@ -419,6 +446,8 @@ struct Sent {
     gain: Option<GainPlan>,
     bias: bool,
     bias_on: bool,
+    /// The centre that the server read back after the last frequency, and whether it holds the radio elsewhere.
+    held: Option<(Hz, bool)>,
     /// The value last sent of each run-time setting, by its index in [`Facts::run_time`]. It starts with the values at open.
     run_time: Vec<Value>,
 }
@@ -631,7 +660,8 @@ impl SoapyRadio {
         }
         // An empty overall range with no element that spans more is a radio without gain: no gain is sent.
         let spans = |r: &Range| r.max > r.min;
-        if f.gain.as_ref().is_some_and(|g| !spans(g)) && !f.elements.iter().any(|e| spans(&e.range)) {
+        if f.gain.as_ref().is_some_and(|g| !spans(g)) && !f.elements.iter().any(|e| spans(&e.range))
+        {
             f.gain = None;
         }
         let mut stages = Vec::new();
@@ -681,6 +711,9 @@ impl SoapyRadio {
             }
         }
         f.run_time.extend(stages);
+        if let Some((rf, _)) = plan::rf_stage(&f.elements) {
+            f.run_time.push(plan::rf_state_setting(rf.range));
+        }
         if let Some(c) = self.opt(
             call::LIST_CLOCK_SOURCES,
             &none(call::LIST_CLOCK_SOURCES),
@@ -899,6 +932,8 @@ impl SoapyRadio {
             .filter(|r| *r > 0.0)
             .unwrap_or(choice.rate);
             self.rate = back;
+            self.ctx.flow.set_rate(back);
+            self.ctx.link.restarted();
             if back < 0.97 * asked {
                 notes.extend(choice.note);
             }
@@ -957,8 +992,34 @@ impl SoapyRadio {
             self.set(call::SET_FREQUENCY, &p, RadioSetting::Centre.id())?;
             self.sent.freq = Some(f);
             notes.extend(plan::frequency_note(&self.facts.freqs, centre));
+            // A server that does not let clients tune answers with the frequency it holds.
+            let back = optional(self.call(
+                &dir_ch(call::GET_FREQUENCY, RX),
+                self.timing().call,
+                |u| u.f64(),
+            ))
+            .map_err(|e| e.driver_error(call::GET_FREQUENCY))?
+            .filter(|b| b.is_finite() && *b > 0.0)
+            .unwrap_or(f);
+            self.sent.held = Some((back, (back - f).abs() > HELD_TOLERANCE_HZ));
         }
-        self.centre = centre;
+        self.centre = match self.sent.held {
+            Some((back, true)) => {
+                // The session tunes inside the capture, if the wanted frequency lies in it. The first set-up of the radio
+                // takes the frequency that the host had before a stack named its own, so it refuses nothing.
+                let first = !self.ctx.set_up.swap(true, Ordering::AcqRel);
+                if !first && (centre - back).abs() > USABLE * self.rate / 2.0 {
+                    self.sent.freq = None;
+                    return Err(DriverError::driver(SoapyError::HeldElsewhere {
+                        centre_hz: back.round() as u64,
+                        rate_hz: self.rate.round() as u64,
+                        wanted_hz: centre.round() as u64,
+                    }));
+                }
+                back
+            }
+            _ => centre,
+        };
         let agc = values.get(&AGC);
         if self.facts.has_gain_mode && self.sent.gain_mode != Some(agc) {
             let mut p = dir_ch(call::SET_GAIN_MODE, RX);
@@ -968,7 +1029,7 @@ impl SoapyRadio {
         }
         let mut gain_sent = false;
         if let (false, Some(range)) = (agc, self.facts.gain) {
-            let rf = values.get(&RF_STATE);
+            let rf = self.facts.rf_state(values).map_or(-1, |(_, v)| v);
             let rfgr = (rf >= 0).then_some(rf as i32);
             let gp = plan::gain_plan(range, &self.facts.elements, values.get(&GAIN), rfgr);
             if self.sent.gain.as_ref() != Some(&gp) {
@@ -1033,6 +1094,8 @@ impl SoapyRadio {
                     p.string(key).string(&text);
                     (call::WRITE_SETTING, p)
                 }
+                // Sent with the gain.
+                Control::RfState => continue,
                 Control::Stage { element, at_open } => {
                     let Value::F64(x) = v else { continue };
                     if !(changed || gain_sent && (x - at_open).abs() > 1e-9) {
@@ -1111,6 +1174,7 @@ impl SoapyRadio {
                 flow: self.ctx.flow.clone(),
                 notices: self.notices.clone(),
                 label: self.ctx.label.clone(),
+                link: self.ctx.link.clone(),
             },
         )?;
         rx.send_ack();
@@ -1318,7 +1382,24 @@ impl Radio for SoapyRadio {
     }
 
     fn status(&self) -> String {
-        self.ctx.stats.status()
+        let mut v = Vec::new();
+        match self.sent.held {
+            Some((back, true)) => v.push(format!(
+                "follows the server, which holds the radio at {} MHz, {} Msps",
+                sdrkit_driver_core::fmt_m(back),
+                sdrkit_driver_core::fmt_m(self.rate)
+            )),
+            Some((_, false)) => v.push("steers the radio".to_owned()),
+            None => {}
+        }
+        v.extend(sdrkit_driver_core::linkwatch::drop_text(
+            self.ctx.link.part(),
+        ));
+        let s = self.ctx.stats.status();
+        if !s.is_empty() {
+            v.push(s);
+        }
+        v.join(", ")
     }
 }
 

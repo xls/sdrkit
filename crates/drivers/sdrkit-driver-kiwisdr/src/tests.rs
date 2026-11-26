@@ -1043,12 +1043,12 @@ fn the_schema_declares_every_setting() {
     assert_eq!(
         own,
         [
+            "passband",
+            "swap_iq",
             "password",
             "tlimit_password",
             "user_name",
             "location",
-            "passband",
-            "swap_iq",
             "users",
             "waterfall",
             "wf_zoom"

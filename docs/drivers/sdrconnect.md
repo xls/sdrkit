@@ -19,10 +19,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -32,12 +32,11 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
+| `lna_state` | LNA state | whole number | -1 | -1 to 255 | The API of SDRconnect has one gain control, the LNA state. The IF gain and the AGC stay as SDRconnect has them. A state outside the range SDRconnect reports for the radio and its band is refused. -1 leaves the state as it is. |
+| `rate_source` | Rate set by | choice | `stack` | `stack` (As the stack asks), `server` (Keep the rate of SDRconnect) | As the stack asks: sdrkit sets the sample rate of SDRconnect (SDRconnect 1.0.7 and later). Keep: sdrkit uses the rate SDRconnect runs, and resamples. |
+| `tuner` | Tuner | choice | `primary` | `primary` (Primary (tuner 1)), `secondary` (Secondary (tuner 2)) | For an RSPduo in dual-tuner mode in SDRconnect: the tuner whose IQ to take. Other radios have the primary tuner only. The secondary tuner needs SDRconnect 1.0.8 or later. |
 | `wss` | Secure WebSocket (wss) | yes or no | false |  | A WebSocket over TLS. SDRconnect Headless 1.0.10 and later offers it. SDRconnect with its window serves plain WebSockets only. |
 | `tls_pin` | Server certificate (SHA-256) | text | empty |  | For wss with a self-signed certificate: the SHA-256 digest of the certificate of the server, 64 hexadecimal digits. Empty uses the trust of the system. |
-| `tuner` | Tuner | choice | `primary` | `primary` (Primary (tuner 1)), `secondary` (Secondary (tuner 2)) | For an RSPduo in dual-tuner mode in SDRconnect: the tuner whose IQ to take. Other radios have the primary tuner only. The secondary tuner needs SDRconnect 1.0.8 or later. |
-| `sample_rate` | Sample rate | choice | `stack` | `stack` (As the stack asks), `server` (Keep the rate of SDRconnect) | As the stack asks: sdrkit sets the sample rate of SDRconnect (SDRconnect 1.0.7 and later). Keep: sdrkit uses the rate SDRconnect runs, and resamples. |
-| `lna_state` | LNA state | whole number | -1 | -1 to 255 | The API of SDRconnect has one gain control, the LNA state. The IF gain and the AGC stay as SDRconnect has them. A state outside the range SDRconnect reports for the radio and its band is refused. -1 leaves the state as it is. |
-| `antenna` | Antenna | text | empty |  | One of the antennas SDRconnect lists for the radio. A name it does not list is refused. Empty keeps the antenna SDRconnect has. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.
 

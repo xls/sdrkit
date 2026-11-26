@@ -218,6 +218,9 @@ fn the_kind_opens_a_dongle_with_the_default_settings() {
     assert_eq!(radio.capabilities().rates.max_hz, 3.2e6);
     let mut events = Vec::new();
     radio.poll(0.0, &mut events);
+    // The open dongle follows the standard form of the settings.
+    let problems = sdrkit_driver_core::form::check(sdrkit_core::Owner::schema(&radio));
+    assert!(problems.is_empty(), "{problems:?}");
     radio.stop();
 }
 

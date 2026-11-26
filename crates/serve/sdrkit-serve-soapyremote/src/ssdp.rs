@@ -2,7 +2,7 @@
 //! with the server's id, port and age, as `discovery::parse_ssdp` reads it.
 
 use sdrkit_core::net::{timed_out, DatagramOptions, Interface, NetError, Transport};
-use sdrkit_driver_soapyremote::discovery::{SEARCH_TARGET, SSDP_V4};
+use sdrkit_driver_soapyremote::discovery::{RADIO_HEADER, SEARCH_TARGET, SSDP_V4};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -12,11 +12,18 @@ use std::time::Duration;
 /// The age the answer states, s.
 const MAX_AGE: u32 = 120;
 
-/// The answer to a search: the server `uuid` at `host:port`.
-pub fn ssdp_answer(uuid: &str, host: &str, port: u16) -> String {
+/// The answer to a search: the server `uuid` at `host:port`, serving the radio `name` (in the header
+/// [`RADIO_HEADER`] when it is not empty).
+pub fn ssdp_answer(uuid: &str, host: &str, port: u16, name: &str) -> String {
+    let name: String = name.chars().filter(|c| !c.is_control()).collect();
+    let radio = if name.trim().is_empty() {
+        String::new()
+    } else {
+        format!("{RADIO_HEADER}: {}\r\n", name.trim())
+    };
     format!(
         "HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age={MAX_AGE}\r\nEXT:\r\nLOCATION: http://{host}:{port}/\r\nSERVER: {} \
-         UPnP/1.1 sdrkit/{}\r\nST: {SEARCH_TARGET}\r\nUSN: uuid:{uuid}::{SEARCH_TARGET}\r\n\r\n",
+         UPnP/1.1 sdrkit/{}\r\nST: {SEARCH_TARGET}\r\nUSN: uuid:{uuid}::{SEARCH_TARGET}\r\n{radio}\r\n",
         std::env::consts::OS,
         env!("CARGO_PKG_VERSION")
     )
@@ -56,8 +63,9 @@ impl Ssdp {
         uuid: &str,
         host: &str,
         port: u16,
+        name: &str,
     ) -> Result<Ssdp, NetError> {
-        Ssdp::start_on(transport, uuid, host, port, SSDP_V4, None)
+        Ssdp::start_on(transport, uuid, host, port, name, SSDP_V4, None)
     }
 
     /// As [`Ssdp::start`], for searches sent to `group` (a multicast address and a port), joined on `interface` or, for
@@ -71,6 +79,7 @@ impl Ssdp {
         uuid: &str,
         host: &str,
         port: u16,
+        name: &str,
         group: SocketAddr,
         interface: Option<Interface>,
     ) -> Result<Ssdp, NetError> {
@@ -79,7 +88,7 @@ impl Ssdp {
             ..DatagramOptions::member_of(group)
         })?;
         sock.set_read_timeout(Some(Duration::from_millis(20)))?;
-        let answer = ssdp_answer(uuid, host, port);
+        let answer = ssdp_answer(uuid, host, port, name);
         let stop = Arc::new(AtomicBool::new(false));
         let s = stop.clone();
         let thread = std::thread::Builder::new()
@@ -122,7 +131,13 @@ mod tests {
 
     #[test]
     fn the_answer_reads_back_and_only_searches_are_answered() {
-        let m = parse_ssdp(&ssdp_answer("1234-abcd", "192.168.10.2", 55133)).unwrap();
+        let m = parse_ssdp(&ssdp_answer(
+            "1234-abcd",
+            "192.168.10.2",
+            55133,
+            "HackRF One",
+        ))
+        .unwrap();
         assert_eq!(
             (m.kind, m.uuid.as_str(), m.port, m.max_age),
             (

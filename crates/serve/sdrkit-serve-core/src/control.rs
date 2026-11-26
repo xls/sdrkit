@@ -69,6 +69,13 @@ pub trait Control: Send + Sync {
     /// Answers `request` of `client`.
     fn request(&self, client: &ClientHandle, request: &Request) -> Answer;
 
+    /// The value in force of the setting that `request` names (its value is not read), for a client that asks before
+    /// it set one. `None` when the owner does not say.
+    fn in_force(&self, client: &ClientHandle, request: &Request) -> Option<Request> {
+        let _ = (client, request);
+        None
+    }
+
     /// Answers a request of `client` to transmit. To accept, the owner keeps `reader` and drains it into its transmit side,
     /// where its own transmit switch applies; to refuse, it drops `reader`. The default refuses.
     fn transmit(&self, client: &ClientHandle, request: &TxRequest, reader: TxReader) -> Answer {

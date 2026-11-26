@@ -318,13 +318,13 @@ fn one_schema_for_every_server() {
         "ppm",
         "antenna",
         "gainsplit",
-        "lnastate",
-        "ifgr",
+        "lna_state",
+        "if_reduction",
         "agcsetpoint",
         "rfnotch",
         "dabnotch",
         "amnotch",
-        "refout",
+        "clock_out",
         "server_rate",
     ] {
         assert!(schema.id(k).is_ok(), "{k}");
@@ -514,7 +514,7 @@ fn default_mode_rsp_tcp_takes_the_rtl_tcp_commands() {
     assert_eq!(res.fields().get(&GAINS), Some(29));
     // A control of the RSP commands is refused.
     assert_eq!(
-        src.apply(&with(&base(), "lnastate", Value::I64(2))),
+        src.apply(&with(&base(), "lna_state", Value::I64(2))),
         Err(refused(RspSetting::LnaState))
     );
     src.stop();
@@ -724,7 +724,7 @@ fn open_and_live_changes() {
         &[
             ("rfnotch", Value::Bool(true)),
             ("dabnotch", Value::Bool(true)),
-            ("ppm", Value::I64(-12)),
+            ("ppm", Value::F64(-12.0)),
             ("bias_tee", Value::Bool(true)),
         ],
     );
@@ -844,7 +844,7 @@ fn stages_by_hand() {
         2.048 * M,
         100e6,
         60.0,
-        &[("lnastate", Value::I64(9)), ("ifgr", Value::I64(59))],
+        &[("lna_state", Value::I64(9)), ("if_reduction", Value::I64(59))],
     );
     let (mut src, _r, _) = run(&drv, &srv, &t);
     let c = settle(&srv, 0, 8);
@@ -856,7 +856,7 @@ fn stages_by_hand() {
     );
     // The band at 100 MHz has 10 LNA states: state 12 is refused.
     assert_eq!(
-        src.apply(&with(&t, "lnastate", Value::I64(12))),
+        src.apply(&with(&t, "lna_state", Value::I64(12))),
         Err(refused(RspSetting::LnaState))
     );
     src.stop();
@@ -1290,7 +1290,7 @@ fn refout_on_the_rsp2_and_its_close() {
         100e6,
         60.0,
         &[
-            ("refout", Value::Bool(true)),
+            ("clock_out", Value::Bool(true)),
             ("bias_tee", Value::Bool(true)),
         ],
     );

@@ -468,14 +468,21 @@ fn a_radio_without_automatic_gain_opens_and_spreads_the_overall_gain() {
         b.ctl.call(&p, WAIT, |u| u.f64()).unwrap()
     };
     assert_eq!(
-        [element(&mut b, "LNA"), element(&mut b, "VGA"), element(&mut b, "AMP")],
+        [
+            element(&mut b, "LNA"),
+            element(&mut b, "VGA"),
+            element(&mut b, "AMP")
+        ],
         [40.0, 10.0, 0.0]
     );
     // One stage set by hand: the overall gain reads back as the sum.
     let mut p = rx(call::SET_GAIN_ELEMENT);
     p.string("AMP").f64(14.0);
     b.ctl.call_void(&p, WAIT).unwrap();
-    assert_eq!(b.ctl.call(&rx(call::GET_GAIN), WAIT, |u| u.f64()).unwrap(), 64.0);
+    assert_eq!(
+        b.ctl.call(&rx(call::GET_GAIN), WAIT, |u| u.f64()).unwrap(),
+        64.0
+    );
     let seen = rig.owner.seen.lock().unwrap().clone();
     assert!(
         seen.iter().all(|r| !matches!(
@@ -593,12 +600,16 @@ fn transmit(prot: StreamProt) {
 #[test]
 fn a_search_finds_the_server() {
     let net: Arc<dyn Transport> = Arc::new(FakeTransport::new());
-    let _ssdp = Ssdp::start(&net, "uuid-7", "127.0.0.1", DEFAULT_PORT).unwrap();
+    let _ssdp = Ssdp::start(&net, "uuid-7", "127.0.0.1", DEFAULT_PORT, "HackRF One").unwrap();
     let found = ssdp_search(net.as_ref(), &[SSDP_V4], Duration::from_millis(400)).unwrap();
     assert_eq!(found.len(), 1);
     assert_eq!(
-        (found[0].uuid.as_str(), found[0].port),
-        ("uuid-7", DEFAULT_PORT)
+        (
+            found[0].uuid.as_str(),
+            found[0].port,
+            found[0].radio.as_str()
+        ),
+        ("uuid-7", DEFAULT_PORT, "HackRF One")
     );
 }
 
@@ -678,6 +689,7 @@ fn a_search_over_real_loopback_sockets_finds_the_server() {
         "uuid-9",
         "127.0.0.1",
         DEFAULT_PORT,
+        "",
         group,
         Some(loopback()),
     )

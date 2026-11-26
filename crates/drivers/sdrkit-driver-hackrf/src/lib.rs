@@ -84,25 +84,27 @@ impl Default for Timing {
 
 // ---- Settings ----
 
+use sdrkit_driver_core::form;
+
 /// The LNA gain by hand. -1 follows the gain.
-pub const LNA: Setting<field::I64> = Setting::new("lna_db", "Gain stage: LNA", "dB", -1)
-    .range(-1.0, 40.0, 1.0)
+pub const LNA: Setting<field::I64> = form::lna_gain(form::STAGE_FOLLOWS, 40.0)
+    .common(&[0.0, 8.0, 16.0, 24.0, 32.0, 40.0])
     .help(
         "The receive IF gain, 0 to 40 dB in 8 dB steps; a value between steps is rounded down. -1 follows the gain. Start \
          at 16 dB and raise LNA and VGA by about the same amount.",
     );
 /// The VGA gain by hand. -1 follows the gain.
-pub const VGA: Setting<field::I64> = Setting::new("vga_db", "Gain stage: VGA", "dB", -1)
-    .range(-1.0, 62.0, 1.0)
+pub const VGA: Setting<field::I64> = form::vga_gain(form::STAGE_FOLLOWS, 62.0)
+    .common(&[0.0, 8.0, 16.0, 24.0, 32.0, 40.0, 48.0, 56.0, 62.0])
     .help("The receive baseband gain, 0 to 62 dB in 2 dB steps; an odd value is rounded down. -1 follows the gain.");
 /// The RF amplifier while receiving.
-pub const AMP: Setting<field::Bool> = Setting::new("amp", "RF amplifier", "", false).help(
+pub const AMP: Setting<field::Bool> = form::rf_amp(false).help(
     "The front-end amplifier, about 11 dB, less at high frequencies. The antenna port takes at most -5 dBm: more can \
      damage the device. Use an attenuator for strong signals.",
 );
 /// The 10 MHz clock output.
-pub const CLOCK_OUT: Setting<field::Bool> = Setting::new("clock_out", "Clock output", "", false)
-    .section("advanced")
+pub const CLOCK_OUT: Setting<field::Bool> = form::CLOCK_OUT
+    .advanced()
     .help(
         "A 10 MHz, 3.3 V square wave on CLKOUT for a high-impedance load, to lock another device.",
     );

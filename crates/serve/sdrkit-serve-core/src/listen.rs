@@ -235,15 +235,10 @@ impl Run {
             &self.protocol,
             &self.control,
         ) {
+            // The client joins once it asks for a setting or a stream (`ClientHandle::engage`).
             Ok(entry) => {
-                let id = entry.shared.id;
                 clients.push(entry);
                 self.shared.accepted.fetch_add(1, Ordering::Relaxed);
-                self.inner.event(Event::ClientJoined {
-                    client: id,
-                    listener: self.shared.id,
-                    peer,
-                });
             }
             Err(_) => {
                 drop(clients);
@@ -255,11 +250,18 @@ impl Run {
     }
 }
 
-/// Drops the rings that the feeder retired, and joins and removes the clients whose threads have ended.
+/// The most clients that left that snapshots show to the owner.
+const DEPARTED_MAX: usize = 64;
+/// How long snapshots show a client that left.
+const DEPARTED_KEEP: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Drops the rings that the feeder retired, and joins and removes the clients whose threads have ended. A client that
+/// left with requests not carried out is shown by snapshots for [`DEPARTED_KEEP`].
 pub(crate) fn housekeep(inner: &Inner) {
     if let Ok(mut r) = inner.retired.try_lock() {
         while r.pop().is_ok() {}
     }
+    lock(&inner.departed).retain(|(_, at)| at.elapsed() < DEPARTED_KEEP);
     let done: Vec<ClientEntry> = {
         let mut clients = lock(&inner.clients);
         let mut done = Vec::new();
@@ -279,6 +281,14 @@ pub(crate) fn housekeep(inner: &Inner) {
     let listeners = lock(&inner.listeners);
     for mut c in done {
         c.join();
+        let refused =
+            c.shared.engaged.load(Ordering::Acquire) && !lock(&c.shared.not_done).is_empty();
+        if refused {
+            let mut d = lock(&inner.departed);
+            if d.len() < DEPARTED_MAX {
+                d.push((c.shared.clone(), std::time::Instant::now()));
+            }
+        }
         if let Some(l) = listeners.iter().find(|l| l.shared.id == c.shared.listener) {
             l.shared
                 .closed_bytes

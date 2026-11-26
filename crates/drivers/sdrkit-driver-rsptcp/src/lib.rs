@@ -14,6 +14,7 @@ use radio::RspRadio;
 use sdrkit_core::net::{host_port, show, Transport};
 use sdrkit_core::publish::field;
 use sdrkit_core::{Declare, Field, Hz, Results, Setting, SettingSet, Values};
+use sdrkit_driver_core::form;
 use sdrkit_driver_core::rtl_tcp::{PinDetector, SERVER_RATE};
 use sdrkit_driver_core::runner::{Opener, RunnerConfig, StreamRunner, NETWORK_ADVICE};
 use sdrkit_driver_core::{
@@ -51,7 +52,7 @@ sdrkit_core::choice_enum! {
 
 /// The commands the driver sends.
 pub const PROTOCOL: Setting<field::Choice<CommandSet>> =
-    Setting::choice("protocol", "Protocol", CommandSet::Auto)
+    form::protocol(CommandSet::Auto)
         .restart()
         .help(
             "Auto uses the RSP commands when the server greets in extended mode (rsp_tcp started with its extended-mode option), \
@@ -59,32 +60,32 @@ pub const PROTOCOL: Setting<field::Choice<CommandSet>> =
              that misbehave with the RSP commands.",
         );
 /// The frequency correction.
-pub const PPM: Setting<field::I64> = Setting::new("ppm", "Frequency correction", "ppm", 0)
+pub const PPM: Setting<field::F64> = form::PPM
     .range(-200.0, 200.0, 1.0)
     .help("The clock error of the radio in ppm, positive when the clock runs fast.");
 /// The antenna input.
-pub const ANTENNA: Setting<field::Choice<Antenna>> = Setting::choice("antenna", "Antenna", Antenna::First).help(
+pub const ANTENNA: Setting<field::Choice<Antenna>> = form::antenna(Antenna::First).help(
     "The input the antenna is on. Hi-Z inputs are for 1 kHz to 30 MHz. On the RSPduo, the tuner choice of the server can limit \
      this. A model that lacks the input refuses it.",
 );
 /// How one gain number is shared between the two gain stages.
 pub const GAIN_SPLIT: Setting<field::Choice<GainSplit>> =
-    Setting::choice("gainsplit", "Gain split", GainSplit::Sensitivity).help(
+    Setting::choice("gainsplit", "Gain split", GainSplit::Sensitivity)
+        .section(form::GAIN_SECTION)
+        .help(
         "How one gain number is shared between the LNA and the IF stage. Sensitivity keeps the LNA gain (best noise figure). \
          Linearity gives up LNA gain first (better with strong neighbouring signals). The samples on the link are 8-bit, so set \
          the gain so that the signal neither clips nor sinks into the noise.",
     );
 /// The LNA state by hand. -1 follows the gain number.
-pub const LNA_STATE: Setting<field::I64> = Setting::new("lnastate", "Gain stage: LNA state", "", -1)
-    .range(-1.0, model::MAX_LNA_STATE as f64, 1.0)
+pub const LNA_STATE: Setting<field::I64> = form::lna_state(form::STAGE_FOLLOWS, model::MAX_LNA_STATE as f64)
     .help(
         "Set the LNA state by hand. -1 follows the gain number. The LNA steps depend on the model and the band. A state the band \
          does not have is refused.",
     );
 /// The IF gain reduction by hand. -1 follows the gain number.
 pub const IFGR: Setting<field::I64> =
-    Setting::new("ifgr", "Gain stage: IF gain reduction", "dB", -1)
-        .range(-1.0, model::IFGR_MAX as f64, 1.0)
+    form::if_reduction(form::STAGE_FOLLOWS, model::IFGR_MAX as f64)
         .help("Set the IF gain reduction by hand (20 to 59 dB). -1 follows the gain number.");
 /// The level the AGC of the radio holds.
 pub const AGC_SETPOINT: Setting<field::I64> = Setting::new(
@@ -94,6 +95,7 @@ pub const AGC_SETPOINT: Setting<field::I64> = Setting::new(
     -30,
 )
 .range(-60.0, -20.0, 1.0)
+.section(form::GAIN_SECTION)
 .help(
     "The level the AGC of the radio holds the signal at. The AGC runs when automatic gain is on.",
 );
@@ -101,28 +103,27 @@ const NOTCH_HELP: &str =
     "Cut strong broadcast (FM, MW) or DAB band III signals that overload the radio. Leave off to receive those bands.";
 /// The FM/MW broadcast notch.
 pub const RF_NOTCH: Setting<field::Bool> =
-    Setting::new("rfnotch", "FM/MW notch", "", false).help(NOTCH_HELP);
+    Setting::new("rfnotch", "FM/MW notch", "", false)
+        .section(form::ANTENNA_SECTION)
+        .help(NOTCH_HELP);
 /// The DAB notch.
 pub const DAB_NOTCH: Setting<field::Bool> =
-    Setting::new("dabnotch", "DAB notch", "", false).help(NOTCH_HELP);
+    Setting::new("dabnotch", "DAB notch", "", false)
+        .section(form::ANTENNA_SECTION)
+        .help(NOTCH_HELP);
 /// The MW notch of the Hi-Z input of the RSPduo.
 pub const AM_NOTCH: Setting<field::Bool> = Setting::new("amnotch", "Hi-Z MW notch", "", false)
+    .section(form::ANTENNA_SECTION)
     .help(
     "Cuts strong MW broadcast signals on the Hi-Z input of the RSPduo. Leave off to receive MW.",
 );
 /// The clock output.
-pub const REF_OUT: Setting<field::Bool> = Setting::new("refout", "Clock output", "", false)
+pub const REF_OUT: Setting<field::Bool> = form::CLOCK_OUT
     .help("The 24 MHz clock of the radio on its output socket, to lock another radio.");
 
 sdrkit_core::settings! {
     /// The own settings of the rsp_tcp driver. A server that lacks a control refuses a value that needs it.
     pub enum RspSetting {
-        /// [`PROTOCOL`].
-        Protocol = PROTOCOL,
-        /// [`PPM`].
-        Ppm = PPM,
-        /// [`ANTENNA`].
-        Antenna = ANTENNA,
         /// [`GAIN_SPLIT`].
         GainSplit = GAIN_SPLIT,
         /// [`LNA_STATE`].
@@ -131,6 +132,10 @@ sdrkit_core::settings! {
         Ifgr = IFGR,
         /// [`AGC_SETPOINT`].
         AgcSetpoint = AGC_SETPOINT,
+        /// [`PPM`].
+        Ppm = PPM,
+        /// [`ANTENNA`].
+        Antenna = ANTENNA,
         /// [`RF_NOTCH`].
         RfNotch = RF_NOTCH,
         /// [`DAB_NOTCH`].
@@ -139,6 +144,8 @@ sdrkit_core::settings! {
         AmNotch = AM_NOTCH,
         /// [`REF_OUT`].
         RefOut = REF_OUT,
+        /// [`PROTOCOL`].
+        Protocol = PROTOCOL,
         /// The rate the server keeps whatever rate is requested ([`SERVER_RATE`]).
         ServerRate = SERVER_RATE,
     }
@@ -265,7 +272,7 @@ impl Options {
             .map(|r| r.round().min(f64::from(u32::MAX)) as u32);
         Options {
             protocol: v.get(&PROTOCOL),
-            ppm: v.get(&PPM),
+            ppm: v.get(&PPM).round() as i64,
             antenna: v.get(&ANTENNA),
             split: v.get(&GAIN_SPLIT),
             lnastate: v.get(&LNA_STATE),

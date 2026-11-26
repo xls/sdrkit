@@ -208,11 +208,10 @@ fn status(engine: &Engine, share: OwnerRef) -> Result<String, CliError> {
             f.clients,
             f.samples
         );
-        if f.requests_refused > 0 {
-            s.push_str(&format!(
-                ", {} requests not carried out",
-                f.requests_refused
-            ));
+        // What each client asked for and did not get, and what it loses.
+        let notes = &o.results().status().summary;
+        if !notes.is_empty() {
+            s.push_str(&format!("; {notes}"));
         }
         if f.transmitting {
             s.push_str(", a client transmits");
@@ -238,11 +237,12 @@ pub fn serve(
     out: &mut Out,
     stop: &dyn Fn() -> bool,
 ) -> Result<(), CliError> {
-    let control: Option<ShareControl> = s
-        .control
-        .as_deref()
-        .map(|c| choice(c, "--control"))
-        .transpose()?;
+    // Without a stack nobody here steers the radio: the first client does. A stack steers it, and the clients follow.
+    let control: ShareControl = match s.control.as_deref() {
+        Some(c) => choice(c, "--control")?,
+        None if s.stack.is_some() => ShareControl::Follow,
+        None => ShareControl::Remote,
+    };
     let format: Option<ShareFormat> = s
         .format
         .as_deref()
@@ -280,7 +280,7 @@ fn shared(
     engine: &Engine,
     radio: RadioId,
     s: &Serve,
-    control: Option<ShareControl>,
+    control: ShareControl,
     format: Option<ShareFormat>,
     out: &mut Out,
     stop: &dyn Fn() -> bool,
@@ -289,13 +289,19 @@ fn shared(
     let share = OwnerRef::Share(id);
     let name = engine.key_of(share).unwrap_or_default();
     let mut run = || -> Result<(), CliError> {
-        if let Some(c) = control {
-            engine.set_text(share, "control", c.key())?;
-        }
+        engine.set_text(share, "control", control.key())?;
         if let Some(f) = format {
             engine.set_text(share, "format", f.key())?;
         }
-        out.line(&format!("{name} serves {}", s.source))?;
+        out.line(&format!(
+            "{name} serves {} ({})",
+            s.source,
+            match control {
+                ShareControl::Follow => "the clients follow the tuning of this program",
+                ShareControl::Remote => "the first client steers the radio",
+                ShareControl::Slice => "each client gets its own part of the capture",
+            }
+        ))?;
         if s.rtl_tcp.is_none() && s.soapy.is_none() {
             listen(
                 engine,

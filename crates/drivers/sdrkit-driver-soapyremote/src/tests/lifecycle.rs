@@ -21,6 +21,13 @@ fn freq(hz: f64) -> Vec<u8> {
     })
 }
 
+/// The read back of the frequency that follows each frequency sent.
+fn freq_back() -> Vec<u8> {
+    req(call::GET_FREQUENCY, |p| {
+        p.dir_ch(1, 0);
+    })
+}
+
 fn gain(db: f64) -> Vec<u8> {
     req(call::SET_GAIN, |p| {
         p.dir_ch(1, 0).f64(db);
@@ -94,7 +101,7 @@ fn live_retunes_send_only_what_changed() {
     let n = f.control().len();
     put(&mut t, "centre_hz", Value::Hz(101e6));
     assert!(matches!(src.apply(&t).unwrap(), Retuned::Live(_)));
-    assert_eq!(bytes_since(&f, n), vec![freq(101e6)]);
+    assert_eq!(bytes_since(&f, n), vec![freq(101e6), freq_back()]);
     // Gain only.
     let n = f.control().len();
     put(&mut t, "gain", Value::F64(30.0));
@@ -146,7 +153,7 @@ fn live_retunes_send_only_what_changed() {
     let n = f.control().len();
     put(&mut t, "centre_hz", Value::Hz(7e6));
     src.apply(&t).unwrap();
-    assert_eq!(bytes_since(&f, n), vec![freq(7e6)]);
+    assert_eq!(bytes_since(&f, n), vec![freq(7e6), freq_back()]);
     let lines = notes(&mut src);
     assert!(
         lines.iter().any(|l| l.contains(
@@ -183,7 +190,7 @@ fn without_its_own_correction_the_frequency_is_corrected() {
     put(&mut t, "ppm", Value::F64(3.0));
     src.apply(&t).unwrap();
     let got = bytes_since(&f, n);
-    assert_eq!(got, vec![freq(100_000_000.0 / 1.000003)]);
+    assert_eq!(got, vec![freq(100_000_000.0 / 1.000003), freq_back()]);
     assert!((100_000_000.0f64 / 1.000003 - 99_999_700.000_9).abs() < 1e-3);
     assert!(!f.calls().contains(&call::SET_FREQ_CORRECTION));
     src.stop();
@@ -214,8 +221,10 @@ fn gr_script(overall: (f64, f64)) -> Script {
 #[test]
 fn a_gain_reduction_radio() {
     let f = Fake::start(gr_script((0.0, 48.0)));
-    let mut t = vals(&[remote("sdrplay"), ("gain", Value::F64(48.0))]);
+    let t = vals(&[remote("sdrplay"), ("gain", Value::F64(48.0))]);
     let (mut src, _r) = start(&f, &t);
+    // The radio reports an RF gain-reduction stage: it has the setting of the RF state.
+    let mut t = with_run_time(&src, &[remote("sdrplay"), ("gain", Value::F64(48.0))]);
     let c = f.control();
     let i = c
         .iter()
@@ -228,9 +237,11 @@ fn a_gain_reduction_radio() {
         (48.0, Some(6), [6.0, 20.0]),
     ] {
         let n = f.control().len();
-        put(&mut t, "gain", Value::F64(g));
+        let id = t.schema().id("gain").unwrap();
+        t.set(id, &Value::F64(g)).unwrap();
         if let Some(v) = rfgr {
-            put(&mut t, "rfgr", Value::I64(v));
+            let id = t.schema().id("rfgr").unwrap();
+            t.set(id, &Value::I64(v)).unwrap();
         }
         src.apply(&t).unwrap();
         assert_eq!(
@@ -240,14 +251,9 @@ fn a_gain_reduction_radio() {
         );
     }
     assert_eq!(src.capabilities().gain_db, Some((0.0, 48.0, 0.0)));
-    // An RF state the radio does not have is refused.
-    put(&mut t, "rfgr", Value::I64(10));
-    assert_eq!(
-        src.apply(&t).unwrap_err(),
-        DriverError::Refused {
-            id: own_id(SoapyRemoteSetting::RfState)
-        }
-    );
+    // An RF state the radio does not have is outside the range of the setting.
+    let id = t.schema().id("rfgr").unwrap();
+    assert!(t.set(id, &Value::I64(10)).is_err());
     src.stop();
     // An overall range of 0 to 1 dB returns the slider 0 to 48 dB.
     let f = Fake::start(gr_script((0.0, 1.0)));

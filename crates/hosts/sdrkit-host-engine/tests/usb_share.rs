@@ -582,6 +582,12 @@ fn the_control_follow_leaves_the_radio_to_the_host() {
     let e = engine_with(Arc::new(net.clone()), no_usb());
     let radio = tone_radio(&e, RATE);
     let (_, sh) = share(&e, radio);
+    set(
+        &e,
+        sh,
+        "control",
+        Value::Choice(ShareControl::Follow.index()),
+    );
     let (_, port) = listen(&e, sh, ShareProtocol::RtlTcp);
     let mut c = raw_client(&net, port);
     drain(c.try_clone().unwrap());
@@ -1031,6 +1037,13 @@ fn a_client_transmits_only_with_a_grant_and_the_transmit_switch() {
         .unwrap();
     set(&e, OwnerRef::Radio(radio), "tx_power", Value::F64(-10.0));
     let (_, sh) = share(&e, radio);
+    // The receive rate stays the host's, which the burst below uses.
+    set(
+        &e,
+        sh,
+        "control",
+        Value::Choice(ShareControl::Follow.index()),
+    );
     let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
 
     // A SoapyRemote client: our own driver, on the same network.
@@ -1171,7 +1184,8 @@ fn hackrf_bus() -> FakeUsb {
 /// The gain setting of radio `r`.
 fn gain(e: &Engine, r: RadioId) -> f64 {
     e.owner(OwnerRef::Radio(r), |o| {
-        o.values().map_or(f64::NAN, |v| v.get(&sdrkit_driver_core::GAIN))
+        o.values()
+            .map_or(f64::NAN, |v| v.get(&sdrkit_driver_core::GAIN))
     })
     .unwrap()
 }
@@ -1240,4 +1254,219 @@ fn our_soapyremote_client_opens_the_share_of_a_radio_without_automatic_gain() {
             e.close_radio(radio).unwrap();
         }
     }
+}
+
+/// Our SoapyRemote client on `net` at `port`, with the frequency `centre_hz`, the rate `rate_hz` and the server's log
+/// connection on or off. It is opened, not started.
+fn soapy_client(
+    net: &FakeTransport,
+    port: u16,
+    centre_hz: f64,
+    rate_hz: f64,
+    serverlog: bool,
+) -> Result<Box<dyn sdrkit_driver_core::Source>, DriverError> {
+    use sdrkit_driver_core::{DriverKind, SourceDriver};
+    use sdrkit_driver_soapyremote::SoapyRemoteDriver;
+    let driver = SoapyRemoteDriver::new(Arc::new(net.clone()));
+    let schema = DriverKind::new(Box::new(driver.clone())).schema().clone();
+    let mut v = Values::defaults(&schema);
+    for (key, value) in [
+        ("serverlog", Value::Bool(serverlog)),
+        ("centre_hz", Value::Hz(centre_hz)),
+        ("rate", Value::Hz(rate_hz)),
+    ] {
+        v.set(schema.id(key).unwrap(), &value).unwrap();
+    }
+    driver.open(&format!("127.0.0.1:{port}"), &v)
+}
+
+/// The schema of our SoapyRemote driver before a radio opens.
+fn src_schema() -> &'static std::sync::Arc<sdrkit_core::Schema> {
+    use sdrkit_driver_core::DriverKind;
+    use sdrkit_driver_soapyremote::SoapyRemoteDriver;
+    static SCHEMA: std::sync::OnceLock<std::sync::Arc<sdrkit_core::Schema>> =
+        std::sync::OnceLock::new();
+    SCHEMA.get_or_init(|| {
+        let d = SoapyRemoteDriver::new(Arc::new(FakeTransport::new()));
+        DriverKind::new(Box::new(d)).schema().clone()
+    })
+}
+
+/// The frequency of the strongest tone in `iq` at `rate_hz`, from the mean phase step.
+fn tone_hz(iq: &[Complex32], rate_hz: f64) -> f64 {
+    let step: Complex32 = iq.windows(2).map(|w| w[1] * w[0].conj()).sum();
+    f64::from(step.arg()) * rate_hz / std::f64::consts::TAU
+}
+
+/// Reads at least `n` samples of type Cf32 from `r`.
+fn read_cf32(r: &mut sdrkit_driver_core::RingReader, n: usize) -> Vec<Complex32> {
+    let mut iq = Vec::new();
+    let got = wait_for(10.0, || {
+        r.wait(1, Duration::from_millis(20));
+        r.read_with(1 << 16, |b| {
+            let mut part = vec![Complex32::default(); b.len() / 8];
+            to_iq(SampleType::Cf32, b, &mut part);
+            iq.extend(part);
+        });
+        (iq.len() >= n).then_some(())
+    });
+    assert!(got.is_some(), "{} samples", iq.len());
+    iq
+}
+
+/// A share in Follow: our client wants a frequency inside the capture, takes the centre and the rate that the server
+/// holds, and gets the tone of the radio at its place from that centre, so a session tunes to the wanted frequency
+/// inside the capture. A frequency outside the capture fails the start with the numbers of the server.
+#[test]
+fn our_client_follows_a_held_radio_inside_the_capture_and_refuses_outside_it() {
+    let net = FakeTransport::new();
+    let e = engine_with(Arc::new(net.clone()), no_usb());
+    let radio = tone_radio(&e, RATE);
+    let (_, sh) = share(&e, radio);
+    set(
+        &e,
+        sh,
+        "control",
+        Value::Choice(ShareControl::Follow.index()),
+    );
+    let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
+
+    let mut src = soapy_client(&net, port, 100.3e6, 250e3, false).unwrap();
+    let (w, mut r) = sdrkit_driver_core::ring(1 << 20, src.sample_type());
+    let started = src.start(w).unwrap();
+    assert_eq!((started.centre_hz, started.rate_hz), (100e6, RATE));
+    let iq = read_cf32(&mut r, 100_000);
+    let f = tone_hz(&iq[20_000..], started.rate_hz);
+    assert!((f - TONE_OFFSET_HZ).abs() < 2e3, "the tone at {f} Hz");
+    assert_eq!(centre(&e, radio), 100e6);
+    src.stop();
+
+    // The first set-up takes the frequency of the host before a stack names one; the retune to a frequency outside the
+    // capture fails.
+    let mut src = soapy_client(&net, port, 100.3e6, 250e3, false).unwrap();
+    let (w, _r) = sdrkit_driver_core::ring(1 << 20, src.sample_type());
+    src.start(w).unwrap();
+    let mut v = Values::defaults(src_schema());
+    for (key, value) in [
+        ("serverlog", Value::Bool(false)),
+        ("centre_hz", Value::Hz(106.5e6)),
+        ("rate", Value::Hz(250e3)),
+    ] {
+        v.set(v.schema().id(key).unwrap(), &value).unwrap();
+    }
+    let e2 = src.apply(&v).unwrap_err().to_string();
+    src.stop();
+    assert!(
+        e2.contains("the server holds this radio at 100 MHz, 1.024 MHz wide, and does not let clients tune; 106.5 MHz is outside it"),
+        "{e2}"
+    );
+    // The status line of the share says it at its next tick.
+    let want = "asked for 106.5 MHz: not carried out, this share follows the server's own tuning; it gets 100 MHz";
+    let mut notes = String::new();
+    let said = wait_for(5.0, || {
+        notes = e
+            .owner(sh, |o| o.results().status().summary.clone())
+            .unwrap();
+        notes.contains(want).then_some(())
+    });
+    assert!(said.is_some(), "{notes}");
+}
+
+/// A new share lets the first client steer. A connection that only looks at the server, and the log connection of our
+/// client, are no clients: the share counts one client, and that client steers, also when the probe came first.
+#[test]
+fn a_new_share_lets_the_first_client_steer_and_counts_one_client_per_session() {
+    let net = FakeTransport::new();
+    let e = engine_with(Arc::new(net.clone()), no_usb());
+    let radio = tone_radio(&e, RATE);
+    let (_, sh) = share(&e, radio);
+    let control = e
+        .owner(sh, |o| {
+            let v = o.values().unwrap();
+            v.value(v.schema().id("control").unwrap()).cloned()
+        })
+        .unwrap();
+    assert_eq!(control, Some(Value::Choice(ShareControl::Remote.index())));
+    let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
+    // A connection that sends nothing, as a check of the port does.
+    let probe = net
+        .connect("127.0.0.1", port, false, Duration::from_secs(2))
+        .unwrap();
+
+    let mut src = soapy_client(&net, port, 101e6, RATE, true).unwrap();
+    let (w, mut r) = sdrkit_driver_core::ring(1 << 20, src.sample_type());
+    src.start(w).unwrap();
+    read_cf32(&mut r, 10_000);
+    assert!(wait_for(5.0, || (centre(&e, radio) == 101e6).then_some(())).is_some());
+    assert!(e.settle(Duration::from_secs(5)));
+    let c = wait_clients(&e, sh, 1);
+    assert!(c[0].steers);
+    assert_eq!(count(&e, sh, "clients"), 1);
+    let listener = e
+        .owner(sh, |o| {
+            LISTENERS
+                .rows::<ListenerRow<'_>>(o.results())
+                .map(|(_, l)| (l.clients, l.accepted))
+                .next()
+        })
+        .unwrap()
+        .unwrap();
+    // Three connections: the probe, the calls and the log; one client.
+    assert_eq!(listener, (1, 3));
+    let mut events = Vec::new();
+    e.take_events(sh, &mut events).unwrap();
+    let joined = events
+        .iter()
+        .filter(|e| e.kind() == "share.client_joined")
+        .count();
+    assert_eq!(joined, 1);
+    src.stop();
+    drop(probe);
+}
+
+/// A steering client that asks for a rate below the lowest rate of the radio gets it: the radio goes to its lowest
+/// rate, and the share brings it down for this client alone, around the centre of the radio.
+#[test]
+fn a_steering_client_gets_a_rate_below_the_lowest_rate_of_the_radio() {
+    let net = FakeTransport::new();
+    let e = engine_with(Arc::new(net.clone()), Arc::new(hackrf_bus()));
+    assert!(e.settle(Duration::from_secs(5)));
+    let kind = e.find("driver.hackrf").unwrap();
+    let radio = e.open_radio("hackrf", "", &defaults(&e, kind)).unwrap();
+    let lowest = e
+        .owner(OwnerRef::Radio(radio), |o| {
+            o.values().map(|v| {
+                v.schema()
+                    .setting(v.schema().id("rate").unwrap())
+                    .and_then(|s| s.range)
+                    .map(|r| r.min)
+            })
+        })
+        .unwrap()
+        .flatten()
+        .unwrap();
+    assert!(lowest > 500e3, "{lowest}");
+    let (_, sh) = share(&e, radio);
+    let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
+    let mut src = soapy_client(&net, port, 100.5e6, 500e3, false).unwrap();
+    let (w, mut r) = sdrkit_driver_core::ring(1 << 20, src.sample_type());
+    let started = src.start(w).unwrap();
+    assert_eq!((started.centre_hz, started.rate_hz), (100.5e6, 500e3));
+    let mut got = 0usize;
+    assert!(wait_for(10.0, || {
+        r.wait(1, Duration::from_millis(20));
+        got += r.read_with(1 << 20, |_| {});
+        (got > 50_000).then_some(())
+    })
+    .is_some());
+    assert!(e.settle(Duration::from_secs(5)));
+    assert_eq!(number(&e, OwnerRef::Radio(radio), "rate_hz"), lowest);
+    assert_eq!(centre(&e, radio), 100.5e6);
+    // The table follows the capture at the next tick of the share.
+    let sliced = wait_for(5.0, || {
+        let c = clients(&e, sh);
+        (c.len() == 1 && c[0].slice == Some((100.5e6, 500e3))).then_some(())
+    });
+    assert!(sliced.is_some(), "{:?}", clients(&e, sh));
+    src.stop();
 }

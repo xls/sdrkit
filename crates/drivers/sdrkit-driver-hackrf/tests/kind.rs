@@ -67,7 +67,10 @@ fn the_kind_finds_composes_and_opens_and_the_radio_transmits() {
     assert!(f.get(&BOARD).unwrap().starts_with("HackRF One r9"));
     assert_eq!(f.get(&FIRMWARE), Some("2026.01.3"));
     assert_eq!(f.get(&TUNE_OFFSET), Some(2e6));
-    assert!(radio.schema().id("lna_db").is_ok() && radio.schema().id("tx_amp").is_ok());
+    assert!(radio.schema().id("lna_gain").is_ok() && radio.schema().id("tx_amp").is_ok());
+    // The open radio follows the standard form of the settings.
+    let problems = sdrkit_driver_core::form::check(radio.schema());
+    assert!(problems.is_empty(), "{problems:?}");
     let tx = radio.transmitter().unwrap();
     assert!(!tx.capabilities().full_duplex);
     drop(tx);

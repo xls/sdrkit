@@ -78,12 +78,23 @@ const SHORT: f64 = 0.9;
 const OWN_BUFFER_WAIT: Duration = Duration::from_secs(3);
 /// How long a buffer left behind counts as ours after our stream ended.
 const OWN_BUFFER_RECENT: Duration = Duration::from_secs(10);
-/// The longest time the kernel buffers fill before a probe reads them.
+/// The longest time the kernel buffers fill before the timing at the start of a stream reads them.
 const PROBE_FILL_MAX: Duration = Duration::from_millis(400);
-/// The longest time the timing of the link at open reads, after the buffers filled.
-const PROBE_READ_MAX: Duration = Duration::from_secs(4);
-/// How long the timing of the link at open sends requests.
-const PROBE_ASK_FOR: Duration = Duration::from_secs(1);
+/// How long a reading of the link counts. The link to a board across Wi-Fi changes from second to second, so an older
+/// reading says nothing about it.
+const LIVE_FRESH: Duration = Duration::from_secs(5);
+/// The weight of the previous figure when a new reading of the running stream comes: the live figure follows the link
+/// over a few windows, up as well as down.
+const LIVE_SMOOTH: f64 = 0.5;
+
+/// `x` to two significant figures.
+fn round2(x: f64) -> f64 {
+    if x <= 0.0 || !x.is_finite() {
+        return x;
+    }
+    let scale = 10f64.powi(1 - x.log10().floor() as i32);
+    (x * scale).round() / scale
+}
 
 /// What queued buffers that came at `bps` bytes a second say of a link, for a stream that needs `need_bps`: `true` when the
 /// link carries no more than that (they came faster than the rate, or the link held them below it), `false` when they came
@@ -276,11 +287,12 @@ sdrkit_core::choice_enum! {
 }
 
 /// The frequency correction.
-pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
+pub const PPM: Setting<field::F64> = crate::form::PPM
     .range(-200.0, 200.0, 0.01)
     .help("The clock error in ppm, positive if the clock runs fast. Corrects tuning and sample rate together.");
 /// Receive below 2.1 Msps through the hardware FIR.
 pub const LOW_RATE_FIR: Setting<field::Bool> = Setting::new("lowratefir", "Low-rate FIR (RX only)", "", false)
+    .section(crate::form::RATE_SECTION)
     .restart()
     .help(
         "Receive below 2.1 Msps (down to 0.521 Msps, the 2.048 Msps of DAB among them) through the hardware FIR, RX only. Off: \
@@ -289,7 +301,7 @@ pub const LOW_RATE_FIR: Setting<field::Bool> = Setting::new("lowratefir", "Low-r
          Nothing is transmitted, but leave it off on a radio you also transmit with.",
     );
 /// The gain mode of the AD936x.
-pub const GAIN_MODE: Setting<field::Choice<GainMode>> = Setting::choice("gainmode", "Gain mode", GainMode::Manual)
+pub const GAIN_MODE: Setting<field::Choice<GainMode>> = crate::form::agc_mode(GainMode::Manual)
     .help(
         "Manual: the gain setting sets the gain. With automatic gain on, the driver chooses the gain from the level of the samples \
          (the peaks 10 dB below full scale), holds it, and moves it only when the level stays more than 6 dB off for half a \
@@ -299,11 +311,12 @@ pub const GAIN_MODE: Setting<field::Choice<GainMode>> = Setting::choice("gainmod
     );
 /// The receiver of one stream.
 pub const ANTENNA: Setting<field::Choice<Antenna>> =
-    Setting::choice("antenna", "Antenna", Antenna::Rx1)
+    crate::form::antenna(Antenna::Rx1)
         .restart()
         .help("RX2 needs two receivers.");
 /// How many receivers stream.
 pub const RECEIVERS: Setting<field::Choice<Receivers>> = Setting::choice("receivers", "Receivers", Receivers::One)
+    .section(crate::form::ANTENNA_SECTION)
     .restart()
     .help(
         "Both receivers at once, on one clock and one LO (AD9361 boards: ANTSDR E310, Pluto+). Two streams: RX1 in the first, RX2 \
@@ -311,50 +324,51 @@ pub const RECEIVERS: Setting<field::Choice<Receivers>> = Setting::choice("receiv
     );
 /// The gain mode of RX2.
 pub const GAIN_MODE2: Setting<field::Choice<Rx2GainMode>> =
-    Setting::choice("gainmode2", "RX2 gain mode", Rx2GainMode::Same)
+    Setting::choice("gainmode2", "RX2 AGC mode", Rx2GainMode::Same)
+        .section(crate::form::GAIN_SECTION)
         .help("With both receivers: the gain mode of RX2, or the same as RX1.");
 /// The gain of RX2.
 pub const GAIN2: Setting<field::F64> = Setting::new("gain2", "RX2 gain", "dB", 30.0)
     .range(0.0, 77.0, 1.0)
+    .section(crate::form::GAIN_SECTION)
     .help("With both receivers and RX2 in manual gain: its gain.");
 /// The input of the receivers.
 pub const RX_PORT: Setting<field::Choice<RxPort>> = Setting::choice("rxport", "RX port", RxPort::Auto)
+    .section(crate::form::ANTENNA_SECTION)
     .help("The AD936x input that the receivers use. Most boards wire only A_BALANCED. Some switch bands with B and C.");
 /// Quadrature tracking.
 pub const QUAD_TRACK: Setting<field::Bool> = Setting::new("quadtrack", "Quadrature tracking", "", true)
-    .section("Calibration")
+    .section(crate::form::CORRECTIONS_SECTION)
     .help("The AD936x keeps correcting the I/Q balance. Turn it off only for measurements that need it untouched.");
 /// RF DC offset tracking.
 pub const RF_DC_TRACK: Setting<field::Bool> = Setting::new("rfdctrack", "RF DC tracking", "", true)
-    .section("Calibration")
+    .section(crate::form::CORRECTIONS_SECTION)
     .help("The AD936x keeps removing the DC offset of the RF stage.");
 /// Baseband DC offset tracking.
 pub const BB_DC_TRACK: Setting<field::Bool> = Setting::new("bbdctrack", "Baseband DC tracking", "", true)
-    .section("Calibration")
+    .section(crate::form::CORRECTIONS_SECTION)
     .help("The AD936x keeps removing the DC offset of the baseband. Off keeps a carrier at the centre frequency.");
 /// Sample buffers in flight on the board.
-pub const BUFFERS: Setting<field::I64> = Setting::new("kbuffers", "Buffers", "", 8)
-    .range(2.0, 64.0, 1.0)
-    .section("Link")
+pub const BUFFERS: Setting<field::I64> = crate::form::buffers(8, 2.0, 64.0)
     .restart()
     .help("Sample buffers that the board keeps in flight. More ride out a slow link or a busy board, at the cost of latency.");
 /// Samples per transfer.
-pub const BUFFER_SIZE: Setting<field::Choice<BufferSize>> = Setting::choice("bufsize", "Buffer size", BufferSize::Auto)
-    .section("Link")
+pub const BUFFER_SIZE: Setting<field::Choice<BufferSize>> = crate::form::buffer_size(BufferSize::Auto)
     .restart()
     .help("Samples per transfer. Auto holds at least 25 ms, which keeps high rates flowing over a network.");
 /// The protocol of the sample stream.
-pub const PROTOCOL: Setting<field::Choice<StreamProtocol>> = Setting::choice("protocol", "Protocol", StreamProtocol::Auto)
-    .section("Link")
+pub const PROTOCOL: Setting<field::Choice<StreamProtocol>> = crate::form::protocol(StreamProtocol::Auto)
     .restart()
     .help("Auto streams over the binary protocol if the server of the board offers it (libiio 1.x), else the text protocol.");
 /// What carries the samples.
-pub const LINK: Setting<field::Choice<LinkKind>> = Setting::choice("link", "Link", LinkKind::Auto).help(
+pub const LINK: Setting<field::Choice<LinkKind>> = Setting::choice("link", "Link", LinkKind::Auto)
+    .section(crate::form::LINK_SECTION)
+    .help(
     "Auto takes the default address as the network of the USB cable (about 3 Msps without loss). Ethernet means a Pluto+ or a \
      USB Ethernet adapter, with no cap. USB holds the USB rate.",
 );
 /// The sample format of Tezuka firmware.
-pub const IQ_FORMAT: Setting<field::Choice<IqFormat>> = Setting::choice("iqformat", "IQ format", IqFormat::Cs16)
+pub const IQ_FORMAT: Setting<field::Choice<IqFormat>> = crate::form::format(IqFormat::Cs16)
     .restart()
     .help(
         "CS16 is 16-bit (the 12-bit converter). CS8 is half the data, so a higher rate over USB or a slow network, with less \
@@ -364,34 +378,34 @@ pub const IQ_FORMAT: Setting<field::Choice<IqFormat>> = Setting::choice("iqforma
 /// The time between two passes of the readings monitor.
 pub const READINGS_EVERY: Setting<field::F64> = Setting::new("readings_s", "Readings every", "s", 5.0)
     .range(0.0, 60.0, 0.5)
-    .section("Link")
+    .section(crate::form::LINK_SECTION)
     .help("How often the temperature, the RSSI, the gain and the state of the board are read, on a connection of their own. 0 reads none.");
 
 sdrkit_core::settings! {
     /// The own settings of the iiod driver. A board that lacks a part refuses the setting when it is applied.
     pub enum IiodSetting {
-        /// [`PPM`].
-        Ppm = PPM,
-        /// [`LOW_RATE_FIR`].
-        LowRateFir = LOW_RATE_FIR,
         /// [`GAIN_MODE`].
         GainMode = GAIN_MODE,
-        /// [`ANTENNA`].
-        Antenna = ANTENNA,
-        /// [`RECEIVERS`].
-        Receivers = RECEIVERS,
         /// [`GAIN_MODE2`].
         GainMode2 = GAIN_MODE2,
         /// [`GAIN2`].
         Gain2 = GAIN2,
-        /// [`RX_PORT`].
-        RxPort = RX_PORT,
+        /// [`LOW_RATE_FIR`].
+        LowRateFir = LOW_RATE_FIR,
+        /// [`PPM`].
+        Ppm = PPM,
         /// [`QUAD_TRACK`].
         QuadTrack = QUAD_TRACK,
         /// [`RF_DC_TRACK`].
         RfDcTrack = RF_DC_TRACK,
         /// [`BB_DC_TRACK`].
         BbDcTrack = BB_DC_TRACK,
+        /// [`ANTENNA`].
+        Antenna = ANTENNA,
+        /// [`RECEIVERS`].
+        Receivers = RECEIVERS,
+        /// [`RX_PORT`].
+        RxPort = RX_PORT,
         /// [`BUFFERS`].
         Buffers = BUFFERS,
         /// [`BUFFER_SIZE`].
@@ -559,10 +573,27 @@ pub struct Known {
     pub rx_ports: Vec<String>,
     /// The gain modes the board lists.
     pub gain_modes: Vec<String>,
-    /// What the link to the board carries, in bytes a second, as last measured. `None` before a measurement.
-    pub link_bps: Option<f64>,
+    /// What the link to the board carried in the last reading of a running stream. It counts only while it is fresh
+    /// ([`LiveLink::fresh`]): it is a figure of the moment, never a limit that outlives it.
+    pub link: Option<LiveLink>,
     /// When a stream of this program from the board last ended: a buffer still enabled soon after is ours, on its way out.
     pub stream_ended: Option<Instant>,
+}
+
+/// A reading of what the link to a board carries, from a running stream.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct LiveLink {
+    /// Bytes a second, smoothed over the last readings.
+    pub bps: f64,
+    /// When it was read.
+    pub at: Instant,
+}
+
+impl LiveLink {
+    /// The figure, if it was read less than [`LIVE_FRESH`] ago.
+    pub fn fresh(&self) -> Option<f64> {
+        (self.at.elapsed() < LIVE_FRESH).then_some(self.bps)
+    }
 }
 
 impl Receivers {
@@ -1082,104 +1113,6 @@ impl IiodRadio {
         self.chan_attr(ch, attr, value)
     }
 
-    /// Times the link to a board across a network once, at open, before a stack sets a rate: at the rate the radio has (at
-    /// most [`IDLE_KEEP_MAX`]), the kernel buffers fill while nothing is read, then come as fast as the link carries them.
-    /// The buffer is closed after with the protocol, or the connection is cut without a word when the answers do not come in
-    /// time. Nothing is done on the loopback, at the USB address, with a link already measured, or while another client holds
-    /// the buffer.
-    fn time_link(&mut self) {
-        if self.default_address
-            || is_local(&self.host)
-            || self.rate <= 0.0
-            || self.rate > IDLE_KEEP_MAX + 1.0
-            || self.kbuffers < 4
-            || lock(&self.known)
-                .get(&self.label)
-                .is_some_and(|k| k.link_bps.is_some())
-        {
-            return;
-        }
-        let rx = self.facts.rx.id.clone();
-        if self.ctl.read_attr(&rx, Target::Buffer, "enable").is_ok_and(|v| v == "1") {
-            return;
-        }
-        let Ok(lay) = layout(&self.facts.rx, &self.mask, &self.want, self.cs8) else {
-            return;
-        };
-        let samples = SMALL_BUFFER;
-        let bytes = samples * lay.stride;
-        let need_bps = self.rate * lay.stride as f64;
-        let abort = Abort::new();
-        let Ok(mut conn) = IiodConn::connect(&self.transport, &self.host, self.port, Duration::from_secs(3), &abort)
-        else {
-            return;
-        };
-        let n = self.kbuffers - 1;
-        let fill = Duration::from_secs_f64(f64::from(n) * samples as f64 / self.rate).min(PROBE_FILL_MAX);
-        let mut opened = false;
-        let mut from: Option<Instant> = None;
-        let mut after = 0u64;
-        let mut read = || -> Result<(), IioError> {
-            conn.timeout(CONTEXT_TIMEOUT_MS)?;
-            conn.set_buffers_count(&rx, self.kbuffers)?;
-            conn.open_buffer(&rx, samples, &self.mask, false)?;
-            opened = true;
-            std::thread::sleep(fill);
-            // Requests go out during the first second only; what is owed then is read out, so that a slow link still ends
-            // with CLOSE.
-            let begun = Instant::now();
-            let deadline = begun + PROBE_READ_MAX;
-            let (mut raw, mut sent) = (Vec::new(), 0);
-            loop {
-                while sent < n && conn.owed() < 2 && begun.elapsed() < PROBE_ASK_FOR {
-                    conn.send_readbuf(&rx, bytes)?;
-                    sent += 1;
-                }
-                if conn.owed() == 0 {
-                    break;
-                }
-                let (k, _) = conn.recv_buffer_until(bytes, &mut raw, Some(deadline))?;
-                match from {
-                    None => from = Some(Instant::now()),
-                    Some(_) => after += k as u64,
-                }
-            }
-            Ok(())
-        };
-        let r = read();
-        let secs = from.map_or(0.0, |f| f.elapsed().as_secs_f64());
-        if opened && !conn.torn() {
-            let _ = conn.close_buffer(&rx);
-        }
-        conn.shutdown();
-        lock(&self.known)
-            .entry(self.label.clone())
-            .or_default()
-            .stream_ended = Some(Instant::now());
-        // Cut short by the deadline: the link carried no more than what arrived.
-        let cut = r.is_err() && conn.torn();
-        let bps = if after > 0 && secs > 0.0 {
-            after as f64 / secs
-        } else if cut {
-            // Not even two buffers in the time allowed.
-            bytes as f64 / PROBE_READ_MAX.as_secs_f64()
-        } else {
-            return;
-        };
-        if cut || timed_at_most(bps, need_bps) {
-            lock(&self.known)
-                .entry(self.label.clone())
-                .or_default()
-                .link_bps = Some(bps);
-            self.notices.log(format!(
-                "PlutoSDR {}: the link to this board carries about {:.1} MB/s ({} Msps of 16-bit samples of one receiver)",
-                self.label,
-                bps / 1e6,
-                fmt_m(LINK_SHARE * bps / 4.0)
-            ));
-        }
-    }
-
     /// The rate the link carries without loss (0: no cap): the USB rule at the default address, else the measured link.
     fn link_cap(&self) -> Hz {
         if self.default_address {
@@ -1193,13 +1126,13 @@ impl IiodRadio {
         self.receivers.count() * if self.cs8 { 2 } else { 4 }
     }
 
-    /// The rate the measured link carries with room to spare, for a board across a network. `None` before a measurement and on
-    /// the loopback.
+    /// The rate that the link carries now with room to spare, for a board across a network, from a fresh reading of a running
+    /// stream ([`LiveLink::fresh`]). `None` without one and on the loopback.
     fn measured_cap(&self) -> Option<Hz> {
         if is_local(&self.host) {
             return None;
         }
-        let bps = lock(&self.known).get(&self.label)?.link_bps?;
+        let bps = lock(&self.known).get(&self.label)?.link?.fresh()?;
         Some(LINK_SHARE * bps / self.instant_bytes() as f64)
     }
 
@@ -1610,9 +1543,6 @@ impl Radio for IiodRadio {
                 ),
             };
             self.configure_gain(1, p2, lo, retuned, ids.0, ids.1)?;
-        }
-        if !live && !self.streamed {
-            self.time_link();
         }
         Ok(notes.join("; "))
     }
@@ -2037,17 +1967,26 @@ impl IiodStream {
         }
     }
 
-    /// Keeps a link measurement of `bps` bytes a second for the board. `at_most`: the link carried no more (the reader waited
-    /// for it); else it carried at least that much.
+    /// Takes a reading of `bps` bytes a second of the running stream into the live figure of the board. `at_most`: the link
+    /// carried no more (the reader waited for it), and the figure moves toward the reading; else it carried at least that
+    /// much, and the figure does not go below it. A figure that is no longer fresh is replaced.
     fn learn(&self, bps: f64, at_most: bool) {
         if !self.learns || !bps.is_finite() || bps <= 0.0 {
             return;
         }
         let mut k = lock(&self.known);
         let e = k.entry(self.label.clone()).or_default();
-        e.link_bps = Some(match (e.link_bps, at_most) {
+        let old = e.link.and_then(|l| l.fresh());
+        let bps = match (old, at_most) {
+            (Some(old), true) => LIVE_SMOOTH * old + (1.0 - LIVE_SMOOTH) * bps,
             (Some(old), false) => old.max(bps),
-            _ => bps,
+            (None, _) => bps,
+        };
+        // Two figures, so that a small change does not make the capabilities of the radio new at every window.
+        let shown = round2(bps);
+        e.link = Some(LiveLink {
+            bps: shown,
+            at: Instant::now(),
         });
     }
 
@@ -2278,7 +2217,7 @@ impl Drop for IiodStream {
         // when it sees the connection end.
         let link_bps = lock(&self.known)
             .get(&self.label)
-            .and_then(|k| k.link_bps)
+            .and_then(|k| k.link?.fresh())
             .unwrap_or(self.need_bps)
             .max(1e5);
         match &mut self.link {

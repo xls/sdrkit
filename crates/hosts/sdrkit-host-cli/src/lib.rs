@@ -200,7 +200,8 @@ enum Command {
         #[arg(long, value_name = "[HOST:]PORT")]
         soapy: Option<String>,
         /// Who steers the radio: follow (this program alone), remote (one client, while no stack of this program
-        /// reads the radio) or slice (each client its own frequency and rate inside the capture).
+        /// reads the radio) or slice (each client its own frequency and rate inside the capture). Default: remote
+        /// without --stack, follow with --stack.
         #[arg(long, value_name = "follow|remote|slice")]
         control: Option<String>,
         /// The sample format that the share carries: native, cu8, cs8, cs16 or cf32.

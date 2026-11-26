@@ -23,7 +23,9 @@ use radio::{Ctx, Options, SoapyRadio};
 use rpc::{call, Packer};
 use sdrkit_core::net::Transport;
 use sdrkit_core::publish::field;
+use sdrkit_core::Hz;
 use sdrkit_core::{Declare, Field, Results, Setting, SettingDecl, SettingSet, TableDef, Values};
+use sdrkit_driver_core::form::{ANTENNA_SECTION, LINK_SECTION, OTHER_SECTION};
 use sdrkit_driver_core::runner::{Opener, RunnerConfig, StreamRunner, NETWORK_ADVICE};
 use sdrkit_driver_core::{
     Capabilities, Doing, DriverDescriptor, DriverError, Link, LossReport, Polled, Retuned,
@@ -142,15 +144,12 @@ impl StreamProt {
     }
 }
 
-/// The clock error in ppm.
-pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
-    .range(-200.0, 200.0, 0.01)
-    .help(
-        "The clock error in ppm, positive when the clock runs fast (signals show up a little low). The radio's own correction \
-         is used if it has one. If not, the frequency asked is corrected.",
-    );
+/// The clock error in ppm, the standard setting. The radio's own correction is used if it has one; if not, the frequency
+/// asked is corrected.
+pub const PPM: Setting<field::F64> = sdrkit_driver_core::form::PPM;
 /// Which radio of the server to use.
 pub const REMOTE: Setting<field::Text> = Setting::new("remote", "Remote driver", "", "")
+    .section(OTHER_SECTION)
     .restart()
     .help(
         "Which radio of the server to use: a driver name (rtlsdr) or a list (driver=sdrplay,serial=1). Empty: the first radio \
@@ -159,7 +158,7 @@ pub const REMOTE: Setting<field::Text> = Setting::new("remote", "Remote driver",
     );
 /// The format the server sends.
 pub const FORMAT: Setting<field::Choice<WireChoice>> =
-    Setting::choice("format", "IQ format on the network", WireChoice::Auto)
+    sdrkit_driver_core::form::format(WireChoice::Auto)
         .restart()
         .help(
             "What the server sends. Auto is the radio's own format (no conversion on the server). CS8 halves the data rate, \
@@ -168,6 +167,7 @@ pub const FORMAT: Setting<field::Choice<WireChoice>> =
         );
 /// The size of the datagrams.
 pub const MTU: Setting<field::Choice<Mtu>> = Setting::choice("mtu", "Datagram size", Mtu::Standard)
+    .section(LINK_SECTION)
     .restart()
     .help(
         "1500 works on every network. Use jumbo frames only when every switch and both computers are set for them. If not, no \
@@ -175,36 +175,34 @@ pub const MTU: Setting<field::Choice<Mtu>> = Setting::choice("mtu", "Datagram si
     );
 /// The receive buffer to ask for.
 pub const WINDOW: Setting<field::F64> = Setting::new("window", "Receive buffer", "MiB", 4.0)
+    .section(LINK_SECTION)
     .range(0.25, 32.0, 0.25)
     .restart()
     .help("How much the network can have in flight. More helps on Wi-Fi at high rates.");
 /// The transport of the stream.
 pub const TRANSPORT: Setting<field::Choice<StreamProt>> =
-    Setting::choice("transport", "Stream transport", StreamProt::Udp)
+    Setting::choice("transport", "Stream transport", StreamProt::Tcp)
+        .section(LINK_SECTION)
         .restart()
         .help(
-            "UDP is the protocol's default. TCP passes networks that drop or block UDP (NAT, firewalls, poor Wi-Fi) and loses \
-             nothing, but a lost packet delays the stream. Received messages are then at least 4096 bytes.",
+            "TCP loses nothing: a packet that the network lost is sent again, which delays the stream for a moment. UDP, the \
+             protocol's own default, loses each packet that the network loses, and each loss is a hole in the signal: on \
+             Wi-Fi, crackle in the sound. Received TCP messages are at least 4096 bytes.",
         );
 /// Forward the log of the server.
 pub const SERVER_LOG: Setting<field::Bool> =
     Setting::new("serverlog", "Show the server's log", "", true)
+        .section(OTHER_SECTION)
         .restart()
         .help("The messages of the server appear in the log, marked server:.");
-/// The RF gain state of a radio with an RF gain-reduction stage. -1: the gain sets it.
-pub const RF_STATE: Setting<field::I64> = Setting::new("rfgr", "RF gain state", "", -1)
-    .range(-1.0, 255.0, 1.0)
-    .help(
-        "The RF gain stage (LNA state) of a radio with gain reduction stages. 0 is the most gain. Higher states reduce it. -1 \
-         lets the gain set both stages. Any other state makes the gain drive the IF stage only. A state the radio does not \
-         have is refused.",
-    );
 /// The antenna input. Empty: the radio's default.
 pub const ANTENNA: Setting<field::Text> = Setting::new("antenna", "Antenna", "", "")
+    .section(ANTENNA_SECTION)
     .restart()
     .help("The antenna input of the radio. Empty keeps the radio's default. A name the radio does not list is refused.");
 /// The clock source. Empty: as the radio is.
 pub const CLOCK_SOURCE: Setting<field::Text> = Setting::new("clocksrc", "Clock source", "", "")
+    .section(ANTENNA_SECTION)
     .restart()
     .help(
         "Where the radio takes its clock from (internal, external, gpsdo). Empty keeps it as it is. A source the radio does \
@@ -212,6 +210,7 @@ pub const CLOCK_SOURCE: Setting<field::Text> = Setting::new("clocksrc", "Clock s
     );
 /// The time source. Empty: as the radio is.
 pub const TIME_SOURCE: Setting<field::Text> = Setting::new("timesrc", "Time source (PPS)", "", "")
+    .section(ANTENNA_SECTION)
     .restart()
     .help(
         "Where the radio takes its one pulse per second from. Empty keeps it as it is. A source the radio does not list is \
@@ -223,26 +222,24 @@ sdrkit_core::settings! {
     pub enum SoapyRemoteSetting {
         /// [`PPM`].
         Ppm = PPM,
-        /// [`REMOTE`].
-        Remote = REMOTE,
-        /// [`FORMAT`].
-        Format = FORMAT,
-        /// [`MTU`].
-        Mtu = MTU,
-        /// [`WINDOW`].
-        Window = WINDOW,
-        /// [`SERVER_LOG`].
-        ServerLog = SERVER_LOG,
-        /// [`RF_STATE`].
-        RfState = RF_STATE,
         /// [`ANTENNA`].
         Antenna = ANTENNA,
         /// [`CLOCK_SOURCE`].
         ClockSource = CLOCK_SOURCE,
         /// [`TIME_SOURCE`].
         TimeSource = TIME_SOURCE,
+        /// [`FORMAT`].
+        Format = FORMAT,
         /// [`TRANSPORT`].
         Transport = TRANSPORT,
+        /// [`MTU`].
+        Mtu = MTU,
+        /// [`WINDOW`].
+        Window = WINDOW,
+        /// [`REMOTE`].
+        Remote = REMOTE,
+        /// [`SERVER_LOG`].
+        ServerLog = SERVER_LOG,
     }
 }
 
@@ -426,6 +423,21 @@ pub enum SoapyError {
     /// A SoapyRemote transmitter cannot repeat a buffer by itself.
     #[error("a SoapyRemote transmitter cannot repeat a buffer")]
     NoCyclic,
+    /// The server holds the radio at its own frequency and the wanted frequency lies outside what it sends.
+    #[error(
+        "the server holds this radio at {} MHz, {} MHz wide, and does not let clients tune; {} MHz is outside it",
+        sdrkit_driver_core::fmt_m(*centre_hz as Hz),
+        sdrkit_driver_core::fmt_m(*rate_hz as Hz),
+        sdrkit_driver_core::fmt_m(*wanted_hz as Hz)
+    )]
+    HeldElsewhere {
+        /// The centre that the server holds, whole Hz.
+        centre_hz: u64,
+        /// The rate that it sends, whole Hz.
+        rate_hz: u64,
+        /// The frequency that was wanted, whole Hz.
+        wanted_hz: u64,
+    },
     /// The system does not allow this program to search the local network.
     #[error(
         "this program has no permission to search the local network: add the server by its address"

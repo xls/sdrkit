@@ -54,6 +54,8 @@ struct Granted {
     rate: Option<f64>,
     gain: Option<f64>,
     agc: bool,
+    /// The client set the gain mode.
+    agc_set: bool,
     ppm: f64,
     bandwidth: Option<f64>,
     antenna: Option<String>,
@@ -134,6 +136,7 @@ impl Rpc {
     /// value granted.
     fn ask(&mut self, cx: &mut Context<'_>, dir: i8, req: Request) -> Result<Request, String> {
         if dir != RX {
+            cx.engage();
             return Ok(req);
         }
         match cx.request(req) {
@@ -141,6 +144,28 @@ impl Rpc {
             Answer::Adjusted(r) => Ok(r),
             Answer::Refused => Err(format!("the server refused {}", what(&req))),
         }
+    }
+
+    /// The values of direction `dir` as a client reads them back: what it set, and for what it did not set on the
+    /// receive side, the values in force on the radio. Without them a client that reads the gain at the start would see
+    /// the bottom of the range and could set the radio to it.
+    fn read_back(&mut self, dir: i8, cx: &Context<'_>) -> Granted {
+        let mut g = self.granted(dir).clone();
+        if dir != RX {
+            return g;
+        }
+        let set_agc = g.agc_set;
+        if g.gain.is_none() && g.elements.is_empty() {
+            g.gain = cx
+                .in_force(Request::Gain { db: 0.0 })
+                .and_then(|r| value_of(&r));
+        }
+        if !set_agc {
+            if let Some(Request::Agc { on }) = cx.in_force(Request::Agc { on: false }) {
+                g.agc = on;
+            }
+        }
+        g
     }
 
     /// Answers the call in `payload`.
@@ -162,6 +187,9 @@ impl Rpc {
                 if differs("driver", &dev.driver) || differs("serial", serial) {
                     return Err("no match".into());
                 }
+                // A make opens the radio for use: the connection is a client from now on. A search (FIND) or the log
+                // connection is not.
+                cx.engage();
                 Ok(void())
             }
             call::UNMAKE | call::START_LOG | call::STOP_LOG => Ok(void()),
@@ -397,7 +425,7 @@ impl Rpc {
             }
             call::GET_SAMPLE_RATE => {
                 let v = if dir == RX {
-                    cx.client().slice().map(|s| s.rate_hz).or(self.rx.rate)
+                    cx.client().rate_hz().or(self.rx.rate)
                 } else {
                     self.tx.rate
                 };
@@ -433,7 +461,7 @@ impl Rpc {
                 Ok(void())
             }
             call::GET_GAIN => {
-                let v = overall(&side, self.granted(dir));
+                let v = overall(&side, &self.read_back(dir, cx));
                 one(|p| {
                     p.f64(v);
                 })
@@ -465,7 +493,7 @@ impl Rpc {
             }
             call::GET_GAIN_ELEMENT => {
                 let name = u.string().map_err(bad)?;
-                let v = element(&side, self.granted(dir), &name)
+                let v = element(&side, &self.read_back(dir, cx), &name)
                     .ok_or_else(|| format!("no gain element {name}"))?;
                 one(|p| {
                     p.f64(v);
@@ -477,14 +505,16 @@ impl Rpc {
                     return Ok(void());
                 }
                 let got = self.ask(cx, dir, Request::Agc { on })?;
-                self.granted(dir).agc = match got {
+                let g = self.granted(dir);
+                g.agc = match got {
                     Request::Agc { on } => on,
                     _ => on,
                 };
+                g.agc_set = true;
                 Ok(void())
             }
             call::GET_GAIN_MODE => {
-                let v = self.granted(dir).agc;
+                let v = self.read_back(dir, cx).agc;
                 one(|p| {
                     p.bool(v);
                 })
@@ -514,7 +544,12 @@ impl Rpc {
     fn kwargs(&self) -> Kwargs {
         let mut kw = self.device.info.clone();
         kw.insert("driver".into(), self.device.driver.clone());
-        kw.insert("label".into(), self.device.hardware.clone());
+        let label = self
+            .device
+            .info
+            .get("name")
+            .unwrap_or(&self.device.hardware);
+        kw.insert("label".into(), label.clone());
         kw
     }
 

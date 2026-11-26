@@ -77,22 +77,22 @@ fn every_board_setting_is_declared_and_a_board_refuses_what_it_lacks() {
     assert_eq!(
         keys,
         [
-            "ppm",
-            "lowratefir",
-            "gainmode",
-            "antenna",
-            "receivers",
+            "agc_mode",
             "gainmode2",
             "gain2",
-            "rxport",
+            "lowratefir",
+            "ppm",
             "quadtrack",
             "rfdctrack",
             "bbdctrack",
-            "kbuffers",
-            "bufsize",
+            "antenna",
+            "receivers",
+            "rxport",
+            "buffers",
+            "buffer_size",
             "protocol",
             "link",
-            "iqformat",
+            "format",
             "readings_s"
         ]
     );
@@ -109,13 +109,13 @@ fn every_board_setting_is_declared_and_a_board_refuses_what_it_lacks() {
     };
     assert_eq!(choices("rxport")[..3], ["auto", "A_BALANCED", "B_BALANCED"]);
     assert_eq!(
-        choices("gainmode"),
+        choices("agc_mode"),
         ["manual", "slow_attack", "fast_attack", "hybrid"]
     );
     // A board without Tezuka firmware refuses CS8.
     let srv = FakeIiod::start(FakeOpts::default());
     let e = IiodDriver::new(srv.transport())
-        .open_w(&srv.addr(), &tune(2.4 * M, &[("iqformat", "cs8")]))
+        .open_w(&srv.addr(), &tune(2.4 * M, &[("format", "cs8")]))
         .err();
     assert_eq!(
         e,
@@ -426,7 +426,7 @@ fn live_retunes_and_a_rate_change_restarts_the_buffer() {
         ]
     );
     // The radio's AGC: written once, then the gain is left alone.
-    t.settings.insert("gainmode".into(), "slow_attack".into());
+    t.settings.insert("agc_mode".into(), "slow_attack".into());
     src.retune(&t).unwrap();
     t.gain_db = Some(10.0);
     src.retune(&t).unwrap();
@@ -790,7 +790,7 @@ fn the_binary_protocol_is_used_when_offered() {
     let mut src = IiodDriver::new(srv.transport())
         .open_w(
             &srv.addr(),
-            &tune(2.4 * M, &[("receivers", "both"), ("kbuffers", "4")]),
+            &tune(2.4 * M, &[("receivers", "both"), ("buffers", "4")]),
         )
         .unwrap();
     let (w1, mut r1) = ring(1 << 22, SampleType::Cs16);
@@ -1050,7 +1050,7 @@ fn automatic_gain_is_the_held_gain_of_the_driver() {
     assert!(srv.board.has(&format!("{RX} hardwaregain=43")));
     assert_eq!(held(&mut src), Some((43.0, GainControl::Searching, 0)));
     // The AGC of the AD936x, chosen: no held gain, nothing published.
-    t.settings.insert("gainmode".into(), "slow_attack".into());
+    t.settings.insert("agc_mode".into(), "slow_attack".into());
     src.retune(&t).unwrap();
     assert!(srv
         .board
@@ -1304,7 +1304,7 @@ fn tezuka_firmware_streams_cs8() {
     });
     let d = IiodDriver::new(srv.transport());
     let mut src = d
-        .open_w(&srv.addr(), &tune(2.4 * M, &[("iqformat", "cs8")]))
+        .open_w(&srv.addr(), &tune(2.4 * M, &[("format", "cs8")]))
         .unwrap();
     assert_eq!(src.sample_type(), SampleType::Cs8);
     let (w, mut r) = ring(1 << 22, SampleType::Cs8);
@@ -1739,7 +1739,7 @@ fn real_board_sustainable_rates() {
 #[test]
 #[ignore]
 fn real_board_leave_sane() {
-    let mut t = tune(2.4 * M, &[("gainmode", "slow_attack")]);
+    let mut t = tune(2.4 * M, &[("agc_mode", "slow_attack")]);
     t.centre_hz = 100e6;
     let mut src = real_driver().open_w(&real_uri(), &t).unwrap();
     src.stop();
@@ -1755,7 +1755,7 @@ fn real_board_buffer_settings() {
         ("4", "131072"),
         ("16", "1048576"),
     ] {
-        let mut t = tune(20.0 * M, &[("kbuffers", kb), ("bufsize", bs)]);
+        let mut t = tune(20.0 * M, &[("buffers", kb), ("buffer_size", bs)]);
         t.centre_hz = 100e6;
         let (got, secs, _, _, mut src) = real_stream(&t, 1, 3.0);
         println!(
@@ -2013,17 +2013,15 @@ fn a_rate_change_on_a_slow_link_closes_the_old_buffer_before_the_new_one_opens()
 }
 
 #[test]
-fn a_slow_link_is_measured_reported_and_capped() {
+fn a_slow_link_is_measured_live_from_the_stream_and_the_notice_clears_when_it_recovers() {
     // 2.4 Msps needs 9.6 MB/s; the link carries 4 MB/s.
     let srv = slow_board(Some(4e6));
     let mut src = IiodDriver::new(srv.transport())
         .open_w(&srv.addr(), &tune(2.4 * M, &[]))
         .unwrap();
-    // Timed at open, before any stream: 0.85 of 4 MB/s at 4 bytes a sample.
-    let at_open = src.capabilities().rates.steady_hz.expect("timed at open");
-    assert!((0.7 * M..0.95 * M).contains(&at_open), "{at_open}");
-    assert!(srv.board.has("CLOSE iio:device4"), "{:?}", srv.board.log());
-    let (w, _r) = ring(1 << 22, SampleType::Cs16);
+    // Nothing is timed at open: no figure before a stream runs.
+    assert_eq!(src.capabilities().rates.steady_hz, None);
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
     src.start(w).unwrap();
     let mut seen = Vec::new();
     let warned = wait_for(
@@ -2035,14 +2033,72 @@ fn a_slow_link_is_measured_reported_and_capped() {
         8.0,
     );
     assert!(warned, "{seen:?}");
-    // The state stays in the status line, poll after poll.
     std::thread::sleep(Duration::from_millis(300));
-    let r = src.readings();
-    assert!(r.status().summary.contains("the link delivers 0."), "{}", r.status().summary);
-    let cap = src.capabilities().rates.steady_hz.expect("a measured link");
-    // 0.85 of 4 MB/s at 4 bytes a sample.
-    assert!((0.7 * M..0.95 * M).contains(&cap), "{cap}");
+    let st = src.readings();
+    assert!(st.status().summary.contains("the link delivers 0."), "{}", st.status().summary);
+    let cap = src.capabilities().rates.steady_hz.expect("a live figure");
+    // About 0.85 of 4 MB/s at 4 bytes a sample.
+    assert!((0.6 * M..1.1 * M).contains(&cap), "{cap}");
+    // The link recovers: the live figure goes up, and the notice and the status clear by themselves.
+    *srv.board.link_now.lock().unwrap() = Some(60e6);
+    let recovered = wait_for(
+        || {
+            let _ = r.skip_all();
+            seen.extend(src.take_notices());
+            seen.iter()
+                .any(|n| matches!(n, Notice::Log(t) if t.contains("the link delivers all of")))
+        },
+        10.0,
+    );
+    assert!(recovered, "{seen:?}");
+    std::thread::sleep(Duration::from_millis(300));
+    let st = src.readings();
+    assert!(!st.status().summary.contains("the link delivers 0."), "{}", st.status().summary);
+    assert!(src.capabilities().rates.steady_hz.is_none_or(|c| c > 2.0 * M));
     src.stop();
+}
+
+#[test]
+fn a_low_reading_does_not_outlive_the_moment() {
+    let srv = slow_board(Some(40e6));
+    let driver = IiodDriver::new(srv.transport());
+    // A low reading from a stream that ran a while ago.
+    let label = srv.addr();
+    let old = Instant::now().checked_sub(LIVE_FRESH * 2).expect("a past instant");
+    lock(&driver.known).entry(label).or_default().link = Some(LiveLink { bps: 1e6, at: old });
+    let src = driver.open_w(&srv.addr(), &tune(2.4 * M, &[])).unwrap();
+    assert_eq!(src.capabilities().rates.steady_hz, None);
+}
+
+#[test]
+fn a_link_figure_leaves_the_lists_of_rate_and_bandwidth_as_they_are() {
+    let srv = slow_board(Some(4e6));
+    let kind = crate::DriverKind::new(Box::new(IiodDriver::new(srv.transport())));
+    let lists = |s: &sdrkit_core::Schema| {
+        [crate::RadioSetting::Rate, crate::RadioSetting::Bandwidth].map(|k| {
+            let d = &s.settings()[k.id().index()];
+            (d.range, d.common.values.clone(), d.fixed)
+        })
+    };
+    let mut radio = kind.open(&srv.addr(), &tune(2.4 * M, &[]).v()).unwrap();
+    let opened = lists(sdrkit_core::Owner::schema(&radio));
+    let problems = crate::form::check(sdrkit_core::Owner::schema(&radio));
+    assert!(problems.is_empty(), "{problems:?}");
+    assert!(!opened[0].1.is_empty() && !opened[1].1.is_empty() && !opened[1].2, "{opened:?}");
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    radio.start(w).unwrap();
+    let mut events = Vec::new();
+    let measured = wait_for(
+        || {
+            let _ = r.skip_all();
+            radio.poll(0.0, &mut events);
+            radio.capabilities().rates.steady_hz.is_some()
+        },
+        8.0,
+    );
+    assert!(measured);
+    assert_eq!(lists(sdrkit_core::Owner::schema(&radio)), opened);
+    radio.stop();
 }
 
 #[test]
@@ -2068,16 +2124,3 @@ fn a_fast_link_is_timed_at_the_start_of_the_stream() {
     src.stop();
 }
 
-#[test]
-fn a_very_slow_link_is_timed_at_open_and_the_timing_ends_with_close() {
-    // 0.3 MB/s: two buffers take longer than the second the timing sends requests for.
-    let srv = slow_board(Some(0.3e6));
-    let src = IiodDriver::new(srv.transport())
-        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
-        .unwrap();
-    let cap = src.capabilities().rates.steady_hz.expect("timed at open");
-    assert!(cap < 0.1 * M, "{cap}");
-    assert!(srv.board.has("CLOSE iio:device4"), "{:?}", srv.board.log());
-    assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
-    assert_eq!(srv.board.rx_holders.load(Ordering::SeqCst), 0);
-}

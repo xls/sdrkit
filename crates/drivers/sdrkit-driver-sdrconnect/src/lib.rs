@@ -13,7 +13,12 @@ use proto::Tuner;
 use radio::SdrRadio;
 use sdrkit_core::net::{host_port, show, Transport};
 use sdrkit_core::publish::field;
-use sdrkit_core::{Declare, Field, Hz, Results, Setting, SettingSet, Values};
+use sdrkit_core::value::ChoiceDecl;
+use sdrkit_core::{
+    Declare, Field, FieldDecl, Hz, Results, Setting, SettingDecl, SettingId, SettingSet, Value, Values,
+};
+use std::borrow::Cow;
+use sdrkit_driver_core::form;
 use sdrkit_driver_core::runner::{Opener, RunnerConfig, StreamRunner, NETWORK_ADVICE};
 use sdrkit_driver_core::{
     own_id, Capabilities, DriverDescriptor, DriverError, Link, LossReport, Polled, RateLimits,
@@ -42,6 +47,7 @@ sdrkit_core::choice_enum! {
 
 /// WebSocket over TLS.
 pub const WSS: Setting<field::Bool> = Setting::new("wss", "Secure WebSocket (wss)", "", false)
+    .section(form::LINK_SECTION)
     .restart()
     .help(
         "A WebSocket over TLS. SDRconnect Headless 1.0.10 and later offers it. SDRconnect with its window serves plain \
@@ -50,6 +56,7 @@ pub const WSS: Setting<field::Bool> = Setting::new("wss", "Secure WebSocket (wss
 /// The SHA-256 digest of the certificate of the server, for wss with a self-signed certificate.
 pub const TLS_PIN: Setting<field::Text> =
     Setting::new("tls_pin", "Server certificate (SHA-256)", "", "")
+        .section(form::LINK_SECTION)
         .restart()
         .help(
             "For wss with a self-signed certificate: the SHA-256 digest of the certificate of the server, 64 hexadecimal \
@@ -57,6 +64,7 @@ pub const TLS_PIN: Setting<field::Text> =
         );
 /// The tuner whose IQ the driver takes.
 pub const TUNER: Setting<field::Choice<Tuner>> = Setting::choice("tuner", "Tuner", Tuner::Primary)
+    .section(form::ANTENNA_SECTION)
     .restart()
     .help(
         "For an RSPduo in dual-tuner mode in SDRconnect: the tuner whose IQ to take. Other radios have the primary tuner \
@@ -64,38 +72,59 @@ pub const TUNER: Setting<field::Choice<Tuner>> = Setting::choice("tuner", "Tuner
     );
 /// Who sets the sample rate.
 pub const SAMPLE_RATE: Setting<field::Choice<RateSource>> =
-    Setting::choice("sample_rate", "Sample rate", RateSource::Stack).help(
+    Setting::choice("rate_source", "Rate set by", RateSource::Stack)
+        .section(form::RATE_SECTION)
+        .help(
         "As the stack asks: sdrkit sets the sample rate of SDRconnect (SDRconnect 1.0.7 and later). Keep: sdrkit uses the rate \
          SDRconnect runs, and resamples.",
     );
 /// The LNA state. -1 leaves the state as it is.
-pub const LNA: Setting<field::I64> = Setting::new("lna_state", "LNA state", "", -1)
-    .range(-1.0, 255.0, 1.0)
+pub const LNA: Setting<field::I64> = form::lna_state(form::STAGE_FOLLOWS, 255.0)
     .help(
         "The API of SDRconnect has one gain control, the LNA state. The IF gain and the AGC stay as SDRconnect has them. A \
          state outside the range SDRconnect reports for the radio and its band is refused. -1 leaves the state as it is.",
     );
-/// The antenna, by the name SDRconnect uses for it. Empty keeps the antenna SDRconnect has.
-pub const ANTENNA: Setting<field::Text> = Setting::new("antenna", "Antenna", "", "").help(
-    "One of the antennas SDRconnect lists for the radio. A name it does not list is refused. Empty keeps the antenna \
-     SDRconnect has.",
-);
+/// The antenna setting of a radio whose antennas SDRconnect listed: Keep (the antenna SDRconnect has), then the names in
+/// the list. The radio adds it when it opens.
+pub(crate) fn antenna_setting(list: &[String]) -> SettingDecl {
+    let named = list.iter().map(|a| ChoiceDecl {
+        key: Cow::Owned(a.clone()),
+        label: Cow::Owned(a.clone()),
+    });
+    let choices: Vec<ChoiceDecl> = std::iter::once(ChoiceDecl::new("", "Keep SDRconnect's"))
+        .chain(named)
+        .collect();
+    let f = form::ANTENNA_FORM;
+    SettingDecl::new(FieldDecl::with_choices(f.key, f.label, choices), Value::Choice(0))
+        .with_section(f.section)
+        .with_help("One of the antennas SDRconnect lists for the radio. Keep leaves the antenna SDRconnect has.")
+}
+
+/// The antenna name that `v` chooses, and the id of the antenna setting. `None` for Keep or a radio without the setting.
+fn antenna_of(v: &Values) -> (Option<String>, Option<SettingId>) {
+    let Ok(id) = v.schema().id(form::ANTENNA_FORM.key) else {
+        return (None, None);
+    };
+    let name = match (v.schema().setting(id), v.value(id)) {
+        (Some(d), Some(Value::Choice(i))) => d.field.choices.get(usize::from(*i)).map(|c| c.key.to_string()),
+        _ => None,
+    };
+    (name.filter(|a| !a.is_empty()), Some(id))
+}
 
 sdrkit_core::settings! {
     /// The own settings of the SDRconnect driver.
     pub enum SdrconnectSetting {
+        /// [`LNA`].
+        Lna = LNA,
+        /// [`SAMPLE_RATE`].
+        SampleRate = SAMPLE_RATE,
+        /// [`TUNER`].
+        Tuner = TUNER,
         /// [`WSS`].
         Wss = WSS,
         /// [`TLS_PIN`].
         TlsPin = TLS_PIN,
-        /// [`TUNER`].
-        Tuner = TUNER,
-        /// [`SAMPLE_RATE`].
-        SampleRate = SAMPLE_RATE,
-        /// [`LNA`].
-        Lna = LNA,
-        /// [`ANTENNA`].
-        Antenna = ANTENNA,
     }
 }
 
@@ -235,6 +264,8 @@ pub(crate) struct Options {
     pub lna: Option<u32>,
     /// The antenna to set. `None` leaves it.
     pub antenna: Option<String>,
+    /// The id of the antenna setting, for a radio that has one.
+    pub antenna_id: Option<SettingId>,
 }
 
 impl Options {
@@ -253,7 +284,7 @@ impl Options {
             ),
         };
         let lna = u32::try_from(v.get(&LNA)).ok();
-        let antenna = Some(v.get(&ANTENNA).trim().to_string()).filter(|a| !a.is_empty());
+        let (antenna, antenna_id) = antenna_of(v);
         Ok(Options {
             wss: v.get(&WSS),
             pin,
@@ -261,6 +292,7 @@ impl Options {
             rate: v.get(&SAMPLE_RATE),
             lna,
             antenna,
+            antenna_id,
         })
     }
 
@@ -278,10 +310,8 @@ impl Options {
             }
         }
         if let (Some(a), Some(list)) = (&self.antenna, &report.antennas) {
-            if !list.contains(a) {
-                return Err(DriverError::Refused {
-                    id: own_id(SdrconnectSetting::Antenna),
-                });
+            if let (false, Some(id)) = (list.contains(a), self.antenna_id) {
+                return Err(DriverError::Refused { id });
             }
         }
         Ok(())

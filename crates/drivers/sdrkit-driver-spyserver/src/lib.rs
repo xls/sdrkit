@@ -39,7 +39,7 @@ sdrkit_core::choice_enum! {
 
 /// The sample format requested from the server.
 pub const FORMAT: Setting<field::Choice<WireFormat>> =
-    Setting::choice("format", "Wire format", WireFormat::Bits8).restart().help(
+    sdrkit_driver_core::form::format(WireFormat::Bits8).restart().help(
         "The sample format the server sends. 8-bit needs the least network (2 bytes a sample). 16-bit keeps weak signals next \
          to strong ones apart better, at twice the bandwidth. A server that forces a format sends that one. The format is \
          fixed while the radio is open.",

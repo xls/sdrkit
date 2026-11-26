@@ -19,10 +19,10 @@ Every radio has these. Give one as `--set key=value`. If the stack has a setting
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `centre_hz` | Centre frequency | frequency | 100 MHz | 0 Hz to 1000 GHz |  |
-| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
-| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `gain` | Gain | number (dB) | 30 | -100 to 200 |  |
 | `agc` | Automatic gain | yes or no | true |  |  |
+| `rate` | Sample rate | frequency | 0 Hz | 0 Hz to 1 GHz | The rate of the samples from the radio. On Automatic the radio takes the least rate at or above what the stack needs; a rate that is set stays, and a stack that needs more is refused. Write 0 to return to Automatic. |
+| `bandwidth` | Bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz | The width of the analogue filter of the radio. Without a width, the driver chooses one that fits the sample rate. |
 | `rate_exact` | Exact rate | yes or no | false |  | Sends the rate as it is, even outside the rates the driver picks. |
 | `bias_tee` | Bias tee | yes or no | false |  |  |
 
@@ -33,7 +33,7 @@ Only this driver has these.
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error of the radio in ppm, positive when its clock runs fast (signals then show a little low). 0: no correction. |
-| `swapiq` | Swap I and Q | yes or no | false |  | Mirror the spectrum if signals show on the wrong side of the tuned frequency. The two words of each sample are taken the other way round. |
+| `swap_iq` | Swap I and Q | yes or no | false |  | Mirror the spectrum if signals show on the wrong side of the tuned frequency. The two words of each sample are taken the other way round. |
 | `txtimeout` | Transmit time limit | number (s) | 180 | 10 to 600 | The longest time one transmission can last. Then sdrkit ends it. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.
