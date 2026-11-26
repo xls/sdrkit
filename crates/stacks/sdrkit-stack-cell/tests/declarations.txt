@@ -141,7 +141,7 @@ table "other_carriers" "Carriers of other systems" cap 1600
   column FieldDecl { key: "q_rx_lev_min_dbm", label: "q-RxLevMin", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "cells", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "survey" "Survey" cap 400
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -248,7 +248,7 @@ table "nr_sibs" "SIBs" cap 2400
   column FieldDecl { key: "broadcasting", label: "Broadcast", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "value_tag", label: "Value tag", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "survey" "Survey" cap 300
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -351,7 +351,7 @@ table "carriers" "Carriers" cap 24
   column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "synchronised", label: "Synchronised", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 table "survey" "Survey" cap 200
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -543,7 +543,7 @@ table "cells" "Cells" cap 400
   column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "survey" "Survey" cap 400
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

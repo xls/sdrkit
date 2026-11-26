@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.6. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 5
+    public static let minor = 6
 }
 
 /// The result fields of `railway_cir`.
@@ -614,7 +614,7 @@ public struct CellOtherCarrierRow {
     }
 }
 
-/// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+/// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack. The survey table has no role: the cells table is the nodes table of the stack, and a host finds the survey by its key `survey`.
 public struct CellSurveyRow {
     public enum Generation: Int32 {
         case n2g = 0
@@ -2550,7 +2550,6 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellOtherCarrierRow.init))
     }
     /// The changed rows of the table "survey" of the stack "cell", newest first, at most `capacity` rows.
-    /// The rows are the stations or nodes of the stack.
     /// The column `name` names a row.
     public static func cellSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[CellSurveyRow], SDRKitCode> {
         var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
@@ -2595,7 +2594,6 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NrSibRow.init))
     }
     /// The changed rows of the table "survey" of the stack "nr", newest first, at most `capacity` rows.
-    /// The rows are the stations or nodes of the stack.
     /// The column `name` names a row.
     public static func nrSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[CellSurveyRow], SDRKitCode> {
         var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
@@ -2636,7 +2634,6 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GsmrCarrierRow.init))
     }
     /// The changed rows of the table "survey" of the stack "gsmr", newest first, at most `capacity` rows.
-    /// The rows are the stations or nodes of the stack.
     /// The column `name` names a row.
     public static func gsmrSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[CellSurveyRow], SDRKitCode> {
         var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
@@ -2697,7 +2694,6 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UmtsCellRow.init))
     }
     /// The changed rows of the table "survey" of the stack "umts", newest first, at most `capacity` rows.
-    /// The rows are the stations or nodes of the stack.
     /// The column `name` names a row.
     public static func umtsSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[CellSurveyRow], SDRKitCode> {
         var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)

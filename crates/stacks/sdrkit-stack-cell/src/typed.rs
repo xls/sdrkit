@@ -1803,7 +1803,8 @@ pub struct EbicabRemoveArgs<'a> {
 pub const EBICAB_REMOVE: CommandKind<EbicabRemoveArgs<'static>> = objcmd::remove_kind();
 
 /// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of
-/// the cell in the cells table of the stack.
+/// the cell in the cells table of the stack. The survey table has no role: the cells table is the nodes table of the stack,
+/// and a host finds the survey by its key `survey`.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SurveyRow<'a> {
     /// Operator, generation, band and physical identity.
@@ -1843,26 +1844,22 @@ pub struct SurveyRow<'a> {
 
 /// The survey of `cell`.
 pub static CELL_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::lte::CELL_CAP)
-    .role(sdrkit_core::TableRole::Nodes)
     .label(&SurveyRow::NAME);
 /// The survey of `umts`.
 pub static UMTS_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::umts::CELL_CAP)
-    .role(sdrkit_core::TableRole::Nodes)
     .label(&SurveyRow::NAME);
 /// The survey of `gsmr`.
 pub static GSMR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::gsm::table::CELL_CAP)
-    .role(sdrkit_core::TableRole::Nodes)
     .label(&SurveyRow::NAME);
 /// The survey of `nr`.
 pub static NR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::nr::CELL_CAP)
-    .role(sdrkit_core::TableRole::Nodes)
     .label(&SurveyRow::NAME);
 
 /// The interface of the family.
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 5)
+        Family::new("cell", 1, 6)
             .added(
                 1,
                 1,

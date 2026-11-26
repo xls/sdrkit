@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.6. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 5
+#define SDRKIT_CELL_VERSION_MINOR 6
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -777,7 +777,7 @@ typedef enum sdrkit_cell_survey_row_generation {
   SDRKIT_CELL_SURVEY_ROW_GENERATION_5G = 3,
 } sdrkit_cell_survey_row_generation;
 
-// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack. The survey table has no role: the cells table is the nodes table of the stack, and a host finds the survey by its key `survey`.
 typedef struct sdrkit_cell_survey_row {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
@@ -2710,7 +2710,6 @@ static inline int32_t sdrkit_cell_other_carriers_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "survey" of the stack "cell" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The rows are the stations or nodes of the stack.
 // The column `name` names a row.
 static inline int32_t sdrkit_cell_survey_rows(SDRKIT_HANDLE handle,
                                              sdrkit_cell_survey_row *rows,
@@ -2918,7 +2917,6 @@ static inline int32_t sdrkit_nr_sibs_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "survey" of the stack "nr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The rows are the stations or nodes of the stack.
 // The column `name` names a row.
 static inline int32_t sdrkit_nr_survey_rows(SDRKIT_HANDLE handle,
                                            sdrkit_cell_survey_row *rows,
@@ -3159,7 +3157,6 @@ static inline int32_t sdrkit_gsmr_carriers_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "survey" of the stack "gsmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The rows are the stations or nodes of the stack.
 // The column `name` names a row.
 static inline int32_t sdrkit_gsmr_survey_rows(SDRKIT_HANDLE handle,
                                              sdrkit_cell_survey_row *rows,
@@ -3383,7 +3380,6 @@ static inline int32_t sdrkit_umts_cells_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "survey" of the stack "umts" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The rows are the stations or nodes of the stack.
 // The column `name` names a row.
 static inline int32_t sdrkit_umts_survey_rows(SDRKIT_HANDLE handle,
                                              sdrkit_cell_survey_row *rows,

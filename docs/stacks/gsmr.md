@@ -74,7 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.5. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.6. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -149,7 +149,7 @@ Default order: the column `level_db`, highest first.
 
 ### Table `survey`
 
-Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack. The survey table has no role: the cells table is the nodes table of the stack, and a host finds the survey by its key `survey`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
@@ -165,7 +165,7 @@ Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the 
 | `area_code` | whole number | optional | 1.5 | The tracking or location area code. |
 | `level_dbfs` | number (dBFS) | optional | 1.5 | RSRP, RSCP or the received level. |
 
-The rows are the stations or nodes of the stack. The column `name` names a row.
+The column `name` names a row.
 
 ### Event `cell.gsm_cell`
 
