@@ -259,6 +259,9 @@ fn the_handshake_is_exactly_the_transcript() {
         "{st}"
     );
     let caps = r.src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&caps);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!(caps.name, format!("KiwiSDR {}", fake.addr()));
     assert_eq!(caps.max_freq_hz, 30e6);
     assert_eq!(caps.rates.ranges, vec![(12_001.135, 12_001.135)]);

@@ -51,10 +51,21 @@ fn text(t: &str) -> Value {
     Value::Text(t.into())
 }
 
+/// The settings that `src` adds once SDRconnect reported its antennas: it polls until they are there.
+fn added(src: &mut dyn Source) -> Vec<sdrkit_core::SettingDecl> {
+    let mut r = results();
+    let end = Instant::now() + Duration::from_secs(5);
+    while src.settings().is_empty() && Instant::now() < end {
+        src.poll(&mut r);
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    src.settings()
+}
+
 /// `v` with the settings that `src` added when it opened, and its antenna set to `name`.
-fn with_antenna(src: &dyn Source, v: &Values, name: &str) -> Values {
+fn with_antenna(src: &mut dyn Source, v: &Values, name: &str) -> Values {
     let mut decls = v.schema().settings().to_vec();
-    decls.extend(src.settings());
+    decls.extend(added(src));
     let schema = Arc::new(sdrkit_core::Schema::new(decls).unwrap());
     let mut out = Values::defaults(&schema);
     for (i, _) in v.schema().settings().iter().enumerate() {
@@ -187,6 +198,9 @@ fn the_open_sends_the_tuner_the_questions_and_the_settings_in_order() {
     // Nothing is requested that receiving does not need, and the radio was already started.
     assert!(!lines.iter().any(|l| l.starts_with("device_stream_enable")));
     let caps = src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&caps);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!(
         caps.name,
         format!("SDRconnect: RSPduo 1806030000 at {}", f.addr())
@@ -405,7 +419,7 @@ fn a_dropped_connection_is_reconnected_with_the_settings() {
     let mut src = drv(&f)
         .open(&f.addr(), &tune(100_000.0, 14.2e6, &[]))
         .unwrap();
-    let t = with_antenna(&*src, &tune(100_000.0, 14.2e6, &[]), "Tuner 1 Hi-Z");
+    let t = with_antenna(&mut *src, &tune(100_000.0, 14.2e6, &[]), "Tuner 1 Hi-Z");
     src.apply(&t).unwrap();
     let (_, mut r, _) = start(&mut src, 1 << 18);
     assert_eq!(read_n(&mut r, 1000, 3.0).len(), 1000);
@@ -547,7 +561,7 @@ fn settings_out_of_range_are_refused() {
         .unwrap();
     assert_eq!(e, refused(lna));
     // The antenna is a choice of the names that SDRconnect listed: no other name can be set.
-    let listed: Vec<String> = src.settings()[0].field.choices.iter().map(|c| c.key.to_string()).collect();
+    let listed: Vec<String> = added(&mut *src)[0].field.choices.iter().map(|c| c.key.to_string()).collect();
     assert!(listed.len() > 1 && listed[0].is_empty(), "{listed:?}");
     src.stop();
     // The schema refuses values of the wrong kind or out of its range.

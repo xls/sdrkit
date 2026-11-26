@@ -552,6 +552,9 @@ fn first_configuration_and_start_byte_for_byte() {
     assert_eq!((st.rate_hz, st.centre_hz), (12_000.0, 14_174_000.0));
     assert_eq!(src.sample_type(), SampleType::I16);
     let caps = src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&caps);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!(
         (caps.min_freq_hz, caps.max_freq_hz),
         (13_975_000.0, 14_225_000.0)

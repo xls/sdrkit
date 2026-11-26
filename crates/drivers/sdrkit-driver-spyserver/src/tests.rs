@@ -460,6 +460,9 @@ fn opens_in_control_with_the_exact_bytes_and_streams() {
         .open(&srv.addr(), &tune(100e6, 2.2 * M, Some(10.0)))
         .unwrap();
     let caps = src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&caps);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!(caps.name, format!("SpyServer {} (network)", srv.addr()));
     assert_eq!(caps.rates.ranges.len(), 9);
     assert_eq!((caps.rates.min_hz, caps.rates.max_hz), (39_062.5, 10e6));

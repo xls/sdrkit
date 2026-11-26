@@ -32,6 +32,12 @@ use std::time::Duration;
 /// The largest WebSocket message accepted (1 MiB, the limit of SDRconnect's stream). A longer message or a declared length
 /// above it ends the connection, which is opened again.
 pub const MAX_MESSAGE: usize = 1 << 20;
+/// The lowest rate of an SDRplay radio.
+pub const MIN_RATE: Hz = 62_500.0;
+/// The highest rate of an SDRplay radio.
+pub const MAX_RATE: Hz = 10e6;
+/// The lowest centre frequency of an SDRplay radio.
+pub const MIN_FREQ: Hz = 1e3;
 /// The highest centre frequency.
 pub const MAX_FREQ: Hz = 2e9;
 
@@ -197,8 +203,8 @@ static DESCRIPTOR: DriverDescriptor = DriverDescriptor {
     produces: &[StreamFormat {
         kind: Kind::Iq,
         sample: SampleType::Cs16,
-        min_rate_hz: 62_500.0,
-        max_rate_hz: 10e6,
+        min_rate_hz: MIN_RATE,
+        max_rate_hz: MAX_RATE,
         channels: 1,
     }],
     accepts: &[],
@@ -381,12 +387,18 @@ pub(crate) fn caps_for(label: &str, e: &Entry, opts: &Options) -> Capabilities {
             ranges: vec![(r, r)],
             steady_hz: None,
         },
-        _ => RateLimits::default(),
+        // The stack sets the rate: any rate of an SDRplay radio.
+        _ => RateLimits {
+            min_hz: MIN_RATE,
+            max_hz: MAX_RATE,
+            ranges: Vec::new(),
+            steady_hz: None,
+        },
     };
     Capabilities {
         name,
         rates,
-        min_freq_hz: 0.0,
+        min_freq_hz: MIN_FREQ,
         max_freq_hz: MAX_FREQ,
         gain_db: None,
         bandwidth_hz: None,
@@ -521,6 +533,9 @@ struct SdrconnectSource {
 impl Source for SdrconnectSource {
     fn capabilities(&self) -> &Capabilities {
         self.runner.capabilities()
+    }
+    fn settings(&self) -> Vec<SettingDecl> {
+        self.runner.settings()
     }
     fn start(&mut self, sink: RingWriter) -> Result<Started, DriverError> {
         self.runner.start(sink)

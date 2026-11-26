@@ -381,6 +381,9 @@ fn protocol2_transmit_sets_the_pa_bit_and_the_alex_filters_only_on_air() {
         .unwrap();
     let (_, _r) = src.start();
     assert!(src.capabilities().transmit.is_some());
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&src.capabilities());
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     let alex = |h: &[u8]| u32::from_be_bytes([h[1432], h[1433], h[1434], h[1435]]);
     let mut tx = src.transmitter(&tx_values(3.6e6, 0.0)).unwrap();
     // An open transmitter that is not armed: no PTT, no drive, no PA.

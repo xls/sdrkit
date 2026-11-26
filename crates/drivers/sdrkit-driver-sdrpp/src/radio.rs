@@ -342,6 +342,27 @@ pub fn pick_rate(rates: &[f64], w: f64) -> usize {
     })
 }
 
+/// The tuning range of the radio behind a server whose source module is `source`, by the family of the module. A source
+/// that is not known has the range of the widest family (1 MHz to 6 GHz).
+pub(crate) fn source_range(source: Option<&str>) -> (Hz, Hz) {
+    const FAMILIES: [(&str, (Hz, Hz)); 9] = [
+        ("airspyhf", (500.0, 260e6)),
+        ("airspy", (24e6, 1.8e9)),
+        ("hackrf", (1e6, 6e9)),
+        ("rtl", (0.5e6, 1.766e9)),
+        ("sdrplay", (1e3, 2e9)),
+        ("pluto", (70e6, 6e9)),
+        ("lime", (100e3, 3.8e9)),
+        ("blade", (47e6, 6e9)),
+        ("usrp", (10e6, 6e9)),
+    ];
+    let s = source.unwrap_or("").to_ascii_lowercase().replace(['-', ' ', '_'], "");
+    FAMILIES
+        .iter()
+        .find(|(k, _)| s.contains(k))
+        .map_or((1e6, 6e9), |(_, r)| *r)
+}
+
 /// The capabilities from what is kept of a server.
 pub(crate) fn capabilities(label: &str, mem: &Mem) -> Capabilities {
     let m = lock(mem);
@@ -375,14 +396,15 @@ pub(crate) fn capabilities(label: &str, mem: &Mem) -> Capabilities {
         .as_ref()
         .and_then(|x| x.gain_plan().map(|p| (p.lo, p.hi, p.step())))
         .unwrap_or((DEFAULT_GAIN.0, DEFAULT_GAIN.1, 1.0));
+    let tuning = source_range(source.as_deref());
     Capabilities {
         name: match source {
             Some(s) => format!("SDR++ server {label}: {s} (network)"),
             None => format!("SDR++ server {label} (network)"),
         },
         rates: limits,
-        min_freq_hz: 0.0,
-        max_freq_hz: 0.0,
+        min_freq_hz: tuning.0,
+        max_freq_hz: tuning.1,
         gain_db: Some(gain),
         bandwidth_hz: None,
         has_agc: false,

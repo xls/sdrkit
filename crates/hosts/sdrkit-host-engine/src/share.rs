@@ -1816,13 +1816,13 @@ fn with_filters(asked: &[Request], filter: bool) -> Vec<Request> {
     out
 }
 
-/// The tuner type of the rtl_tcp greeting for a radio named `name`: the tuner of an RTL dongle, else the R820T, whose
-/// greeting every rtl_tcp client takes.
+/// The tuner type of the rtl_tcp greeting for a radio named `name`: the tuner of an RTL dongle, else 0 (unknown), so
+/// that a client does not take the tuning range of a dongle for a radio that is not one.
 fn rtl_tuner(name: &str) -> u32 {
     use sdrkit_driver_core::rtl_tcp::TUNERS;
     name.split_whitespace()
         .find_map(|w| TUNERS.iter().position(|t| t.eq_ignore_ascii_case(w)))
-        .map_or(5, |i| i as u32 + 1)
+        .map_or(0, |i| i as u32 + 1)
 }
 
 /// The model of a radio named `name`: the name without a last word of hexadecimal digits, which is part of a serial

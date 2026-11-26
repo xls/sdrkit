@@ -273,6 +273,29 @@ pub const fn buffers(default: i64, min: f64, max: f64) -> Setting<field::I64> {
     number::<field::I64>(BUFFERS_FORM, default).range(min, max, 1.0)
 }
 
+/// The highest tuning range a radio declares: a wider one is a placeholder.
+pub const MAX_TUNING_HZ: Hz = 100e9;
+/// The highest rate a radio declares: a wider one is a placeholder.
+pub const MAX_RATE_HZ: Hz = 1e9;
+
+/// What in the capabilities `caps` of an open radio is a placeholder, one line each: a tuning range that is empty or
+/// reaches above [`MAX_TUNING_HZ`], and a rate range that is not known or reaches [`MAX_RATE_HZ`]. A radio declares the
+/// range that its protocol reports or that its hardware family has.
+pub fn check_capabilities(caps: &crate::Capabilities) -> Vec<String> {
+    let mut out = Vec::new();
+    if caps.max_freq_hz <= caps.min_freq_hz || caps.max_freq_hz > MAX_TUNING_HZ {
+        out.push(format!(
+            "tuning range {} to {} Hz is no range of a radio",
+            caps.min_freq_hz, caps.max_freq_hz
+        ));
+    }
+    let r = &caps.rates;
+    if r.max_hz <= 0.0 || r.max_hz >= MAX_RATE_HZ || r.min_hz > r.max_hz {
+        out.push(format!("rate range {} to {} Hz is no range of a radio", r.min_hz, r.max_hz));
+    }
+    out
+}
+
 /// The rank of `section` in [`SECTIONS`]; a section of the driver ranks after them.
 fn rank(section: &str) -> usize {
     SECTIONS

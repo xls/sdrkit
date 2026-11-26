@@ -1104,6 +1104,9 @@ fn capabilities_come_from_the_server() {
     let d = drv(&f);
     let mut src = d.open(&f.addr(), &tune(48_000.0, 7.1e6, None)).unwrap();
     let c = src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&c);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!((c.min_freq_hz, c.max_freq_hz), (10e3, 30e6));
     assert_eq!(
         c.rates.ranges,

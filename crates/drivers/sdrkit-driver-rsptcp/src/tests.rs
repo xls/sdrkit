@@ -395,6 +395,9 @@ fn extended_rsp1a() {
     let c = i.controls();
     assert!(!c.antenna && c.bias && c.fm_notch && c.dab_notch && !c.refout && !c.am_notch);
     let caps = src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&caps);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!(
         caps.name,
         format!("SDRplay RSP1A at {} (rsp_tcp v1.0)", srv.addr())

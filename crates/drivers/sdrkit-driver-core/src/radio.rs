@@ -963,7 +963,17 @@ impl OpenRadio {
                 1.0,
             );
         }
-        limit_rate(&mut decls[at(RadioSetting::Rate)], &caps.rates);
+        if caps.rates.max_hz > 0.0 {
+            limit_rate(&mut decls[at(RadioSetting::Rate)], &caps.rates);
+        } else {
+            // Rates not known yet: those of the streams of the kind.
+            let p = self.kind.produces;
+            let lo = p.iter().map(|s| s.min_rate_hz).fold(f64::INFINITY, f64::min);
+            let hi = p.iter().map(|s| s.max_rate_hz).fold(0.0, f64::max);
+            if hi > 0.0 && lo <= hi {
+                limit(&mut decls[at(RadioSetting::Rate)], lo, hi, 1.0);
+            }
+        }
         common_in_range(
             &mut decls[at(RadioSetting::Rate)],
             &rate_list(&caps.common_rates_hz, &caps.rates),

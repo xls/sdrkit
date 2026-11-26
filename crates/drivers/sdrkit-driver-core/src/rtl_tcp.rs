@@ -28,6 +28,22 @@ pub const DEFAULT_PORT: u16 = 1234;
 /// Tuner types from the greeting.
 pub const TUNERS: [&str; 6] = ["E4000", "FC0012", "FC0013", "FC2580", "R820T", "R828D"];
 
+/// The tuning range of an RTL-SDR whose greeting names tuner type `tuner` (1 to 6), the protocol's 32-bit Hz for another
+/// radio. Direct sampling other than off (`ds`) reaches down to 0: the I or Q input, or a server that upconverts HF
+/// itself (an RTL-SDR Blog V4).
+pub fn tuner_range_hz(tuner: u32, ds: DirectSampling) -> (Hz, Hz) {
+    let (lo, hi) = match tuner {
+        1 => (52e6, 2200e6),
+        2 => (22e6, 948.6e6),
+        3 => (22e6, 1100e6),
+        4 => (146e6, 924e6),
+        5 => (24e6, 1766e6),
+        6 => (0.5e6, 1766e6),
+        _ => (0.0, MAX_FREQ),
+    };
+    (if ds == DirectSampling::Off { lo } else { 0.0 }, hi)
+}
+
 const GAINS_E4000: &[i32] = &[
     -10, 15, 40, 65, 90, 115, 140, 165, 190, 215, 240, 290, 340, 420,
 ];
@@ -838,6 +854,12 @@ impl Radio for RtlRadio {
                 steady_hz: None,
             }
         };
+        // Another radio behind rtl_tcp tunes what the protocol carries; an RTL-SDR what its tuner reaches.
+        let tuning = if self.is_other() {
+            (0.0, MAX_FREQ)
+        } else {
+            tuner_range_hz(self.greeting.tuner, self.opts.ds)
+        };
         let name = if self.greeting.is_other() {
             format!(
                 "rtl_tcp {} ({})",
@@ -850,8 +872,8 @@ impl Radio for RtlRadio {
         Capabilities {
             name,
             rates,
-            min_freq_hz: 0.0,
-            max_freq_hz: MAX_FREQ,
+            min_freq_hz: tuning.0,
+            max_freq_hz: tuning.1,
             gain_db: Some((0.0, 49.6, 0.1)),
             bandwidth_hz: None,
             has_agc: false,

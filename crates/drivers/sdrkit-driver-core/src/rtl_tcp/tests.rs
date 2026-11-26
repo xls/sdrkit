@@ -194,6 +194,9 @@ fn opens_streams_and_retunes_live() {
         )
         .unwrap();
     assert!(src.capabilities().name.contains("R820T"));
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = crate::form::check_capabilities(src.capabilities());
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert_eq!(src.capabilities().rates.max_hz, 2.56 * M);
     // The usual rates and the gain steps of the tuner (29 for the R820T, 0 to 49.6 dB).
     let caps = src.capabilities();

@@ -214,6 +214,9 @@ fn an_open_reads_the_server() {
         .open(&f.addr(), &tune(2.2 * M, 100e6, None, &[]))
         .expect("open");
     let c = src.capabilities().clone();
+    // The ranges are those of a radio, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(&c);
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     assert!(c.name.contains("Airspy"), "{}", c.name);
     assert_eq!(c.rates.ranges, [(2.5e6, 2.5e6), (10e6, 10e6)]);
     assert_eq!(c.rates.max_hz, 10e6);
