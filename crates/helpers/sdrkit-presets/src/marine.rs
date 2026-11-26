@@ -13,6 +13,10 @@ use std::path::Path;
 
 /// The path of the channel plans in the data folder.
 pub const VHF_CHANNELS: &str = "marine/vhf_channels.csv";
+/// The path of the marine VHF plan of each country in the data folder.
+pub const VHF_PLAN_COUNTRIES: &str = "marine/vhf_plan_countries.csv";
+/// The plan of a country that [`VHF_PLAN_COUNTRIES`] does not list.
+pub const DEFAULT_VHF_PLAN: &str = "INT";
 /// The path of the radiofax stations in the data folder.
 pub const WEFAX_STATIONS: &str = "hfdata/wefax_stations.csv";
 /// The path of the radiofax broadcast times in the data folder.
@@ -461,6 +465,24 @@ impl Data {
     /// As [`read_wefax_broadcasts`].
     pub fn wefax_broadcasts(&self) -> Result<Vec<WefaxBroadcast>, DataError> {
         read_wefax_broadcasts(&self.folder().join(WEFAX_BROADCASTS))
+    }
+
+    /// The id of the marine VHF channel plan of the country `code`: the row of [`VHF_PLAN_COUNTRIES`] that lists it, else
+    /// [`DEFAULT_VHF_PLAN`].
+    ///
+    /// # Errors
+    ///
+    /// [`DataError::Read`], [`DataError::Format`] for a file without the columns `plan` and `countries`.
+    pub fn marine_plan_of(&self, code: &str) -> Result<String, DataError> {
+        let t = match Table::read(self.folder().join(VHF_PLAN_COUNTRIES), &["plan", "countries"]) {
+            Ok(t) => t,
+            Err(DataError::Missing { .. }) => return Ok(DEFAULT_VHF_PLAN.to_owned()),
+            Err(e) => return Err(e),
+        };
+        Ok(t.rows
+            .iter()
+            .find(|(_, r)| t.text(r, "countries").split_whitespace().any(|c| c.eq_ignore_ascii_case(code)))
+            .map_or_else(|| DEFAULT_VHF_PLAN.to_owned(), |(_, r)| t.text(r, "plan").to_owned()))
     }
 
     /// The marine VHF channel plan `id` ("INT", "EUR", "BAL", "USA", "CAN" in the repository's file), `None` when the

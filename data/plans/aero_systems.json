@@ -1,0 +1,1994 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "airband",
+      "name": "VHF airband, 25 kHz channels",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (aeronautical mobile (R) and radionavigation allocations)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "ICAO",
+          "title": "Annex 10 to the Convention on International Civil Aviation, Volume V (Aeronautical Radio Frequency Spectrum Utilization)",
+          "date": "not recorded"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the 25 kHz channels of 118 to 136.975 MHz; which channels a country assigns was not compared with its national tables",
+      "note": "The first channel is the start of the stack airband: 118 MHz. 121.5 MHz is the emergency channel.",
+      "bands": [
+        {
+          "name": "VHF airband",
+          "service": "aeronautical_mobile",
+          "start_hz": 118000000,
+          "end_hz": 136975000,
+          "modes": [
+            "airband"
+          ],
+          "channel_width_hz": 25000,
+          "raster": {
+            "first_hz": 118000000,
+            "step_hz": 25000
+          }
+        }
+      ]
+    },
+    {
+      "id": "airband_833",
+      "name": "VHF airband, 8.33 kHz channels",
+      "kind": "aviation",
+      "source": {
+        "publisher": "European Commission",
+        "title": "Commission Implementing Regulation laying down requirements for voice channel spacing for the single European sky",
+        "number": "(EU) No 1079/2012",
+        "date": "2012-11-16",
+        "url": "https://www.legislation.gov.uk/eur/2012/1079"
+      },
+      "also": [
+        {
+          "publisher": "ICAO",
+          "title": "Annex 10 to the Convention on International Civil Aviation, Volume V (Aeronautical Radio Frequency Spectrum Utilization)",
+          "date": "not recorded"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels of the group air_833; the countries are those that list air_833 in plans/countries.json",
+      "bands": [
+        {
+          "name": "VHF airband, 8.33 kHz channels",
+          "service": "aeronautical_mobile",
+          "start_hz": 117995830,
+          "end_hz": 137004170,
+          "note": "transmitting needs an aeronautical station licence (aircraft or ground station) from the national regulator",
+          "modes": [
+            "airband"
+          ],
+          "modulation": "am",
+          "channel_width_hz": 8333.333333,
+          "numbering": {
+            "first": 0,
+            "last": 2279,
+            "first_centre_hz": 118000000,
+            "step_hz": 8333.333333,
+            "names": "icao_8_33"
+          }
+        }
+      ]
+    },
+    {
+      "id": "selcal",
+      "name": "HF aeronautical voice channels (AM(R) bands)",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Appendix 27 (frequency allotment plan for the aeronautical mobile (R) service)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, Article 5 (aeronautical mobile (R) and radionavigation allocations)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the 3 kHz raster from 1 kHz above each band edge matches the published MWARA frequencies that were compared (5643, 8867, 13261, 17904 kHz); the channel list of Appendix 27 was not read; 5450 to 5480 kHz is AM(R) in Regions 2 and 3 only",
+      "note": "Carrier (dial) frequencies of upper sideband. SELCAL calls come on these channels and on the VHF airband.",
+      "bands": [
+        {
+          "name": "HF aeronautical 2850 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 2850000,
+          "end_hz": 3025000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 2851000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 3400 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 3400000,
+          "end_hz": 3500000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 3401000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 4650 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 4650000,
+          "end_hz": 4700000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 4651000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 5450 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 5450000,
+          "end_hz": 5480000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 5451000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 5480 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 5480000,
+          "end_hz": 5680000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 5481000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 6525 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 6525000,
+          "end_hz": 6685000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 6526000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 8815 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 8815000,
+          "end_hz": 8965000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 8816000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 10005 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 10005000,
+          "end_hz": 10100000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 10006000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 11275 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 11275000,
+          "end_hz": 11400000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 11276000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 13260 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 13260000,
+          "end_hz": 13360000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 13261000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 17900 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 17900000,
+          "end_hz": 17970000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 17901000,
+            "step_hz": 3000
+          }
+        },
+        {
+          "name": "HF aeronautical 21924 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 21924000,
+          "end_hz": 22000000,
+          "modes": [
+            "selcal"
+          ],
+          "channel_width_hz": 3000,
+          "raster": {
+            "first_hz": 21925000,
+            "step_hz": 3000
+          }
+        }
+      ]
+    },
+    {
+      "id": "gbas_vdb",
+      "name": "GBAS VHF data broadcast channels",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ICAO",
+        "title": "Annex 10 to the Convention on International Civil Aviation, Volume I (Radio Navigation Aids)",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, Article 5 (aeronautical mobile (R) and radionavigation allocations)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the 25 kHz channels of 108.025 to 117.950 MHz of Annex 10 Volume I 3.7.3.5; the clause was not read again; which channels the ground stations of a country use is not listed",
+      "bands": [
+        {
+          "name": "GBAS VDB",
+          "service": "aeronautical_mobile",
+          "start_hz": 108025000,
+          "end_hz": 117950000,
+          "modes": [
+            "gbas_vdb"
+          ],
+          "channel_width_hz": 25000,
+          "raster": {
+            "first_hz": 108025000,
+            "step_hz": 25000
+          }
+        }
+      ]
+    },
+    {
+      "id": "aeromacs",
+      "name": "AeroMACS channels",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnote 5.444B (5091 to 5150 MHz, aeronautical mobile (R) at airports)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "ICAO",
+          "title": "Annex 10 to the Convention on International Civil Aviation, Volume V (Aeronautical Radio Frequency Spectrum Utilization)",
+          "date": "not recorded"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the 5 MHz channels with centres 5095 to 5145 MHz are those of the AeroMACS profile; not compared with the Annex 10 text; which airports use AeroMACS is not listed",
+      "bands": [
+        {
+          "name": "AeroMACS",
+          "service": "aeronautical_mobile",
+          "start_hz": 5091000000,
+          "end_hz": 5150000000,
+          "modes": [
+            "aeromacs"
+          ],
+          "channels": [
+            {
+              "name": "AeroMACS 5095 MHz",
+              "centre_hz": 5095000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5100 MHz",
+              "centre_hz": 5100000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5105 MHz",
+              "centre_hz": 5105000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5110 MHz",
+              "centre_hz": 5110000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5115 MHz",
+              "centre_hz": 5115000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5120 MHz",
+              "centre_hz": 5120000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5125 MHz",
+              "centre_hz": 5125000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5130 MHz",
+              "centre_hz": 5130000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5135 MHz",
+              "centre_hz": 5135000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5140 MHz",
+              "centre_hz": 5140000000,
+              "width_hz": 5000000
+            },
+            {
+              "name": "AeroMACS 5145 MHz",
+              "centre_hz": 5145000000,
+              "width_hz": 5000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dme",
+      "name": "DME reply channels",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ICAO",
+        "title": "Annex 10 to the Convention on International Civil Aviation, Volume I (Radio Navigation Aids)",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, Article 5 (aeronautical mobile (R) and radionavigation allocations)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the replies follow the interrogation 1025 + (n - 1) MHz and the 63 MHz offset of the X and Y channels of Annex 10 Volume I (DME channelling table); the table itself was not read; channels 1 to 16 and 60 to 69 X and Y are not paired with VHF navigation channels",
+      "note": "The first channel is the start of the stack dme: 17X, reply 978 MHz.",
+      "bands": [
+        {
+          "name": "DME X channel replies",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 961500000,
+          "end_hz": 1213500000,
+          "modes": [
+            "dme"
+          ],
+          "channels": [
+            {
+              "name": "DME 17X (reply 978 MHz)",
+              "centre_hz": 978000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 1X (reply 962 MHz)",
+              "centre_hz": 962000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 2X (reply 963 MHz)",
+              "centre_hz": 963000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 3X (reply 964 MHz)",
+              "centre_hz": 964000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 4X (reply 965 MHz)",
+              "centre_hz": 965000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 5X (reply 966 MHz)",
+              "centre_hz": 966000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 6X (reply 967 MHz)",
+              "centre_hz": 967000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 7X (reply 968 MHz)",
+              "centre_hz": 968000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 8X (reply 969 MHz)",
+              "centre_hz": 969000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 9X (reply 970 MHz)",
+              "centre_hz": 970000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 10X (reply 971 MHz)",
+              "centre_hz": 971000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 11X (reply 972 MHz)",
+              "centre_hz": 972000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 12X (reply 973 MHz)",
+              "centre_hz": 973000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 13X (reply 974 MHz)",
+              "centre_hz": 974000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 14X (reply 975 MHz)",
+              "centre_hz": 975000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 15X (reply 976 MHz)",
+              "centre_hz": 976000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 16X (reply 977 MHz)",
+              "centre_hz": 977000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 18X (reply 979 MHz)",
+              "centre_hz": 979000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 19X (reply 980 MHz)",
+              "centre_hz": 980000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 20X (reply 981 MHz)",
+              "centre_hz": 981000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 21X (reply 982 MHz)",
+              "centre_hz": 982000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 22X (reply 983 MHz)",
+              "centre_hz": 983000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 23X (reply 984 MHz)",
+              "centre_hz": 984000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 24X (reply 985 MHz)",
+              "centre_hz": 985000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 25X (reply 986 MHz)",
+              "centre_hz": 986000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 26X (reply 987 MHz)",
+              "centre_hz": 987000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 27X (reply 988 MHz)",
+              "centre_hz": 988000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 28X (reply 989 MHz)",
+              "centre_hz": 989000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 29X (reply 990 MHz)",
+              "centre_hz": 990000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 30X (reply 991 MHz)",
+              "centre_hz": 991000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 31X (reply 992 MHz)",
+              "centre_hz": 992000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 32X (reply 993 MHz)",
+              "centre_hz": 993000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 33X (reply 994 MHz)",
+              "centre_hz": 994000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 34X (reply 995 MHz)",
+              "centre_hz": 995000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 35X (reply 996 MHz)",
+              "centre_hz": 996000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 36X (reply 997 MHz)",
+              "centre_hz": 997000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 37X (reply 998 MHz)",
+              "centre_hz": 998000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 38X (reply 999 MHz)",
+              "centre_hz": 999000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 39X (reply 1000 MHz)",
+              "centre_hz": 1000000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 40X (reply 1001 MHz)",
+              "centre_hz": 1001000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 41X (reply 1002 MHz)",
+              "centre_hz": 1002000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 42X (reply 1003 MHz)",
+              "centre_hz": 1003000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 43X (reply 1004 MHz)",
+              "centre_hz": 1004000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 44X (reply 1005 MHz)",
+              "centre_hz": 1005000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 45X (reply 1006 MHz)",
+              "centre_hz": 1006000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 46X (reply 1007 MHz)",
+              "centre_hz": 1007000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 47X (reply 1008 MHz)",
+              "centre_hz": 1008000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 48X (reply 1009 MHz)",
+              "centre_hz": 1009000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 49X (reply 1010 MHz)",
+              "centre_hz": 1010000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 50X (reply 1011 MHz)",
+              "centre_hz": 1011000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 51X (reply 1012 MHz)",
+              "centre_hz": 1012000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 52X (reply 1013 MHz)",
+              "centre_hz": 1013000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 53X (reply 1014 MHz)",
+              "centre_hz": 1014000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 54X (reply 1015 MHz)",
+              "centre_hz": 1015000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 55X (reply 1016 MHz)",
+              "centre_hz": 1016000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 56X (reply 1017 MHz)",
+              "centre_hz": 1017000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 57X (reply 1018 MHz)",
+              "centre_hz": 1018000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 58X (reply 1019 MHz)",
+              "centre_hz": 1019000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 59X (reply 1020 MHz)",
+              "centre_hz": 1020000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 60X (reply 1021 MHz)",
+              "centre_hz": 1021000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 61X (reply 1022 MHz)",
+              "centre_hz": 1022000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 62X (reply 1023 MHz)",
+              "centre_hz": 1023000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 63X (reply 1024 MHz)",
+              "centre_hz": 1024000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 64X (reply 1151 MHz)",
+              "centre_hz": 1151000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 65X (reply 1152 MHz)",
+              "centre_hz": 1152000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 66X (reply 1153 MHz)",
+              "centre_hz": 1153000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 67X (reply 1154 MHz)",
+              "centre_hz": 1154000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 68X (reply 1155 MHz)",
+              "centre_hz": 1155000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 69X (reply 1156 MHz)",
+              "centre_hz": 1156000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 70X (reply 1157 MHz)",
+              "centre_hz": 1157000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 71X (reply 1158 MHz)",
+              "centre_hz": 1158000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 72X (reply 1159 MHz)",
+              "centre_hz": 1159000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 73X (reply 1160 MHz)",
+              "centre_hz": 1160000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 74X (reply 1161 MHz)",
+              "centre_hz": 1161000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 75X (reply 1162 MHz)",
+              "centre_hz": 1162000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 76X (reply 1163 MHz)",
+              "centre_hz": 1163000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 77X (reply 1164 MHz)",
+              "centre_hz": 1164000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 78X (reply 1165 MHz)",
+              "centre_hz": 1165000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 79X (reply 1166 MHz)",
+              "centre_hz": 1166000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 80X (reply 1167 MHz)",
+              "centre_hz": 1167000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 81X (reply 1168 MHz)",
+              "centre_hz": 1168000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 82X (reply 1169 MHz)",
+              "centre_hz": 1169000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 83X (reply 1170 MHz)",
+              "centre_hz": 1170000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 84X (reply 1171 MHz)",
+              "centre_hz": 1171000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 85X (reply 1172 MHz)",
+              "centre_hz": 1172000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 86X (reply 1173 MHz)",
+              "centre_hz": 1173000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 87X (reply 1174 MHz)",
+              "centre_hz": 1174000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 88X (reply 1175 MHz)",
+              "centre_hz": 1175000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 89X (reply 1176 MHz)",
+              "centre_hz": 1176000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 90X (reply 1177 MHz)",
+              "centre_hz": 1177000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 91X (reply 1178 MHz)",
+              "centre_hz": 1178000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 92X (reply 1179 MHz)",
+              "centre_hz": 1179000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 93X (reply 1180 MHz)",
+              "centre_hz": 1180000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 94X (reply 1181 MHz)",
+              "centre_hz": 1181000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 95X (reply 1182 MHz)",
+              "centre_hz": 1182000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 96X (reply 1183 MHz)",
+              "centre_hz": 1183000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 97X (reply 1184 MHz)",
+              "centre_hz": 1184000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 98X (reply 1185 MHz)",
+              "centre_hz": 1185000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 99X (reply 1186 MHz)",
+              "centre_hz": 1186000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 100X (reply 1187 MHz)",
+              "centre_hz": 1187000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 101X (reply 1188 MHz)",
+              "centre_hz": 1188000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 102X (reply 1189 MHz)",
+              "centre_hz": 1189000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 103X (reply 1190 MHz)",
+              "centre_hz": 1190000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 104X (reply 1191 MHz)",
+              "centre_hz": 1191000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 105X (reply 1192 MHz)",
+              "centre_hz": 1192000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 106X (reply 1193 MHz)",
+              "centre_hz": 1193000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 107X (reply 1194 MHz)",
+              "centre_hz": 1194000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 108X (reply 1195 MHz)",
+              "centre_hz": 1195000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 109X (reply 1196 MHz)",
+              "centre_hz": 1196000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 110X (reply 1197 MHz)",
+              "centre_hz": 1197000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 111X (reply 1198 MHz)",
+              "centre_hz": 1198000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 112X (reply 1199 MHz)",
+              "centre_hz": 1199000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 113X (reply 1200 MHz)",
+              "centre_hz": 1200000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 114X (reply 1201 MHz)",
+              "centre_hz": 1201000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 115X (reply 1202 MHz)",
+              "centre_hz": 1202000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 116X (reply 1203 MHz)",
+              "centre_hz": 1203000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 117X (reply 1204 MHz)",
+              "centre_hz": 1204000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 118X (reply 1205 MHz)",
+              "centre_hz": 1205000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 119X (reply 1206 MHz)",
+              "centre_hz": 1206000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 120X (reply 1207 MHz)",
+              "centre_hz": 1207000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 121X (reply 1208 MHz)",
+              "centre_hz": 1208000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 122X (reply 1209 MHz)",
+              "centre_hz": 1209000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 123X (reply 1210 MHz)",
+              "centre_hz": 1210000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 124X (reply 1211 MHz)",
+              "centre_hz": 1211000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 125X (reply 1212 MHz)",
+              "centre_hz": 1212000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 126X (reply 1213 MHz)",
+              "centre_hz": 1213000000,
+              "width_hz": 1000000
+            }
+          ]
+        },
+        {
+          "name": "DME Y channel replies",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 1024500000,
+          "end_hz": 1150500000,
+          "modes": [
+            "dme"
+          ],
+          "channels": [
+            {
+              "name": "DME 1Y (reply 1088 MHz)",
+              "centre_hz": 1088000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 2Y (reply 1089 MHz)",
+              "centre_hz": 1089000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 3Y (reply 1090 MHz)",
+              "centre_hz": 1090000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 4Y (reply 1091 MHz)",
+              "centre_hz": 1091000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 5Y (reply 1092 MHz)",
+              "centre_hz": 1092000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 6Y (reply 1093 MHz)",
+              "centre_hz": 1093000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 7Y (reply 1094 MHz)",
+              "centre_hz": 1094000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 8Y (reply 1095 MHz)",
+              "centre_hz": 1095000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 9Y (reply 1096 MHz)",
+              "centre_hz": 1096000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 10Y (reply 1097 MHz)",
+              "centre_hz": 1097000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 11Y (reply 1098 MHz)",
+              "centre_hz": 1098000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 12Y (reply 1099 MHz)",
+              "centre_hz": 1099000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 13Y (reply 1100 MHz)",
+              "centre_hz": 1100000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 14Y (reply 1101 MHz)",
+              "centre_hz": 1101000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 15Y (reply 1102 MHz)",
+              "centre_hz": 1102000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 16Y (reply 1103 MHz)",
+              "centre_hz": 1103000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 17Y (reply 1104 MHz)",
+              "centre_hz": 1104000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 18Y (reply 1105 MHz)",
+              "centre_hz": 1105000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 19Y (reply 1106 MHz)",
+              "centre_hz": 1106000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 20Y (reply 1107 MHz)",
+              "centre_hz": 1107000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 21Y (reply 1108 MHz)",
+              "centre_hz": 1108000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 22Y (reply 1109 MHz)",
+              "centre_hz": 1109000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 23Y (reply 1110 MHz)",
+              "centre_hz": 1110000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 24Y (reply 1111 MHz)",
+              "centre_hz": 1111000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 25Y (reply 1112 MHz)",
+              "centre_hz": 1112000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 26Y (reply 1113 MHz)",
+              "centre_hz": 1113000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 27Y (reply 1114 MHz)",
+              "centre_hz": 1114000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 28Y (reply 1115 MHz)",
+              "centre_hz": 1115000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 29Y (reply 1116 MHz)",
+              "centre_hz": 1116000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 30Y (reply 1117 MHz)",
+              "centre_hz": 1117000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 31Y (reply 1118 MHz)",
+              "centre_hz": 1118000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 32Y (reply 1119 MHz)",
+              "centre_hz": 1119000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 33Y (reply 1120 MHz)",
+              "centre_hz": 1120000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 34Y (reply 1121 MHz)",
+              "centre_hz": 1121000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 35Y (reply 1122 MHz)",
+              "centre_hz": 1122000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 36Y (reply 1123 MHz)",
+              "centre_hz": 1123000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 37Y (reply 1124 MHz)",
+              "centre_hz": 1124000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 38Y (reply 1125 MHz)",
+              "centre_hz": 1125000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 39Y (reply 1126 MHz)",
+              "centre_hz": 1126000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 40Y (reply 1127 MHz)",
+              "centre_hz": 1127000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 41Y (reply 1128 MHz)",
+              "centre_hz": 1128000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 42Y (reply 1129 MHz)",
+              "centre_hz": 1129000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 43Y (reply 1130 MHz)",
+              "centre_hz": 1130000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 44Y (reply 1131 MHz)",
+              "centre_hz": 1131000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 45Y (reply 1132 MHz)",
+              "centre_hz": 1132000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 46Y (reply 1133 MHz)",
+              "centre_hz": 1133000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 47Y (reply 1134 MHz)",
+              "centre_hz": 1134000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 48Y (reply 1135 MHz)",
+              "centre_hz": 1135000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 49Y (reply 1136 MHz)",
+              "centre_hz": 1136000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 50Y (reply 1137 MHz)",
+              "centre_hz": 1137000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 51Y (reply 1138 MHz)",
+              "centre_hz": 1138000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 52Y (reply 1139 MHz)",
+              "centre_hz": 1139000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 53Y (reply 1140 MHz)",
+              "centre_hz": 1140000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 54Y (reply 1141 MHz)",
+              "centre_hz": 1141000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 55Y (reply 1142 MHz)",
+              "centre_hz": 1142000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 56Y (reply 1143 MHz)",
+              "centre_hz": 1143000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 57Y (reply 1144 MHz)",
+              "centre_hz": 1144000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 58Y (reply 1145 MHz)",
+              "centre_hz": 1145000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 59Y (reply 1146 MHz)",
+              "centre_hz": 1146000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 60Y (reply 1147 MHz)",
+              "centre_hz": 1147000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 61Y (reply 1148 MHz)",
+              "centre_hz": 1148000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 62Y (reply 1149 MHz)",
+              "centre_hz": 1149000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 63Y (reply 1150 MHz)",
+              "centre_hz": 1150000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 64Y (reply 1025 MHz)",
+              "centre_hz": 1025000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 65Y (reply 1026 MHz)",
+              "centre_hz": 1026000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 66Y (reply 1027 MHz)",
+              "centre_hz": 1027000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 67Y (reply 1028 MHz)",
+              "centre_hz": 1028000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 68Y (reply 1029 MHz)",
+              "centre_hz": 1029000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 69Y (reply 1030 MHz)",
+              "centre_hz": 1030000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 70Y (reply 1031 MHz)",
+              "centre_hz": 1031000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 71Y (reply 1032 MHz)",
+              "centre_hz": 1032000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 72Y (reply 1033 MHz)",
+              "centre_hz": 1033000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 73Y (reply 1034 MHz)",
+              "centre_hz": 1034000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 74Y (reply 1035 MHz)",
+              "centre_hz": 1035000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 75Y (reply 1036 MHz)",
+              "centre_hz": 1036000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 76Y (reply 1037 MHz)",
+              "centre_hz": 1037000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 77Y (reply 1038 MHz)",
+              "centre_hz": 1038000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 78Y (reply 1039 MHz)",
+              "centre_hz": 1039000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 79Y (reply 1040 MHz)",
+              "centre_hz": 1040000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 80Y (reply 1041 MHz)",
+              "centre_hz": 1041000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 81Y (reply 1042 MHz)",
+              "centre_hz": 1042000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 82Y (reply 1043 MHz)",
+              "centre_hz": 1043000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 83Y (reply 1044 MHz)",
+              "centre_hz": 1044000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 84Y (reply 1045 MHz)",
+              "centre_hz": 1045000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 85Y (reply 1046 MHz)",
+              "centre_hz": 1046000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 86Y (reply 1047 MHz)",
+              "centre_hz": 1047000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 87Y (reply 1048 MHz)",
+              "centre_hz": 1048000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 88Y (reply 1049 MHz)",
+              "centre_hz": 1049000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 89Y (reply 1050 MHz)",
+              "centre_hz": 1050000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 90Y (reply 1051 MHz)",
+              "centre_hz": 1051000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 91Y (reply 1052 MHz)",
+              "centre_hz": 1052000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 92Y (reply 1053 MHz)",
+              "centre_hz": 1053000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 93Y (reply 1054 MHz)",
+              "centre_hz": 1054000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 94Y (reply 1055 MHz)",
+              "centre_hz": 1055000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 95Y (reply 1056 MHz)",
+              "centre_hz": 1056000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 96Y (reply 1057 MHz)",
+              "centre_hz": 1057000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 97Y (reply 1058 MHz)",
+              "centre_hz": 1058000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 98Y (reply 1059 MHz)",
+              "centre_hz": 1059000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 99Y (reply 1060 MHz)",
+              "centre_hz": 1060000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 100Y (reply 1061 MHz)",
+              "centre_hz": 1061000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 101Y (reply 1062 MHz)",
+              "centre_hz": 1062000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 102Y (reply 1063 MHz)",
+              "centre_hz": 1063000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 103Y (reply 1064 MHz)",
+              "centre_hz": 1064000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 104Y (reply 1065 MHz)",
+              "centre_hz": 1065000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 105Y (reply 1066 MHz)",
+              "centre_hz": 1066000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 106Y (reply 1067 MHz)",
+              "centre_hz": 1067000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 107Y (reply 1068 MHz)",
+              "centre_hz": 1068000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 108Y (reply 1069 MHz)",
+              "centre_hz": 1069000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 109Y (reply 1070 MHz)",
+              "centre_hz": 1070000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 110Y (reply 1071 MHz)",
+              "centre_hz": 1071000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 111Y (reply 1072 MHz)",
+              "centre_hz": 1072000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 112Y (reply 1073 MHz)",
+              "centre_hz": 1073000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 113Y (reply 1074 MHz)",
+              "centre_hz": 1074000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 114Y (reply 1075 MHz)",
+              "centre_hz": 1075000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 115Y (reply 1076 MHz)",
+              "centre_hz": 1076000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 116Y (reply 1077 MHz)",
+              "centre_hz": 1077000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 117Y (reply 1078 MHz)",
+              "centre_hz": 1078000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 118Y (reply 1079 MHz)",
+              "centre_hz": 1079000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 119Y (reply 1080 MHz)",
+              "centre_hz": 1080000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 120Y (reply 1081 MHz)",
+              "centre_hz": 1081000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 121Y (reply 1082 MHz)",
+              "centre_hz": 1082000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 122Y (reply 1083 MHz)",
+              "centre_hz": 1083000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 123Y (reply 1084 MHz)",
+              "centre_hz": 1084000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 124Y (reply 1085 MHz)",
+              "centre_hz": 1085000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 125Y (reply 1086 MHz)",
+              "centre_hz": 1086000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "DME 126Y (reply 1087 MHz)",
+              "centre_hz": 1087000000,
+              "width_hz": 1000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loran",
+      "name": "Loran-C and Chayka",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (90 to 110 kHz, radionavigation)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "every chain transmits on 100 kHz in the 90 to 110 kHz band; most chains are closed",
+      "bands": [
+        {
+          "name": "Loran-C 100 kHz",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 90000,
+          "end_hz": 110000,
+          "modes": [
+            "loran"
+          ],
+          "channels": [
+            {
+              "name": "Loran-C 100 kHz",
+              "centre_hz": 100000,
+              "width_hz": 20000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "airband_833"
+      ],
+      "unverified_reason": "the country lists air_833 in plans/countries.json"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "airband",
+        "selcal",
+        "gbas_vdb",
+        "aeromacs",
+        "dme",
+        "loran"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "airband",
+        "selcal",
+        "gbas_vdb",
+        "aeromacs",
+        "dme",
+        "loran"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "airband",
+        "selcal",
+        "gbas_vdb",
+        "aeromacs",
+        "dme",
+        "loran"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "isdbs_jp",
+      "name": "ISDB-S, Japan: BS and CS 110 degrees east, right-hand channels",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "Transmission system for digital satellite broadcasting",
+        "number": "ARIB STD-B20",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+          "title": "Broadcast Frequency Use Plan (Kikan hoso-yo shuhasu shiyo keikaku), MPT Notice No. 661 of 1988",
+          "date": "2025-10-10",
+          "url": "https://www.tele.soumu.go.jp/horei/law_honbun/00004710.html"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels follow BS-1 at 11727.48 MHz with 38.36 MHz steps and ND2 at 12291 MHz with 40 MHz steps; the frequencies are at the IF of a converter with a 10678 MHz local oscillator; not compared with the text of the plan; the left-hand BS channels (another IF) are not listed",
+      "note": "The first channel is the start of the stack isdbs: BS-1 (IF 1049.48 MHz).",
+      "bands": [
+        {
+          "name": "BS right-hand channels (IF)",
+          "service": "broadcasting",
+          "start_hz": 1032000000,
+          "end_hz": 1489000000,
+          "modes": [
+            "isdbs"
+          ],
+          "channels": [
+            {
+              "name": "BS-1 (11727.48 MHz, IF 1049.48 MHz)",
+              "centre_hz": 1049480000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-3 (11765.84 MHz, IF 1087.84 MHz)",
+              "centre_hz": 1087840000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-5 (11804.20 MHz, IF 1126.20 MHz)",
+              "centre_hz": 1126200000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-7 (11842.56 MHz, IF 1164.56 MHz)",
+              "centre_hz": 1164560000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-9 (11880.92 MHz, IF 1202.92 MHz)",
+              "centre_hz": 1202920000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-11 (11919.28 MHz, IF 1241.28 MHz)",
+              "centre_hz": 1241280000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-13 (11957.64 MHz, IF 1279.64 MHz)",
+              "centre_hz": 1279640000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-15 (11996.00 MHz, IF 1318.00 MHz)",
+              "centre_hz": 1318000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-17 (12034.36 MHz, IF 1356.36 MHz)",
+              "centre_hz": 1356360000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-19 (12072.72 MHz, IF 1394.72 MHz)",
+              "centre_hz": 1394720000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-21 (12111.08 MHz, IF 1433.08 MHz)",
+              "centre_hz": 1433080000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "BS-23 (12149.44 MHz, IF 1471.44 MHz)",
+              "centre_hz": 1471440000,
+              "width_hz": 34500000
+            }
+          ]
+        },
+        {
+          "name": "CS 110 degrees east right-hand channels (IF)",
+          "service": "broadcasting",
+          "start_hz": 1595000000,
+          "end_hz": 2071000000,
+          "modes": [
+            "isdbs"
+          ],
+          "channels": [
+            {
+              "name": "ND2 (12291 MHz, IF 1613 MHz)",
+              "centre_hz": 1613000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND4 (12331 MHz, IF 1653 MHz)",
+              "centre_hz": 1653000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND6 (12371 MHz, IF 1693 MHz)",
+              "centre_hz": 1693000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND8 (12411 MHz, IF 1733 MHz)",
+              "centre_hz": 1733000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND10 (12451 MHz, IF 1773 MHz)",
+              "centre_hz": 1773000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND12 (12491 MHz, IF 1813 MHz)",
+              "centre_hz": 1813000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND14 (12531 MHz, IF 1853 MHz)",
+              "centre_hz": 1853000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND16 (12571 MHz, IF 1893 MHz)",
+              "centre_hz": 1893000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND18 (12611 MHz, IF 1933 MHz)",
+              "centre_hz": 1933000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND20 (12651 MHz, IF 1973 MHz)",
+              "centre_hz": 1973000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND22 (12691 MHz, IF 2013 MHz)",
+              "centre_hz": 2013000000,
+              "width_hz": 34500000
+            },
+            {
+              "name": "ND24 (12731 MHz, IF 2053 MHz)",
+              "centre_hz": 2053000000,
+              "width_hz": 34500000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "JP",
+      "groups": [
+        "isdbs_jp"
+      ],
+      "unverified_reason": "ISDB-S is the satellite TV system of Japan"
+    }
+  ]
+}

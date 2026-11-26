@@ -217,6 +217,11 @@ impl Table {
         Ok(Table { path, header, rows })
     }
 
+    /// The names of the columns.
+    pub(crate) fn header(&self) -> &[String] {
+        &self.header
+    }
+
     /// The field of column `name` in `row`, without outer spaces. Empty if the row is short.
     pub(crate) fn text<'a>(&self, row: &'a [String], name: &str) -> &'a str {
         csv::column(&self.header, &[name])

@@ -1,0 +1,9 @@
+# id: weather_satellites_emea
+# name: Geostationary weather satellite downlinks over Europe, Africa and the Indian Ocean (Meteosat raw data)
+# kind: other
+# itu_regions: 1
+# modes: msg_raw
+# source: EUMETSAT, MSG ground segment interface (raw data downlink); WMO OSCAR satellite pages
+# note: The frequencies are those that the operators publish; their documents were not read for this file.
+band,name,centre_mhz,width_mhz,note
+msg_raw,Meteosat (MSG) raw data,1686.833,4,"geostationary, 0 degrees"

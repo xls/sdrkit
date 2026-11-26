@@ -1,0 +1,67 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "nfc",
+      "name": "NFC and HF RFID, 13.56 MHz",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 13553 to 13567 kHz)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "ISO/IEC",
+          "title": "Near Field Communication, Interface and Protocol (NFCIP-1)",
+          "number": "ISO/IEC 18092",
+          "date": "not recorded"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "ISM 13.56 MHz",
+          "service": "ism",
+          "start_hz": 13553000,
+          "end_hz": 13567000,
+          "modes": [
+            "nfc"
+          ],
+          "channels": [
+            {
+              "name": "NFC 13.56 MHz",
+              "centre_hz": 13560000,
+              "width_hz": 14000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "nfc"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "nfc"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "nfc"
+      ]
+    }
+  ]
+}

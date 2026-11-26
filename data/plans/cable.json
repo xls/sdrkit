@@ -21,7 +21,8 @@
           "start_hz": 47000000,
           "end_hz": 68000000,
           "modes": [
-            "dvbc"
+            "dvbc",
+            "dvbc2"
           ],
           "channel_width_hz": 7000000,
           "numbering": {
@@ -38,7 +39,8 @@
           "start_hz": 104000000,
           "end_hz": 174000000,
           "modes": [
-            "dvbc"
+            "dvbc",
+            "dvbc2"
           ],
           "channel_width_hz": 7000000,
           "numbering": {
@@ -55,7 +57,8 @@
           "start_hz": 174000000,
           "end_hz": 230000000,
           "modes": [
-            "dvbc"
+            "dvbc",
+            "dvbc2"
           ],
           "channel_width_hz": 7000000,
           "numbering": {
@@ -72,7 +75,8 @@
           "start_hz": 230000000,
           "end_hz": 300000000,
           "modes": [
-            "dvbc"
+            "dvbc",
+            "dvbc2"
           ],
           "channel_width_hz": 7000000,
           "numbering": {
@@ -89,7 +93,8 @@
           "start_hz": 302000000,
           "end_hz": 470000000,
           "modes": [
-            "dvbc"
+            "dvbc",
+            "dvbc2"
           ],
           "channel_width_hz": 8000000,
           "numbering": {
@@ -106,7 +111,8 @@
           "start_hz": 470000000,
           "end_hz": 862000000,
           "modes": [
-            "dvbc"
+            "dvbc",
+            "dvbc2"
           ],
           "channel_width_hz": 8000000,
           "numbering": {
@@ -137,6 +143,7 @@
           "end_hz": 72000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -154,6 +161,7 @@
           "end_hz": 88000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -171,6 +179,7 @@
           "end_hz": 216000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -188,6 +197,7 @@
           "end_hz": 120000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -205,6 +215,7 @@
           "end_hz": 174000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -222,6 +233,7 @@
           "end_hz": 300000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -239,6 +251,7 @@
           "end_hz": 648000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,
@@ -256,6 +269,7 @@
           "end_hz": 1002000000,
           "modes": [
             "dvbc",
+            "dvbc2",
             "atsc"
           ],
           "channel_width_hz": 6000000,

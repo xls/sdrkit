@@ -777,7 +777,7 @@ mod tests {
         );
         assert_eq!(d.meshtastic_region_of("XX").unwrap(), None);
         let plans = d.mesh_band_plans().unwrap();
-        assert_eq!(plans.len(), 10);
+        assert_eq!(plans.len(), 11);
         for p in &plans {
             assert!(
                 regions.iter().any(|r| r.name == p.meshtastic_region),
@@ -870,7 +870,7 @@ mod tests {
             d.mesh_band_plan_in("mesh", "ANZ").unwrap().as_deref(),
             Some("ANZ 915")
         );
-        assert_eq!(d.mesh_band_plan_in("meshtastic", "JP").unwrap(), None);
+        assert_eq!(d.mesh_band_plan_in("meshtastic", "JP").unwrap().as_deref(), Some("JP 920"));
         let efl = d.meshtastic_settings("EU_868", "EdgeFastLow").unwrap();
         assert_eq!(hz(&efl, "mt_override_freq"), 869_431_274.0);
         let duty = d.lora_duty_settings().unwrap();

@@ -50,7 +50,7 @@ pub(crate) struct Found {
 
 /// The channels of one band: its numbered and listed channels in use, else the points of its raster, else its centre
 /// if the band is one channel (not wider than one and a half channel widths). A wider band without channels has none.
-fn band_points(b: &Band) -> Vec<PlanChannel> {
+pub(crate) fn band_points(b: &Band) -> Vec<PlanChannel> {
     if !b.in_use {
         return Vec::new();
     }

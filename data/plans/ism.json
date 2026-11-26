@@ -169,6 +169,30 @@
           "end_hz": 40700000
         },
         {
+          "name": "Periodic devices 315 and 433.92 MHz",
+          "service": "short_range",
+          "start_hz": 260000000,
+          "end_hz": 470000000,
+          "modes": [
+            "ism"
+          ],
+          "note": "47 CFR 15.231: remote controls, sensors and alarms above 70 MHz",
+          "channels": [
+            {
+              "name": "315 MHz",
+              "centre_hz": 315000000,
+              "width_hz": 1000000,
+              "note": "garage doors, key fobs and tyre sensors (stack ism)"
+            },
+            {
+              "name": "433.92 MHz",
+              "centre_hz": 433920000,
+              "width_hz": 1740000,
+              "note": "sensors and remote controls (stack ism)"
+            }
+          ]
+        },
+        {
           "name": "ISM 902-928 MHz",
           "service": "ism",
           "start_hz": 902000000,

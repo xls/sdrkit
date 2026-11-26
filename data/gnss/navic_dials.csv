@@ -1,5 +1,6 @@
 # id: navic_dials
 # name: Frequencies a host may offer as the dial of the navic stack
+# stacks: navic
 # source: IRNSS Signal-in-Space ICD for Standard Positioning Service, version 1.1, ISRO (the L5 carrier)
 entry,frequency_hz
 L5,1176450000

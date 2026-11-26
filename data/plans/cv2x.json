@@ -1,0 +1,52 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "cv2x_us",
+      "name": "C-V2X, 5.9 GHz, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Part 95, Subpart L (5.9 GHz C-V2X)",
+        "date": "2024",
+        "url": "https://www.ecfr.gov/current/title-47/part-95"
+      },
+      "verified": false,
+      "unverified_reason": "the 20 MHz channel 5905 to 5925 MHz and the 10 MHz channel 5895 to 5905 MHz of the FCC rules of 2024; the subpart was not read for this file",
+      "note": "The first channel is the start of the stack cv2x: 5915 MHz.",
+      "bands": [
+        {
+          "name": "C-V2X 5895 to 5925 MHz",
+          "service": "land_mobile",
+          "start_hz": 5895000000,
+          "end_hz": 5925000000,
+          "modes": [
+            "cv2x"
+          ],
+          "channels": [
+            {
+              "name": "C-V2X 5915 MHz (20 MHz)",
+              "centre_hz": 5915000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "C-V2X 5900 MHz (10 MHz)",
+              "centre_hz": 5900000000,
+              "width_hz": 10000000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "US",
+      "groups": [
+        "cv2x_us"
+      ],
+      "unverified_reason": "the FCC rules of the United States"
+    }
+  ]
+}

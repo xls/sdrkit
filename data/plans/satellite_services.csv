@@ -1,0 +1,32 @@
+# id: satellite_services
+# name: Distress beacon, data collection and Inmarsat-C channels (sarsat, argos, inmarsatc)
+# kind: other
+# modes: sarsat argos inmarsatc
+# source: Cospas-Sarsat C/S T.012 (406 MHz frequency management plan: channels of 3 kHz from 406.022 MHz); CLS, Argos user manual (401.65 MHz uplink, 465.9875 MHz downlink); Inmarsat, Inmarsat-C SDM (NCS common channels)
+# note: None of the documents was read for this file. Every satellite is heard everywhere in its footprint; the Inmarsat ocean regions overlap.
+band,name,centre_mhz,width_mhz,note
+sarsat,Beacon channel 406.022 MHz,406.022,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.025 MHz,406.025,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.028 MHz,406.028,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.031 MHz,406.031,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.034 MHz,406.034,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.037 MHz,406.037,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.040 MHz,406.040,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.043 MHz,406.043,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.046 MHz,406.046,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.049 MHz,406.049,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.052 MHz,406.052,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.055 MHz,406.055,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.058 MHz,406.058,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.061 MHz,406.061,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.064 MHz,406.064,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.067 MHz,406.067,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.070 MHz,406.070,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.073 MHz,406.073,0.003,"C/S T.012 channel"
+sarsat,Beacon channel 406.076 MHz,406.076,0.003,"C/S T.012 channel"
+argos,Argos platform uplink,401.65,0.06,"401.62 to 401.68 MHz"
+argos,Argos A-DCS downlink,465.9875,0.03,"the downlink of Argos-3 and Argos-4"
+inmarsatc,Inmarsat-C NCS AOR-E,1537.7,0.005,"common channel of the ocean region"
+inmarsatc,Inmarsat-C NCS AOR-W,1541.45,0.005,"common channel of the ocean region"
+inmarsatc,Inmarsat-C NCS IOR,1537.1,0.005,"common channel of the ocean region"
+inmarsatc,Inmarsat-C NCS POR,1541.45,0.005,"common channel of the ocean region"

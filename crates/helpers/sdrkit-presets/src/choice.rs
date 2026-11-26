@@ -135,9 +135,11 @@ impl Data {
     }
 
     /// The channels that a host offers for `stack` in `region`, lowest first: those of the plan that the country has
-    /// for the stack, with their widths; else the scan channels of the plans that the country uses; else the dials of
-    /// every band plan of the LoRa files that a mesh stack offers in the country; else the downlinks of the stack; else
-    /// its starting dials, each with its submode as the label. The channels of the user's plans
+    /// for the stack, with their widths; else the channels of the regional row of its family file
+    /// ([`Data::region_channels`]); else the scan channels of the plans that the country uses; else the dials of every
+    /// band plan of the LoRa files that a mesh stack offers in the country; else the downlinks of the stack; else the
+    /// rows of the dial tables ([`Data::table_dials`]), which hold the starting dials; else the bands that name the stack
+    /// in the plan files of the family folders ([`Data::family_plan_channels`]). The channels of the user's plans
     /// (see [`Data::open_personal_plans`]) that name the stack among their stacks, and the country or no country,
     /// come in addition; at a frequency that both have, the user's channel stays. Empty if the data has none.
     ///
@@ -155,6 +157,9 @@ impl Data {
             .find(stack, country, recipe(stack).is_some())
             .map(|f| f.channels)
             .unwrap_or_default();
+        if out.is_empty() {
+            out = self.region_channels(stack, country)?;
+        }
         if out.is_empty() {
             let ids = self.plan_ids(country);
             let ids: Vec<&str> = ids.iter().map(String::as_str).collect();
@@ -184,15 +189,10 @@ impl Data {
                 .collect();
         }
         if out.is_empty() {
-            out = every_dial(self)?
-                .into_iter()
-                .filter(|d| d.stack == stack)
-                .map(|d| PlanChannel {
-                    label: d.label,
-                    frequency_hz: d.hz,
-                    width_hz: None,
-                })
-                .collect();
+            out = self.table_dials(stack)?;
+        }
+        if out.is_empty() {
+            out = self.family_plan_channels(stack, country)?;
         }
         let own = self.user_channels(stack, country);
         out.retain(|c| !own.iter().any(|o| (o.frequency_hz - c.frequency_hz).abs() < 0.5));

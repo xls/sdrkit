@@ -13,3 +13,4 @@ LoRaWAN EU868,LoRaWAN EU868 868.1 / 868.3 / 868.5 MHz,868.1,mesh lorawan,EU_868,
 LoRaWAN US915,LoRaWAN US915 903.9 MHz (sub-band 2),903.9,mesh lorawan,US,North America,US,869.618,US915
 ANZ 915,ANZ 915 (Meshtastic LongFast 919.875 MHz),919.875,mesh meshtastic meshcore,ANZ,Oceania,AU,915.8,
 ANZ 915 Mid,ANZ 915 (MeshCore Mid 915.075 MHz),915.075,mesh meshtastic meshcore,ANZ,Oceania,ANZ_MID,915.075,
+JP 920,JP 920 (Meshtastic LongFast 923.375 MHz),923.375,mesh meshtastic,JP,,,923.375,

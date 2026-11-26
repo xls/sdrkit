@@ -294,7 +294,7 @@ fn tv_channels_match_the_published_tables() {
     assert_eq!(mhz(au, "51"), 690.5);
     assert!(au.find("52").unwrap().reallocated && !au.find("51").unwrap().reallocated);
     assert!(au.channels.iter().all(|c| c.width_hz == 7e6));
-    assert_eq!(au.modes, ["dvbt"]);
+    assert_eq!(au.modes, ["dvbt", "dvb_terrestrial"]);
     // GE06 raster.
     let eu = plan("tv_eu");
     assert_eq!(mhz(eu, "21"), 474.0);

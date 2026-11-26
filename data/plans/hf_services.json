@@ -1,0 +1,192 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "sitor",
+      "name": "NAVTEX and HF maritime safety information (SITOR-B)",
+      "kind": "marine",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Appendix 15 (frequencies for distress and safety communications, GMDSS)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "NAVTEX 518 and 490 kHz, 4209.5 kHz and the HF narrow-band direct-printing MSI frequencies of Appendix 15; the appendix was not read again",
+      "note": "The first channel is the start of the stack sitor: NAVTEX 518 kHz.",
+      "bands": [
+        {
+          "name": "NAVTEX",
+          "service": "maritime_mobile",
+          "start_hz": 489000,
+          "end_hz": 4210000,
+          "modes": [
+            "sitor"
+          ],
+          "channels": [
+            {
+              "name": "NAVTEX 518 kHz",
+              "centre_hz": 518000,
+              "width_hz": 500
+            },
+            {
+              "name": "NAVTEX national 490 kHz",
+              "centre_hz": 490000,
+              "width_hz": 500
+            },
+            {
+              "name": "NAVTEX tropical 4209.5 kHz",
+              "centre_hz": 4209500,
+              "width_hz": 500
+            }
+          ]
+        },
+        {
+          "name": "HF MSI",
+          "service": "maritime_mobile",
+          "start_hz": 4209000,
+          "end_hz": 26101000,
+          "modes": [
+            "sitor"
+          ],
+          "channels": [
+            {
+              "name": "MSI 4210 kHz",
+              "centre_hz": 4210000,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 6314 kHz",
+              "centre_hz": 6314000,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 8416.5 kHz",
+              "centre_hz": 8416500,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 12579 kHz",
+              "centre_hz": 12579000,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 16806.5 kHz",
+              "centre_hz": 16806500,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 19680.5 kHz",
+              "centre_hz": 19680500,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 22376 kHz",
+              "centre_hz": 22376000,
+              "width_hz": 500
+            },
+            {
+              "name": "MSI 26100.5 kHz",
+              "centre_hz": 26100500,
+              "width_hz": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ale",
+      "name": "Amateur ALE channels (HFLink)",
+      "kind": "amateur",
+      "source": {
+        "publisher": "HFLink",
+        "title": "Ham ALE frequencies",
+        "date": "not recorded",
+        "url": "https://hflink.com/channels/"
+      },
+      "verified": false,
+      "unverified_reason": "the amateur ALE dials of HFLink (upper sideband); not a regulator plan; the page was not read for this file; other ALE networks (government, military) use their own channels",
+      "note": "The first channel is the start of the stack ale: 14109 kHz.",
+      "bands": [
+        {
+          "name": "Amateur ALE",
+          "service": "amateur",
+          "start_hz": 3500000,
+          "end_hz": 29700000,
+          "modes": [
+            "ale"
+          ],
+          "channels": [
+            {
+              "name": "ALE 14109 kHz",
+              "centre_hz": 14109000,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 3596 kHz",
+              "centre_hz": 3596000,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 7102 kHz",
+              "centre_hz": 7102000,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 10145.5 kHz",
+              "centre_hz": 10145500,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 18106 kHz",
+              "centre_hz": 18106000,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 21096 kHz",
+              "centre_hz": 21096000,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 24926 kHz",
+              "centre_hz": 24926000,
+              "width_hz": 3000
+            },
+            {
+              "name": "ALE 28146 kHz",
+              "centre_hz": 28146000,
+              "width_hz": 3000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "sitor",
+        "ale"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "sitor",
+        "ale"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "sitor",
+        "ale"
+      ]
+    }
+  ]
+}

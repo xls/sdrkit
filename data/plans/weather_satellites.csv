@@ -1,9 +1,9 @@
 # id: weather_satellites
-# name: Weather satellite downlinks of the stacks noaa_apt, noaa_dsb, goes_gvar and aws
+# name: Weather satellite downlinks of the stacks noaa_apt, noaa_dsb, goes_gvar, aws, meteor_lrpt and fy3_ahrpt (low orbits, heard everywhere)
 # kind: other
-# modes: noaa_apt noaa_dsb goes_gvar aws
+# modes: noaa_apt noaa_dsb goes_gvar aws meteor_lrpt fy3_ahrpt
 # source: NOAA KLM User's Guide Tables 1.2.5-1, 4.2.2-1 and 4.3.2-1; WMO OSCAR satellite pages; AWS-OSE-ICD-0083 section 4.1; GOES OGE Interface Specification DRL 504-02
-# note: The documents list the 137 MHz frequencies for the NOAA KLM series, not for each satellite. Read on 2026-11-12.
+# note: The documents list the 137 MHz frequencies for the NOAA KLM series, not for each satellite. Read on 2026-11-12. The rows of meteor_lrpt and fy3_ahrpt are the frequencies that the operators (Roscosmos, CMA) publish for the satellites in orbit; their documents were not read for this file.
 band,name,centre_mhz,width_mhz,note
 noaa_apt,NOAA KLM series,137.1,0.05,"right-hand circular; low orbit; NOAA-15 18 and 19 decommissioned in 2025 (WMO OSCAR)"
 noaa_apt,NOAA KLM series,137.5,0.05,"right-hand circular; low orbit; KLM guide Table 4.2.2-1"
@@ -15,3 +15,6 @@ goes_gvar,GOES-13,1685.7,3.2,"linear; geostationary; sub-satellite longitude 61.
 goes_gvar,GOES-14,1685.7,3.2,"linear; geostationary; sub-satellite longitude not checked"
 goes_gvar,GOES-15,1685.7,3.2,"linear; geostationary; sub-satellite longitude not checked"
 aws,Arctic Weather Satellite,1707,3.4,"right-hand circular; low orbit; AWS-OSE-ICD-0083 sections 4.1.1 and 4.1.2"
+meteor_lrpt,Meteor-M N2-3,137.9,0.15,"LRPT 72 kbit/s QPSK; low orbit; not read in an operator document"
+meteor_lrpt,Meteor-M N2-4,137.1,0.15,"LRPT 72 kbit/s QPSK; low orbit; not read in an operator document"
+fy3_ahrpt,FY-3 series,1704.5,6,"AHRPT; low orbit; the frequency of one FY-3 satellite is not checked against each satellite"

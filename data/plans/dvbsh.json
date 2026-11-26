@@ -26,15 +26,224 @@
           ],
           "channel_width_hz": 5000000,
           "channels": [
-            { "name": "2172.5 MHz", "centre_hz": 2172500000 },
-            { "name": "2177.5 MHz", "centre_hz": 2177500000 },
-            { "name": "2182.5 MHz", "centre_hz": 2182500000 },
-            { "name": "2187.5 MHz", "centre_hz": 2187500000 },
-            { "name": "2192.5 MHz", "centre_hz": 2192500000 },
-            { "name": "2197.5 MHz", "centre_hz": 2197500000 }
+            {
+              "name": "2172.5 MHz",
+              "centre_hz": 2172500000
+            },
+            {
+              "name": "2177.5 MHz",
+              "centre_hz": 2177500000
+            },
+            {
+              "name": "2182.5 MHz",
+              "centre_hz": 2182500000
+            },
+            {
+              "name": "2187.5 MHz",
+              "centre_hz": 2187500000
+            },
+            {
+              "name": "2192.5 MHz",
+              "centre_hz": 2192500000
+            },
+            {
+              "name": "2197.5 MHz",
+              "centre_hz": 2197500000
+            }
           ]
         }
       ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "dvbsh_s_band"
+      ],
+      "unverified_reason": "the countries of the EU, where Decision 626/2008/EC selects the operators of the 2 GHz mobile-satellite band; no DVB-SH service on air was confirmed"
     }
   ]
 }

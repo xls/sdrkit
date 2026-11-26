@@ -60,6 +60,7 @@
           "end_hz": 230000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 7000000,
@@ -103,6 +104,7 @@
           "end_hz": 694000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -187,6 +189,7 @@
           "end_hz": 606000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -219,6 +222,7 @@
           "end_hz": 694000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -289,6 +293,7 @@
           "end_hz": 230000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 7000000,
@@ -330,6 +335,7 @@
           "end_hz": 694000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -401,6 +407,7 @@
           "end_hz": 230000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -419,6 +426,7 @@
           "end_hz": 790000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -467,6 +475,7 @@
           "end_hz": 230000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 7000000,
@@ -485,6 +494,7 @@
           "end_hz": 862000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -532,7 +542,8 @@
           "start_hz": 174000000,
           "end_hz": 230000000,
           "modes": [
-            "dvbt"
+            "dvbt",
+            "dvb_terrestrial"
           ],
           "channel_width_hz": 7000000,
           "channels": [
@@ -578,7 +589,8 @@
           "start_hz": 526000000,
           "end_hz": 694000000,
           "modes": [
-            "dvbt"
+            "dvbt",
+            "dvb_terrestrial"
           ],
           "channel_width_hz": 7000000,
           "numbering": {
@@ -641,6 +653,7 @@
           "end_hz": 622000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -658,6 +671,7 @@
           "end_hz": 694000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "note": "allocated to TV but not available for licensing",
@@ -714,6 +728,7 @@
           "end_hz": 694000000,
           "modes": [
             "dvbt",
+            "dvb_terrestrial",
             "dvbt2"
           ],
           "channel_width_hz": 8000000,
@@ -1063,7 +1078,9 @@
           "modes": [
             "atsc",
             "dvbt",
+            "dvb_terrestrial",
             "isdbt",
+            "isdbtsb",
             "dtmb"
           ],
           "channel_width_hz": 6000000,
@@ -1082,7 +1099,9 @@
           "modes": [
             "atsc",
             "dvbt",
+            "dvb_terrestrial",
             "isdbt",
+            "isdbtsb",
             "dtmb"
           ],
           "channel_width_hz": 6000000,
@@ -1101,7 +1120,9 @@
           "modes": [
             "atsc",
             "dvbt",
+            "dvb_terrestrial",
             "isdbt",
+            "isdbtsb",
             "dtmb"
           ],
           "channel_width_hz": 6000000,
@@ -1120,7 +1141,9 @@
           "modes": [
             "atsc",
             "dvbt",
+            "dvb_terrestrial",
             "isdbt",
+            "isdbtsb",
             "dtmb"
           ],
           "channel_width_hz": 6000000,
@@ -1166,7 +1189,8 @@
           "start_hz": 174000000,
           "end_hz": 216142857.142857,
           "modes": [
-            "isdbt"
+            "isdbt",
+            "isdbtsb"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1183,7 +1207,8 @@
           "start_hz": 470000000,
           "end_hz": 698142857.142857,
           "modes": [
-            "isdbt"
+            "isdbt",
+            "isdbtsb"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1233,7 +1258,8 @@
           "modes": [
             "atsc",
             "atsc3",
-            "dvbt"
+            "dvbt",
+            "dvb_terrestrial"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1251,7 +1277,8 @@
           "modes": [
             "atsc",
             "atsc3",
-            "dvbt"
+            "dvbt",
+            "dvb_terrestrial"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1269,7 +1296,8 @@
           "modes": [
             "atsc",
             "atsc3",
-            "dvbt"
+            "dvbt",
+            "dvb_terrestrial"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1287,7 +1315,8 @@
           "modes": [
             "atsc",
             "atsc3",
-            "dvbt"
+            "dvbt",
+            "dvb_terrestrial"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1404,7 +1433,8 @@
           "start_hz": 470000000,
           "end_hz": 710142857.142857,
           "modes": [
-            "isdbt"
+            "isdbt",
+            "isdbtsb"
           ],
           "channel_width_hz": 6000000,
           "numbering": {
@@ -1467,7 +1497,8 @@
           "start_hz": 470000000,
           "end_hz": 698142857.142857,
           "modes": [
-            "isdbt"
+            "isdbt",
+            "isdbtsb"
           ],
           "channel_width_hz": 6000000,
           "numbering": {

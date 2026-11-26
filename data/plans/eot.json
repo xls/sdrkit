@@ -18,16 +18,49 @@
           "service": "land_mobile",
           "start_hz": 150000000,
           "end_hz": 520000000,
-          "modes": ["eot"],
+          "modes": [
+            "eot"
+          ],
           "modulation": "nfm",
           "channel_width_hz": 12500,
           "note": "stack eot; the range of the dial 150 to 520 MHz, the default dial 457.9375 MHz",
           "channels": [
-            { "name": "EOT", "centre_hz": 457937500, "note": "End of train to head of train (telemetry); stack settings: direction=eot" },
-            { "name": "HOT", "centre_hz": 452937500, "note": "Head of train to end of train (commands); stack settings: direction=hot" }
+            {
+              "name": "EOT",
+              "centre_hz": 457937500,
+              "note": "End of train to head of train (telemetry); stack settings: direction=eot"
+            },
+            {
+              "name": "HOT",
+              "centre_hz": 452937500,
+              "note": "Head of train to end of train (commands); stack settings: direction=hot"
+            }
           ]
         }
       ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "US",
+      "groups": [
+        "eot_north_america"
+      ],
+      "unverified_reason": "the end-of-train links of the AAR standard serve the railways of North America"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "eot_north_america"
+      ],
+      "unverified_reason": "the end-of-train links of the AAR standard serve the railways of North America"
+    },
+    {
+      "code": "MX",
+      "groups": [
+        "eot_north_america"
+      ],
+      "unverified_reason": "the end-of-train links of the AAR standard serve the railways of North America"
     }
   ]
 }

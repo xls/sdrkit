@@ -1,0 +1,436 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "remote_id",
+      "name": "Drone Remote ID broadcast channels",
+      "kind": "other",
+      "source": {
+        "publisher": "ASTM International",
+        "title": "Standard Specification for Remote ID and Tracking",
+        "number": "ASTM F3411-22a",
+        "date": "2022",
+        "clause": "the Bluetooth 4 and 5 and Wi-Fi NAN and beacon transports"
+      },
+      "also": [
+        {
+          "publisher": "CEN",
+          "title": "Aerospace series, Unmanned Aircraft Systems, Part 002: Direct Remote Identification",
+          "number": "EN 4709-002",
+          "date": "2021"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "Remote ID uses the Bluetooth LE primary advertising channels and Wi-Fi channel 6 (2437 MHz) or channel 149 (5745 MHz); the transport clauses were not read again",
+      "note": "The first channel is the start of the stack remote_id: Bluetooth LE advertising channel 37.",
+      "bands": [
+        {
+          "name": "Remote ID on Bluetooth LE",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "remote_id"
+          ],
+          "channels": [
+            {
+              "name": "Advertising 37 (2402 MHz)",
+              "centre_hz": 2402000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Advertising 38 (2426 MHz)",
+              "centre_hz": 2426000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Advertising 39 (2480 MHz)",
+              "centre_hz": 2480000000,
+              "width_hz": 2000000
+            }
+          ]
+        },
+        {
+          "name": "Remote ID on Wi-Fi",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 5850000000,
+          "modes": [
+            "remote_id"
+          ],
+          "channels": [
+            {
+              "name": "Wi-Fi channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Wi-Fi channel 149 (5745 MHz)",
+              "centre_hz": 5745000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flarm_europe",
+      "name": "FLARM and OGN trackers, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "EASA",
+        "title": "ADS-L 4 SRD-860, Technical specification for the ADS-L SRD 860 MHz link",
+        "date": "2022",
+        "url": "https://www.easa.europa.eu/en/document-library/general-publications/ads-l-4-srd860"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ERC",
+          "title": "ERC Recommendation 70-03",
+          "number": "ERC/REC 70-03",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "FLARM and OGN trackers use the same two channels as ADS-L in Europe; the FLARM protocol is not published",
+      "bands": [
+        {
+          "name": "FLARM and OGN, 868 MHz",
+          "service": "short_range",
+          "start_hz": 868000000,
+          "end_hz": 868600000,
+          "modes": [
+            "flarm",
+            "ogn"
+          ],
+          "channels": [
+            {
+              "name": "868.2 MHz",
+              "centre_hz": 868200000,
+              "width_hz": 200000
+            },
+            {
+              "name": "868.4 MHz",
+              "centre_hz": 868400000,
+              "width_hz": 200000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flarm",
+      "name": "FLARM trackers, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "EASA",
+        "title": "ADS-L 4 SRD-860, Technical specification for the ADS-L SRD 860 MHz link",
+        "date": "2022",
+        "url": "https://www.easa.europa.eu/en/document-library/general-publications/ads-l-4-srd860"
+      },
+      "verified": false,
+      "unverified_reason": "the channels of the group flarm_europe",
+      "include": [
+        "flarm_europe"
+      ]
+    },
+    {
+      "id": "ogn",
+      "name": "OGN trackers, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "EASA",
+        "title": "ADS-L 4 SRD-860, Technical specification for the ADS-L SRD 860 MHz link",
+        "date": "2022",
+        "url": "https://www.easa.europa.eu/en/document-library/general-publications/ads-l-4-srd860"
+      },
+      "verified": false,
+      "unverified_reason": "the channels of the group flarm_europe",
+      "include": [
+        "flarm_europe"
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "flarm",
+        "ogn"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom, where EASA rules or the 868 MHz SRD band of ERC/REC 70-03 apply"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "remote_id"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "remote_id"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "remote_id"
+      ]
+    }
+  ]
+}

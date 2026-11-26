@@ -1,0 +1,154 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "astro",
+      "name": "Radio astronomy lines",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU-R",
+        "title": "Frequencies of the spectral lines of greatest importance to radio astronomy",
+        "number": "Recommendation ITU-R RA.314",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnotes 5.340 and 5.385 (radio astronomy bands)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the rest frequencies of the hydrogen line and of the four OH lines; the recommendation was not read again",
+      "note": "The first channel is the start of the stack astro: the hydrogen line.",
+      "bands": [
+        {
+          "name": "Hydrogen line",
+          "service": "radio_astronomy",
+          "start_hz": 1400000000,
+          "end_hz": 1427000000,
+          "modes": [
+            "astro"
+          ],
+          "channels": [
+            {
+              "name": "Hydrogen 1420.4058 MHz",
+              "centre_hz": 1420405752,
+              "width_hz": 2000000
+            }
+          ]
+        },
+        {
+          "name": "OH lines",
+          "service": "radio_astronomy",
+          "start_hz": 1610600000,
+          "end_hz": 1727000000,
+          "modes": [
+            "astro"
+          ],
+          "channels": [
+            {
+              "name": "OH 1612.231 MHz",
+              "centre_hz": 1612231000,
+              "width_hz": 500000
+            },
+            {
+              "name": "OH 1665.402 MHz",
+              "centre_hz": 1665402000,
+              "width_hz": 500000
+            },
+            {
+              "name": "OH 1667.359 MHz",
+              "centre_hz": 1667359000,
+              "width_hz": 500000
+            },
+            {
+              "name": "OH 1720.530 MHz",
+              "centre_hz": 1720530000,
+              "width_hz": 500000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hfbeacons",
+      "name": "NCDXF/IARU beacons",
+      "kind": "other",
+      "source": {
+        "publisher": "NCDXF and IARU",
+        "title": "International Beacon Project",
+        "date": "not recorded",
+        "url": "https://www.ncdxf.org/beacon/"
+      },
+      "verified": false,
+      "unverified_reason": "the five frequencies of the International Beacon Project; the page was not read for this file",
+      "bands": [
+        {
+          "name": "NCDXF/IARU beacons",
+          "service": "amateur",
+          "start_hz": 14000000,
+          "end_hz": 29700000,
+          "modes": [
+            "hfbeacons"
+          ],
+          "channels": [
+            {
+              "name": "Beacons 14.1 MHz",
+              "centre_hz": 14100000,
+              "width_hz": 500
+            },
+            {
+              "name": "Beacons 18.11 MHz",
+              "centre_hz": 18110000,
+              "width_hz": 500
+            },
+            {
+              "name": "Beacons 21.15 MHz",
+              "centre_hz": 21150000,
+              "width_hz": 500
+            },
+            {
+              "name": "Beacons 24.93 MHz",
+              "centre_hz": 24930000,
+              "width_hz": 500
+            },
+            {
+              "name": "Beacons 28.2 MHz",
+              "centre_hz": 28200000,
+              "width_hz": 500
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "astro",
+        "hfbeacons"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "astro",
+        "hfbeacons"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "astro",
+        "hfbeacons"
+      ]
+    }
+  ]
+}

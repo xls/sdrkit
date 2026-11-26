@@ -116,6 +116,65 @@
           ]
         }
       ]
+    },
+    {
+      "id": "dect_jp",
+      "name": "J-DECT, 1893.5 to 1906.1 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+        "title": "Digital cordless telephones (DECT system) in 1.9 GHz",
+        "date": "2010"
+      },
+      "also": [
+        {
+          "publisher": "ETSI",
+          "title": "DECT; Common Interface; Part 2: Physical layer",
+          "number": "EN 300 175-2",
+          "date": "not recorded",
+          "clause": "carrier frequencies 1881.792 + c x 1.728 MHz"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the five carriers c = 8 to 12 of the DECT raster that lie in the Japanese band; the MIC text was not read",
+      "bands": [
+        {
+          "name": "J-DECT 1893.5 to 1906.1 MHz",
+          "service": "mobile",
+          "start_hz": 1893500000,
+          "end_hz": 1906100000,
+          "modes": [
+            "dect"
+          ],
+          "channels": [
+            {
+              "name": "J-DECT carrier 8 (1895.616 MHz)",
+              "centre_hz": 1895616000,
+              "width_hz": 1728000
+            },
+            {
+              "name": "J-DECT carrier 9 (1897.344 MHz)",
+              "centre_hz": 1897344000,
+              "width_hz": 1728000
+            },
+            {
+              "name": "J-DECT carrier 10 (1899.072 MHz)",
+              "centre_hz": 1899072000,
+              "width_hz": 1728000
+            },
+            {
+              "name": "J-DECT carrier 11 (1900.800 MHz)",
+              "centre_hz": 1900800000,
+              "width_hz": 1728000
+            },
+            {
+              "name": "J-DECT carrier 12 (1902.528 MHz)",
+              "centre_hz": 1902528000,
+              "width_hz": 1728000
+            }
+          ]
+        }
+      ]
     }
   ],
   "countries": [
@@ -372,6 +431,13 @@
         "dect_us"
       ],
       "unverified_reason": "Canada is taken to use the band of the United States (1920 to 1930 MHz); not compared with RSS-213"
+    },
+    {
+      "code": "JP",
+      "groups": [
+        "dect_jp"
+      ],
+      "unverified_reason": "J-DECT is the DECT band of Japan"
     }
   ]
 }

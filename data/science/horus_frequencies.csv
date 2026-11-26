@@ -1,6 +1,6 @@
 # id: horus_frequencies
 # name: Frequencies of Project Horus balloon telemetry (Horus Binary 4FSK at 100 baud, listened in upper sideband)
-# stacks: horus
+# stacks: horus ssdv
 # source: horusdemodlib wiki, home page (https://github.com/projecthorus/horusdemodlib/wiki): Australia 434.200 MHz (secondary payloads 434.210 MHz), Western Europe 434.714 MHz, Poland 437.600 MHz, USA (California) 431.050 MHz
 # note: Flights announce their own frequency; check the announcement of a flight.
 frequency_hz,name,region,note

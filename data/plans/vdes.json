@@ -1,0 +1,84 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "vdes",
+      "name": "VHF data exchange system (VDES)",
+      "kind": "marine",
+      "source": {
+        "publisher": "ITU-R",
+        "title": "Technical characteristics for a VHF data exchange system in the VHF maritime mobile band",
+        "number": "Recommendation ITU-R M.2092",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Appendix 18 (table of transmitting frequencies in the VHF maritime mobile band)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "ASM 1 and 2 are channels 2027 and 2028 of Appendix 18; the VDE terrestrial channels are channels 24, 84, 25 and 85 merged to 100 kHz (157.2375 MHz ship, 161.8375 MHz shore); the clauses were not read again; the satellite channels are not listed",
+      "note": "The first channel is the start of the stack vdes: ASM 1.",
+      "bands": [
+        {
+          "name": "VDES",
+          "service": "maritime_mobile",
+          "start_hz": 157150000,
+          "end_hz": 162050000,
+          "modes": [
+            "vdes"
+          ],
+          "channels": [
+            {
+              "name": "ASM 1 (channel 2027)",
+              "centre_hz": 161950000,
+              "width_hz": 25000
+            },
+            {
+              "name": "ASM 2 (channel 2028)",
+              "centre_hz": 162000000,
+              "width_hz": 25000
+            },
+            {
+              "name": "VDE-TER shore (channels 2024, 2084, 2025, 2085)",
+              "centre_hz": 161837500,
+              "width_hz": 100000
+            },
+            {
+              "name": "VDE-TER ship (channels 1024, 1084, 1025, 1085)",
+              "centre_hz": 157237500,
+              "width_hz": 100000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "vdes"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "vdes"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "vdes"
+      ]
+    }
+  ]
+}

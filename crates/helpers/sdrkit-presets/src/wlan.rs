@@ -2,7 +2,9 @@
 //!
 //! `wlan/wifi_domains.csv` has the columns `domain,name,band,channels,dfs,not_hopped`, one row for each domain and band.
 //! `wlan/halow_regions.csv` has the columns `code,name,start_mhz,bands_mhz,widths_mhz,classes,channels_1,channels_2,
-//! channels_4,channels_8,channels_16`, one row for each region. A list field holds numbers apart by spaces.
+//! channels_4,channels_8,channels_16,countries`, one row for each region. A list field holds numbers apart by spaces,
+//! `countries` the ISO codes of the countries of the region. The domain of a country is the suffix of the `wifi_` plan
+//! that the plan files give it (`wifi_eu`), else its code.
 
 use crate::data::{Data, Table};
 use crate::error::DataError;
@@ -69,6 +71,8 @@ pub struct HalowRegion {
     pub classes: Vec<u32>,
     /// The channel numbers of the widths 1, 2, 4, 8 and 16 MHz.
     pub channels: [Vec<u32>; 5],
+    /// The ISO 3166-1 alpha-2 codes of the countries of the region, upper case.
+    pub countries: Vec<String>,
 }
 
 /// The widths of the channel columns of the HaLow region file, MHz.
@@ -78,6 +82,20 @@ impl HalowRegion {
     /// The centre of channel `number`, Hz.
     pub fn centre_hz(&self, number: u32) -> f64 {
         self.start_hz + 0.5e6 * f64::from(number)
+    }
+
+    /// The centre of the first channel of the narrowest width, Hz. `None` for a region without channels.
+    pub fn first_channel_hz(&self) -> Option<f64> {
+        self.channels.iter().find_map(|l| l.first()).map(|&n| self.centre_hz(n))
+    }
+
+    /// Every channel of the region as (width in MHz, number), the narrowest width first.
+    pub fn every_channel(&self) -> Vec<(u32, u32)> {
+        HALOW_WIDTHS_MHZ
+            .iter()
+            .zip(&self.channels)
+            .flat_map(|(w, list)| list.iter().map(move |&n| (*w, n)))
+            .collect()
     }
 
     /// The `halow` settings of the plan: `start_hz` and `channels_1` to `channels_16`.
@@ -216,16 +234,22 @@ pub fn read_halow_regions(path: &Path) -> Result<Vec<HalowRegion>, DataError> {
                 numbers(&t, *line, r, "channels_8")?,
                 numbers(&t, *line, r, "channels_16")?,
             ],
+            countries: crate::ism::codes(t.text(r, "countries")),
         });
     }
     Ok(out)
 }
 
-/// The `halow` settings of the region with `code`. `None` when no row has it.
+/// The region of `code`: the row whose code is `code` or whose countries hold it. `None` when no row has it.
+pub fn halow_region_of<'a>(rows: &'a [HalowRegion], code: &str) -> Option<&'a HalowRegion> {
+    rows.iter().find(|r| {
+        r.code.eq_ignore_ascii_case(code) || r.countries.iter().any(|c| c.eq_ignore_ascii_case(code))
+    })
+}
+
+/// The `halow` settings of the region of `code` ([`halow_region_of`]). `None` when no row has it.
 pub fn halow_settings(rows: &[HalowRegion], code: &str) -> Option<Vec<(String, Value)>> {
-    rows.iter()
-        .find(|r| r.code.eq_ignore_ascii_case(code))
-        .map(HalowRegion::settings)
+    halow_region_of(rows, code).map(HalowRegion::settings)
 }
 
 impl Data {
@@ -236,6 +260,15 @@ impl Data {
     /// What [`read_wifi_domains`] returns.
     pub fn wifi_domains(&self) -> Result<Vec<WifiDomain>, DataError> {
         read_wifi_domains(&self.folder().join(WIFI_DOMAINS_FILE))
+    }
+
+    /// The Wi-Fi domain of the country `code`: the suffix of the `wifi_` plan that the plan files give the country
+    /// (`eu` for `wifi_eu`), else the code in lower case.
+    pub fn wifi_domain_of(&self, code: &str) -> String {
+        self.plans
+            .find("wifi", &code.to_ascii_uppercase(), false)
+            .and_then(|f| f.id.strip_prefix("wifi_").map(str::to_owned))
+            .unwrap_or_else(|| code.to_ascii_lowercase())
     }
 
     /// The rows of [`HALOW_REGIONS_FILE`] of the folder.

@@ -11,6 +11,8 @@ without the option they read `data` in the storage folder (`~/.sdrkit/data`).
 |---|---|
 | `plans/*.json` | Band and channel plans: band groups, countries and ITU regions. The format is `docs/schema/plans.json`. |
 | `plans/*.csv` | One channel plan in each file: `# key: value` lines, a header line, one channel in each row. |
+| `<family>/*.csv` | Family files that stacks read through their settings. A file with a frequency column (`hz`, `dial_hz`, `frequency_hz`, `freq_khz`, `carrier_khz`, `frequency_mhz`, `freq_mhz` or `centre_mhz`) and a column `stack` or a line `# stacks:` is also a dial table: its rows are known frequencies of their stacks. |
+| `<family>/*.json` | Plan files of one family in the format of `plans/`. Their bands that name a stack are known frequencies of the stack when no other file gives it any. |
 | `stations/<kind>/<ISO2>.csv` | The known stations of one country. `<kind>` is `fm`, `dab`, `dvb-t`, `atsc`, `atsc3`, `isdb-t` or `dtmb`. |
 | `cities/<ISO2>.csv` | The cities of one country. |
 | `dab-tii/<ISO2>.csv` | The DAB transmitters of one country, with their identification codes. |

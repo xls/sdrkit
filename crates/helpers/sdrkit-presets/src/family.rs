@@ -71,24 +71,24 @@ impl Data {
             }
             "halow" => {
                 if let Some(rows) = present(self.halow_regions())? {
-                    out.frequency_hz = rows
-                        .iter()
-                        .find(|r| r.code.eq_ignore_ascii_case(code))
-                        .map(|r| r.start_hz);
-                    out.settings = crate::wlan::halow_settings(&rows, code).unwrap_or_default();
+                    if let Some(r) = crate::wlan::halow_region_of(&rows, code) {
+                        out.frequency_hz = r.first_channel_hz();
+                        out.settings = r.settings();
+                    }
                 }
             }
             "wifi" => {
                 if let Some(rows) = present(self.wifi_domains())? {
+                    let domain = self.wifi_domain_of(code);
                     out.settings =
-                        crate::wlan::wifi_settings(&rows, code, false).unwrap_or_default();
+                        crate::wlan::wifi_settings(&rows, &domain, false).unwrap_or_default();
                 }
             }
             "zwave" => {
                 if let Some(rows) = present(self.zwave_regions())? {
-                    if let Some((hz, s)) = crate::ism::zwave_settings(&rows, code) {
-                        out.frequency_hz = Some(hz);
-                        out.settings = s;
+                    if let Some(r) = crate::ism::zwave_region_of(&rows, code) {
+                        out.frequency_hz = Some(r.centre_hz);
+                        out.settings = r.settings();
                     }
                 }
             }

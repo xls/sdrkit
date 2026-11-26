@@ -1,0 +1,404 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "sigfox_rc1",
+      "name": "Sigfox RC1",
+      "kind": "other",
+      "source": {
+        "publisher": "Sigfox (UnaBiz)",
+        "title": "Sigfox radio configurations RC1 to RC7",
+        "date": "not recorded",
+        "url": "https://build.sigfox.com/sigfox-radio-configurations-rc"
+      },
+      "verified": false,
+      "unverified_reason": "the uplink and downlink centres of the radio configuration; the page was not read for this file",
+      "bands": [
+        {
+          "name": "Sigfox RC1",
+          "service": "short_range",
+          "start_hz": 867130000,
+          "end_hz": 870525000,
+          "modes": [
+            "sigfox"
+          ],
+          "channels": [
+            {
+              "name": "RC1 uplink 868.13 MHz",
+              "centre_hz": 868130000,
+              "width_hz": 192000
+            },
+            {
+              "name": "RC1 downlink 869.525 MHz",
+              "centre_hz": 869525000,
+              "width_hz": 1500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sigfox_rc2",
+      "name": "Sigfox RC2",
+      "kind": "other",
+      "source": {
+        "publisher": "Sigfox (UnaBiz)",
+        "title": "Sigfox radio configurations RC1 to RC7",
+        "date": "not recorded",
+        "url": "https://build.sigfox.com/sigfox-radio-configurations-rc"
+      },
+      "verified": false,
+      "unverified_reason": "the uplink and downlink centres of the radio configuration; the page was not read for this file",
+      "bands": [
+        {
+          "name": "Sigfox RC2",
+          "service": "short_range",
+          "start_hz": 901200000,
+          "end_hz": 906200000,
+          "modes": [
+            "sigfox"
+          ],
+          "channels": [
+            {
+              "name": "RC2 uplink 902.2 MHz",
+              "centre_hz": 902200000,
+              "width_hz": 192000
+            },
+            {
+              "name": "RC2 downlink 905.2 MHz",
+              "centre_hz": 905200000,
+              "width_hz": 1500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sigfox_rc3",
+      "name": "Sigfox RC3",
+      "kind": "other",
+      "source": {
+        "publisher": "Sigfox (UnaBiz)",
+        "title": "Sigfox radio configurations RC1 to RC7",
+        "date": "not recorded",
+        "url": "https://build.sigfox.com/sigfox-radio-configurations-rc"
+      },
+      "verified": false,
+      "unverified_reason": "the uplink and downlink centres of the radio configuration; the page was not read for this file",
+      "bands": [
+        {
+          "name": "Sigfox RC3",
+          "service": "short_range",
+          "start_hz": 921200000,
+          "end_hz": 924200000,
+          "modes": [
+            "sigfox"
+          ],
+          "channels": [
+            {
+              "name": "RC3 uplink 923.2 MHz",
+              "centre_hz": 923200000,
+              "width_hz": 192000
+            },
+            {
+              "name": "RC3 downlink 922.2 MHz",
+              "centre_hz": 922200000,
+              "width_hz": 1500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sigfox_rc4",
+      "name": "Sigfox RC4",
+      "kind": "other",
+      "source": {
+        "publisher": "Sigfox (UnaBiz)",
+        "title": "Sigfox radio configurations RC1 to RC7",
+        "date": "not recorded",
+        "url": "https://build.sigfox.com/sigfox-radio-configurations-rc"
+      },
+      "verified": false,
+      "unverified_reason": "the uplink and downlink centres of the radio configuration; the page was not read for this file",
+      "bands": [
+        {
+          "name": "Sigfox RC4",
+          "service": "short_range",
+          "start_hz": 919800000,
+          "end_hz": 923300000,
+          "modes": [
+            "sigfox"
+          ],
+          "channels": [
+            {
+              "name": "RC4 uplink 920.8 MHz",
+              "centre_hz": 920800000,
+              "width_hz": 192000
+            },
+            {
+              "name": "RC4 downlink 922.3 MHz",
+              "centre_hz": 922300000,
+              "width_hz": 1500
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "sigfox_rc1"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "sigfox_rc2"
+      ],
+      "unverified_reason": "RC2 is the configuration of the United States"
+    },
+    {
+      "code": "JP",
+      "groups": [
+        "sigfox_rc3"
+      ],
+      "unverified_reason": "RC3 is the configuration of Japan"
+    },
+    {
+      "code": "AU",
+      "groups": [
+        "sigfox_rc4"
+      ],
+      "unverified_reason": "RC4 is the configuration of Australia, New Zealand and Latin America"
+    },
+    {
+      "code": "NZ",
+      "groups": [
+        "sigfox_rc4"
+      ],
+      "unverified_reason": "RC4 is the configuration of Australia, New Zealand and Latin America"
+    }
+  ]
+}

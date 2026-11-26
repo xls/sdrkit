@@ -1,0 +1,13 @@
+# id: weather_satellites_asia
+# name: Geostationary weather satellite downlinks over Asia and the western Pacific (GK-2A, FY-2, FY-4)
+# kind: other
+# itu_regions: 3
+# modes: gk2a_lrit gk2a_hrit fy2_svissr fy4_lrit fy4a_hrit
+# source: KMA, GK-2A LRIT/HRIT mission specification; CMA, FY-2 and FY-4 dissemination specifications; WMO OSCAR satellite pages
+# note: The frequencies are those that the operators publish; their documents were not read for this file. The footprint of the satellites is east Asia, Australia and the western Pacific, here taken as ITU Region 3.
+band,name,centre_mhz,width_mhz,note
+gk2a_lrit,GK-2A LRIT,1692.14,0.6,"geostationary, 128.2 E"
+gk2a_hrit,GK-2A HRIT,1695.4,5,"geostationary, 128.2 E"
+fy2_svissr,FY-2 S-VISSR,1687.5,2,"geostationary"
+fy4_lrit,FY-4 LRIT,1697,0.4,"geostationary"
+fy4a_hrit,FY-4A HRIT,1681,4,"geostationary"

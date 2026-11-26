@@ -1,0 +1,10 @@
+# id: weather_satellites_elektro
+# name: Elektro-L downlinks (geostationary near 76 E: Europe, Africa, Asia and western Australia)
+# kind: other
+# itu_regions: 1 3
+# modes: elektro_l
+# source: Roscosmos / Planeta, Elektro-L dissemination; WMO OSCAR satellite pages
+# note: The frequencies are those that the operator publishes; its documents were not read for this file.
+band,name,centre_mhz,width_mhz,note
+elektro_l,Elektro-L LRIT,1691,0.3,"geostationary"
+elektro_l,Elektro-L HRIT,1693,1.2,"geostationary"

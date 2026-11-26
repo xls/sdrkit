@@ -1,0 +1,73 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "elt121",
+      "name": "Emergency locator transmitters, 121.5 and 243 MHz",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ICAO",
+        "title": "Annex 10 to the Convention on International Civil Aviation, Volume V",
+        "date": "not recorded",
+        "clause": "the aeronautical emergency frequencies 121.5 MHz and 243 MHz"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Appendix 15 (frequencies for distress and safety communications)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the two emergency frequencies; the annex was not read for this file",
+      "bands": [
+        {
+          "name": "Aeronautical emergency",
+          "service": "aeronautical_mobile",
+          "start_hz": 121490000,
+          "end_hz": 243010000,
+          "modes": [
+            "elt121"
+          ],
+          "channels": [
+            {
+              "name": "ELT 121.5 MHz",
+              "centre_hz": 121500000,
+              "width_hz": 20000
+            },
+            {
+              "name": "ELT 243 MHz",
+              "centre_hz": 243000000,
+              "width_hz": 20000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "elt121"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "elt121"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "elt121"
+      ]
+    }
+  ]
+}

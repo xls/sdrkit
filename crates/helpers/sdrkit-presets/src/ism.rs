@@ -1,7 +1,8 @@
 //! The channel plans of the `zwave` and `wisun` stacks by region.
 //!
-//! `ism/zwave_regions.csv` has the columns `id,name,centre_mhz,r1_mhz,r2_mhz,r3_mhz`, one row for each region; a list field
-//! holds frequencies apart by spaces. `ism/wisun_bands.csv` has the columns
+//! `ism/zwave_regions.csv` has the columns `id,name,centre_mhz,r1_mhz,r2_mhz,r3_mhz,countries`, one row for each region; a
+//! list field holds frequencies apart by spaces, `countries` the ISO codes of the countries of the region.
+//! `ism/wisun_bands.csv` has the columns
 //! `id,name,domain,ranges_mhz,class,first_mhz,spacing_khz,channels,modes,countries`, one row for each operating class of a
 //! band plan; `countries` lists the ISO codes of the countries that use the plan, apart by spaces.
 //! `ism/wisun_plan_of_frequency.csv` has the columns `low_mhz,high_mhz,id`: the plan that a host takes for a tuned
@@ -30,6 +31,8 @@ pub struct ZwaveRegion {
     pub centre_hz: f64,
     /// The channels of the rates R1, R2 and R3, Hz.
     pub rates_hz: [Vec<f64>; 3],
+    /// The ISO 3166-1 alpha-2 codes of the countries of the region, upper case.
+    pub countries: Vec<String>,
 }
 
 impl ZwaveRegion {
@@ -79,6 +82,7 @@ pub fn read_zwave_regions(path: &Path) -> Result<Vec<ZwaveRegion>, DataError> {
                 mhz_list(&t, *line, r, "r2_mhz")?,
                 mhz_list(&t, *line, r, "r3_mhz")?,
             ],
+            countries: codes(t.text(r, "countries")),
         });
     }
     Ok(out)
@@ -89,6 +93,18 @@ pub fn zwave_settings(rows: &[ZwaveRegion], id: &str) -> Option<(f64, Vec<(Strin
     rows.iter()
         .find(|r| r.id.eq_ignore_ascii_case(id))
         .map(|r| (r.centre_hz, r.settings()))
+}
+
+/// The region of the country `code`: the row whose id is the code or whose countries hold it. `None` when no row has it.
+pub fn zwave_region_of<'a>(rows: &'a [ZwaveRegion], code: &str) -> Option<&'a ZwaveRegion> {
+    rows.iter().find(|r| {
+        r.id.eq_ignore_ascii_case(code) || r.countries.iter().any(|c| c.eq_ignore_ascii_case(code))
+    })
+}
+
+/// The upper-case codes of a list field, apart by spaces.
+pub(crate) fn codes(field: &str) -> Vec<String> {
+    field.split_whitespace().map(str::to_ascii_uppercase).collect()
 }
 
 /// The region with the most channels within ±0.45 `rate_hz` of `centre_hz` (the first such row on a tie). `None` when no

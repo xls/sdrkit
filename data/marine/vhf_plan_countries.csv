@@ -1,0 +1,8 @@
+# id: marine_vhf_plan_countries
+# name: The marine VHF channel plan of each country (vhf_channels.csv)
+# source: 47 CFR 80.371 (United States); Canadian practice (Canada); CEPT (the countries of the European plan); ITU Radio Regulations Appendix 18 (every other country)
+# note: A country that no row lists takes the plan INT. The countries of EUR are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with each national rule.
+plan,countries
+USA,US
+CAN,CA
+EUR,AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE IS LI NO CH GB

@@ -1,0 +1,137 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "sbas",
+      "name": "SBAS signals (WAAS, EGNOS, MSAS, GAGAN and others)",
+      "kind": "other",
+      "source": {
+        "publisher": "RTCA",
+        "title": "Minimum Operational Performance Standards for GPS/WAAS airborne equipment",
+        "number": "DO-229",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, Article 5 (radionavigation-satellite 1164 to 1215 and 1559 to 1610 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "SBAS satellites send on the GPS L1 and L5 carriers; the standard was not read for this file",
+      "note": "The first channel is the start of the stack sbas: L1.",
+      "bands": [
+        {
+          "name": "SBAS L1 and L5",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 1164000000,
+          "end_hz": 1610000000,
+          "modes": [
+            "sbas"
+          ],
+          "channels": [
+            {
+              "name": "SBAS L1 1575.42 MHz",
+              "centre_hz": 1575420000,
+              "width_hz": 2046000
+            },
+            {
+              "name": "SBAS L5 1176.45 MHz",
+              "centre_hz": 1176450000,
+              "width_hz": 20460000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sonde",
+      "name": "Meteorological aids band, 400.15 to 406 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (meteorological aids, 400.15 to 406 MHz)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "radiosondes are set to any frequency of the band; the 10 kHz raster is the step of the common sondes, not a value of the regulations",
+      "bands": [
+        {
+          "name": "Radiosondes 400.15 to 406 MHz",
+          "service": "mobile",
+          "start_hz": 400150000,
+          "end_hz": 406000000,
+          "modes": [
+            "sonde"
+          ],
+          "channel_width_hz": 10000,
+          "raster": {
+            "first_hz": 400150000,
+            "step_hz": 10000
+          }
+        }
+      ]
+    },
+    {
+      "id": "eczas",
+      "name": "e-Czas Polska, 225 kHz",
+      "kind": "other",
+      "source": {
+        "publisher": "Glowny Urzad Miar (Poland)",
+        "title": "e-Czas Polska: the official time on the 225 kHz long-wave carrier",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the 225 kHz carrier of the Solec Kujawski long-wave transmitter; heard in Europe; the document was not read for this file",
+      "bands": [
+        {
+          "name": "Long wave 225 kHz",
+          "service": "broadcasting",
+          "start_hz": 220000,
+          "end_hz": 230000,
+          "modes": [
+            "eczas"
+          ],
+          "channels": [
+            {
+              "name": "e-Czas 225 kHz",
+              "centre_hz": 225000,
+              "width_hz": 2000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "sbas",
+        "sonde",
+        "eczas"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "sbas",
+        "sonde"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "sbas",
+        "sonde"
+      ]
+    }
+  ]
+}

@@ -17,6 +17,7 @@
 //! | `dab-tii/<ISO2>.csv` | The DAB transmitters of a country, see [`Transmitter`]. |
 //! | `countries.csv` | The countries, see [`Country`]. |
 //! | `links/*.csv` | Satellite downlinks by stack and submode, see [`Downlink`]. |
+//! | `<family>/*.csv` with the columns `stack` and `hz`, `dial_hz`, `frequency_hz` or `frequency_mhz` | Dial tables: known frequencies of stacks, see [`Data::table_dials`]. |
 //! | any `*.csv` with a `# stacks:` line | Data files that stacks read through their settings, see [`Data::stack_files`]. |
 
 #![warn(missing_docs)]
@@ -37,6 +38,7 @@ pub mod fm;
 pub mod freqdb;
 pub mod general;
 pub mod ism;
+mod known;
 pub mod lookup;
 pub mod lora;
 pub mod marine;
