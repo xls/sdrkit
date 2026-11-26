@@ -25,7 +25,9 @@ use proto::{IioError, IiodConn, Target, IIOD_PORT};
 use samples::{bit, layout, mask_of, Layout};
 use sdrkit_core::net::{host_port, is_local, Transport};
 use sdrkit_core::publish::field;
-use sdrkit_core::{Hz, Setting, SettingId, SettingSet, Values};
+use sdrkit_core::settings::DeclareSetting;
+use sdrkit_core::value::Choice as _;
+use sdrkit_core::{Hz, Setting, SettingDecl, SettingId, SettingSet, Value, Values};
 use sdrkit_graph::stream::{Kind, SampleType};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -82,9 +84,13 @@ const OWN_BUFFER_RECENT: Duration = Duration::from_secs(10);
 const PROBE_FILL_MAX: Duration = Duration::from_millis(400);
 /// The start of a stream that the watch does not judge: a start, a retune or a change of stack delivers a little short
 /// for a moment, which says nothing about the link.
-const WATCH_SETTLE: Duration = Duration::from_secs(3);
+const WATCH_SETTLE: Duration = Duration::from_millis(1500);
 /// The windows in a row that must get less than [`SHORT`] of the rate before the link counts as the limit.
 const SHORT_WINDOWS: u32 = 2;
+/// The time of samples that may be on their way beyond the kernel buffers of the board before what has not arrived counts
+/// as lost:
+/// the jitter of the network and of the reader.
+const LATE_ALLOWANCE: Duration = Duration::from_millis(100);
 /// How long a reading of the link counts. The link to a board across Wi-Fi changes from second to second, so an older
 /// reading says nothing about it.
 const LIVE_FRESH: Duration = Duration::from_secs(5);
@@ -419,8 +425,6 @@ sdrkit_core::settings! {
         Protocol = PROTOCOL,
         /// [`LINK`].
         Link = LINK,
-        /// [`IQ_FORMAT`].
-        IqFormat = IQ_FORMAT,
         /// [`READINGS_EVERY`].
         ReadingsEvery = READINGS_EVERY,
     }
@@ -946,6 +950,19 @@ fn list(s: &str) -> Vec<String> {
     s.split_whitespace().map(String::from).collect()
 }
 
+/// The sample format that `v` asks for: CS16 unless a radio with Tezuka firmware, which declares [`IQ_FORMAT`] when it
+/// opens, has CS8 set.
+pub(crate) fn iq_format(v: &Values) -> IqFormat {
+    v.schema()
+        .id(IQ_FORMAT.key())
+        .ok()
+        .and_then(|id| match v.value(id)? {
+            Value::Choice(i) => IqFormat::from_index(*i),
+            _ => None,
+        })
+        .unwrap_or(IqFormat::Cs16)
+}
+
 /// Refuses RX2 or both receivers on a board with one (`board_receivers`), and CS8 on firmware other than Tezuka or with
 /// both receivers.
 fn check_receivers(v: &Values, board_receivers: usize, tezuka: bool) -> Result<(), DriverError> {
@@ -959,8 +976,8 @@ fn check_receivers(v: &Values, board_receivers: usize, tezuka: bool) -> Result<(
             return refused(IiodSetting::Receivers);
         }
     }
-    if v.get(&IQ_FORMAT) == IqFormat::Cs8 && (!tezuka || receivers != Receivers::One) {
-        return refused(IiodSetting::IqFormat);
+    if iq_format(v) == IqFormat::Cs8 && (!tezuka || receivers != Receivers::One) {
+        return refused(IiodSetting::Receivers);
     }
     Ok(())
 }
@@ -992,7 +1009,7 @@ impl IiodRadio {
         check_receivers(v, facts.receivers, tezuka)?;
         let receivers = v.get(&RECEIVERS);
         let rx2 = v.get(&ANTENNA) == Antenna::Rx2;
-        let cs8 = v.get(&IQ_FORMAT) == IqFormat::Cs8;
+        let cs8 = iq_format(v) == IqFormat::Cs8;
         let pos = |id: &str| facts.rx.channel_index(id, false).unwrap_or(0);
         let (rx1, rx2p) = (
             (pos("voltage0"), pos("voltage1")),
@@ -1433,6 +1450,15 @@ impl IiodRadio {
 }
 
 impl Radio for IiodRadio {
+    /// The sample format, on a board with Tezuka firmware: the only firmware that sends CS8.
+    fn settings(&self) -> Vec<SettingDecl> {
+        if self.tezuka {
+            vec![IQ_FORMAT.decl()]
+        } else {
+            Vec::new()
+        }
+    }
+
     type Stream = IiodStream;
 
     fn configure(&mut self, v: &Values, live: bool) -> Result<String, DriverError> {
@@ -1859,6 +1885,7 @@ impl IiodRadio {
             known: self.known.clone(),
             learns,
             need_bps,
+            queued: u64::from(self.kbuffers) * samples as u64,
             rate: self.rate,
             probe,
             watch: Watch::default(),
@@ -1914,6 +1941,8 @@ struct Watch {
     warned: Option<f64>,
     /// Windows in a row that got less than [`SHORT`] of the rate.
     short: u32,
+    /// From the end of the settling time: when it ended, and the sample instants that arrived or were counted lost since.
+    anchor: Option<(Instant, u64)>,
 }
 
 /// The held gain of one receiver as the stream measures and steps it.
@@ -1941,6 +1970,8 @@ pub struct IiodStream {
     learns: bool,
     /// The bytes a second the rate needs.
     need_bps: f64,
+    /// The sample instants that the kernel buffers of the board hold while nothing is read: late, not lost.
+    queued: u64,
     /// The radio's rate.
     rate: Hz,
     probe: Option<Probe>,
@@ -1976,6 +2007,15 @@ impl IiodStream {
             }
             Link2::Binary(b) => b.recv(&mut self.raw).map(|n| (n, None)),
         }
+    }
+
+    /// Counts `samples` lost before they reached the reader and marks the gap ([`Sink::lost`]); the watch counts them as
+    /// come, so it does not count them again.
+    fn lose(&mut self, sink: &mut Sink, samples: u64) {
+        if let Some((_, got)) = &mut self.watch.anchor {
+            *got += samples;
+        }
+        sink.lost(samples);
     }
 
     /// Takes `bps` bytes a second, what a stream got while the link held it below its rate, into the live figure of the
@@ -2030,14 +2070,35 @@ impl IiodStream {
         ));
     }
 
-    /// Adds `n` bytes to the watch, which judges windows of [`WATCH_WINDOW`] after the first [`WATCH_SETTLE`] of the stream.
+    /// Adds `n` bytes to the watch, which judges windows of [`WATCH_WINDOW`] after the first [`WATCH_SETTLE`] of the stream,
+    /// and counts as lost, with a gap in the stream, every sample that the clock of the board says is due and has not
+    /// come.
     /// When [`SHORT_WINDOWS`] windows in a row get less than [`SHORT`] of the rate, the link is the limit: what arrived goes
     /// into the live figure, and a warning says "6 of 20 Msps arrive (30 %): samples are lost". A window that gets the rate clears the
     /// figure: the link carries at least the rate, which limits nothing.
-    fn watch(&mut self, n: usize, ctx: &StreamCtx) {
+    fn watch(&mut self, n: usize, sink: &mut Sink, ctx: &StreamCtx) {
         let now = Instant::now();
         let w = &mut self.watch;
         let started = *w.started.get_or_insert(now);
+        // Against the clock of the board: the samples that have not come, beyond those in flight and the allowance, are
+        // lost. The board drops what its buffers do not hold and says nothing; they are counted and marked as a gap.
+        if now - started >= WATCH_SETTLE && self.rate > 0.0 {
+            let stride = self.lay.stride.max(1);
+            match &mut w.anchor {
+                None => w.anchor = Some((now, 0)),
+                Some((t0, got)) => {
+                    *got += (n / stride) as u64;
+                    let expected = (now - *t0).as_secs_f64() * self.rate;
+                    let late = self.queued as f64 + LATE_ALLOWANCE.as_secs_f64() * self.rate;
+                    let missing = expected - *got as f64 - late;
+                    if missing >= 1.0 {
+                        let m = missing as u64;
+                        *got += m;
+                        sink.lost(m);
+                    }
+                }
+            }
+        }
         let Some(since) = w.since else {
             w.since = Some(now);
             w.bytes = 0;
@@ -2199,22 +2260,22 @@ impl RadioStream for IiodStream {
                     }
                     self.deliver(n, sink);
                     self.measure(n, ctx);
+                    if text && n < self.bytes {
+                        self.lose(sink, ((self.bytes - n) / self.lay.stride.max(1)) as u64);
+                    }
                     if self.probe.is_some() {
                         self.probe_step(n, ctx);
                     } else {
-                        self.watch(n, ctx);
-                    }
-                    if text && n < self.bytes {
-                        sink.lost(((self.bytes - n) / self.lay.stride.max(1)) as u64);
+                        self.watch(n, sink, ctx);
                     }
                 }
                 // A whole answer that carried no samples: the framing holds, the next request may go.
                 Ok(_) | Err(IioError::Errno(_)) => {
                     if text {
-                        sink.lost((self.bytes / self.lay.stride.max(1)) as u64);
+                        self.lose(sink, (self.bytes / self.lay.stride.max(1)) as u64);
                     }
                     self.probe = None;
-                    self.watch(0, ctx);
+                    self.watch(0, sink, ctx);
                     failures += 1;
                     if failures > MAX_REFILL_FAILURES {
                         return Err(DriverError::Protocol(Protocol::Malformed));

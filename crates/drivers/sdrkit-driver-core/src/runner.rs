@@ -329,6 +329,9 @@ impl Sink {
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .write(t, self.offered, len);
         if let Some(l) = found {
+            // The samples that the clock says did not come leave a gap at the place where they were found: the reader marks
+            // a discontinuity, and the stack does not take the samples around it for one stretch.
+            self.writer.mark_gap(l.samples);
             let quiet = self
                 .last_warn
                 .is_some_and(|w| w.elapsed() < Duration::from_secs(10));

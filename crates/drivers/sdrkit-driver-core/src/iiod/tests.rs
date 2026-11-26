@@ -92,7 +92,6 @@ fn every_board_setting_is_declared_and_a_board_refuses_what_it_lacks() {
             "buffer_size",
             "protocol",
             "link",
-            "format",
             "readings_s"
         ]
     );
@@ -112,17 +111,12 @@ fn every_board_setting_is_declared_and_a_board_refuses_what_it_lacks() {
         choices("agc_mode"),
         ["manual", "slow_attack", "fast_attack", "hybrid"]
     );
-    // A board without Tezuka firmware refuses CS8.
+    // A board without Tezuka firmware sends CS16 only: it declares no sample format to choose.
     let srv = FakeIiod::start(FakeOpts::default());
-    let e = IiodDriver::new(srv.transport())
-        .open_w(&srv.addr(), &tune(2.4 * M, &[("format", "cs8")]))
-        .err();
-    assert_eq!(
-        e,
-        Some(DriverError::Refused {
-            id: own_id(IiodSetting::IqFormat)
-        })
-    );
+    let kind = crate::testing::kind(IiodDriver::new(srv.transport()));
+    let mut radio = kind.open(&srv.addr(), &tune(2.4 * M, &[]).v()).unwrap();
+    assert!(sdrkit_core::Owner::schema(&radio).id(IQ_FORMAT.key()).is_err());
+    radio.stop();
 }
 
 // ---- Test builders: the target state as plain numbers, the driver settings as text ----
@@ -1298,17 +1292,22 @@ fn an_overflow_of_the_board_is_counted() {
 
 #[test]
 fn tezuka_firmware_streams_cs8() {
+    use sdrkit_core::Owner;
     let srv = FakeIiod::start(FakeOpts {
         fw: "v0.1-tezuka-r2",
         ..Default::default()
     });
-    let d = IiodDriver::new(srv.transport());
-    let mut src = d
-        .open_w(&srv.addr(), &tune(2.4 * M, &[("format", "cs8")]))
-        .unwrap();
-    assert_eq!(src.sample_type(), SampleType::Cs8);
+    let kind = crate::testing::kind(IiodDriver::new(srv.transport()));
+    let mut radio = kind.open(&srv.addr(), &tune(2.4 * M, &[]).v()).unwrap();
+    // The board declares the format when it opens; CS8 takes effect at the next stream.
+    let (w, _r) = ring(1 << 22, SampleType::Cs16);
+    radio.start(w).unwrap();
+    let format = radio.schema().id(IQ_FORMAT.key()).unwrap();
+    radio.apply(format, &Value::Choice(1)).unwrap();
+    assert_eq!(radio.sample_type(), SampleType::Cs8);
+    radio.stop();
     let (w, mut r) = ring(1 << 22, SampleType::Cs8);
-    src.start(w).unwrap();
+    radio.start(w).unwrap();
     let got = read_n(&mut r, 100, 3.0);
     assert!(
         srv.board.has("OPEN iio:device4 65536 00000001"),
@@ -1316,7 +1315,7 @@ fn tezuka_firmware_streams_cs8() {
         srv.board.log()
     );
     assert_eq!(got[5], Complex32::new(5.0 / 128.0, -5.0 / 128.0));
-    src.stop();
+    radio.stop();
 }
 
 #[test]
@@ -2161,4 +2160,105 @@ fn a_shortfall_in_the_status_is_gone_once_a_lower_rate_arrives_in_full() {
         std::thread::sleep(Duration::from_millis(100));
     }
     src.stop();
+}
+
+/// What arrives at a high rate from a real board: the samples each second, the loss, the status and the notices.
+/// `IIOD_URI=ip:192.168.10.9 IIOD_RATE_MSPS=20 cargo test -p sdrkit-driver-core --lib real_board_what_arrives -- --ignored --nocapture`.
+#[test]
+#[ignore]
+fn real_board_what_arrives() {
+    let msps: f64 = std::env::var("IIOD_RATE_MSPS").ok().and_then(|s| s.parse().ok()).unwrap_or(20.0);
+    let mut s: Vec<(String, String)> = Vec::new();
+    for (k, env) in [("format", "IIOD_FORMAT"), ("buffers", "IIOD_BUFFERS"), ("buffer_size", "IIOD_BUFSIZE"), ("protocol", "IIOD_PROTOCOL")] {
+        if let Ok(v) = std::env::var(env) {
+            s.push((k.into(), v));
+        }
+    }
+    let pairs: Vec<(&str, &str)> = s.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
+    let mut t = tune(msps * M, &pairs);
+    t.centre_hz = 100e6;
+    let mut src = match real_driver().open_w(&real_uri(), &t) {
+        Ok(s) => s,
+        Err(e) => {
+            println!("open: {e}");
+            return;
+        }
+    };
+    let ty = src.sample_type();
+    let (w, mut r) = ring(crate::RING_CAPACITY, ty);
+    src.start(w).unwrap();
+    let start = Instant::now();
+    let mut last = Instant::now();
+    let mut got = 0u64;
+    while start.elapsed() < Duration::from_secs(12) {
+        got += r.read_with(usize::MAX, |_| {}) as u64;
+        std::thread::sleep(Duration::from_millis(5));
+        if last.elapsed() >= Duration::from_secs(1) {
+            let secs = last.elapsed().as_secs_f64();
+            let st = src.readings();
+            println!(
+                "{:>4.1} s: {:.2} Msps arrive, loss {:?}, ring drops {}, status {:?}",
+                start.elapsed().as_secs_f64(),
+                got as f64 / secs / 1e6,
+                src.loss().map(|l| l.radio_lost),
+                r.stats().dropped(),
+                st.status().summary
+            );
+            for n in src.take_notices() {
+                println!("    {n:?}");
+            }
+            got = 0;
+            last = Instant::now();
+        }
+    }
+    src.stop();
+}
+
+#[test]
+fn samples_that_do_not_come_are_counted_marked_and_told_within_seconds() {
+    // 2.4 Msps needs 9.6 MB/s; the link carries 6 MB/s: about 1.5 Msps arrive.
+    let srv = slow_board(Some(6e6));
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    let t = Instant::now();
+    let (mut gaps, mut buf) = (0u64, vec![Complex32::default(); 1 << 16]);
+    let told = wait_for(
+        || {
+            let n = r.available().min(buf.len());
+            gaps += r.take_gaps(n).iter().map(|g| g.lost).sum::<u64>();
+            r.read_iq(&mut buf[..n]);
+            src.take_notices();
+            src.readings().status().summary.contains("of 2.4 Msps arrive")
+        },
+        12.0,
+    );
+    assert!(told, "{}", src.readings().status().summary);
+    assert!(t.elapsed() < Duration::from_secs(8), "{:?}", t.elapsed());
+    // What did not come is counted as lost by the radio and marked in the stream.
+    let lost = src.loss().map_or(0, |l| l.radio_lost);
+    assert!(lost > 100_000, "{lost}");
+    assert!(gaps > 100_000, "{gaps}");
+    src.stop();
+}
+
+/// Whether another client streams from a real board, read only: the enable attribute of the receive buffer.
+#[test]
+#[ignore]
+fn real_board_is_busy() {
+    let (host, port) = parse_address(&real_uri()).unwrap();
+    let at = Address {
+        transport: Arc::new(sdrkit_core::net::StdNet),
+        host,
+        port,
+        label: "busy".into(),
+    };
+    let (mut c, ctx, _) = connect_ctl(&at, &Abort::new()).unwrap();
+    let facts = BoardFacts::from_context(&ctx, "busy").unwrap();
+    println!(
+        "BUSY {:?}",
+        c.read_attr(&facts.rx.id, Target::Buffer, "enable").map_err(|e| e.to_string())
+    );
 }

@@ -8,7 +8,7 @@
 use super::proto::{IioError, IiodConn, Target};
 use super::tx::{IiodTransmitter, TxShared};
 use super::{
-    connect_ctl, lock, Address, AuxRing, Board, BoardFacts, IiodRadio, Known, IQ_FORMAT,
+    connect_ctl, lock, Address, AuxRing, Board, BoardFacts, IiodRadio, Known,
     READINGS_EVERY, RECEIVERS,
 };
 use crate::gain::{GainControl, HoldFields};
@@ -222,6 +222,9 @@ impl Source for IiodSource {
     fn capabilities(&self) -> &Capabilities {
         self.runner.capabilities()
     }
+    fn settings(&self) -> Vec<sdrkit_core::SettingDecl> {
+        self.runner.settings()
+    }
 
     fn sample_type(&self) -> SampleType {
         self.sample
@@ -263,7 +266,7 @@ impl Source for IiodSource {
         self.monitor_ctl.retuning.store(false, Ordering::Release);
         if r.is_ok() {
             self.layout = values.get(&RECEIVERS).layout();
-            self.sample = values.get(&IQ_FORMAT).sample_type();
+            self.sample = super::iq_format(values).sample_type();
         }
         r
     }
