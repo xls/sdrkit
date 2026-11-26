@@ -112,9 +112,9 @@ function(sdrkit_system_libraries triple out)
         # nusb and socket2 call setupapi, cfgmgr32 and winusb; the names stay listed in case a static library does
         # not carry those imports itself.
         set(libs kernel32.lib advapi32.lib ntdll.lib userenv.lib ws2_32.lib dbghelp.lib bcrypt.lib
-            setupapi.lib cfgmgr32.lib winusb.lib)
+            setupapi.lib cfgmgr32.lib winusb.lib synchronization.lib)
     elseif(triple MATCHES "-windows-gnu")
-        set(libs kernel32 advapi32 ntdll userenv ws2_32 dbghelp bcrypt setupapi cfgmgr32 winusb gcc_eh pthread)
+        set(libs kernel32 advapi32 ntdll userenv ws2_32 dbghelp bcrypt setupapi cfgmgr32 winusb synchronization gcc_eh pthread)
     else()
         set(libs "")
     endif()
