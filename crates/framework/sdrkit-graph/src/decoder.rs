@@ -809,8 +809,9 @@ impl<D: Decoder> Component for DecoderComponent<D> {
     }
 
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        // A batch still out is abandoned: its results belong to the old format.
-        self.job = None;
+        // A batch still out holds the decoder: wait for it to come back. Its outputs belong to the old format and are dropped
+        // with the outbox below.
+        self.wait_job();
         self.waiting.clear();
         let f = inputs[0].clone();
         let Some(dec) = self.dec.as_mut() else {

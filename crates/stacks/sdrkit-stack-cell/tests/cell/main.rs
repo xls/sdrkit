@@ -15,5 +15,6 @@ mod modes;
 mod nbiot;
 mod nr;
 mod railway_cir;
+mod rates;
 mod tdscdma;
 mod umts;
