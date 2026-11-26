@@ -135,6 +135,9 @@ impl Readings {
     }
 }
 
+/// How long a stop or a restart lets the stream finish its buffer before its connection is cut.
+const STOP_GRACE: Duration = Duration::from_millis(1500);
+
 /// An open iiod board: the receiver (on the shared base), its readings, and its transmitter.
 pub struct IiodSource {
     runner: StreamRunner<IiodRadio>,
@@ -175,11 +178,12 @@ impl IiodSource {
         let opener: Opener<IiodRadio> = Arc::new(move |v, abort, notices| {
             IiodRadio::connect(&a2, &known, &b, &x, v, abort, notices)
         });
-        let runner = StreamRunner::open(
-            RunnerConfig::new(format!("PlutoSDR {label}"), NETWORK_ADVICE),
-            opener,
-            values,
-        )?;
+        let cfg = RunnerConfig {
+            // A stream that ends by itself reads what it owes and closes its buffer with the protocol.
+            stop_grace: STOP_GRACE,
+            ..RunnerConfig::new(format!("PlutoSDR {label}"), NETWORK_ADVICE)
+        };
+        let runner = StreamRunner::open(cfg, opener, values)?;
         let layout = values.get(&RECEIVERS).layout();
         let sample = runner.sample_type();
         let monitor_ctl = Arc::<MonitorCtl>::default();

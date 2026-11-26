@@ -2606,6 +2606,7 @@ dependencies = [
 name = "sdrkit-stack-analogtv"
 version = "0.5.0"
 dependencies = [
+ "libc",
  "num-complex",
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",

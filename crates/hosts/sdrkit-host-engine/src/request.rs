@@ -587,12 +587,14 @@ impl Shared {
     /// # Errors
     ///
     /// [`EngineError::Config`] with [`ConfigError::RateTooLow`] if no rate of the radio, or the rate that the host
-    /// set, is enough for the stack.
+    /// set, is enough for the stack; [`EngineError::LinkTooSlow`] if the link to the radio carries less than the least rate
+    /// of `stack`. The radio is left as it was then.
     pub(crate) fn prepare_radio(
         &self,
         r: crate::RadioId,
         demand: &sdrkit_core::Demand,
         least_hz: f64,
+        stack: &'static str,
     ) -> Result<(), EngineError> {
         let radio = self
             .radio(r)
@@ -609,7 +611,9 @@ impl Shared {
             return Ok(());
         }
         if rx.rate_hz > 0.0 {
-            Self::set_radio_rate(&mut o, rx.rate_hz, least_hz)?;
+            if let Some(note) = Self::set_radio_rate(&mut o, rx.rate_hz, least_hz, stack)? {
+                self.log(note);
+            }
         }
         if rx.tuned_hz <= 0.0 {
             return Ok(());
@@ -620,21 +624,26 @@ impl Shared {
         Ok(())
     }
 
-    /// Gives the radio `o` the rate for a stack that would like `want_hz` and runs at `least_hz` or more. This is the
-    /// one rule for the rate of every radio. A radio with the rate on Automatic takes the rate of [`automatic_rate`].
-    /// A rate that the host set stays.
+    /// Gives the radio `o` the rate for `stack`, which would like `want_hz` and runs at `least_hz` or more. This is the
+    /// one rule for the rate of every radio. A radio with the rate on Automatic takes the rate of [`automatic_rate`],
+    /// held to what its link carries ([`sdrkit_driver_core::RateLimits::steady_hz`], see [`link_rate`]). A rate that the
+    /// host set stays; one above what the link carries is warned about once. Returns a note for the log when the rate
+    /// is held below what the stack would like, or above the link.
     ///
     /// # Errors
     ///
     /// [`EngineError::Config`] with [`ConfigError::RateTooLow`]: the least rate of the stack, and the rate that the
-    /// host set or the highest rate of the radio.
+    /// host set or the highest rate of the radio. [`EngineError::LinkTooSlow`]: the link carries less than the least rate
+    /// of the stack; nothing is written to the radio.
     fn set_radio_rate(
         o: &mut crate::radio::RadioOwner,
         want_hz: f64,
         least_hz: f64,
-    ) -> Result<(), EngineError> {
+        stack: &'static str,
+    ) -> Result<Option<String>, EngineError> {
         let rate = &sdrkit_driver_core::RATE;
         let now = sdrkit_core::Owner::values(o).map(|v| v.get(rate));
+        let link = o.rates().steady_hz.filter(|c| *c > 0.0);
         if !o.rate_is_automatic() {
             return match now {
                 Some(got) if got < least_hz => Err(ConfigError::RateTooLow {
@@ -642,7 +651,17 @@ impl Shared {
                     got,
                 }
                 .into()),
-                _ => Ok(()),
+                Some(got) if link.is_some_and(|c| got > c * 1.01) && o.warn_link_once(got) => {
+                    let note = format!(
+                        "the rate set, {} Msps, is above the about {} Msps that the link to this radio carries: samples \
+                         will be lost",
+                        sdrkit_driver_core::fmt_m(got),
+                        sdrkit_driver_core::fmt_m(link.unwrap_or(0.0))
+                    );
+                    o.note(&note);
+                    Ok(Some(note))
+                }
+                _ => Ok(None),
             };
         }
         // A radio that does not list its rates has those of its rate setting.
@@ -650,15 +669,41 @@ impl Shared {
         let id = EngineError::id_of(schema, rate.field.key)?;
         let limits = schema.setting(id).and_then(|s| s.range);
         let listed = &o.rates().ranges;
-        let resolved = match (listed.is_empty(), limits) {
-            (false, _) => automatic_rate(listed, want_hz, least_hz),
-            (true, Some(r)) => automatic_rate(&[(r.min, r.max)], want_hz, least_hz),
-            (true, None) => Ok(want_hz),
-        }?;
+        let ranges: Vec<(f64, f64)> = match (listed.is_empty(), limits) {
+            (false, _) => listed.clone(),
+            (true, Some(r)) => vec![(r.min, r.max)],
+            (true, None) => Vec::new(),
+        };
+        let mut resolved = if ranges.is_empty() {
+            want_hz
+        } else {
+            automatic_rate(&ranges, want_hz, least_hz)?
+        };
+        let mut note = None;
+        if let Some(cap) = link {
+            if resolved > cap * 1.01 {
+                let fit = link_rate(&ranges, cap, least_hz).map_err(|_| EngineError::LinkTooSlow {
+                    stack,
+                    // The stack's least rate, or the radio's lowest when that is above the link.
+                    need_hz: least_hz.max(ranges.iter().map(|r| r.0).fold(f64::INFINITY, f64::min).min(resolved)),
+                    carries_hz: cap,
+                })?;
+                let text = format!(
+                    "the link to this radio carries about {} Msps: {stack} runs at {} Msps, a narrower capture than the {} \
+                     Msps it prefers",
+                    sdrkit_driver_core::fmt_m(cap),
+                    sdrkit_driver_core::fmt_m(fit),
+                    sdrkit_driver_core::fmt_m(resolved)
+                );
+                o.note(&text);
+                note = Some(text);
+                resolved = fit;
+            }
+        }
         if now != Some(resolved) {
             o.set_resolved_rate(resolved)?;
         }
-        Ok(())
+        Ok(note)
     }
 
     /// Gives the operator of session `s` the sample rate that its stack would like with its present settings. If that
@@ -738,9 +783,51 @@ impl Shared {
             return Ok(());
         }
         let mut o = radio.owner.lock();
-        let r = Self::set_radio_rate(&mut o, rate_hz, desc.tuning.min_rate_hz);
+        let r = Self::set_radio_rate(&mut o, rate_hz, desc.tuning.min_rate_hz, desc.name);
         drop(o);
-        r
+        if let Ok(Some(note)) = &r {
+            self.log(note.clone());
+        }
+        r.map(|_| ())
+    }
+
+    /// What the link to radio `r` carries changed (the driver measured it): the radio takes the rate for the stack of the
+    /// one session that reads it again. When the link carries less than that stack's least rate, the stream that the link
+    /// cannot carry ends (the driver closes it cleanly), the radio runs at the highest rate that the link carries, and the
+    /// reason shows in the radio's and the session's status.
+    pub(crate) fn follow_link(&self, r: crate::RadioId) {
+        let Err(e) = self.resolve_rate_again(r) else {
+            return;
+        };
+        let EngineError::LinkTooSlow { carries_hz, .. } = e else {
+            self.log(format!("{}: {e}", crate::radio_key(r)));
+            return;
+        };
+        let text = e.to_string();
+        self.log(format!("{}: {text}", crate::radio_key(r)));
+        if let Some(radio) = self.radio(r) {
+            let mut o = radio.owner.lock();
+            if o.rate_is_automatic() {
+                let listed = o.rates().ranges.clone();
+                let ranges = if listed.is_empty() {
+                    vec![(o.rates().min_hz, o.rates().max_hz)]
+                } else {
+                    listed
+                };
+                if let Ok(fit) = link_rate(&ranges, carries_hz, 0.0) {
+                    let _ = o.set_resolved_rate(fit);
+                }
+            }
+            o.note(&text);
+        }
+        for s in lock(&self.sessions)
+            .iter()
+            .filter(|(_, s)| s.input == Input::Radio(r))
+            .map(|(_, s)| std::sync::Arc::clone(s))
+            .collect::<Vec<_>>()
+        {
+            sdrkit_core::Owner::problem(&mut *s.owner(), &text);
+        }
     }
 
     /// The host gave the rate of radio `r` back to the engine (Automatic): the radio takes the rate for the stack of
@@ -936,6 +1023,25 @@ impl Shared {
 /// # Errors
 ///
 /// [`ConfigError::RateTooLow`] with `least_hz` and the highest rate of the radio, if that rate is below `least_hz`.
+/// The highest rate of the radio's `ranges` (none: any rate) at or below `cap_hz`, the rate its link carries, and at or
+/// above `least_hz`. `Err(())` when no such rate exists.
+pub(crate) fn link_rate(ranges: &[(f64, f64)], cap_hz: f64, least_hz: f64) -> Result<f64, ()> {
+    let best = if ranges.is_empty() {
+        cap_hz
+    } else {
+        ranges
+            .iter()
+            .filter(|(lo, _)| *lo <= cap_hz)
+            .map(|(_, hi)| hi.min(cap_hz))
+            .fold(f64::NEG_INFINITY, f64::max)
+    };
+    if best.is_finite() && best >= least_hz && best > 0.0 {
+        Ok(best)
+    } else {
+        Err(())
+    }
+}
+
 pub(crate) fn automatic_rate(
     ranges: &[(f64, f64)],
     want_hz: f64,
@@ -963,6 +1069,20 @@ pub(crate) fn automatic_rate(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_link_holds_the_rate_down_or_refuses_it() {
+        let pluto = [(2.1e6, 61.44e6)];
+        // A link of 4 Msps: a stack that runs at 2 Msps or more gets 4.
+        assert_eq!(link_rate(&pluto, 4e6, 2e6), Ok(4e6));
+        // Wi-Fi needs 20.
+        assert_eq!(link_rate(&pluto, 4e6, 20e6), Err(()));
+        // Below the radio's lowest rate.
+        assert_eq!(link_rate(&pluto, 1e6, 0.0), Err(()));
+        let steps = [(1e6, 1e6), (2e6, 2e6), (4e6, 4e6)];
+        assert_eq!(link_rate(&steps, 3e6, 1e6), Ok(2e6));
+        assert_eq!(link_rate(&[], 3e6, 1e6), Ok(3e6));
+    }
 
     #[test]
     fn automatic_takes_the_least_rate_of_the_radio_that_is_enough() {

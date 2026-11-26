@@ -258,6 +258,20 @@ pub enum EngineError {
     /// The event catalog does not list an event that a request needs.
     #[error("the event kind is not listed")]
     Unlisted,
+    /// The link to a network radio carries less than the least rate of the stack. The radio is left as it was.
+    #[error(
+        "{stack} needs {} Msps; the link to this radio carries about {} Msps",
+        sdrkit_driver_core::fmt_m(*need_hz),
+        sdrkit_driver_core::fmt_m(*carries_hz)
+    )]
+    LinkTooSlow {
+        /// The name of the stack.
+        stack: &'static str,
+        /// The least rate of the stack, Hz.
+        need_hz: f64,
+        /// What the link carries, Hz.
+        carries_hz: f64,
+    },
     /// The channel bank reads one radio, and a channel names another one.
     #[error("the channel bank reads another radio than {radio}")]
     BankRadio {
@@ -432,3 +446,4 @@ impl EngineError {
         EngineError::Thread { kind: e.kind() }
     }
 }
+

@@ -60,6 +60,9 @@ impl Tuning {
     }
 }
 
+/// The part by which what the link carries must change before the engine resolves the rate again.
+const LINK_STEP: f64 = 0.15;
+
 /// An open radio as an owner, with its own queue of events.
 pub(crate) struct RadioOwner {
     radio: OpenRadio,
@@ -79,6 +82,12 @@ pub(crate) struct RadioOwner {
     wake: Arc<Condvar>,
     /// The counters of the ring of the stream that runs.
     ring: Option<Arc<RingStats>>,
+    /// Shared with [`Radio::link_changed`].
+    link_changed: Arc<AtomicBool>,
+    /// What the link carried at the last poll ([`sdrkit_driver_core::RateLimits::steady_hz`]).
+    link_seen: Option<f64>,
+    /// The rate that the host set and that the engine warned is above what the link carries.
+    link_warned: Option<f64>,
 }
 
 struct Pump {
@@ -99,6 +108,8 @@ pub(crate) struct Radio {
     auto_rate: Arc<AtomicBool>,
     /// The host set the rate to 0 and the engine did not resolve the rate since.
     rate_given_back: Arc<AtomicBool>,
+    /// What the link to the radio carries changed and the engine did not resolve the rate since.
+    link_changed: Arc<AtomicBool>,
     /// The phase of the hop of the radio ([`crate::hop`]).
     pub(crate) hop: Arc<HopGate>,
 }
@@ -114,9 +125,11 @@ impl Radio {
         wake: Arc<Condvar>,
     ) -> Result<Radio, EngineError> {
         let driver = radio.kind().key;
+        let radio_link = radio.capabilities().rates.steady_hz;
         let events = Arc::new(Mutex::new(VecDeque::with_capacity(EVENT_CAP)));
         let auto_rate = Arc::new(AtomicBool::new(auto_rate));
         let rate_given_back = Arc::new(AtomicBool::new(false));
+        let link_changed = Arc::new(AtomicBool::new(false));
         let hop = Arc::new(HopGate::default());
         let mut owner = RadioOwner {
             radio,
@@ -130,6 +143,9 @@ impl Radio {
             hop: Arc::clone(&hop),
             wake,
             ring: None,
+            link_changed: Arc::clone(&link_changed),
+            link_seen: radio_link,
+            link_warned: None,
         };
         owner.stream()?;
         Ok(Radio {
@@ -140,6 +156,7 @@ impl Radio {
             address: address.to_owned(),
             auto_rate,
             rate_given_back,
+            link_changed,
             hop,
         })
     }
@@ -159,6 +176,11 @@ impl Radio {
     /// True once after the host set the rate to Automatic: the engine then resolves the rate again.
     pub(crate) fn take_rate_given_back(&self) -> bool {
         self.rate_given_back.swap(false, Ordering::AcqRel)
+    }
+
+    /// True once after what the link to the radio carries changed: the engine then resolves the rate again.
+    pub(crate) fn take_link_changed(&self) -> bool {
+        self.link_changed.swap(false, Ordering::AcqRel)
     }
 }
 
@@ -216,6 +238,16 @@ impl RadioOwner {
     pub(crate) fn poll(&mut self, now: f64, catalog: &EventCatalog) {
         let mut events = std::mem::take(&mut self.scratch);
         self.radio.poll(now, &mut events);
+        // A measurement that moves by less than LINK_STEP does not move the rate: each move restarts the stream.
+        let link = self.radio.capabilities().rates.steady_hz;
+        let moved = match (link, self.link_seen) {
+            (Some(a), Some(b)) => (a - b).abs() > LINK_STEP * b,
+            (a, b) => a.is_some() != b.is_some(),
+        };
+        if moved {
+            self.link_seen = link;
+            self.link_changed.store(true, Ordering::Release);
+        }
         let mut restart = false;
         {
             let mut kept = crate::feed::lock(&self.events);
@@ -312,6 +344,21 @@ impl RadioOwner {
     /// The limits of the rates of the radio.
     pub(crate) fn rates(&self) -> &sdrkit_driver_core::RateLimits {
         &self.radio.capabilities().rates
+    }
+
+    /// Shows `text` in the radio's status and log.
+    pub(crate) fn note(&mut self, text: &str) {
+        sdrkit_core::Owner::problem(&mut self.radio, text);
+    }
+
+    /// True the first time the host-set rate `rate_hz` is found above what the link carries; false again for the same
+    /// rate, so that the warning comes once.
+    pub(crate) fn warn_link_once(&mut self, rate_hz: f64) -> bool {
+        if self.link_warned == Some(rate_hz) {
+            return false;
+        }
+        self.link_warned = Some(rate_hz);
+        true
     }
 
     /// Sets the rate that the engine resolved for a stack. The rate stays on Automatic for the host.

@@ -5,8 +5,9 @@ use crate::net::{self, Abort};
 use crate::{DriverError, Protocol};
 use sdrkit_core::net::{Conn, NetError, Transport};
 use std::io::{self, BufRead, BufReader, Read, Write};
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
+use std::time::{Duration, Instant};
 
 /// The iiod port.
 pub const IIOD_PORT: u16 = 30431;
@@ -114,10 +115,58 @@ pub fn parse_version(s: &str) -> Option<(u32, u32)> {
     ))
 }
 
+/// The trace of the control exchange, when the environment variable `SDRKIT_IIOD_TRACE` is set: `1` or `stderr` writes to
+/// standard error, any other value is a file the lines are added to. Each line has the time since the first line, the
+/// connection number, `>` for a command, `<` for an answer line, `!` for a write refused and `x` for a lost framing.
+struct Trace {
+    out: Mutex<Option<Box<dyn Write + Send>>>,
+    t0: Instant,
+}
+
+fn trace_sink() -> Option<&'static Trace> {
+    static T: OnceLock<Option<Trace>> = OnceLock::new();
+    T.get_or_init(|| {
+        let v = std::env::var("SDRKIT_IIOD_TRACE").ok()?;
+        let out: Box<dyn Write + Send> = match v.as_str() {
+            "" | "0" => return None,
+            "1" | "stderr" => Box::new(io::stderr()),
+            path => Box::new(
+                std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(path)
+                    .ok()?,
+            ),
+        };
+        Some(Trace {
+            out: Mutex::new(Some(out)),
+            t0: Instant::now(),
+        })
+    })
+    .as_ref()
+}
+
+static NEXT_CONN: AtomicU32 = AtomicU32::new(1);
+
+/// The most bytes read in one call while a deadline runs, so that the deadline is looked at between pieces.
+const PIECE: usize = 64 << 10;
+
 /// One connection to iiod.
+///
+/// It keeps the framing of the text protocol: a command is written only when every answer has been read, except a `READBUF`,
+/// which may go out while other `READBUF` answers are owed. An answer that is cut short (a timeout or a closed connection in the
+/// middle) or that does not parse makes the connection torn: nothing is written on it again, and it is shut down without a word.
 pub struct IiodConn {
     sock: Box<dyn Conn>,
     rd: BufReader<Box<dyn Conn>>,
+    /// The `READBUF` answers the server still owes.
+    owed: u32,
+    /// The framing is lost.
+    torn: bool,
+    /// The read timeout that was set, restored after a read with a deadline.
+    timeout: Duration,
+    /// The connection number in the trace, when the trace is on.
+    id: Option<u32>,
 }
 
 impl IiodConn {
@@ -142,9 +191,30 @@ impl IiodConn {
     ///
     /// [`NetError`] if the connection cannot give a second handle.
     pub fn from_conn(mut sock: Box<dyn Conn>) -> Result<IiodConn, NetError> {
-        sock.set_read_timeout(Some(Duration::from_secs(5)))?;
+        let timeout = Duration::from_secs(5);
+        sock.set_read_timeout(Some(timeout))?;
         let rd = BufReader::with_capacity(1 << 16, sock.try_clone()?);
-        Ok(IiodConn { sock, rd })
+        let id = trace_sink().map(|_| NEXT_CONN.fetch_add(1, Ordering::Relaxed));
+        let c = IiodConn {
+            sock,
+            rd,
+            owed: 0,
+            torn: false,
+            timeout,
+            id,
+        };
+        c.trace('+', &format!("{:?}", c.sock.peer_addr()));
+        Ok(c)
+    }
+
+    fn trace(&self, dir: char, text: &str) {
+        let (Some(id), Some(t)) = (self.id, trace_sink()) else {
+            return;
+        };
+        let mut g = t.out.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(w) = g.as_mut() {
+            let _ = writeln!(w, "{:9.3} iiod#{id} {dir} {text}", t.t0.elapsed().as_secs_f64());
+        }
     }
 
     /// Registers the connection with `abort`.
@@ -159,14 +229,60 @@ impl IiodConn {
 
     /// Sets the read timeout on the client side.
     pub fn set_read_timeout(&mut self, d: Duration) {
+        self.timeout = d;
         let _ = self.sock.set_read_timeout(Some(d));
+    }
+
+    /// True when the framing is lost: nothing may be written on the connection.
+    pub fn torn(&self) -> bool {
+        self.torn
+    }
+
+    /// The `READBUF` answers that the server still owes.
+    pub fn owed(&self) -> u32 {
+        self.owed
+    }
+
+    fn tear(&mut self, why: &dyn std::fmt::Display) {
+        if !self.torn {
+            self.torn = true;
+            self.trace('x', &why.to_string());
+        }
+    }
+
+    /// Marks the connection torn when `r` failed in the middle of an answer (an errno is a whole answer).
+    fn mark<T>(&mut self, r: Result<T, IioError>) -> Result<T, IioError> {
+        if let Err(e @ (IioError::Io(_) | IioError::Malformed)) = &r {
+            self.tear(e);
+        }
+        r
+    }
+
+    /// Writes `bytes`, the start of an exchange named `what`, when the framing allows it.
+    fn put(&mut self, what: &str, bytes: &[u8]) -> io::Result<()> {
+        let readbuf = what.starts_with("READBUF ");
+        if self.torn || (self.owed > 0 && !readbuf) {
+            self.trace('!', what);
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "iiod: a command was held back: an answer is still owed or the connection lost its framing",
+            ));
+        }
+        self.trace('>', what);
+        let r = self.sock.write_all(bytes);
+        if let Err(e) = &r {
+            self.tear(e);
+        } else if readbuf {
+            self.owed += 1;
+        }
+        r
     }
 
     fn send(&mut self, line: &str) -> io::Result<()> {
         let mut b = Vec::with_capacity(line.len() + 2);
         b.extend_from_slice(line.as_bytes());
         b.extend_from_slice(b"\r\n");
-        self.sock.write_all(&b)
+        self.put(line, &b)
     }
 
     fn line(&mut self) -> io::Result<String> {
@@ -179,16 +295,22 @@ impl IiodConn {
 
     fn int(&mut self) -> Result<i64, IioError> {
         let l = self.line()?;
+        self.trace('<', l.trim_end());
         l.trim().parse().map_err(|_| IioError::Malformed)
     }
 
-    fn status(&mut self) -> Result<i64, IioError> {
+    fn status_raw(&mut self) -> Result<i64, IioError> {
         let v = self.int()?;
         if v < 0 {
             Err(IioError::Errno((-v) as i32))
         } else {
             Ok(v)
         }
+    }
+
+    fn status(&mut self) -> Result<i64, IioError> {
+        let r = self.status_raw();
+        self.mark(r)
     }
 
     /// Sends a command whose answer is one integer.
@@ -200,7 +322,8 @@ impl IiodConn {
     /// `VERSION`: "MAJOR.MINOR.TAG".
     pub fn version(&mut self) -> Result<String, IioError> {
         self.send("VERSION")?;
-        Ok(self.line()?.trim().to_string())
+        let r = self.line().map_err(IioError::from);
+        Ok(self.mark(r)?.trim().to_string())
     }
 
     /// `TIMEOUT <ms>`: the server's timeout for this connection.
@@ -208,28 +331,32 @@ impl IiodConn {
         self.command(&format!("TIMEOUT {ms}")).map(|_| ())
     }
 
+    /// Reads `n` bytes of data and the LF after them.
+    fn data(&mut self, n: usize) -> Result<Vec<u8>, IioError> {
+        let mut read = || -> io::Result<Vec<u8>> {
+            let mut b = vec![0u8; n];
+            self.rd.read_exact(&mut b)?;
+            let mut lf = [0u8; 1];
+            self.rd.read_exact(&mut lf)?;
+            Ok(b)
+        };
+        let r = read().map_err(IioError::from);
+        self.mark(r)
+    }
+
     /// `PRINT`: the context XML.
     pub fn print(&mut self) -> Result<String, IioError> {
         self.send("PRINT")?;
         let n = self.status()? as usize;
-        let mut b = vec![0u8; n];
-        self.rd.read_exact(&mut b)?;
-        self.skip_lf()?;
+        let b = self.data(n)?;
         String::from_utf8(b).map_err(|_| IioError::Malformed)
-    }
-
-    fn skip_lf(&mut self) -> io::Result<()> {
-        let mut lf = [0u8; 1];
-        self.rd.read_exact(&mut lf)
     }
 
     /// Reads an attribute, without its trailing NUL and whitespace.
     pub fn read_attr(&mut self, dev: &str, at: Target, attr: &str) -> Result<String, IioError> {
         self.send(&format!("READ {dev}{} {attr}", at.words()))?;
         let n = self.status()? as usize;
-        let mut b = vec![0u8; n];
-        self.rd.read_exact(&mut b)?;
-        self.skip_lf()?;
+        let b = self.data(n)?;
         let s = String::from_utf8_lossy(&b);
         Ok(s.trim_end_matches('\0').trim().to_string())
     }
@@ -242,9 +369,10 @@ impl IiodConn {
         attr: &str,
         value: &str,
     ) -> Result<i64, IioError> {
-        let mut b = format!("WRITE {dev}{} {attr} {}\r\n", at.words(), value.len()).into_bytes();
+        let head = format!("WRITE {dev}{} {attr} {}", at.words(), value.len());
+        let mut b = format!("{head}\r\n").into_bytes();
         b.extend_from_slice(value.as_bytes());
-        self.sock.write_all(&b)?;
+        self.put(&format!("{head} {value}"), &b)?;
         self.status()
     }
 
@@ -288,11 +416,61 @@ impl IiodConn {
     /// Reads the answer to a `READBUF` of `bytes` bytes into `out`, straight from the socket (its length is kept at `bytes` or more
     /// between calls, so it is never zero-filled again). The server answers in chunks: a length, the mask line on the first chunk
     /// only, then the bytes, until the request is met or a chunk of 0 ends it early. Returns the bytes read and the mask the data
-    /// carries (with another client streaming, the server may send more channels than were requested).
+    /// carries (with another client streaming, the server may send more channels than were requested). An errno ends the answer
+    /// cleanly; any other failure tears the connection.
     pub fn recv_buffer(
         &mut self,
         bytes: usize,
         out: &mut Vec<u8>,
+    ) -> Result<(usize, Option<Vec<u32>>), IioError> {
+        self.recv_buffer_until(bytes, out, None)
+    }
+
+    /// [`IiodConn::recv_buffer`] that gives up at `deadline` (which tears the connection: the rest of the answer is still owed).
+    pub fn recv_buffer_until(
+        &mut self,
+        bytes: usize,
+        out: &mut Vec<u8>,
+        deadline: Option<Instant>,
+    ) -> Result<(usize, Option<Vec<u32>>), IioError> {
+        if self.torn {
+            return Err(IioError::Io(io::ErrorKind::BrokenPipe.into()));
+        }
+        let r = self.recv_answer(bytes, out, deadline);
+        if deadline.is_some() {
+            let _ = self.sock.set_read_timeout(Some(self.timeout));
+        }
+        match &r {
+            Ok((n, _)) => {
+                self.trace('<', &format!("{n} bytes"));
+                self.owed = self.owed.saturating_sub(1);
+            }
+            Err(IioError::Errno(_)) => self.owed = self.owed.saturating_sub(1),
+            Err(e) => {
+                let e = e.to_string();
+                self.tear(&format!("READBUF answer cut short: {e}"));
+            }
+        }
+        r
+    }
+
+    /// Sets the read timeout to what is left before `deadline`; an error once it has passed.
+    fn left(&mut self, deadline: Option<Instant>) -> io::Result<()> {
+        if let Some(d) = deadline {
+            let left = d.saturating_duration_since(Instant::now());
+            if left.is_zero() {
+                return Err(io::ErrorKind::TimedOut.into());
+            }
+            let _ = self.sock.set_read_timeout(Some(left));
+        }
+        Ok(())
+    }
+
+    fn recv_answer(
+        &mut self,
+        bytes: usize,
+        out: &mut Vec<u8>,
+        deadline: Option<Instant>,
     ) -> Result<(usize, Option<Vec<u32>>), IioError> {
         if out.len() < bytes {
             out.resize(bytes, 0);
@@ -300,19 +478,26 @@ impl IiodConn {
         let mut got = 0;
         let mut mask = None;
         while got < bytes {
-            let k = self.status()? as usize;
+            self.left(deadline)?;
+            let k = self.status_raw()? as usize;
             if k == 0 {
                 break;
             }
             if mask.is_none() {
+                self.left(deadline)?;
                 let line = self.line()?;
                 mask = Some(parse_mask(line.trim()).ok_or(IioError::Malformed)?);
             }
             if got + k > bytes {
                 return Err(IioError::Malformed);
             }
-            self.rd.read_exact(&mut out[got..got + k])?;
-            got += k;
+            let end = got + k;
+            while got < end {
+                self.left(deadline)?;
+                let n = (end - got).min(if deadline.is_some() { PIECE } else { end - got });
+                self.rd.read_exact(&mut out[got..got + n])?;
+                got += n;
+            }
         }
         Ok((got, mask))
     }
@@ -322,7 +507,11 @@ impl IiodConn {
     pub fn write_buffer(&mut self, dev: &str, data: &[u8]) -> Result<usize, IioError> {
         self.send(&format!("WRITEBUF {dev} {}", data.len()))?;
         self.status()?;
-        self.sock.write_all(data)?;
+        let w = self.sock.write_all(data);
+        if let Err(e) = &w {
+            self.tear(e);
+        }
+        w?;
         Ok(self.status()? as usize)
     }
 
@@ -338,12 +527,20 @@ impl IiodConn {
 
     /// Writes raw bytes (the binary protocol).
     pub fn write_raw(&mut self, b: &[u8]) -> io::Result<()> {
-        self.sock.write_all(b)
+        let r = self.sock.write_all(b);
+        if let Err(e) = &r {
+            self.tear(e);
+        }
+        r
     }
 
     /// Reads exactly `b.len()` raw bytes (the binary protocol).
     pub fn read_raw(&mut self, b: &mut [u8]) -> io::Result<()> {
-        self.rd.read_exact(b)
+        let r = self.rd.read_exact(b);
+        if let Err(e) = &r {
+            self.tear(e);
+        }
+        r
     }
 
     /// `CLOSE <dev>`: frees the buffer.
@@ -353,13 +550,16 @@ impl IiodConn {
 
     /// Ends the connection without a word (a connection in binary mode, or one already broken).
     pub fn shutdown_quiet(&mut self) {
+        self.trace('-', "shut down");
         self.sock.shutdown();
     }
 
-    /// Ends the connection (`EXIT`, then shut down).
+    /// Ends the connection: `EXIT` when the framing allows a command, then shut down.
     pub fn shutdown(&mut self) {
-        let _ = self.send("EXIT");
-        self.sock.shutdown();
+        if !self.torn && self.owed == 0 {
+            let _ = self.send("EXIT");
+        }
+        self.shutdown_quiet();
     }
 }
 

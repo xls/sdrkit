@@ -55,6 +55,9 @@ pub struct FakeOpts {
     /// by more than the kernel buffers hold overflows: the samples that do not fit are dropped ([`Board::rx_overflowed`])
     /// and the overflow flag (bit 2 of 0x80000088) is set until written.
     pub overflow_reg: bool,
+    /// The most bytes a second that the link from the board to a client carries (a slow Wi-Fi link): every answer to a
+    /// `READBUF` is written in pieces at this pace.
+    pub link_bytes_per_s: Option<f64>,
 }
 
 impl Default for FakeOpts {
@@ -80,6 +83,7 @@ impl Default for FakeOpts {
             tx_max_bytes_per_s: None,
             tx_slow_start: None,
             overflow_reg: false,
+            link_bytes_per_s: None,
         }
     }
 }
@@ -141,6 +145,18 @@ pub struct Board {
     /// With [`FakeOpts::overflow_reg`]: the samples dropped by overflows, and the overflow flag.
     pub rx_overflowed: std::sync::atomic::AtomicU64,
     pub capture_overflow: AtomicBool,
+    /// The next `READBUF` answer stops after its first half for this many ms (a stall in the middle of a refill).
+    pub stall_mid_ms: std::sync::atomic::AtomicU64,
+    /// The next `READBUF` answer starts with a line that is not a number: the client loses the framing.
+    pub garble_next: AtomicBool,
+    /// Lines that a client sent on a connection after the answer that garbled it.
+    pub after_garble: AtomicUsize,
+    /// Lines that a client sent while an answer to a `READBUF` was still being written to it: a break of the protocol.
+    pub violations: Mutex<Vec<String>>,
+    /// The connections that hold the receive buffer open.
+    pub rx_holders: AtomicUsize,
+    /// With a value: the link carries this many bytes a second from now on, in place of [`FakeOpts::link_bytes_per_s`].
+    pub link_now: Mutex<Option<f64>>,
 }
 
 impl Board {
@@ -152,6 +168,23 @@ impl Board {
     }
     pub fn push(&self, s: impl Into<String>) {
         self.log.lock().unwrap().push(s.into());
+    }
+    /// The lines that a client sent in the middle of an answer.
+    pub fn violations(&self) -> Vec<String> {
+        self.violations.lock().unwrap().clone()
+    }
+    /// The receive buffer is held by one more (`up`) or one less connection; its `enable` follows.
+    fn hold_rx(&self, up: bool) {
+        let n = if up {
+            self.rx_holders.fetch_add(1, Ordering::SeqCst) + 1
+        } else {
+            self.rx_holders.fetch_sub(1, Ordering::SeqCst) - 1
+        };
+        let v = if n > 0 { "1" } else { "0" };
+        self.attrs
+            .lock()
+            .unwrap()
+            .insert("iio:device4 BUFFER enable".into(), v.into());
     }
     /// The gain of the transmit attenuator of phy channel `chan`, in dB.
     pub fn tx_gain(&self, chan: usize) -> f64 {
@@ -180,12 +213,13 @@ pub struct FakeIiod {
     pub board: Arc<Board>,
     net: FakeTransport,
     stop: Arc<AtomicBool>,
+    host: String,
 }
 
 impl Drop for FakeIiod {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::Relaxed);
-        self.net.stop_serving("127.0.0.1", self.port);
+        self.net.stop_serving(&self.host, self.port);
     }
 }
 
@@ -290,6 +324,12 @@ impl FakeIiod {
 
     /// A board on the fake network `net`, at `127.0.0.1` on the iiod port.
     pub fn start_on(net: FakeTransport, o: FakeOpts) -> FakeIiod {
+        Self::start_at(net, "127.0.0.1", o)
+    }
+
+    /// A board on the fake network `net`, at `host` (an IP address) on the iiod port. An address that is not the loopback
+    /// is a board across a network link.
+    pub fn start_at(net: FakeTransport, host: &str, o: FakeOpts) -> FakeIiod {
         let port = super::proto::IIOD_PORT;
         let board = Arc::new(Board::default());
         {
@@ -353,7 +393,7 @@ impl FakeIiod {
         }
         let stop = Arc::new(AtomicBool::new(false));
         let (b, s, x) = (board.clone(), stop.clone(), xml(&o));
-        net.serve("127.0.0.1", port, move |c| {
+        net.serve(host, port, move |c| {
             let (s, x, o) = (s.clone(), x.clone(), o.clone());
             b.open.fetch_add(1, Ordering::SeqCst);
             b.total.fetch_add(1, Ordering::SeqCst);
@@ -365,6 +405,7 @@ impl FakeIiod {
             board,
             net,
             stop,
+            host: host.to_string(),
         }
     }
 
@@ -379,7 +420,7 @@ impl FakeIiod {
     }
 
     pub fn addr(&self) -> String {
-        format!("ip:127.0.0.1:{}", self.port)
+        format!("ip:{}:{}", self.host, self.port)
     }
 
     /// Connections open now.
@@ -485,9 +526,116 @@ impl Pace {
     }
 }
 
+/// The receive buffer that one connection holds open; given back when the connection ends.
+struct Holder<'a> {
+    b: &'a Board,
+    on: bool,
+}
+
+impl Holder<'_> {
+    fn set(&mut self, on: bool) {
+        if on != self.on {
+            self.on = on;
+            self.b.hold_rx(on);
+        }
+    }
+}
+
+impl Drop for Holder<'_> {
+    fn drop(&mut self) {
+        self.set(false);
+    }
+}
+
+/// The lines other than `READBUF` that the client has sent and that wait to be read, without taking them; `None` when it
+/// closed the connection. A `READBUF` sent ahead while answers are owed is within the protocol.
+fn client_spoke(r: &mut BufReader<Box<dyn Conn>>) -> Option<Vec<String>> {
+    if r.buffer().is_empty() {
+        let _ = r.get_mut().set_read_timeout(Some(Duration::from_millis(1)));
+        let got = r.fill_buf().map(|b| b.is_empty());
+        let _ = r.get_mut().set_read_timeout(None);
+        if matches!(got, Ok(true)) {
+            return None;
+        }
+    }
+    let text = String::from_utf8_lossy(r.buffer()).to_string();
+    Some(
+        text.split('\n')
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with("READBUF "))
+            .map(String::from)
+            .collect(),
+    )
+}
+
+/// Writes the answer `out` to a `READBUF`: in pieces at the pace of [`FakeOpts::link_bytes_per_s`], stopping after the first
+/// half for `stall_ms`. A client line that arrives before the last piece is a violation. False when the client went away.
+fn send_answer(
+    w: &mut Box<dyn Conn>,
+    r: &mut BufReader<Box<dyn Conn>>,
+    out: &[u8],
+    b: &Board,
+    o: &FakeOpts,
+    mut stall_ms: u64,
+) -> bool {
+    let link = (*b.link_now.lock().unwrap()).or(o.link_bytes_per_s);
+    let paced = link.is_some() || stall_ms > 0;
+    if !paced {
+        return w.write_all(out).is_ok();
+    }
+    // Pieces of about 5 ms of the link, so that the pace holds with the coarse sleeps of the system.
+    let piece = link.map_or(16 << 10, |bps| ((bps * 0.005) as usize).max(16 << 10));
+    let start = Instant::now();
+    let mut sent = 0;
+    let mut paused = Duration::ZERO;
+    let mut looked: Option<Instant> = None;
+    let mut seen: Vec<String> = Vec::new();
+    while sent < out.len() {
+        if looked.is_none_or(|t| t.elapsed() >= Duration::from_millis(20)) {
+            looked = Some(Instant::now());
+            let Some(lines) = client_spoke(r) else {
+                return false;
+            };
+            for l in lines {
+                if !seen.contains(&l) {
+                    b.violations.lock().unwrap().push(l.clone());
+                    seen.push(l);
+                }
+            }
+        }
+        if stall_ms > 0 && sent >= out.len() / 2 {
+            // The stall ends early when the client goes away, as a server's write fails on a closed connection.
+            let t = Instant::now();
+            let d = Duration::from_millis(std::mem::take(&mut stall_ms));
+            while t.elapsed() < d {
+                if client_spoke(r).is_none() {
+                    return false;
+                }
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            paused += t.elapsed();
+            continue;
+        }
+        let n = piece.min(out.len() - sent);
+        if w.write_all(&out[sent..sent + n]).is_err() {
+            return false;
+        }
+        sent += n;
+        if let Some(bps) = link {
+            let due = start + paused + Duration::from_secs_f64(sent as f64 / bps);
+            if let Some(wait) = due.checked_duration_since(Instant::now()) {
+                std::thread::sleep(wait);
+            }
+        }
+    }
+    true
+}
+
 fn serve(c: Box<dyn Conn>, b: &Board, stop: Arc<AtomicBool>, xml: String, o: FakeOpts) {
     let mut w = c.try_clone().unwrap();
     let mut r = BufReader::new(c);
+    let mut holder = Holder { b, on: false };
+    let mut garbled = false;
     let mut readbufs = 0;
     let mut mask = String::new();
     let mut k: i16 = 0;
@@ -506,6 +654,9 @@ fn serve(c: Box<dyn Conn>, b: &Board, stop: Arc<AtomicBool>, xml: String, o: Fak
         let mut line = String::new();
         if stop.load(Ordering::Relaxed) || r.read_line(&mut line).unwrap_or(0) == 0 {
             return;
+        }
+        if garbled {
+            b.after_garble.fetch_add(1, Ordering::SeqCst);
         }
         let words: Vec<&str> = line.split_whitespace().collect();
         let Some(&cmd) = words.first() else { continue };
@@ -645,12 +796,18 @@ fn serve(c: Box<dyn Conn>, b: &Board, stop: Arc<AtomicBool>, xml: String, o: Fak
                 if cmd == "CLOSE" && words[1] == "iio:device3" {
                     b.attrs.lock().unwrap().remove("iio:device3 BUFFER enable");
                 }
+                if cmd == "CLOSE" && words[1] == "iio:device4" {
+                    holder.set(false);
+                }
                 reply(&mut w, "0\n")
             }
             "OPEN" => {
                 b.push(key(&words));
                 *b.streams.lock().unwrap() += 1;
                 mask = words[3].to_string();
+                if words[1] == "iio:device4" {
+                    holder.set(true);
+                }
                 if o.widen && words[1] == "iio:device4" {
                     mask = "0000000f".into();
                 }
@@ -723,11 +880,19 @@ fn serve(c: Box<dyn Conn>, b: &Board, stop: Arc<AtomicBool>, xml: String, o: Fak
                 };
                 // In two chunks, with the mask on the first only.
                 let half = payload.len() / 2 / per * per;
-                let mut out = format!("{half}\n{mask}\n").into_bytes();
-                out.extend(&payload[..half]);
-                out.extend(format!("{}\n", payload.len() - half).as_bytes());
-                out.extend(&payload[half..]);
-                w.write_all(&out).is_ok()
+                if b.garble_next.swap(false, Ordering::SeqCst) {
+                    garbled = true;
+                    let mut out = format!("{half}x\n{mask}\n").into_bytes();
+                    out.extend(&payload[..half]);
+                    w.write_all(&out).is_ok()
+                } else {
+                    let mut out = format!("{half}\n{mask}\n").into_bytes();
+                    out.extend(&payload[..half]);
+                    out.extend(format!("{}\n", payload.len() - half).as_bytes());
+                    out.extend(&payload[half..]);
+                    let stall = b.stall_mid_ms.swap(0, Ordering::Relaxed);
+                    send_answer(&mut w, &mut r, &out, b, &o, stall)
+                }
             }
             "WRITEBUF" => {
                 let bytes: usize = words[2].parse().unwrap();

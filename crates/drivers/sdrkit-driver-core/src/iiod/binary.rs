@@ -264,7 +264,7 @@ impl BinaryRx {
     /// Stops and closes the buffer (draining block answers on the way, within the connection's read timeout), then ends the
     /// connection. The server frees everything when the connection ends anyway; closing first lets a new buffer open at once.
     pub fn close(&mut self) {
-        if self.open {
+        if self.open && !self.conn.torn() {
             self.open = false;
             for (o, wait) in [(op::DISABLE_BUFFER, true), (op::CLOSE_BUFFER, true)] {
                 let h = Header {

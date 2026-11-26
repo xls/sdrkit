@@ -183,6 +183,8 @@ type GainWrite = Arc<dyn Fn(usize, f64) -> Option<Result<(), DriverError>> + Sen
 #[derive(Clone)]
 pub struct StreamCtx {
     stopping: Arc<AtomicBool>,
+    /// A planned restart asks the stream to end at its next boundary.
+    ending: Arc<AtomicBool>,
     /// Where log lines and requests to the host go.
     pub notices: Notices,
     gain: Option<GainWrite>,
@@ -197,9 +199,10 @@ impl std::fmt::Debug for StreamCtx {
 }
 
 impl StreamCtx {
-    /// A stop was requested: the loop should end.
+    /// A stop or a planned restart was requested: the loop should end at its next boundary, with nothing more requested
+    /// from the radio.
     pub fn stopping(&self) -> bool {
-        self.stopping.load(Ordering::Acquire)
+        self.stopping.load(Ordering::Acquire) || self.ending.load(Ordering::Acquire)
     }
 
     /// Writes `gain_db` to receiver `rx` through [`Radio::write_held_gain`]. It never waits: `None` while the radio is busy
@@ -430,6 +433,9 @@ pub struct RunnerConfig {
     pub reconnect_gap: Duration,
     /// How long a retune waits for a stream restart (a rate change on a radio that cannot change rate while streaming).
     pub restart_timeout: Duration,
+    /// How long a stop or a planned restart lets the stream end by itself (it then closes its buffer with the protocol) before
+    /// its connection is shut down. Zero: shut down at once.
+    pub stop_grace: Duration,
 }
 
 impl RunnerConfig {
@@ -444,6 +450,7 @@ impl RunnerConfig {
             lost_wait: Duration::from_millis(100),
             reconnect_gap: Duration::from_secs(1),
             restart_timeout: Duration::from_secs(20),
+            stop_grace: Duration::ZERO,
         }
     }
 }
@@ -484,6 +491,10 @@ struct Shared<R> {
     /// The loss detector's clock.
     epoch: Instant,
     link_down: AtomicU64,
+    /// See [`StreamCtx::stopping`].
+    ending: Arc<AtomicBool>,
+    /// The streams whose loop has ended, counted.
+    ended: AtomicU64,
 }
 
 impl<R> Shared<R> {
@@ -613,6 +624,8 @@ impl<R: Radio> StreamRunner<R> {
             notices,
             epoch: Instant::now(),
             link_down: AtomicU64::new(0),
+            ending: Arc::new(AtomicBool::new(false)),
+            ended: AtomicU64::new(0),
         });
         Ok(StreamRunner {
             shared,
@@ -762,10 +775,21 @@ impl<R: Radio> Source for StreamRunner<R> {
                     let (tx, rx) = mpsc::channel();
                     sh.state().restart = Some(tx);
                     drop(slot);
-                    sh.stream_abort
+                    // The stream ends at its next boundary and closes its buffer; one that does not end in time is cut off.
+                    let old = sh
+                        .stream_abort
                         .lock()
                         .unwrap_or_else(std::sync::PoisonError::into_inner)
-                        .fire();
+                        .clone();
+                    let before = sh.ended.load(Ordering::Acquire);
+                    sh.ending.store(true, Ordering::Release);
+                    let end = Instant::now() + self.cfg.stop_grace;
+                    while sh.ended.load(Ordering::Acquire) == before && Instant::now() < end {
+                        std::thread::sleep(Duration::from_millis(2));
+                    }
+                    if sh.ended.load(Ordering::Acquire) == before {
+                        old.fire();
+                    }
                     let res = rx
                         .recv_timeout(self.cfg.restart_timeout)
                         .map_err(|_| DriverError::Net(sdrkit_core::NetError::TimedOut))?;
@@ -811,6 +835,13 @@ impl<R: Radio> Source for StreamRunner<R> {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .fire();
+        // The stream ends at its next boundary and closes its buffer itself, within the grace.
+        if let Some(t) = &self.thread {
+            let end = Instant::now() + self.cfg.stop_grace;
+            while !t.is_finished() && Instant::now() < end {
+                std::thread::sleep(Duration::from_millis(2));
+            }
+        }
         // Close first (a driver may still have something to send), then interrupt the read.
         let radio = sh
             .slot
@@ -979,12 +1010,25 @@ fn radio_thread<R: Radio>(
     });
     let ctx = StreamCtx {
         stopping: sh.stopping.clone(),
+        ending: sh.ending.clone(),
         notices: sh.notices.clone(),
         gain: Some(gain),
     };
-    let mut stream = first;
+    let mut next = Some(first);
     'outer: loop {
+        let Some(mut stream) = next.take() else {
+            break;
+        };
         let result = stream.run(&mut sink, &ctx);
+        // The old stream closes its connection before anything else goes to the radio: a connection left open and unread
+        // would hold the radio's buffer for a client that no longer reads it. Then the abort lets go of its handles on it.
+        drop(stream);
+        sh.stream_abort
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .fire();
+        sh.ending.store(false, Ordering::Release);
+        sh.ended.fetch_add(1, Ordering::AcqRel);
         if sh.stopping() {
             break;
         }
@@ -1008,7 +1052,7 @@ fn radio_thread<R: Radio>(
                     .and_then(|note| Ok((r.stream(&abort)?, note)))
                 {
                     Ok((s, note)) => {
-                        stream = s;
+                        next = Some(s);
                         let mut st = sh.state();
                         st.asked_rate = tune.get(&RATE);
                         (st.rate, st.centre) = (r.rate_hz(), r.centre_hz());
@@ -1100,7 +1144,7 @@ fn radio_thread<R: Radio>(
                         r.close();
                         break 'outer;
                     }
-                    stream = s;
+                    next = Some(s);
                     let mut slot = sh
                         .slot
                         .lock()
@@ -1116,6 +1160,8 @@ fn radio_thread<R: Radio>(
                         let restart = (wanted.get(&RATE) - tune.get(&RATE)).abs() > 1.0
                             && !r.live_rate_change();
                         let res = if restart {
+                            // The stream just opened has not run: it closes its buffer before the radio is configured.
+                            drop(next.take());
                             sh.stream_abort
                                 .lock()
                                 .unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -1126,7 +1172,7 @@ fn radio_thread<R: Radio>(
                                 .and_then(|()| r.configure(&wanted, false))
                                 .and_then(|n| Ok((r.stream(&sa)?, n)))
                                 .map(|(s, n)| {
-                                    stream = s;
+                                    next = Some(s);
                                     n
                                 })
                         } else {
@@ -1137,6 +1183,13 @@ fn radio_thread<R: Radio>(
                                 "{}: the new settings were not applied: {e}",
                                 cfg.name
                             ));
+                        }
+                        if next.is_none() {
+                            // No stream opened with the new settings: the radio is opened anew.
+                            if sh.nap(cfg.reconnect_gap) {
+                                break 'outer;
+                            }
+                            continue;
                         }
                     }
                     if !note.is_empty() {

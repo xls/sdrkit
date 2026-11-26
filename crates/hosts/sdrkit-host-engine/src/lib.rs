@@ -1472,7 +1472,7 @@ impl Engine {
         }
         let hz = match input {
             Input::Radio(r) if sh.radio_tunes(r)? => {
-                sh.prepare_radio(r, &operator.demand(), desc.tuning.min_rate_hz)?;
+                sh.prepare_radio(r, &operator.demand(), desc.tuning.min_rate_hz, desc.name)?;
                 Some(operator.frequency())
             }
             Input::Radio(_) => centre_hz,
@@ -2798,10 +2798,13 @@ impl Shared {
     fn tick(&self, now: f64, work: &mut Work) {
         let radios: Vec<_> = lock(&self.radios)
             .iter()
-            .map(|(_, r)| Arc::clone(r))
+            .map(|(h, r)| (RadioId::new(h), Arc::clone(r)))
             .collect();
-        for r in radios {
+        for (id, r) in radios {
             r.owner.lock().poll(now, &self.events);
+            if r.take_link_changed() {
+                self.follow_link(id);
+            }
         }
         let sessions: Vec<_> = lock(&self.sessions)
             .iter()

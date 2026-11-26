@@ -1887,3 +1887,197 @@ fn real_board_read_only_diagnostics() {
     println!("context attrs: {:?}", ctx.attrs);
     c.shutdown();
 }
+
+/// A board across a slow network link (`bytes_per_s` from the board to the client), on a fake network.
+fn slow_board(bytes_per_s: Option<f64>) -> FakeIiod {
+    FakeIiod::start_at(
+        sdrkit_core::net::FakeTransport::new(),
+        "10.0.0.5",
+        FakeOpts {
+            link_bytes_per_s: bytes_per_s,
+            ..Default::default()
+        },
+    )
+}
+
+/// The positions of the log entries equal to `what`.
+fn places(log: &[String], what: &str) -> Vec<usize> {
+    log.iter()
+        .enumerate()
+        .filter(|(_, l)| *l == what)
+        .map(|(i, _)| i)
+        .collect()
+}
+
+#[test]
+fn a_stop_in_the_middle_of_a_slow_refill_reads_it_out_and_closes_the_buffer() {
+    // 2.4 Msps needs 9.6 MB/s; the link carries 2 MB/s, so every answer is still arriving when the stop comes.
+    let srv = slow_board(Some(2e6));
+    let drv = IiodDriver::new(srv.transport());
+    let mut src = drv.open_w(&srv.addr(), &tune(2.4 * M, &[])).unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    std::thread::sleep(Duration::from_millis(300));
+    src.stop();
+    assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
+    assert!(srv.board.has("CLOSE iio:device4"), "{:?}", srv.board.log());
+    assert!(wait_for(|| srv.open_connections() == 0, 2.0));
+    assert_eq!(srv.board.rx_holders.load(Ordering::SeqCst), 0);
+    // A second session gets samples.
+    let mut src = drv.open_w(&srv.addr(), &tune(2.4 * M, &[])).unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    assert!(read_n(&mut r, 50_000, 5.0).len() == 50_000);
+    src.stop();
+    assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
+}
+
+#[test]
+fn a_stall_in_the_middle_of_a_refill_ends_that_connection_without_a_word() {
+    let srv = slow_board(None);
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    let closes = places(&srv.board.log(), "CLOSE iio:device4").len();
+    let opened = *srv.board.streams.lock().unwrap();
+    // Longer than the read timeout of the stream: the answer is cut in its middle.
+    srv.board.stall_mid_ms.store(6000, Ordering::Relaxed);
+    assert!(
+        wait_for(|| *srv.board.streams.lock().unwrap() > opened, 12.0),
+        "no new stream: {:?}",
+        srv.board.log()
+    );
+    r.skip_all();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    let log = srv.board.log();
+    // Nothing was written on the cut connection: no CLOSE, no command in the middle of its answer.
+    assert_eq!(places(&log, "CLOSE iio:device4").len(), closes, "{log:?}");
+    assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
+    src.stop();
+    assert!(wait_for(|| srv.open_connections() == 0, 3.0));
+}
+
+#[test]
+fn a_garbled_answer_ends_the_stream_and_nothing_more_is_written_on_it() {
+    let srv = slow_board(None);
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    // After the probe at the start, one request is on its way at a time: none is sent ahead of the garbled answer.
+    std::thread::sleep(Duration::from_millis(1500));
+    let opened = *srv.board.streams.lock().unwrap();
+    srv.board.garble_next.store(true, Ordering::SeqCst);
+    assert!(
+        wait_for(|| *srv.board.streams.lock().unwrap() > opened, 6.0),
+        "no new stream: {:?}",
+        srv.board.log()
+    );
+    r.skip_all();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    assert_eq!(srv.board.after_garble.load(Ordering::SeqCst), 0);
+    src.stop();
+}
+
+#[test]
+fn a_rate_change_on_a_slow_link_closes_the_old_buffer_before_the_new_one_opens() {
+    let srv = slow_board(Some(4e6));
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    let opened = *srv.board.streams.lock().unwrap();
+    src.retune(&tune(3.2 * M, &[])).unwrap();
+    assert!(wait_for(|| *srv.board.streams.lock().unwrap() > opened, 5.0));
+    let log = srv.board.log();
+    let opens: Vec<usize> = log
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| l.starts_with("OPEN iio:device4"))
+        .map(|(i, _)| i)
+        .collect();
+    let closes = places(&log, "CLOSE iio:device4");
+    // The old stream's buffer was closed after it opened and before the new one opened.
+    let (old, new) = (opens[opens.len() - 2], opens[opens.len() - 1]);
+    assert!(closes.iter().any(|c| (old..new).contains(c)), "{log:?}");
+    assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
+    src.stop();
+}
+
+#[test]
+fn a_slow_link_is_measured_reported_and_capped() {
+    // 2.4 Msps needs 9.6 MB/s; the link carries 4 MB/s.
+    let srv = slow_board(Some(4e6));
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    // Timed at open, before any stream: 0.85 of 4 MB/s at 4 bytes a sample.
+    let at_open = src.capabilities().rates.steady_hz.expect("timed at open");
+    assert!((0.7 * M..0.95 * M).contains(&at_open), "{at_open}");
+    assert!(srv.board.has("CLOSE iio:device4"), "{:?}", srv.board.log());
+    let (w, _r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    let mut seen = Vec::new();
+    let warned = wait_for(
+        || {
+            seen.extend(src.take_notices());
+            seen.iter()
+                .any(|n| matches!(n, Notice::Warning(t) if t.contains("the link delivers 0.")))
+        },
+        8.0,
+    );
+    assert!(warned, "{seen:?}");
+    // The state stays in the status line, poll after poll.
+    std::thread::sleep(Duration::from_millis(300));
+    let r = src.readings();
+    assert!(r.status().summary.contains("the link delivers 0."), "{}", r.status().summary);
+    let cap = src.capabilities().rates.steady_hz.expect("a measured link");
+    // 0.85 of 4 MB/s at 4 bytes a sample.
+    assert!((0.7 * M..0.95 * M).contains(&cap), "{cap}");
+    src.stop();
+}
+
+#[test]
+fn a_fast_link_is_timed_at_the_start_of_the_stream() {
+    let srv = slow_board(Some(40e6));
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
+    let found = wait_for(
+        || {
+            src.take_notices();
+            src.capabilities().rates.steady_hz.is_some()
+        },
+        3.0,
+    );
+    assert!(found);
+    let cap = src.capabilities().rates.steady_hz.unwrap();
+    // About 0.85 of 40 MB/s at 4 bytes a sample: well above the 2.4 Msps the stream runs.
+    assert!((5.0 * M..10.0 * M).contains(&cap), "{cap}");
+    src.stop();
+}
+
+#[test]
+fn a_very_slow_link_is_timed_at_open_and_the_timing_ends_with_close() {
+    // 0.3 MB/s: two buffers take longer than the second the timing sends requests for.
+    let srv = slow_board(Some(0.3e6));
+    let src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .unwrap();
+    let cap = src.capabilities().rates.steady_hz.expect("timed at open");
+    assert!(cap < 0.1 * M, "{cap}");
+    assert!(srv.board.has("CLOSE iio:device4"), "{:?}", srv.board.log());
+    assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
+    assert_eq!(srv.board.rx_holders.load(Ordering::SeqCst), 0);
+}
