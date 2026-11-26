@@ -1,5 +1,5 @@
-//! A network radio runs no stack at a rate that its link cannot carry: a stack whose least rate is above what the link
-//! carries is refused with the two numbers, and the radio is left as it was.
+//! What the link to a network radio carries is a live reading: it chooses a narrower rate where the stack allows one,
+//! and it never refuses a stack and never moves a stream that runs.
 
 mod common;
 
@@ -7,7 +7,7 @@ use common::{defaults, number};
 use sdrkit_core::net::FakeTransport;
 use sdrkit_core::{Values};
 use sdrkit_driver_core::iiod::fake::{FakeIiod, FakeOpts};
-use sdrkit_host_engine::{EngineError, Input, OwnerRef};
+use sdrkit_host_engine::{Input, OwnerRef};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -20,9 +20,9 @@ fn stack_values(id: &str) -> Values {
 }
 
 #[test]
-fn a_stack_that_the_link_cannot_carry_is_refused_and_the_radio_is_left_alone() {
+fn a_stack_that_the_link_cannot_carry_starts_all_the_same() {
     let net = FakeTransport::new();
-    // 12 MB/s: about 2.5 Msps of 16-bit samples with room to spare; Wi-Fi needs 20 Msps.
+    // 12 MB/s: about 2.5 Msps of 16-bit samples with room to spare; Wi-Fi needs 4 Msps or more.
     let srv = FakeIiod::start_at(
         net.clone(),
         "10.0.0.5",
@@ -34,24 +34,11 @@ fn a_stack_that_the_link_cannot_carry_is_refused_and_the_radio_is_left_alone() {
     let e = sdrkit_host_catalog::engine_on(Arc::new(net.clone())).unwrap();
     let kind = e.find("driver.iiod").unwrap();
     let r = e.open_radio("iiod", &srv.addr(), &defaults(&e, kind)).unwrap();
-    // The radio streams at its idle rate; the driver times the link at the start of that stream.
     std::thread::sleep(Duration::from_secs(2));
-    let before = srv.board.log().len();
-    let refused = e.start_stack("wifi", None, &stack_values("wifi"), Input::Radio(r), None);
-    let Err(err @ EngineError::LinkTooSlow { need_hz, carries_hz, .. }) = refused else {
-        panic!("{refused:?}");
-    };
-    // The least rate that Wi-Fi declares.
-    assert_eq!(need_hz, 4e6);
-    assert!((1.5e6..3.5e6).contains(&carries_hz), "{carries_hz}");
-    let text = err.to_string();
-    assert!(text.starts_with("Wi-Fi networks needs 4 Msps; the link to this radio carries about "), "{text}");
-    // Nothing was written to the radio.
-    let after = &srv.board.log()[before..];
-    assert!(!after.iter().any(|l| l.contains("sampling_frequency")), "{after:?}");
-    // A stack that fits the link starts.
-    e.start_stack("fm", None, &stack_values("fm"), Input::Radio(r), None)
+    e.start_stack("wifi", None, &stack_values("wifi"), Input::Radio(r), None)
         .unwrap();
+    // The stack has the rate it needs: the loss shows, and nothing is refused.
+    assert!(number(&e, OwnerRef::Radio(r), "rate_hz") >= 4e6);
     assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
 }
 
@@ -80,7 +67,7 @@ fn a_stack_that_fits_the_link_below_its_wish_runs_narrower() {
 }
 
 #[test]
-fn a_link_that_slows_down_under_a_running_stack_brings_the_radio_to_what_it_carries() {
+fn a_link_that_slows_down_under_a_running_stack_leaves_its_rate() {
     let net = FakeTransport::new();
     let srv = FakeIiod::start_at(
         net.clone(),
@@ -96,14 +83,11 @@ fn a_link_that_slows_down_under_a_running_stack_brings_the_radio_to_what_it_carr
     std::thread::sleep(Duration::from_secs(2));
     e.start_stack("wifi", None, &stack_values("wifi"), Input::Radio(r), None)
         .unwrap();
-    assert!(number(&e, OwnerRef::Radio(r), "rate_hz") >= 4e6);
-    // The link drops to 12 MB/s: about 2.5 Msps, below the 4 that Wi-Fi needs.
-    *srv.board.link_now.lock().unwrap() = Some(12e6);
-    let end = std::time::Instant::now() + Duration::from_secs(12);
-    while number(&e, OwnerRef::Radio(r), "rate_hz") >= 4e6 && std::time::Instant::now() < end {
-        std::thread::sleep(Duration::from_millis(50));
-    }
     let rate = number(&e, OwnerRef::Radio(r), "rate_hz");
-    assert!((1.5e6..3.5e6).contains(&rate), "{rate}");
+    assert!(rate >= 4e6);
+    // The link drops to 12 MB/s: about 2.5 Msps, below the 4 that Wi-Fi needs. The stream keeps its rate.
+    *srv.board.link_now.lock().unwrap() = Some(12e6);
+    std::thread::sleep(Duration::from_secs(4));
+    assert_eq!(number(&e, OwnerRef::Radio(r), "rate_hz"), rate);
     assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
 }

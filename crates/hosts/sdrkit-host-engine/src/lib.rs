@@ -2800,11 +2800,8 @@ impl Shared {
             .iter()
             .map(|(h, r)| (RadioId::new(h), Arc::clone(r)))
             .collect();
-        for (id, r) in radios {
+        for (_, r) in radios {
             r.owner.lock().poll(now, &self.events);
-            if r.take_link_changed() {
-                self.follow_link(id);
-            }
         }
         let sessions: Vec<_> = lock(&self.sessions)
             .iter()

@@ -60,8 +60,6 @@ impl Tuning {
     }
 }
 
-/// The part by which what the link carries must change before the engine resolves the rate again.
-const LINK_STEP: f64 = 0.15;
 
 /// An open radio as an owner, with its own queue of events.
 pub(crate) struct RadioOwner {
@@ -82,10 +80,6 @@ pub(crate) struct RadioOwner {
     wake: Arc<Condvar>,
     /// The counters of the ring of the stream that runs.
     ring: Option<Arc<RingStats>>,
-    /// Shared with [`Radio::link_changed`].
-    link_changed: Arc<AtomicBool>,
-    /// What the link carried at the last poll ([`sdrkit_driver_core::RateLimits::steady_hz`]).
-    link_seen: Option<f64>,
     /// The rate that the host set and that the engine warned is above what the link carries.
     link_warned: Option<f64>,
 }
@@ -108,8 +102,6 @@ pub(crate) struct Radio {
     auto_rate: Arc<AtomicBool>,
     /// The host set the rate to 0 and the engine did not resolve the rate since.
     rate_given_back: Arc<AtomicBool>,
-    /// What the link to the radio carries changed and the engine did not resolve the rate since.
-    link_changed: Arc<AtomicBool>,
     /// The phase of the hop of the radio ([`crate::hop`]).
     pub(crate) hop: Arc<HopGate>,
 }
@@ -125,11 +117,9 @@ impl Radio {
         wake: Arc<Condvar>,
     ) -> Result<Radio, EngineError> {
         let driver = radio.kind().key;
-        let radio_link = radio.capabilities().rates.steady_hz;
         let events = Arc::new(Mutex::new(VecDeque::with_capacity(EVENT_CAP)));
         let auto_rate = Arc::new(AtomicBool::new(auto_rate));
         let rate_given_back = Arc::new(AtomicBool::new(false));
-        let link_changed = Arc::new(AtomicBool::new(false));
         let hop = Arc::new(HopGate::default());
         let mut owner = RadioOwner {
             radio,
@@ -143,8 +133,6 @@ impl Radio {
             hop: Arc::clone(&hop),
             wake,
             ring: None,
-            link_changed: Arc::clone(&link_changed),
-            link_seen: radio_link,
             link_warned: None,
         };
         owner.stream()?;
@@ -156,7 +144,6 @@ impl Radio {
             address: address.to_owned(),
             auto_rate,
             rate_given_back,
-            link_changed,
             hop,
         })
     }
@@ -176,11 +163,6 @@ impl Radio {
     /// True once after the host set the rate to Automatic: the engine then resolves the rate again.
     pub(crate) fn take_rate_given_back(&self) -> bool {
         self.rate_given_back.swap(false, Ordering::AcqRel)
-    }
-
-    /// True once after what the link to the radio carries changed: the engine then resolves the rate again.
-    pub(crate) fn take_link_changed(&self) -> bool {
-        self.link_changed.swap(false, Ordering::AcqRel)
     }
 }
 
@@ -238,16 +220,6 @@ impl RadioOwner {
     pub(crate) fn poll(&mut self, now: f64, catalog: &EventCatalog) {
         let mut events = std::mem::take(&mut self.scratch);
         self.radio.poll(now, &mut events);
-        // A measurement that moves by less than LINK_STEP does not move the rate: each move restarts the stream.
-        let link = self.radio.capabilities().rates.steady_hz;
-        let moved = match (link, self.link_seen) {
-            (Some(a), Some(b)) => (a - b).abs() > LINK_STEP * b,
-            (a, b) => a.is_some() != b.is_some(),
-        };
-        if moved {
-            self.link_seen = link;
-            self.link_changed.store(true, Ordering::Release);
-        }
         let mut restart = false;
         {
             let mut kept = crate::feed::lock(&self.events);

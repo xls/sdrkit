@@ -476,13 +476,6 @@ pub(crate) fn engine<'a>(e: &'a EngineError, d: &mut ErrorDetail, names: &mut Na
             d.index = count(*radios);
             SDRKIT_E_REQUEST
         }
-        EngineError::LinkTooSlow {
-            need_hz, carries_hz, ..
-        } => {
-            d.min = *need_hz;
-            d.value = *carries_hz;
-            SDRKIT_E_CONFIG
-        }
         EngineError::Encode => SDRKIT_E_ENCODE,
         EngineError::Import(sdrkit_host_engine::ImportError::Version { .. }) => SDRKIT_E_VERSION,
         EngineError::Import(e) => {

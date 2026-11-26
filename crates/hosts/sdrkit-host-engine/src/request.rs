@@ -682,22 +682,29 @@ impl Shared {
         let mut note = None;
         if let Some(cap) = link {
             if resolved > cap * 1.01 {
-                let fit = link_rate(&ranges, cap, least_hz).map_err(|_| EngineError::LinkTooSlow {
-                    stack,
-                    // The stack's least rate, or the radio's lowest when that is above the link.
-                    need_hz: least_hz.max(ranges.iter().map(|r| r.0).fold(f64::INFINITY, f64::min).min(resolved)),
-                    carries_hz: cap,
-                })?;
-                let text = format!(
-                    "the link to this radio carries about {} Msps: {stack} runs at {} Msps, a narrower capture than the {} \
-                     Msps it prefers",
-                    sdrkit_driver_core::fmt_m(cap),
-                    sdrkit_driver_core::fmt_m(fit),
-                    sdrkit_driver_core::fmt_m(resolved)
-                );
+                // The link figure is a live reading: it chooses a narrower rate where the stack allows one, and it
+                // never refuses a start.
+                let text = match link_rate(&ranges, cap, least_hz) {
+                    Ok(fit) => {
+                        let text = format!(
+                            "the link to this radio carries about {} Msps now: {stack} runs at {} Msps, a narrower capture \
+                             than the {} Msps it prefers",
+                            sdrkit_driver_core::fmt_m(cap),
+                            sdrkit_driver_core::fmt_m(fit),
+                            sdrkit_driver_core::fmt_m(resolved)
+                        );
+                        resolved = fit;
+                        text
+                    }
+                    Err(()) => format!(
+                        "the link to this radio carries about {} Msps now (measured from the running stream); {stack} \
+                         needs {} Msps: it runs, and the lost samples show",
+                        sdrkit_driver_core::fmt_m(cap),
+                        sdrkit_driver_core::fmt_m(resolved)
+                    ),
+                };
                 o.note(&text);
                 note = Some(text);
-                resolved = fit;
             }
         }
         if now != Some(resolved) {
@@ -789,45 +796,6 @@ impl Shared {
             self.log(note.clone());
         }
         r.map(|_| ())
-    }
-
-    /// What the link to radio `r` carries changed (the driver measured it): the radio takes the rate for the stack of the
-    /// one session that reads it again. When the link carries less than that stack's least rate, the stream that the link
-    /// cannot carry ends (the driver closes it cleanly), the radio runs at the highest rate that the link carries, and the
-    /// reason shows in the radio's and the session's status.
-    pub(crate) fn follow_link(&self, r: crate::RadioId) {
-        let Err(e) = self.resolve_rate_again(r) else {
-            return;
-        };
-        let EngineError::LinkTooSlow { carries_hz, .. } = e else {
-            self.log(format!("{}: {e}", crate::radio_key(r)));
-            return;
-        };
-        let text = e.to_string();
-        self.log(format!("{}: {text}", crate::radio_key(r)));
-        if let Some(radio) = self.radio(r) {
-            let mut o = radio.owner.lock();
-            if o.rate_is_automatic() {
-                let listed = o.rates().ranges.clone();
-                let ranges = if listed.is_empty() {
-                    vec![(o.rates().min_hz, o.rates().max_hz)]
-                } else {
-                    listed
-                };
-                if let Ok(fit) = link_rate(&ranges, carries_hz, 0.0) {
-                    let _ = o.set_resolved_rate(fit);
-                }
-            }
-            o.note(&text);
-        }
-        for s in lock(&self.sessions)
-            .iter()
-            .filter(|(_, s)| s.input == Input::Radio(r))
-            .map(|(_, s)| std::sync::Arc::clone(s))
-            .collect::<Vec<_>>()
-        {
-            sdrkit_core::Owner::problem(&mut *s.owner(), &text);
-        }
     }
 
     /// The host gave the rate of radio `r` back to the engine (Automatic): the radio takes the rate for the stack of
