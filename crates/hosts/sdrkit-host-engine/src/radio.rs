@@ -80,8 +80,6 @@ pub(crate) struct RadioOwner {
     wake: Arc<Condvar>,
     /// The counters of the ring of the stream that runs.
     ring: Option<Arc<RingStats>>,
-    /// The rate that the host set and that the engine warned is above what the link carries.
-    link_warned: Option<f64>,
 }
 
 struct Pump {
@@ -133,7 +131,6 @@ impl Radio {
             hop: Arc::clone(&hop),
             wake,
             ring: None,
-            link_warned: None,
         };
         owner.stream()?;
         Ok(Radio {
@@ -321,16 +318,6 @@ impl RadioOwner {
     /// Shows `text` in the radio's status and log.
     pub(crate) fn note(&mut self, text: &str) {
         sdrkit_core::Owner::problem(&mut self.radio, text);
-    }
-
-    /// True the first time the host-set rate `rate_hz` is found above what the link carries; false again for the same
-    /// rate, so that the warning comes once.
-    pub(crate) fn warn_link_once(&mut self, rate_hz: f64) -> bool {
-        if self.link_warned == Some(rate_hz) {
-            return false;
-        }
-        self.link_warned = Some(rate_hz);
-        true
     }
 
     /// Sets the rate that the engine resolved for a stack. The rate stays on Automatic for the host.

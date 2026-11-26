@@ -651,16 +651,6 @@ impl Shared {
                     got,
                 }
                 .into()),
-                Some(got) if link.is_some_and(|c| got > c * 1.01) && o.warn_link_once(got) => {
-                    let note = format!(
-                        "the rate set, {} Msps, is above the about {} Msps that the link to this radio carries: samples \
-                         will be lost",
-                        sdrkit_driver_core::fmt_m(got),
-                        sdrkit_driver_core::fmt_m(link.unwrap_or(0.0))
-                    );
-                    o.note(&note);
-                    Ok(Some(note))
-                }
                 _ => Ok(None),
             };
         }
@@ -696,15 +686,14 @@ impl Shared {
                         resolved = fit;
                         text
                     }
-                    Err(()) => format!(
-                        "the link to this radio carries about {} Msps now (measured from the running stream); {stack} \
-                         needs {} Msps: it runs, and the lost samples show",
-                        sdrkit_driver_core::fmt_m(cap),
-                        sdrkit_driver_core::fmt_m(resolved)
-                    ),
+                    // The stack needs more than the link carries now: it runs at its rate, and the radio's own
+                    // status says what arrives.
+                    Err(()) => String::new(),
                 };
-                o.note(&text);
-                note = Some(text);
+                if !text.is_empty() {
+                    o.note(&text);
+                    note = Some(text);
+                }
             }
         }
         if now != Some(resolved) {
