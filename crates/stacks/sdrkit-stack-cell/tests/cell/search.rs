@@ -350,7 +350,7 @@ fn noise_and_spurs_list_no_cell() {
 /// cells that its SSB gave at the neighbouring raster points. Skipped when the recording is not on this machine.
 #[test]
 fn live_n5_recording_lists_one_cell() {
-    let Some(rec) = onair("sdrkit_nr_884.720MHz_7.68Msps_20261126-132757") else { return };
+    let Some(rec) = live_recording("sdrkit_nr_884.720MHz_7.68Msps_20261126-132757") else { return };
     let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
     run_graph(&mut rx, InputInfo::new(rec.rate_hz, rec.centre_hz, rec.centre_hz).recording(), &rec.samples, &[]);
     assert_eq!(cells_of(&rx), [897]);
@@ -360,7 +360,7 @@ fn live_n5_recording_lists_one_cell() {
 /// Australian band order. Skipped when the recording is not on this machine.
 #[test]
 fn live_band28_recording_reads_the_operator() {
-    let Some(rec) = onair("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305") else { return };
+    let Some(rec) = live_recording("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305") else { return };
     let mut rx = stack_graph(&CELL, &[("band_search", J::from("off")), ("band_order", J::from("28 5 26 8 3 1 7 40"))]);
     run_graph(&mut rx, InputInfo::new(rec.rate_hz, rec.centre_hz, rec.centre_hz).recording(), &rec.samples, &[]);
     let cs = cells(&state(&rx));
@@ -370,12 +370,14 @@ fn live_band28_recording_reads_the_operator() {
     assert_eq!(cs[0]["sib1"]["plmns"][0], "505-02", "{}", cs[0]);
 }
 
-/// A recording of `~/Development/sdrkit-recordings/onair-2026-11-27/store/recordings/<name>.sigmf-meta`, or None.
-fn onair(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
-    let home = std::env::var("HOME").ok()?;
-    let p = std::path::PathBuf::from(home)
-        .join("Development/sdrkit-recordings/onair-2026-11-27/store/recordings")
-        .join(format!("{name}.sigmf-meta"));
+/// The recording `<name>.sigmf-meta` in the folder that the variable `SDRKIT_LIVE_RECORDINGS` names, or None. The
+/// recordings of real signals are kept outside the repository; without the variable the test is skipped.
+fn live_recording(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
+    let Ok(folder) = std::env::var("SDRKIT_LIVE_RECORDINGS") else {
+        eprintln!("skipped: SDRKIT_LIVE_RECORDINGS is not set");
+        return None;
+    };
+    let p = std::path::PathBuf::from(folder).join(format!("{name}.sigmf-meta"));
     if !p.exists() {
         eprintln!("skipped: {} is not here", p.display());
         return None;
