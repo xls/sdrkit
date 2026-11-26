@@ -183,10 +183,10 @@ jobs:
               # The armhf packages come from ports.ubuntu.com; the other sources keep to their own architectures.
               release=$(lsb_release -cs)
               sudo dpkg --add-architecture armhf
-              sudo sed -i -E 's/^deb (https?:)/deb [arch=amd64,i386] \1/' /etc/apt/sources.list
-              for f in /etc/apt/sources.list.d/*.list; do
+              # Every existing `deb` line, whatever its URI form (the runner uses mirror+file:), gets an architecture.
+              for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
                 if [ -f "$f" ]; then
-                  sudo sed -i -E '/arch=/!s/^deb \[/deb [arch=amd64 /; /arch=/!s/^deb (https?:)/deb [arch=amd64] \1/' "$f"
+                  sudo sed -i -E '/arch=/!s/^deb \[/deb [arch=amd64,i386 /; /arch=/!s/^deb ([^[])/deb [arch=amd64,i386] \1/' "$f"
                 fi
               done
               for f in /etc/apt/sources.list.d/*.sources; do

@@ -74,6 +74,7 @@ if [ -n "$emulator" ]; then
 fi
 
 failed=0
+failed_logs=""
 summary=""
 # Records the result of the case $1: $2 is 0 for a pass.
 result() {
@@ -84,7 +85,20 @@ PASS  $1"
         summary="$summary
 FAIL  $1 (log: $work/$(echo "$1" | tr ' ' '-').log)"
         failed=1
+        failed_logs="$failed_logs $work/$(echo "$1" | tr ' ' '-').log"
     fi
+}
+
+# Prints the summary and the last lines of the log of each failed case, so that a CI log shows the cause.
+finish() {
+    for log in $failed_logs; do
+        if [ -f "$log" ]; then
+            echo "--- the end of $log"
+            tail -n 40 "$log"
+        fi
+    done
+    echo "$summary"
+    exit $failed
 }
 
 # Runs the command after $1 with its output in the log of the case $1.
@@ -140,12 +154,13 @@ if [ $mode = archive ]; then
     echo "archive: $archive"
     config="$archive/lib/cmake/sdrkit/sdrkitConfig.cmake"
     names=$(sed -n -E 's/^ *(STATIC|SHARED|IMPLIB) "(.*)"$/\2/p' "$config" 2> /dev/null)
-    exe=sdrkit
-    if [ $windows = 1 ]; then exe=sdrkit.exe; fi
+    # records_name sets `exe`; the tool has a name of its own.
+    tool=sdrkit
+    if [ $windows = 1 ]; then tool=sdrkit.exe; fi
     missing=""
     for f in include/sdrkit.h include/sdrkit_presets.h lib/cmake/sdrkit/sdrkitConfig.cmake \
         lib/cmake/sdrkit/sdrkitConfigVersion.cmake lib/cmake/sdrkit/sdrkitTargets.cmake lib/pkgconfig/sdrkit.pc \
-        "bin/$exe" LICENSE THIRD_PARTY.md share/sdrkit/data; do
+        "bin/$tool" LICENSE THIRD_PARTY.md share/sdrkit/data; do
         if [ ! -e "$archive/$f" ]; then missing="$missing $f"; fi
     done
     for f in $names; do
@@ -189,9 +204,10 @@ if [ $mode = archive ]; then
     if [ "$run" != 0 ]; then
         echo "case command line"
         version=$(sed -n 's/^set(PACKAGE_VERSION "\([0-9.]*\)")$/\1/p' "$archive/lib/cmake/sdrkit/sdrkitConfigVersion.cmake")
-        printed=$(target_run "$archive/bin/$exe" --version 2>> "$work/command-line.log" | tr -d '\r')
+        # The tool prints its version on standard error.
+        printed=$(target_run "$archive/bin/$tool" --version 2>&1 | tr -d '\r')
         echo "sdrkit --version: $printed" >> "$work/command-line.log"
-        stacks=$(target_run "$archive/bin/$exe" stacks 2>> "$work/command-line.log" | wc -l | tr -d ' ')
+        stacks=$(target_run "$archive/bin/$tool" stacks 2>> "$work/command-line.log" | wc -l | tr -d ' ')
         echo "sdrkit stacks: $stacks lines" >> "$work/command-line.log"
         echo "sdrkit --version: $printed; sdrkit stacks: $stacks lines"
         ok=1
@@ -199,8 +215,7 @@ if [ $mode = archive ]; then
         result "command line" $ok
     fi
 
-    echo "$summary"
-    exit $failed
+    finish
 fi
 
 # The package of tools/package.sh: the input of the case prebuilt and the list of system libraries that cargo printed.
@@ -288,5 +303,4 @@ for kind in $kinds; do
     fi
 done
 
-echo "$summary"
-exit $failed
+finish
