@@ -1,4 +1,6 @@
 /target/
+# The build folder of Swift Package Manager for the Package.swift at the root.
+/.build/
 # The installed copies that tools/package.sh and tools/package.ps1 lay out.
 /dist/
 

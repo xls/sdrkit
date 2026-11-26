@@ -1,9 +1,12 @@
 // swift-tools-version:5.9
+// The Swift package of sdrkit for a local path: `.package(path: "<sdrkit>/apple")`. It links
+// build/SDRKitC.xcframework, which `sh build_xcframework.sh` writes. The Package.swift at the root of the repository
+// is the same package for an app that adds it by the repository URL; keep the targets of the two files the same.
 import PackageDescription
 
 let package = Package(
     name: "SDRKit",
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS(.v17), .macCatalyst(.v17), .macOS(.v14)],
     products: [
         .library(name: "SDRKit", targets: ["SDRKit"])
     ],

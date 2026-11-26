@@ -12,15 +12,16 @@ and lays out an installed copy of it, as tools/package.sh does on other systems:
     share\doc\sdrkit\        the licence files
 
 With -Release the script also builds the command-line tool into bin\, puts LICENSE and THIRD_PARTY.md at the top of
-the folder, names the folder sdrkit-<version>-windows-x86_64 (windows-x86_64-gnu for MinGW), and packs it into
-<Out>\sdrkit-<version>-windows-x86_64.zip.
+the folder, names the folder sdrkit-<version>-windows-<arch> (x86_64, x86 or arm64; x86_64-gnu for MinGW), and packs
+it into <Out>\sdrkit-<version>-windows-<arch>.zip.
 
 Usage, from any folder:
   powershell -ExecutionPolicy Bypass -File tools\package.ps1
   powershell -ExecutionPolicy Bypass -File tools\package.ps1 -Release
   powershell -ExecutionPolicy Bypass -File tools\package.ps1 -Target x86_64-pc-windows-gnu
-  -Target  x86_64-pc-windows-msvc (the default on an MSVC tool chain) or x86_64-pc-windows-gnu (MinGW). A target that
-           is not the host needs `rustup target add <Target>` and its linker.
+  -Target  x86_64-pc-windows-msvc (the default on an MSVC tool chain), i686-pc-windows-msvc (32-bit x86),
+           aarch64-pc-windows-msvc (ARM64) or x86_64-pc-windows-gnu (MinGW). A target that is not the host needs
+           `rustup target add <Target>` and its linker: the x86 or ARM64 tools of Visual Studio for MSVC.
   -Out     the folder for the result. The default is dist\ at the root of the workspace.
 
 The script prints the folder of the copy on its last line. The build uses CARGO_TARGET_DIR if it is set, else target\
@@ -55,9 +56,10 @@ switch -Wildcard ($Target) {
     default { throw "tools\package.ps1 builds the Windows targets. Use tools/package.sh for $Target." }
 }
 switch -Wildcard ($Target) {
-    "x86_64-*" { $platform = "windows-x86_64$suffix" }
-    "aarch64-*" { $platform = "windows-arm64$suffix" }
-    default { $platform = $Target }
+    "x86_64-*" { $platform = "windows-x86_64$suffix"; $pointer = "8" }
+    "i686-*" { $platform = "windows-x86$suffix"; $pointer = "4" }
+    "aarch64-*" { $platform = "windows-arm64$suffix"; $pointer = "8" }
+    default { $platform = $Target; $pointer = "8" }
 }
 $name = if ($Release) { "sdrkit-$version-$platform" } else { "sdrkit-$version-$Target" }
 $dist = Join-Path $Out $name
@@ -155,7 +157,7 @@ $values = @{
     SDRKIT_INSTALL_INCLUDEDIR = "include"; SDRKIT_INSTALL_LIBDIR = "lib"; SDRKIT_INSTALL_SHAREDDIR = "lib"
     SDRKIT_INSTALL_DATADIR = "share/sdrkit/data"
     SDRKIT_STATIC_NAME = $static; SDRKIT_SHARED_NAME = $dynamic; SDRKIT_IMPLIB_NAME = $implib; SDRKIT_SONAME = ""
-    SDRKIT_SIZEOF_VOID_P = "8"; SDRKIT_SYSTEM_LIBRARIES = $cmakeLibs
+    SDRKIT_SIZEOF_VOID_P = $pointer; SDRKIT_SYSTEM_LIBRARIES = $cmakeLibs
     SDRKIT_PC_SHARED_LIBS = "`${libdir}/$implib"; SDRKIT_PC_SYSTEM_LIBS = $native
 }
 $cmakeDir = Join-Path $dist "lib\cmake\sdrkit"

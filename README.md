@@ -143,6 +143,35 @@ sdrkit-tui --stack fm                                                 # the term
 `--freq` takes a number in MHz. [docs/cli.md](docs/cli.md) describes every command and [docs/tui.md](docs/tui.md) the
 terminal application, with its spectrum, waterfall, tables and settings.
 
+## Download
+
+The [releases](https://github.com/xls/sdrkit/releases) page has the C library, its headers and the command-line tool
+for each system, and the XCFramework for Swift. The pre-release `nightly` holds the same files, built once a day from
+the newest commit of `main` that passed the checks; use it to try a change before a version, not to depend on.
+
+| System | File |
+|---|---|
+| Windows x86_64, x86 (32-bit), ARM64 | `sdrkit-<version>-windows-x86_64.zip`, `-windows-x86.zip`, `-windows-arm64.zip` |
+| Linux x86_64, x86 (32-bit), ARM64, ARMv7 (hard float, Raspberry Pi class) | `sdrkit-<version>-linux-x86_64.tar.gz`, `-linux-x86.tar.gz`, `-linux-arm64.tar.gz`, `-linux-armv7.tar.gz` |
+| macOS Apple silicon, Intel, both in one | `sdrkit-<version>-macos-arm64.tar.gz`, `-macos-x86_64.tar.gz`, `-macos-universal.tar.gz` |
+| Swift: iOS, iOS simulator, macOS, Mac Catalyst | `SDRKitC-<version>.xcframework.zip` and its checksum |
+
+An archive holds `include/`, `lib/` (the static and the shared library), `lib/cmake/sdrkit/`, `lib/pkgconfig/`,
+`bin/sdrkit`, `share/sdrkit/data/`, `LICENSE` and `THIRD_PARTY.md`. `SHA256SUMS.txt` has the sums of all files. The
+Linux archives need glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36, RHEL 10 and later) and, for
+`bin/sdrkit`, the ALSA library (`libasound2`).
+
+- CMake: unpack the archive and pass its folder: `cmake -DCMAKE_PREFIX_PATH=<unpacked folder> ...`, then
+  `find_package(sdrkit CONFIG REQUIRED)` and `target_link_libraries(app PRIVATE sdrkit::sdrkit)`.
+- pkg-config: `PKG_CONFIG_PATH=<unpacked folder>/lib/pkgconfig pkg-config --cflags --libs sdrkit` (shared library) or
+  `sdrkit-static` (static library with its system libraries).
+- Swift Package Manager: add `.package(url: "https://github.com/xls/sdrkit", from: "<version>")` and the product
+  `SDRKit`. The package downloads the XCFramework of the release; no Rust tool chain is needed.
+
+While the version is 0.x, a new minor number (0.5 to 0.6) may break the interface; a new patch number (0.5.0 to
+0.5.1) only adds to it. Pin the minor number: `.upToNextMinor(from: "0.5.0")` in Swift, `find_package(sdrkit 0.5
+CONFIG REQUIRED)` in CMake. [docs/packaging.md](docs/packaging.md) describes the rule and the release workflow.
+
 ## The API in your language
 
 All bindings sit on one C library, `libsdrkit.a`, built by `crates/hosts/sdrkit-host-ffi`. Nothing crosses the API as
@@ -254,12 +283,8 @@ find_package(sdrkit CONFIG REQUIRED)             # with -DCMAKE_PREFIX_PATH=/opt
 target_link_libraries(app PRIVATE sdrkit::sdrkit)
 ```
 
-**3. Prebuilt releases.** Each GitHub release has `sdrkit-<version>-<os>-<arch>.tar.gz` (`.zip` on Windows) for
-`macos-arm64`, `macos-x86_64`, `linux-x86_64`, `linux-aarch64` and `windows-x86_64`, `SHA256SUMS.txt`, and
-`SDRKitC-<version>.xcframework.zip` with its checksum for a `binaryTarget` of Swift Package Manager. An archive holds
-`include/`, `lib/` (static and shared library), `lib/cmake/sdrkit/`, `lib/pkgconfig/`, `bin/sdrkit` (the command-line
-tool), `share/sdrkit/data/`, `LICENSE` and `THIRD_PARTY.md`. Use it with `find_package` as in way 2
-(`-DCMAKE_PREFIX_PATH=<unpacked folder>`), or fetch it from CMake:
+**3. Prebuilt releases.** Each GitHub release has an archive per system (see [Download](#download)). Use it with
+`find_package` as in way 2 (`-DCMAKE_PREFIX_PATH=<unpacked folder>`), or fetch it from CMake:
 
 ```cmake
 FetchContent_Declare(sdrkit
@@ -270,8 +295,8 @@ find_package(sdrkit CONFIG REQUIRED PATHS "${sdrkit_SOURCE_DIR}" NO_DEFAULT_PATH
 ```
 
 `sh tools/package.sh --release` (`tools\package.ps1 -Release` on Windows) makes the same archive from the sources.
-`.github/workflows/release.yml` builds all of them when a tag `v<version>` is pushed, and attaches them to a draft
-release.
+`.github/workflows/release.yml` builds all of them (through `build.yml`) when a tag `v<version>` is pushed, and
+attaches them to a draft release.
 
 **4. pkg-config.** An installed copy or an archive has `sdrkit.pc` (shared library) and `sdrkit-static.pc` (static
 library with its system libraries):
@@ -326,8 +351,10 @@ let stack = try session.stack()
 let snapshot = try stack.snapshot()                    // the results of the stack: station, radio text, SNR ...
 ```
 
-`sh apple/build_xcframework.sh` builds the XCFramework that the package links. [apple/README.md](apple/README.md) has
-the steps.
+An app adds the package by its URL and a version (see [Download](#download)); SwiftPM then downloads the XCFramework of
+that release. To build from the sources, `sh apple/build_xcframework.sh` writes the XCFramework that the package links
+in a local checkout: add the package by its path, the folder `apple/` or the root of the repository.
+[apple/README.md](apple/README.md) has the steps.
 
 ### Rust
 

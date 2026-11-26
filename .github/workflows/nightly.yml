@@ -1,0 +1,129 @@
+# Publishes the archives of build.yml for the newest commit of main that passed ci.yml as the rolling pre-release
+# `nightly`, so that there is something to download between versions.
+#
+# It runs once a day and by hand. It does nothing when the tag `nightly` is already at that commit, unless the run by
+# hand sets `force`. A run moves the tag `nightly` to the commit, replaces every file of the pre-release, and writes
+# its notes. A target whose job failed is missing from the files; the notes name it. It uses only the token of the
+# run (GITHUB_TOKEN). GitHub runs the schedule only from the default branch, so this file must be on main.
+name: nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build and publish even if the tag nightly is already at the commit
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      sha: ${{ steps.pick.outputs.sha }}
+    steps:
+      - id: pick
+        name: Find the newest commit of main that passed ci
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sha=$(gh run list --workflow ci.yml --branch main --event push --status success --limit 1 \
+            --json headSha --jq '.[0].headSha // ""')
+          if [ -z "$sha" ]; then
+            echo "no push to main passed ci; nothing to publish"
+            exit 0
+          fi
+          current=$(gh api "repos/$GH_REPO/git/ref/tags/nightly" --jq .object.sha 2> /dev/null || true)
+          if [ "$sha" = "$current" ] && [ "${{ inputs.force }}" != true ]; then
+            echo "the tag nightly is already at $sha; nothing to do"
+            exit 0
+          fi
+          echo "building $sha (the tag nightly is at ${current:-nothing})"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: gate
+    if: needs.gate.outputs.sha != ''
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ needs.gate.outputs.sha }}
+
+  publish:
+    needs: [gate, build]
+    if: always() && needs.gate.outputs.sha != '' && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SHA: ${{ needs.gate.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Write the sums and the notes
+        run: |
+          version=$(sed -n 's/^version *= *"\(.*\)"$/\1/p' crates/hosts/sdrkit-host-ffi/Cargo.toml | head -n 1)
+          missing=""
+          for p in macos-arm64 macos-x86_64 macos-universal linux-x86_64 linux-arm64 linux-x86 linux-armv7; do
+            [ -f "dist/sdrkit-$version-$p.tar.gz" ] || missing="$missing sdrkit-$version-$p.tar.gz"
+          done
+          for p in windows-x86_64 windows-x86 windows-arm64; do
+            [ -f "dist/sdrkit-$version-$p.zip" ] || missing="$missing sdrkit-$version-$p.zip"
+          done
+          [ -f "dist/SDRKitC-$version.xcframework.zip" ] || missing="$missing SDRKitC-$version.xcframework.zip"
+          if ! ls dist/* > /dev/null 2>&1; then
+            echo "::error::no job made a file"
+            exit 1
+          fi
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+          {
+            echo "A build of main at $SHA, $(date -u +%Y-%m-%d). It is not a release: the files change when main"
+            echo "moves, and their version number is that of the next release. Use a release for anything that must stay."
+            echo
+            if [ -n "$missing" ]; then
+              echo "These files are missing because their job failed:$missing"
+              echo
+            fi
+            sh tools/release_notes.sh "$version"
+          } > notes.md
+          if [ -n "$missing" ]; then echo "::warning::missing:$missing"; fi
+          cat notes.md
+      - name: Move the tag nightly to the commit
+        run: |
+          if gh api "repos/$GH_REPO/git/ref/tags/nightly" > /dev/null 2>&1; then
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/nightly" -f sha="$SHA" -F force=true > /dev/null
+          else
+            gh api -X POST "repos/$GH_REPO/git/refs" -f ref=refs/tags/nightly -f sha="$SHA" > /dev/null
+          fi
+      - name: Replace the files of the pre-release
+        run: |
+          if gh release view nightly > /dev/null 2>&1; then
+            gh release view nightly --json assets --jq '.assets[].name' | while read -r asset; do
+              gh release delete-asset nightly "$asset" --yes
+            done
+            gh release edit nightly --prerelease --latest=false --title "nightly" --notes-file notes.md
+          else
+            gh release create nightly --prerelease --latest=false --verify-tag --title "nightly" --notes-file notes.md
+          fi
+          gh release upload nightly dist/* --clobber

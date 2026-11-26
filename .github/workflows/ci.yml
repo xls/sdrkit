@@ -1,5 +1,6 @@
-# Builds the C library and checks the CMake consumer projects of examples/cmake on Linux, macOS and Windows. It does
-# not run the test suite of the workspace.
+# Builds the C library and checks the CMake consumer projects of examples/cmake on Linux, macOS and Windows, and checks
+# the version against the interface registry (tools/check_version.sh). It does not run the test suite of the
+# workspace.
 name: ci
 
 on:
@@ -12,6 +13,16 @@ permissions:
   contents: read
 
 jobs:
+  version:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The version tags, for the registry at the latest version.
+          fetch-depth: 0
+      - name: Check the version against the interface registry
+        run: sh tools/check_version.sh
+
   cmake:
     strategy:
       fail-fast: false

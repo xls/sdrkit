@@ -1,12 +1,14 @@
-# Builds the release archives of sdrkit and attaches them, with their SHA-256 sums, to a draft GitHub release.
+# Builds the release archives of sdrkit (build.yml) and, for a tag, attaches them to a draft GitHub release.
 #
 # It runs when a tag v<version> is pushed, and by hand (workflow_dispatch). A run by hand builds and checks the
-# archives and keeps them as artifacts of the run; only a tag makes the draft release. The tag must be the version of
-# the crate sdrkit-host-ffi: v0.5.0 for version 0.5.0.
+# archives and keeps them as artifacts of the run; only a pushed tag makes the draft release. The tag must be the
+# version of the crate sdrkit-host-ffi: v0.5.0 for version 0.5.0.
 #
-# Each archive is sdrkit-<version>-<os>-<arch>.tar.gz (.zip on Windows) from tools/package.sh --release or
-# tools/package.ps1 -Release. The Apple job also makes SDRKitC-<version>.xcframework.zip and its checksum for a
-# binaryTarget of Swift Package Manager.
+# For a tag the job `release` also makes the package available to Swift Package Manager by URL: it writes the URL and
+# the checksum of SDRKitC-<version>.xcframework.zip into Package.swift at the root, commits that one change on top of
+# the tagged commit, and moves the tag to the new commit. The commit is on no branch; the tag keeps its name. The
+# notes of the release come from tools/release_notes.sh. Publish the draft by hand: until then the files cannot be
+# downloaded, and SwiftPM cannot resolve the version.
 name: release
 
 on:
@@ -18,121 +20,86 @@ permissions:
   contents: read
 
 jobs:
-  version:
-    runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v7
-      - id: version
-        name: Read the version and compare it with the tag
-        run: |
-          version=$(sed -n 's/^version *= *"\(.*\)"$/\1/p' crates/hosts/sdrkit-host-ffi/Cargo.toml | head -n 1)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
-            echo "::error::the tag $GITHUB_REF_NAME is not v$version, the version of sdrkit-host-ffi"
-            exit 1
-          fi
-
-  unix:
-    needs: version
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { runner: macos-15, target: aarch64-apple-darwin }
-          - { runner: macos-15-intel, target: x86_64-apple-darwin }
-          - { runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
-          - { runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install Rust
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-          host=$(rustc -vV | sed -n 's/^host: //p')
-          if [ "$host" != "${{ matrix.target }}" ]; then
-            echo "::error::the runner is $host, not ${{ matrix.target }}"
-            exit 1
-          fi
-      - name: Install the Linux packages
-        if: runner.os == 'Linux'
-        # ALSA for the sound output of the command-line tool; CMake and pkg-config for the check.
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config cmake
-      - name: Build the archive
-        run: sh tools/package.sh --release "${{ matrix.target }}" dist
-      - name: Check the shared library name (Linux)
-        if: runner.os == 'Linux'
-        run: readelf -d dist/sdrkit-*/lib/libsdrkit.so | grep 'SONAME.*\[libsdrkit.so\]'
-      - name: Check the CMake consumers
-        run: sh examples/cmake/check.sh both "$RUNNER_TEMP/cmake-check"
-      - uses: actions/upload-artifact@v7
-        with:
-          name: sdrkit-${{ matrix.target }}
-          path: dist/*.tar.gz
-          if-no-files-found: error
-
-  windows:
-    needs: version
-    runs-on: windows-2025
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install Rust
-        shell: pwsh
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-      - name: Build the archive
-        shell: pwsh
-        run: ./tools/package.ps1 -Release -Out dist
-      - name: Check the CMake consumers
-        shell: bash
-        run: sh examples/cmake/check.sh both "$RUNNER_TEMP/cmake-check"
-      - uses: actions/upload-artifact@v7
-        with:
-          name: sdrkit-x86_64-pc-windows-msvc
-          path: dist/*.zip
-          if-no-files-found: error
-
-  xcframework:
-    needs: version
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install Rust
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-          rustup target add aarch64-apple-ios aarch64-apple-ios-sim aarch64-apple-darwin
-      - name: Build the XCFramework
-        run: sh apple/build_xcframework.sh
-      - name: Pack it with its checksum
-        run: |
-          name=SDRKitC-${{ needs.version.outputs.version }}.xcframework.zip
-          mkdir -p dist
-          (cd apple/build && ditto -c -k --sequesterRsrc --keepParent SDRKitC.xcframework "$GITHUB_WORKSPACE/dist/$name")
-          (cd apple && swift package compute-checksum "$GITHUB_WORKSPACE/dist/$name") > "dist/$name.checksum"
-          cat "dist/$name.checksum"
-      - uses: actions/upload-artifact@v7
-        with:
-          name: sdrkit-xcframework
-          path: dist/*
-          if-no-files-found: error
+  build:
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
 
   release:
-    if: github.ref_type == 'tag'
-    needs: [version, unix, windows, xcframework]
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: build
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
+      - name: Check that every file is there
+        run: |
+          version=${{ needs.build.outputs.version }}
+          missing=""
+          for p in macos-arm64 macos-x86_64 macos-universal linux-x86_64 linux-arm64 linux-x86 linux-armv7; do
+            [ -f "dist/sdrkit-$version-$p.tar.gz" ] || missing="$missing sdrkit-$version-$p.tar.gz"
+          done
+          for p in windows-x86_64 windows-x86 windows-arm64; do
+            [ -f "dist/sdrkit-$version-$p.zip" ] || missing="$missing sdrkit-$version-$p.zip"
+          done
+          for f in "SDRKitC-$version.xcframework.zip" "SDRKitC-$version.xcframework.zip.checksum"; do
+            [ -f "dist/$f" ] || missing="$missing $f"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::missing:$missing"
+            exit 1
+          fi
       - name: Write the SHA-256 sums
         run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Write the notes
+        run: |
+          version=${{ needs.build.outputs.version }}
+          checksum=$(cat "dist/SDRKitC-$version.xcframework.zip.checksum")
+          {
+            sh tools/release_notes.sh "$version"
+            echo
+            echo "## Files"
+            echo
+            echo "Each archive holds include/, lib/ (static and shared library), lib/cmake/sdrkit/, lib/pkgconfig/,"
+            echo "bin/sdrkit, share/sdrkit/data/, LICENSE and THIRD_PARTY.md. SHA256SUMS.txt has the sums."
+            echo
+            echo "| System | File |"
+            echo "|---|---|"
+            for p in macos-arm64 macos-x86_64 macos-universal linux-x86_64 linux-arm64 linux-x86 linux-armv7; do
+              echo "| $p | \`sdrkit-$version-$p.tar.gz\` |"
+            done
+            for p in windows-x86_64 windows-x86 windows-arm64; do
+              echo "| $p | \`sdrkit-$version-$p.zip\` |"
+            done
+            echo "| Swift (iOS, macOS, Mac Catalyst) | \`SDRKitC-$version.xcframework.zip\`, checksum \`$checksum\` |"
+            echo
+            echo "The Linux archives need glibc 2.35 or newer and the ALSA library (libasound2)."
+            echo
+            echo "Swift Package Manager: \`.package(url: \"https://github.com/$GITHUB_REPOSITORY\", from: \"$version\")\`"
+          } > notes.md
+          cat notes.md
+      - name: Write Package.swift for the release and move the tag to it
+        run: |
+          version=${{ needs.build.outputs.version }}
+          tag="$GITHUB_REF_NAME"
+          checksum=$(cat "dist/SDRKitC-$version.xcframework.zip.checksum")
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/SDRKitC-$version.xcframework.zip"
+          sed -i -E "s|^let releaseURL = \".*\"$|let releaseURL = \"$url\"|; s|^let releaseChecksum = \".*\"$|let releaseChecksum = \"$checksum\"|" Package.swift
+          grep -qx "let releaseURL = \"$url\"" Package.swift
+          grep -qx "let releaseChecksum = \"$checksum\"" Package.swift
+          if command -v swift > /dev/null; then swift package dump-package > /dev/null; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Package.swift of sdrkit $version: the XCFramework of the release" Package.swift
+          git tag -f -a "$tag" -m "sdrkit $version"
+          git push -f origin "refs/tags/$tag"
       - name: Attach the files to a draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -141,7 +108,8 @@ jobs:
           tag="$GITHUB_REF_NAME"
           if gh release view "$tag" > /dev/null 2>&1; then
             gh release upload "$tag" dist/* --clobber
+            gh release edit "$tag" --notes-file notes.md
           else
-            gh release create "$tag" dist/* --draft --verify-tag --title "sdrkit ${{ needs.version.outputs.version }}" \
-              --generate-notes
+            gh release create "$tag" dist/* --draft --verify-tag --title "sdrkit ${{ needs.build.outputs.version }}" \
+              --notes-file notes.md
           fi

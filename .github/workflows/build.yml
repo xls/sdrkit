@@ -1,0 +1,361 @@
+# Builds and checks the release archives of sdrkit and keeps them as artifacts of the run. release.yml and nightly.yml
+# call it and publish the artifacts; it publishes nothing and only reads the repository.
+#
+# Archives, from tools/package.sh --release (tools/package.ps1 -Release on Windows):
+#   sdrkit-<version>-macos-{arm64,x86_64,universal}.tar.gz
+#   sdrkit-<version>-linux-{x86_64,arm64,x86,armv7}.tar.gz
+#   sdrkit-<version>-windows-{x86_64,x86,arm64}.zip
+#   SDRKitC-<version>.xcframework.zip and SDRKitC-<version>.xcframework.zip.checksum (Swift Package Manager)
+#
+# Each target is a job of its own, and a failing target does not stop the others. A job checks its archive as far as
+# the runner can run the target's programs:
+#   full   the CMake consumers of the sources (examples/cmake/check.sh) and every check of the unpacked archive
+#   run    the checks of the unpacked archive: find_package, pkg-config, `sdrkit --version`, `sdrkit stacks`
+#   link   the same checks, built and linked but not run; the armv7 job then runs them under qemu, for information
+#
+# The Linux archives are built on Ubuntu 22.04 and need glibc 2.35 or older at most: the job fails if the shared
+# library or the command-line tool asks for a newer symbol version.
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: The commit to build; empty for the commit of the calling run
+        type: string
+        default: ""
+    outputs:
+      version:
+        description: The version of the crate sdrkit-host-ffi
+        value: ${{ jobs.version.outputs.version }}
+
+permissions:
+  contents: read
+
+env:
+  SDRKIT_GLIBC_MAX: "2.35"
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - id: version
+        name: Read the version and compare it with the tag
+        run: |
+          version=$(sed -n 's/^version *= *"\(.*\)"$/\1/p' crates/hosts/sdrkit-host-ffi/Cargo.toml | head -n 1)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::the tag $GITHUB_REF_NAME is not v$version, the version of sdrkit-host-ffi"
+            exit 1
+          fi
+
+  macos:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, runner: macos-15 }
+          - { target: x86_64-apple-darwin, runner: macos-15-intel }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          if [ "$host" != "${{ matrix.target }}" ]; then
+            echo "::error::the runner is $host, not ${{ matrix.target }}"
+            exit 1
+          fi
+      - name: Build the archive
+        run: sh tools/package.sh --release "${{ matrix.target }}" dist
+      - name: Unpack the archive
+        run: mkdir -p unpacked && tar -xzf dist/sdrkit-*.tar.gz -C unpacked
+      - name: Check the CMake consumers of the sources
+        run: sh examples/cmake/check.sh both "$RUNNER_TEMP/cmake-check"
+      - name: Check the archive
+        run: sh examples/cmake/check.sh archive unpacked/sdrkit-* "$RUNNER_TEMP/archive-check"
+      - name: Write the summary
+        if: always()
+        run: |
+          echo "- ${{ matrix.target }} (${{ matrix.runner }}): ${{ job.status }}, checked in full" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdrkit-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  macos-universal:
+    needs: [version, macos]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: sdrkit-*-apple-darwin
+          path: downloaded
+          merge-multiple: true
+      - name: Join the two archives with lipo
+        run: |
+          version=${{ needs.version.outputs.version }}
+          name=sdrkit-$version-macos-universal
+          mkdir -p work dist
+          tar -xzf "downloaded/sdrkit-$version-macos-arm64.tar.gz" -C work
+          tar -xzf "downloaded/sdrkit-$version-macos-x86_64.tar.gz" -C work
+          arm=work/sdrkit-$version-macos-arm64
+          intel=work/sdrkit-$version-macos-x86_64
+          mv "$arm" "work/$name"
+          for f in lib/libsdrkit.a lib/libsdrkit.dylib bin/sdrkit; do
+            lipo -create "work/$name/$f" "$intel/$f" -output "work/$name/$f.joined"
+            mv "work/$name/$f.joined" "work/$name/$f"
+            echo "$f: $(lipo -archs "work/$name/$f")"
+          done
+          # The CMake and pkg-config files name the Rust target; the system libraries are the same for both.
+          for f in "work/$name"/lib/cmake/sdrkit/*.cmake "work/$name"/lib/pkgconfig/*.pc; do
+            sed -i '' 's/aarch64-apple-darwin/universal2-apple-darwin/g' "$f"
+          done
+          (cd work && COPYFILE_DISABLE=1 tar -czf "../dist/$name.tar.gz" "$name")
+      - name: Check the archive for both architectures
+        env:
+          SDRKIT_CHECK_CMAKE_ARGS: -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+          CFLAGS: -arch arm64 -arch x86_64
+        run: sh examples/cmake/check.sh archive work/sdrkit-*-macos-universal "$RUNNER_TEMP/archive-check"
+      - name: Write the summary
+        if: always()
+        run: |
+          echo "- macOS universal (lipo of the two archives): ${{ job.status }}, checked on arm64" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdrkit-universal-apple-darwin
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  linux:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-gnu, runner: ubuntu-22.04, check: full }
+          - { target: aarch64-unknown-linux-gnu, runner: ubuntu-22.04-arm, check: full }
+          - { target: i686-unknown-linux-gnu, runner: ubuntu-22.04, check: run, cflags: "-m32" }
+          - { target: armv7-unknown-linux-gnueabihf, runner: ubuntu-22.04, check: link, cc: arm-linux-gnueabihf-gcc }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          if [ "${{ matrix.check }}" = full ] && [ "$host" != "${{ matrix.target }}" ]; then
+            echo "::error::the runner is $host, not ${{ matrix.target }}"
+            exit 1
+          fi
+          if [ "$host" != "${{ matrix.target }}" ]; then rustup target add "${{ matrix.target }}"; fi
+      - name: Install the Linux packages
+        # ALSA of the target for the sound output of the command-line tool; CMake and pkg-config for the checks.
+        run: |
+          case "${{ matrix.target }}" in
+            i686-*)
+              sudo dpkg --add-architecture i386
+              sudo apt-get update
+              sudo apt-get install -y gcc-multilib libasound2-dev:i386 pkg-config cmake
+              {
+                echo "PKG_CONFIG_ALLOW_CROSS=1"
+                echo "PKG_CONFIG_LIBDIR_i686_unknown_linux_gnu=/usr/lib/i386-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+              } >> "$GITHUB_ENV"
+              ;;
+            armv7-*)
+              # The armhf packages come from ports.ubuntu.com; the other sources keep to their own architectures.
+              release=$(lsb_release -cs)
+              sudo dpkg --add-architecture armhf
+              sudo sed -i -E 's/^deb (https?:)/deb [arch=amd64,i386] \1/' /etc/apt/sources.list
+              for f in /etc/apt/sources.list.d/*.list; do
+                if [ -f "$f" ]; then
+                  sudo sed -i -E '/arch=/!s/^deb \[/deb [arch=amd64 /; /arch=/!s/^deb (https?:)/deb [arch=amd64] \1/' "$f"
+                fi
+              done
+              for f in /etc/apt/sources.list.d/*.sources; do
+                if [ -f "$f" ] && ! grep -q '^Architectures:' "$f"; then
+                  sudo sed -i '/^Types:/a Architectures: amd64' "$f"
+                fi
+              done
+              for suite in "$release" "$release-updates" "$release-security"; do
+                echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $suite main universe"
+              done | sudo tee /etc/apt/sources.list.d/armhf.list
+              sudo apt-get update
+              sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev-armhf-cross libasound2-dev:armhf \
+                pkg-config cmake qemu-user
+              {
+                echo "CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc"
+                echo "CC_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-gcc"
+                echo "AR_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-ar"
+                echo "PKG_CONFIG_ALLOW_CROSS=1"
+                echo "PKG_CONFIG_LIBDIR_armv7_unknown_linux_gnueabihf=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig"
+              } >> "$GITHUB_ENV"
+              ;;
+            *)
+              sudo apt-get update
+              sudo apt-get install -y libasound2-dev pkg-config cmake
+              ;;
+          esac
+      - name: Build the archive
+        run: sh tools/package.sh --release "${{ matrix.target }}" dist
+      - name: Unpack the archive
+        run: mkdir -p unpacked && tar -xzf dist/sdrkit-*.tar.gz -C unpacked
+      - name: Check the shared library name and the glibc version
+        id: glibc
+        run: |
+          dir=$(echo unpacked/sdrkit-*)
+          readelf -d "$dir/lib/libsdrkit.so" | grep 'SONAME.*\[libsdrkit.so\]'
+          need=$(readelf -V "$dir/lib/libsdrkit.so" "$dir/bin/sdrkit" | grep -o 'GLIBC_[0-9][0-9.]*' | sed 's/GLIBC_//' |
+            sort -t . -k 1,1n -k 2,2n -k 3,3n | tail -n 1)
+          echo "the highest glibc symbol version: $need (the limit is $SDRKIT_GLIBC_MAX)"
+          echo "need=$need" >> "$GITHUB_OUTPUT"
+          higher=$(printf '%s\n%s\n' "$need" "$SDRKIT_GLIBC_MAX" | sort -t . -k 1,1n -k 2,2n -k 3,3n | tail -n 1)
+          if [ "$higher" != "$SDRKIT_GLIBC_MAX" ]; then
+            echo "::error::the archive needs glibc $need, newer than $SDRKIT_GLIBC_MAX"
+            exit 1
+          fi
+      - name: Check the CMake consumers of the sources
+        if: matrix.check == 'full'
+        run: sh examples/cmake/check.sh both "$RUNNER_TEMP/cmake-check"
+      - name: Check the archive
+        env:
+          SDRKIT_CHECK_RUN: ${{ matrix.check == 'link' && '0' || '1' }}
+          SDRKIT_CHECK_CMAKE_ARGS: >-
+            ${{ matrix.cflags && format('-DCMAKE_C_FLAGS={0}', matrix.cflags) || '' }}
+            ${{ matrix.cc && format('-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=armv7l -DCMAKE_C_COMPILER={0}', matrix.cc) || '' }}
+          CC: ${{ matrix.cc || 'cc' }}
+          CFLAGS: ${{ matrix.cflags }}
+        run: sh examples/cmake/check.sh archive unpacked/sdrkit-* "$RUNNER_TEMP/archive-check"
+      - name: Run the checks of the archive under qemu (information only)
+        if: matrix.check == 'link'
+        continue-on-error: true
+        env:
+          SDRKIT_CHECK_EMULATOR: qemu-arm
+          SDRKIT_CHECK_CMAKE_ARGS: -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=armv7l -DCMAKE_C_COMPILER=${{ matrix.cc }}
+          CC: ${{ matrix.cc }}
+        run: sh examples/cmake/check.sh archive unpacked/sdrkit-* "$RUNNER_TEMP/qemu-check"
+      - name: Write the summary
+        if: always()
+        run: |
+          echo "- ${{ matrix.target }} (${{ matrix.runner }}): ${{ job.status }}, checked: ${{ matrix.check }}, glibc ${{ steps.glibc.outputs.need || 'not read' }}" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdrkit-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  windows:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-pc-windows-msvc, host: x86_64-pc-windows-msvc, runner: windows-2025, check: full }
+          - { target: i686-pc-windows-msvc, host: x86_64-pc-windows-msvc, runner: windows-2025, check: run, cmake: "-A Win32" }
+          - { target: aarch64-pc-windows-msvc, host: aarch64-pc-windows-msvc, runner: windows-11-arm, check: full }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Install Rust
+        shell: pwsh
+        run: |
+          if (-not (Get-Command rustup -ErrorAction SilentlyContinue)) {
+            $installer = Join-Path $env:RUNNER_TEMP "rustup-init.exe"
+            Invoke-WebRequest "https://static.rust-lang.org/rustup/dist/${{ matrix.host }}/rustup-init.exe" -OutFile $installer
+            & $installer -y --profile minimal --default-toolchain none --default-host ${{ matrix.host }}
+            $bin = Join-Path $env:USERPROFILE ".cargo\bin"
+            Add-Content $env:GITHUB_PATH $bin
+            $env:PATH = "$bin;$env:PATH"
+          }
+          rustup set default-host ${{ matrix.host }}
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          $hostTriple = ((rustc -vV) | Where-Object { $_ -like "host:*" }) -replace "^host:\s*", ""
+          if ($hostTriple -ne "${{ matrix.host }}") { throw "the tool chain is for $hostTriple, not ${{ matrix.host }}" }
+          if ("${{ matrix.target }}" -ne $hostTriple) { rustup target add ${{ matrix.target }} }
+      - name: Build the archive
+        shell: pwsh
+        run: ./tools/package.ps1 -Release -Target ${{ matrix.target }} -Out dist
+      - name: Unpack the archive
+        shell: pwsh
+        run: Expand-Archive -Path (Get-Item dist/sdrkit-*.zip).FullName -DestinationPath unpacked
+      - name: Check the CMake consumers of the sources
+        if: matrix.check == 'full'
+        shell: bash
+        run: sh examples/cmake/check.sh both "$RUNNER_TEMP/cmake-check"
+      - name: Check the archive
+        shell: bash
+        env:
+          SDRKIT_CHECK_CMAKE_ARGS: ${{ matrix.cmake }}
+        run: sh examples/cmake/check.sh archive unpacked/sdrkit-* "$RUNNER_TEMP/archive-check"
+      - name: Write the summary
+        if: always()
+        shell: bash
+        run: |
+          echo "- ${{ matrix.target }} (${{ matrix.runner }}): ${{ job.status }}, checked: ${{ matrix.check }}" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdrkit-${{ matrix.target }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  xcframework:
+    needs: version
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-darwin \
+            x86_64-apple-darwin aarch64-apple-ios-macabi x86_64-apple-ios-macabi
+      - name: Build the XCFramework
+        # Mac Catalyst is optional: a Catalyst target that fails to build is left out with a warning.
+        env:
+          SDRKIT_TARGETS: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-darwin x86_64-apple-darwin
+          SDRKIT_OPTIONAL_TARGETS: aarch64-apple-ios-macabi x86_64-apple-ios-macabi
+          SDRKIT_DROP_BUILDS: "1"
+        run: sh apple/build_xcframework.sh
+      - name: Build the Swift package and its tests against it
+        run: swift build --build-tests
+      - name: Pack it with its checksum
+        run: |
+          name=SDRKitC-${{ needs.version.outputs.version }}.xcframework.zip
+          mkdir -p dist
+          (cd apple/build && ditto -c -k --sequesterRsrc --keepParent SDRKitC.xcframework "$GITHUB_WORKSPACE/dist/$name")
+          (cd apple && swift package compute-checksum "$GITHUB_WORKSPACE/dist/$name") > "dist/$name.checksum"
+          size=$(stat -f %z "dist/$name")
+          slices=$(cd apple/build/SDRKitC.xcframework && ls -d */ | tr -d / | tr '\n' ' ')
+          echo "checksum $(cat "dist/$name.checksum"), $((size / 1048576)) MiB, slices: $slices"
+          echo "- XCFramework: $((size / 1048576)) MiB, slices: $slices" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$size" -ge 2147483648 ]; then
+            echo "::error::$name is $size bytes; a release file must be smaller than 2 GiB"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdrkit-xcframework
+          path: dist/*
+          if-no-files-found: error

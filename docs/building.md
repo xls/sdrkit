@@ -27,6 +27,13 @@ The copy is a folder `dist/sdrkit-<version>-<target>/`. The steps below call it 
 | Linux aarch64 | `aarch64-unknown-linux-gnu` | Written from the rules of the tool chain. Not run. |
 | Windows, MSVC | `x86_64-pc-windows-msvc` | Written from the rules of the tool chain. Not run. `tools/package.ps1` was not run. |
 | Windows, MinGW | `x86_64-pc-windows-gnu` | Written from the rules of the tool chain. Not run. |
+| Linux x86 (32-bit) | `i686-unknown-linux-gnu` | Built and checked by the release workflow only. |
+| Linux ARMv7 | `armv7-unknown-linux-gnueabihf` | Built and linked by the release workflow only. |
+| Windows x86 (32-bit) | `i686-pc-windows-msvc` | Built and checked by the release workflow only. |
+| Windows ARM64 | `aarch64-pc-windows-msvc` | Built and checked by the release workflow only. |
+
+The release workflow (`.github/workflows/build.yml`) builds and checks every target of this table except MinGW; the
+commands it runs are the steps for each system. [packaging.md](packaging.md) lists how each target is checked.
 
 The things most likely to differ on a platform that was not run:
 

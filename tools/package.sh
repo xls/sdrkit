@@ -11,8 +11,8 @@
 #     share/doc/sdrkit/        the licence files
 #
 # With --release the script also builds the command-line tool into bin/, puts LICENSE and THIRD_PARTY.md at the top
-# of the folder, names the folder sdrkit-<version>-<os>-<arch> (such as sdrkit-0.5.0-macos-arm64), and packs it into
-# <out>/sdrkit-<version>-<os>-<arch>.tar.gz.
+# of the folder, names the folder sdrkit-<version>-<os>-<arch> (such as sdrkit-0.5.0-macos-arm64 or
+# sdrkit-0.5.0-linux-armv7), and packs it into <out>/sdrkit-<version>-<os>-<arch>.tar.gz.
 #
 # Usage: sh tools/package.sh [--release] [target] [out]
 #   target  a target triple. The default (also an empty argument) is the host. Another triple builds with
@@ -44,15 +44,25 @@ if [ -z "$version" ]; then
     version=$(sed -n 's/^version *= *"\(.*\)"$/\1/p' "$root/Cargo.toml" | head -n 1)
 fi
 
-# The name of the platform in a release archive: <os>-<arch>.
+# The name of the platform in a release archive: <os>-<arch>. The architectures are x86_64, x86 (32-bit), arm64 and
+# armv7 (32-bit, hard float).
 case "$target" in
     aarch64-apple-darwin) platform=macos-arm64 ;;
     x86_64-apple-darwin) platform=macos-x86_64 ;;
     x86_64-unknown-linux-gnu) platform=linux-x86_64 ;;
-    aarch64-unknown-linux-gnu) platform=linux-aarch64 ;;
+    aarch64-unknown-linux-gnu) platform=linux-arm64 ;;
+    i686-unknown-linux-gnu) platform=linux-x86 ;;
+    armv7-unknown-linux-gnueabihf) platform=linux-armv7 ;;
     x86_64-pc-windows-msvc) platform=windows-x86_64 ;;
+    i686-pc-windows-msvc) platform=windows-x86 ;;
+    aarch64-pc-windows-msvc) platform=windows-arm64 ;;
     x86_64-pc-windows-gnu) platform=windows-x86_64-gnu ;;
     *) platform=$target ;;
+esac
+# The pointer size of the target in bytes. sdrkitConfigVersion.cmake refuses a program with another one.
+case "$target" in
+    i?86-* | arm-* | armv7* | thumbv7*) pointer=4 ;;
+    *) pointer=8 ;;
 esac
 if [ $release = 1 ]; then
     name="sdrkit-$version-$platform"
@@ -180,7 +190,7 @@ fill() {
         -e "s|@SDRKIT_SHARED_NAME@|$dynamic|g" \
         -e "s|@SDRKIT_IMPLIB_NAME@|$implib|g" \
         -e "s|@SDRKIT_SONAME@|$soname|g" \
-        -e "s|@SDRKIT_SIZEOF_VOID_P@|8|g" \
+        -e "s|@SDRKIT_SIZEOF_VOID_P@|$pointer|g" \
         -e "s|@SDRKIT_SYSTEM_LIBRARIES@|$cmake_libs|g" \
         -e "s|@SDRKIT_PC_SHARED_LIBS@|$pc_shared|g" \
         -e "s|@SDRKIT_PC_SYSTEM_LIBS@|$native|g" \

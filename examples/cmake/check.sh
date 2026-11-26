@@ -15,9 +15,39 @@
 #
 # All builds use the cargo profile `shipped` in the target folder of the workspace, so the library is built once.
 # On Windows run it from Git Bash; it calls tools/package.ps1 through pwsh or powershell. The exit status is 1 if a case failed.
+#
+# The second form checks an unpacked release archive, for any target, with no cargo:
+#
+#   sh examples/cmake/check.sh archive <unpacked archive> [work folder]
+#
+#   layout            the archive has the headers, both libraries, the CMake and pkg-config files, bin/sdrkit,
+#                     LICENSE and THIRD_PARTY.md
+#   find_package      the project find_package against the archive, with the static and the shared library
+#   pkg-config        stack_count.c linked through sdrkit.pc and sdrkit-static.pc (not on Windows; only if pkg-config
+#                     is installed)
+#   command line      `sdrkit --version` prints the version and `sdrkit stacks` lists the stacks
+#
+# The environment controls the archive form:
+#   SDRKIT_CHECK_RUN=0          build and link only: for a target whose programs this computer cannot run
+#   SDRKIT_CHECK_CMAKE_ARGS     more arguments for each CMake configure, separated by spaces, such as `-A Win32`,
+#                               `-DCMAKE_C_FLAGS=-m32` or a cross compiler
+#   SDRKIT_CHECK_EMULATOR       a program that runs the target's programs, such as qemu-arm; CMake gets it as
+#                               CMAKE_CROSSCOMPILING_EMULATOR
+#   CC, CFLAGS                  the compiler and its flags for the pkg-config case (default cc)
 
 set -u
 
+mode=host
+if [ "${1:-}" = archive ]; then
+    mode=archive
+    if [ -z "${2:-}" ] || [ ! -d "$2" ]; then
+        echo "usage: sh examples/cmake/check.sh archive <unpacked archive> [work folder]" >&2
+        exit 2
+    fi
+    archive=$(cd "$2" && pwd)
+    shift 2
+    set -- both "$@"
+fi
 kinds=${1:-both}
 case "$kinds" in
     both) kinds="static shared" ;;
@@ -36,6 +66,12 @@ case "$system" in
     MINGW* | MSYS* | CYGWIN*) windows=1 ;;
     *) windows=0 ;;
 esac
+run=${SDRKIT_CHECK_RUN:-1}
+emulator=${SDRKIT_CHECK_EMULATOR:-}
+extra=${SDRKIT_CHECK_CMAKE_ARGS:-}
+if [ -n "$emulator" ]; then
+    extra="$extra -DCMAKE_CROSSCOMPILING_EMULATOR=$emulator"
+fi
 
 failed=0
 summary=""
@@ -64,14 +100,20 @@ native() {
     if [ $windows = 1 ] && command -v cygpath > /dev/null; then cygpath -m "$1"; else echo "$1"; fi
 }
 
-# Configures the project $2 in the folder $3 with the arguments after $3, builds it and runs its test, as the case $1.
+# Configures the project $2 in the folder $3 with the arguments after $3 and those of SDRKIT_CHECK_CMAKE_ARGS, builds
+# it and runs its test (unless SDRKIT_CHECK_RUN=0), as the case $1.
 consumer() {
     name=$1 source=$2 build=$3
     shift 3
     rm -rf "$build"
-    logged "$name" "$cmake" -S "$(native "$source")" -B "$(native "$build")" -DCMAKE_BUILD_TYPE=Release "$@" &&
-        logged "$name" "$cmake" --build "$(native "$build")" --config Release &&
-        logged "$name" "$ctest" --test-dir "$(native "$build")" -C Release --output-on-failure
+    # shellcheck disable=SC2086
+    logged "$name" "$cmake" -S "$(native "$source")" -B "$(native "$build")" -DCMAKE_BUILD_TYPE=Release $extra "$@" &&
+        logged "$name" "$cmake" --build "$(native "$build")" --config Release || return 1
+    if [ "$run" = 0 ]; then
+        echo "not run: SDRKIT_CHECK_RUN=0" >> "$work/$(echo "$name" | tr ' ' '-').log"
+        return 0
+    fi
+    logged "$name" "$ctest" --test-dir "$(native "$build")" -C Release --output-on-failure
 }
 
 # Checks that the program stack_count in the folder $1 records the shared library by its name.
@@ -88,6 +130,78 @@ records_name() {
 }
 
 echo "work folder: $work"
+
+# Runs the program $1 with the arguments after it, through SDRKIT_CHECK_EMULATOR if it is set.
+target_run() {
+    if [ -n "$emulator" ]; then "$emulator" "$@"; else "$@"; fi
+}
+
+if [ $mode = archive ]; then
+    echo "archive: $archive"
+    config="$archive/lib/cmake/sdrkit/sdrkitConfig.cmake"
+    names=$(sed -n -E 's/^ *(STATIC|SHARED|IMPLIB) "(.*)"$/\2/p' "$config" 2> /dev/null)
+    exe=sdrkit
+    if [ $windows = 1 ]; then exe=sdrkit.exe; fi
+    missing=""
+    for f in include/sdrkit.h include/sdrkit_presets.h lib/cmake/sdrkit/sdrkitConfig.cmake \
+        lib/cmake/sdrkit/sdrkitConfigVersion.cmake lib/cmake/sdrkit/sdrkitTargets.cmake lib/pkgconfig/sdrkit.pc \
+        "bin/$exe" LICENSE THIRD_PARTY.md share/sdrkit/data; do
+        if [ ! -e "$archive/$f" ]; then missing="$missing $f"; fi
+    done
+    for f in $names; do
+        if [ ! -f "$archive/lib/$f" ]; then missing="$missing lib/$f"; fi
+    done
+    if [ -z "$names" ]; then missing="$missing (no library names in sdrkitConfig.cmake)"; fi
+    if [ -n "$missing" ]; then echo "missing:$missing" > "$work/layout.log"; cat "$work/layout.log"; fi
+    result "layout" "$([ -z "$missing" ] && echo 0 || echo 1)"
+
+    for kind in $kinds; do
+        if [ "$kind" = shared ]; then shared=ON; else shared=OFF; fi
+        echo "case find_package, $kind"
+        consumer "find_package $kind" "$here/find_package" "$work/find_package-$kind" \
+            -DCMAKE_PREFIX_PATH="$(native "$archive")" -DBUILD_SHARED_LIBS=$shared
+        result "find_package $kind" $?
+    done
+    if echo "$kinds" | grep -q shared; then
+        records_name "$work/find_package-shared"
+        result "library name" $?
+    fi
+
+    if [ $windows = 0 ] && command -v pkg-config > /dev/null; then
+        cc=${CC:-cc}
+        for pc in sdrkit sdrkit-static; do
+            echo "case pkg-config, $pc"
+            name="pkg-config $pc"
+            out="$work/stack_count-$pc"
+            # shellcheck disable=SC2046,SC2086
+            logged "$name" $cc ${CFLAGS:-} "$here/common/stack_count.c" \
+                $(PKG_CONFIG_PATH="$archive/lib/pkgconfig" PKG_CONFIG_LIBDIR="$archive/lib/pkgconfig" \
+                    pkg-config --cflags --libs "$pc") -Wl,-rpath,"$archive/lib" -o "$out"
+            status=$?
+            if [ $status = 0 ] && [ "$run" != 0 ]; then
+                logged "$name" target_run "$out"
+                status=$?
+            fi
+            result "$name" $status
+        done
+    fi
+
+    if [ "$run" != 0 ]; then
+        echo "case command line"
+        version=$(sed -n 's/^set(PACKAGE_VERSION "\([0-9.]*\)")$/\1/p' "$archive/lib/cmake/sdrkit/sdrkitConfigVersion.cmake")
+        printed=$(target_run "$archive/bin/$exe" --version 2>> "$work/command-line.log" | tr -d '\r')
+        echo "sdrkit --version: $printed" >> "$work/command-line.log"
+        stacks=$(target_run "$archive/bin/$exe" stacks 2>> "$work/command-line.log" | wc -l | tr -d ' ')
+        echo "sdrkit stacks: $stacks lines" >> "$work/command-line.log"
+        echo "sdrkit --version: $printed; sdrkit stacks: $stacks lines"
+        ok=1
+        if [ -n "$version" ] && echo "$printed" | grep -q "$version" && [ "$stacks" -gt 1 ]; then ok=0; fi
+        result "command line" $ok
+    fi
+
+    echo "$summary"
+    exit $failed
+fi
 
 # The package of tools/package.sh: the input of the case prebuilt and the list of system libraries that cargo printed.
 echo "making the package"
