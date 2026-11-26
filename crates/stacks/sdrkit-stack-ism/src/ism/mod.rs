@@ -238,6 +238,7 @@ pub static ISM: StackDescriptor = StackDescriptor {
     group: "Sensors, 433 / 868 MHz",
     blurb: "Weather stations, thermometers, tyre pressure sensors, door and motion sensors, remotes and meters on 315 to 915 MHz.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 300e6,
         max_hz: 930e6,
         tune_offset_hz: 250e3,

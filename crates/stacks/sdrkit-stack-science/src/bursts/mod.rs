@@ -1059,6 +1059,7 @@ pub static JOVE: StackDescriptor = StackDescriptor {
     blurb: "A spectrogram of the whole capture near 20 MHz and the broadband bursts of Jupiter and the Sun in it: time, \
             duration, strength and width, with the background level minute by minute.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 10e6,
         max_hz: 40e6,
         default_hz: 20.1e6,
@@ -1070,6 +1071,7 @@ pub static JOVE: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: JoveSetting::schema,
@@ -1090,6 +1092,7 @@ pub static CALLISTO: StackDescriptor = StackDescriptor {
     blurb: "A spectrogram in 62.5 kHz bins and 0.25 s rows, the e-CALLISTO resolution; solar radio bursts with start, \
             duration, strength, bandwidth and drift rate, and e-CALLISTO FITS files.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 45e6,
         max_hz: 870e6,
         default_hz: 200e6,
@@ -1101,6 +1104,7 @@ pub static CALLISTO: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: CallistoSetting::schema,

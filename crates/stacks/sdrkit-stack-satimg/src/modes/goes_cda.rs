@@ -243,6 +243,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The telemetry downlinks of GOES-R (BPSK, 40 or 4 ksps) and GOES-N (PM, 4 kbit/s) to their ground station: the frame list. It needs a fixed dish.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         tune_offset_hz: TUNE_OFFSET_HZ,
@@ -255,16 +256,19 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
             id: "r40",
             name: "GOES-R 40 ksps",
             default_hz: 1693e6,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "r4",
             name: "GOES-R 4 ksps",
             default_hz: 1693e6,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "n",
             name: "GOES-N",
             default_hz: 1694e6,
+            ..SubMode::DEFAULT
         },
     ],
     settings: CdaSetting::schema,

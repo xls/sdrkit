@@ -1465,7 +1465,7 @@ pub static NRF24: StackDescriptor = StackDescriptor {
     name: "nRF24L01",
     group: "2.4 GHz, channel 0-125",
     blurb: "nRF24L01 Enhanced ShockBurst frames on one 2.4 GHz channel at 250 kbit/s, 1 and 2 Mbit/s (needs a user test on a real signal).",
-    tuning: Tuning { min_hz: 2400e6, max_hz: 2526e6, tune_offset_hz: 1.5e6, ..Tuning::anywhere(2402e6, 8e6, 4e6, 5e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 2400e6, max_hz: 2526e6, tune_offset_hz: 1.5e6, ..Tuning::anywhere(2402e6, 8e6, 4e6, 5e6) },
     submodes: &[],
     settings: NrfSetting::schema,
     make_receiver,

@@ -13,7 +13,7 @@ pub mod search;
 use crate::bands::{apply_mfbi, band_choice, earfcn_to_mhz, lte_band, nearest_earfcn, BandChoice};
 use crate::decoder::{
     build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, RowSync, SearchConfig,
-    SearchStack, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
+    SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
 };
 use crate::typed::{
     CellBandRow, CellCarrierRow, CellDetailRow, CellFields, CellInterCarrierRow, CellNeighbourRow, CellOperatorRow,
@@ -958,6 +958,12 @@ pub struct LteSearch {
     scan: SearchConfig,
     /// Why the newest capture showed no cell.
     quiet: Option<String>,
+    /// The cells seen by their synchronisation signals only, not yet listed.
+    sightings: Sightings<LteKey>,
+    /// Why the cells of the newest capture are read only in part (the operator needs a wider capture).
+    partial: Option<String>,
+    /// The carrier centre and the sample rate that would read the system information of the newest such cell, Hz.
+    wanted: Option<(f64, f64)>,
 }
 
 impl Default for LteSearch {
@@ -971,8 +977,47 @@ impl Default for LteSearch {
             filter: LteFilter::default(),
             scan: SearchConfig::new(),
             quiet: None,
+            sightings: Sightings::default(),
+            partial: None,
+            wanted: None,
         }
     }
+}
+
+/// The sample rates a stack asks for when a carrier needs a wider capture, Hz, lowest first.
+const WIDER_RATES: [f64; 5] = [11.52e6, 15.36e6, 20e6, 23.04e6, 30.72e6];
+
+/// Why decoded cells of `out` at `rate` are read only in part: a carrier wider than the capture, so its control channel and
+/// system information (and the operator) are out of reach. With it, the carrier centre and the rate that reads them.
+fn partial_reason(out: &LteSearchOut, rate: f64, centre_hz: f64) -> Option<(String, f64, f64)> {
+    let f = out.cells.iter().find(|f| {
+        f.mib.as_ref().is_some_and(|(m, _, _)| {
+            let n_rb = phy::N_RB[m.bw_index as usize];
+            f.tbs.is_empty() && f.cand.offset_hz.abs() + n_rb as f64 * 90e3 + 30e3 >= rate / 2.0
+        })
+    })?;
+    let (m, _, _) = f.mib.as_ref()?;
+    let n_rb = phy::N_RB[m.bw_index as usize];
+    let need = 2.0 * (n_rb as f64 * 90e3 + 30e3);
+    let ask = WIDER_RATES.iter().copied().find(|r| *r >= need).unwrap_or(need);
+    let bw = n_rb as f64 * 0.2;
+    let at = centre_hz + f.cand.offset_hz;
+    let off = if f.cand.offset_hz.abs() > 50e3 {
+        format!(", tuned to its centre {:.1} MHz", at / 1e6)
+    } else {
+        String::new()
+    };
+    Some((
+        format!(
+            "PCI {} is a {bw} MHz carrier: its operator and system information need about {:.0} Msps{off}; the capture is \
+             {:.2} Msps, so only the cell identity, bandwidth and level are read",
+            f.pci,
+            need / 1e6,
+            rate / 1e6
+        ),
+        at,
+        ask,
+    ))
 }
 
 /// Why a capture of LTE `out` at `rate` showed no cell, for people; None when it showed one.
@@ -1040,6 +1085,11 @@ impl LteSearch {
             pci: f.pci,
             raster: (nominal / 100e3).round() as i64,
         };
+        // A cell seen by its sync only is listed when a second capture shows it: a chance peak of noise, or a spur of the
+        // radio, does not come back with the same PCI at the same place.
+        if f.mib.is_none() && !t.cells.contains(&key) && !self.sightings.again(key, time) {
+            return;
+        }
         let Ok(up) = t.cells.upsert(&key, log.stamp(time), || {
             let choice = if known {
                 band_choice(nominal / 1e6, 0, &self.order.bands)
@@ -1223,6 +1273,9 @@ impl SearchStack for LteSearch {
             })
             .collect();
         self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db, self.searcher.max_cfo_hz, base);
+        let partial = partial_reason(&found, cap.rate, base);
+        self.wanted = partial.as_ref().filter(|_| cap.centre_known()).map(|p| (p.1, p.2));
+        self.partial = partial.map(|p| p.0);
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
@@ -1232,6 +1285,12 @@ impl SearchStack for LteSearch {
     }
     fn quiet_reason(&self) -> Option<String> {
         self.quiet.clone()
+    }
+    fn partial_reason(&self) -> Option<String> {
+        self.partial.clone()
+    }
+    fn rate_wanted(&self) -> Option<(f64, f64)> {
+        self.wanted
     }
     fn band_search(&self) -> Option<&SearchConfig> {
         Some(&self.scan)
@@ -1252,6 +1311,7 @@ impl SearchStack for LteSearch {
                 level_dbfs: r.record.rsrp_dbfs,
                 name: format!("PCI {} at {:.1} MHz", r.record.pci, r.record.frequency_hz / 1e6),
                 last_s: r.seen.last_s,
+                identified: r.record.sib1.is_some(),
             })
             .collect()
     }

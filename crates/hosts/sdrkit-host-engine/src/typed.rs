@@ -492,8 +492,9 @@ fn engine() -> Family {
     // and radios are new in 1.3, the stop command of a transmit command in 1.4, the content `carrier` in 1.5, the host
     // audio channels of a stack in 1.6, the content kind and the media of a stack in 1.7. The table of USB devices with
     // its two events, the table of shares with the commands that open and close a share, and the two columns of the
-    // table of drivers that say whether a kind is available are new in 1.8.
-    Family::object("engine", 1, 8)
+    // table of drivers that say whether a kind is available are new in 1.8; where a stack listens and how it is heard
+    // by ear in 1.9.
+    Family::object("engine", 1, 9)
         .stack(engine_shape(0))
         .added(
             1,
@@ -551,6 +552,19 @@ fn engine() -> Family {
                 "shape.DriverRow.unavailable_why",
             ],
         )
+        .added(
+            1,
+            9,
+            &[
+                "shape.StackRow.tuning_kind",
+                "shape.StackRow.listen_demod",
+                "shape.StackRow.listen_width_hz",
+                "shape.StackRow.listen_pitch_hz",
+                "shape.SubmodeRow.listen_demod",
+                "shape.SubmodeRow.listen_width_hz",
+                "shape.SubmodeRow.listen_pitch_hz",
+            ],
+        )
 }
 
 /// The shape of the engine at `level`: from 1 with the fields of the calibration and the load tables of the
@@ -597,7 +611,14 @@ fn engine_shape(level: u8) -> StackShape {
     s.tables.push(table_with_docs(
         &c::STACKS,
         "StackRow",
-        &[c::KIND.key, c::AUDIO.key],
+        &[
+            c::KIND.key,
+            c::AUDIO.key,
+            c::TUNING_KIND.key,
+            c::LISTEN_DEMOD.key,
+            c::LISTEN_WIDTH_HZ.key,
+            c::LISTEN_PITCH_HZ.key,
+        ],
         &[
             (
                 c::HOST_AUDIO_CHANNELS.key,
@@ -617,10 +638,24 @@ fn engine_shape(level: u8) -> StackShape {
                 c::TEXT.key,
                 "The stack gives running text for people: decoded characters or whole messages.",
             ),
+            (
+                c::TUNING_KIND.key,
+                "Where the stack listens: anywhere in its range, only on the frequencies that the data lists for it, or on the one frequency of its system. A host keeps the present frequency on a change to a stack that listens anywhere and asks before it moves to another. No value for a stack that does not declare it.",
+            ),
+            (
+                c::LISTEN_DEMOD.key,
+                "The demodulator of the general stack that hears the signal of the stack by ear. No value for a signal that no plain demodulation suits.",
+            ),
+            (c::LISTEN_WIDTH_HZ.key, "The usual filter width of that demodulator. No value without a demodulator."),
+            (c::LISTEN_PITCH_HZ.key, "The pitch of the beat tone of CW. No value for another demodulator."),
         ],
     ));
     for (def, name, optional) in [
-        (&c::SUBMODES, "SubmodeRow", &[][..]),
+        (
+            &c::SUBMODES,
+            "SubmodeRow",
+            &[c::LISTEN_DEMOD.key, c::LISTEN_WIDTH_HZ.key, c::LISTEN_PITCH_HZ.key][..],
+        ),
         (&c::STACK_SIGNALS, "StackSignalRow", &[]),
         (
             &c::DRIVERS,

@@ -843,7 +843,7 @@ pub static ARQ_PACKET: StackDescriptor = StackDescriptor {
     blurb: "Burst packets 100 kHz wide at 80 ksymbols a second, in nine profiles from BPSK rate 1/4 to 1024-QAM rate 5/6, \
             with LDPC blocks; a message goes one way in repeated passes or two way with acknowledgement bursts and selective \
             repeat. Receive and transmit.",
-    tuning: Tuning { min_hz: 30e6, max_hz: 6000e6, ..Tuning::anywhere(433.0e6, 250e3, MIN_RATE, 100e3) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Free), min_hz: 30e6, max_hz: 6000e6, ..Tuning::anywhere(433.0e6, 250e3, MIN_RATE, 100e3) },
     submodes: &[],
     settings: schema,
     make_receiver,

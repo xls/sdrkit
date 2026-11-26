@@ -1219,6 +1219,7 @@ pub static SLOTTED_VOICE: StackDescriptor = StackDescriptor {
     blurb: "Digital voice in 16-QAM frames with a sweep that spells the station and a beacon of callsign, position and \
             text; version 4 carries four voice or data slots. Receive and transmit.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6000e6,
         ..Tuning::anywhere(433.0e6, 240e3, MIN_RATE, 24e3)

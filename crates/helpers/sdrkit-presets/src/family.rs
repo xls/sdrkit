@@ -3,8 +3,9 @@
 //! A file without a country in its rows (`wsjt/dials.csv`, `general/presets.csv`, the FPV channels) gives its settings to
 //! every country. A file whose rows have a code gives the row with the code of the country; `ism/wisun_bands.csv` gives
 //! the first plan that lists the country. A file whose rows are named
-//! by an area (`marine/vhf_channels.csv`, `cell/band_order.csv`, `avdata/datalink_channels.csv`) gives none: the host
-//! offers its rows by name.
+//! by an area (`marine/vhf_channels.csv`, `avdata/datalink_channels.csv`) gives none: the host offers its rows by name.
+//! `cell/band_order.csv` gives the `band_order` of its row named by the code of the country, and offers its other rows by
+//! name.
 
 use crate::data::Data;
 use crate::error::DataError;
@@ -98,6 +99,13 @@ impl Data {
                         out.frequency_hz = Some(hz);
                         out.settings = s;
                     }
+                }
+            }
+            // The band order of the cell stacks in the country: a cell is named by a band of the country.
+            "cell" | "nr" | "nbiot" => {
+                let path = self.folder().join(crate::cell::CELL_BANDS_FILE);
+                if let Some(rows) = present(crate::cell::read_cell_lists(&path))? {
+                    out.settings = crate::cell::cell_settings(&rows, stack, code).unwrap_or_default();
                 }
             }
             _ => {}

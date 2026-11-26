@@ -1264,6 +1264,8 @@ pub static HF_CHAT: StackDescriptor = StackDescriptor {
             for weak signals and three OFDM profiles, each block coded by its own LDPC code; one way or acknowledged. \
             Receive and transmit.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: TUNE_OFFSET_HZ,
         ..Tuning::anywhere(14.1e6, DEFAULT_RATE, MIN_RATE, 2400.0)
     },

@@ -302,6 +302,7 @@ pub static DVBS: sdrkit_core::StackDescriptor = sdrkit_core::StackDescriptor {
     group: "TV",
     blurb: "Satellite television and data: DVB-S and DVB-S2 (transport streams, GSE and IP), services, guide and media. Transmits a DVB-S or DVB-S2 transport stream that the host gives.",
     tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 10e6,
         max_hz: 6000e6,
         radio_filter_hz: Some(8e6),

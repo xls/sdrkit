@@ -1736,6 +1736,7 @@ pub static NFC: StackDescriptor = StackDescriptor {
     group: "Contactless, 13.56 MHz",
     blurb: "Contactless cards and tags at 13.56 MHz: the tag type and the UID broadcast during anticollision and inventory, and the name of every frame.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 13.553e6,
         max_hz: 13.567e6,
         carrier_at_centre: true,

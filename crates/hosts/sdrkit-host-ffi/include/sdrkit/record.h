@@ -417,7 +417,7 @@ static inline int32_t sdrkit_record_set_budget_bytes(SDRKIT_HANDLE handle, int64
   return sdrkit_typed_setting_set_i64(handle, "budget_bytes", value);
 }
 
-// The setting "queue_bytes" (Write queue) of every record. Unit: B. Bytes that can wait for storage before data is left out.
+// The setting "queue_bytes" (Write queue) of every record. Unit: B. Bytes that can wait for storage. When it is full, an IQ recording waits for storage and keeps every sample; an audio or transport stream recording leaves data out and counts it.
 static inline int32_t sdrkit_record_get_queue_bytes(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "queue_bytes", value);
 }

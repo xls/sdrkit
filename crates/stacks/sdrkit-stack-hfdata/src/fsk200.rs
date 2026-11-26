@@ -1809,17 +1809,23 @@ pub static FSK200: StackDescriptor = StackDescriptor {
     name: "FSK200/500 and FSK200/1000",
     group: "HF utility",
     blurb: "200 Bd 2-FSK number senders: F01 (500 Hz shift, ITA2 figure blocks) and F06 (1000 Hz shift, 288-bit blocks under a CRC-16: figure blocks, ASCII, F06a files).",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[
         SubMode {
             id: "f01",
             name: "FSK200/500 (F01)",
             default_hz: TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "f06",
             name: "FSK200/1000 (F06)",
             default_hz: TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
     ],
     settings: schema,

@@ -1636,7 +1636,7 @@ pub static ANT: StackDescriptor = StackDescriptor {
     name: "ANT+ sensors",
     group: "IoT, 2.4 GHz",
     blurb: "ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz; sends one ANT+ frame.",
-    tuning: Tuning { min_hz: 2400e6, max_hz: 2524e6, tune_offset_hz: 1e6, ..Tuning::anywhere(2457e6, 4e6, 4e6, 2e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 2400e6, max_hz: 2524e6, tune_offset_hz: 1e6, ..Tuning::anywhere(2457e6, 4e6, 4e6, 2e6) },
     submodes: &[],
     settings: AntSetting::schema,
     make_receiver,

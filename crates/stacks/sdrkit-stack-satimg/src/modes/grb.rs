@@ -981,6 +981,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "GOES-R Rebroadcast on L band (DVB-S2, 8.67 Msym/s): ABI and SUVI pictures, GLM lightning flashes, and files.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 950e6,
         max_hz: 2200e6,
         ..Tuning::anywhere(1686.6e6, ASKED_RATE, 14.92e6, 1.5 * LINK_SYMBOL_RATE + 20e3)

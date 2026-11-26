@@ -1066,6 +1066,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "In VLF audio from a sound card: whistlers that fall along Eckersley's law, found by a search over the dispersion, \
             tweeks just after a sferic, and the count of sferics.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.0,
         max_hz: 0.1e6,
         default_hz: 0.0,
@@ -1077,6 +1078,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(48e3),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: WhistlerSetting::schema,

@@ -36,9 +36,11 @@ use std::sync::Arc;
 const GROUP: &str = "Weak-signal digital";
 
 /// The tuning of the family: any frequency (the region data gives the usual dials), 2 Msps requested, a 1.75 MHz
-/// analogue filter, the radio 20 kHz above the dial.
+/// analogue filter, the radio 20 kHz above the dial; on the dials of the data, heard on USB.
 const fn tuning(default_hz: f64) -> Tuning {
     Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: 20e3,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(default_hz, 2e6, front::MIN_RATE, 3500.0)
@@ -165,17 +167,20 @@ descriptor!(
         SubMode {
             id: "jt65a",
             name: "JT65A",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt65b",
             name: "JT65B",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt65c",
             name: "JT65C",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
     ],
     rx_jt65,
@@ -209,37 +214,44 @@ descriptor!(
         SubMode {
             id: "jt4a",
             name: "JT4A",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt4b",
             name: "JT4B",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt4c",
             name: "JT4C",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt4d",
             name: "JT4D",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt4e",
             name: "JT4E",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt4f",
             name: "JT4F",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "jt4g",
             name: "JT4G",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
     ],
     rx_jt4,
@@ -256,9 +268,9 @@ descriptor!(
     "Weak-signal contacts by ionoscatter, troposcatter and EME.",
     0.0,
     &[
-        SubMode { id: "q65-60a", name: "Q65-60A", default_hz: 0.0 },
-        SubMode { id: "q65-30a", name: "Q65-30A", default_hz: 0.0 },
-        SubMode { id: "q65-120e", name: "Q65-120E", default_hz: 0.0 },
+        SubMode { id: "q65-60a", name: "Q65-60A", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "q65-30a", name: "Q65-30A", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "q65-120e", name: "Q65-120E", default_hz: 0.0, ..SubMode::DEFAULT },
     ],
     rx_q65,
     gen_q65,
@@ -307,17 +319,20 @@ descriptor!(
         SubMode {
             id: "js8normal",
             name: "JS8 Normal",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "js8fast",
             name: "JS8 Fast",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "js8turbo",
             name: "JS8 Turbo",
-            default_hz: 0.0
+            default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
     ],
     rx_js8,
@@ -394,7 +409,11 @@ pub static JT6M: StackDescriptor = StackDescriptor {
     name: "JT6M",
     group: GROUP,
     blurb: "6 m scatter: 44-FSK at 21.5 baud with a sync tone every third symbol; pings read, a long signal folded into its message.",
-    tuning: tuning(JT6M_TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(JT6M_TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: scatter::jt6m::schema,
     make_receiver: scatter::jt6m::make_receiver,
@@ -423,22 +442,29 @@ pub static ISCAT: StackDescriptor = StackDescriptor {
     name: "ISCAT",
     group: GROUP,
     blurb: "Scatter: 42-FSK in 24-symbol frames with Costas sync and length symbols; the message folded over all frames.",
-    tuning: tuning(SCATTER_TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(SCATTER_TEST_SIGNAL_HZ)
+    },
     submodes: &[
         SubMode {
             id: "auto",
             name: "ISCAT (A or B)",
             default_hz: SCATTER_TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "a",
             name: "ISCAT-A",
             default_hz: SCATTER_TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "b",
             name: "ISCAT-B",
             default_hz: SCATTER_TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
     ],
     settings: scatter::iscat::schema,
@@ -471,7 +497,11 @@ pub static PI4: StackDescriptor = StackDescriptor {
     name: "PI4",
     group: GROUP,
     blurb: "Beacons: 4-FSK, 146 symbols of 1/6 s with a K = 32 code, 8 characters each minute before the CW identification.",
-    tuning: tuning(PI4_TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(PI4_TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: scatter::pi4::schema,
     make_receiver: scatter::pi4::make_receiver,
@@ -493,7 +523,11 @@ pub static FSK441: StackDescriptor = StackDescriptor {
     name: "FSK441",
     group: GROUP,
     blurb: "Meteor scatter pings: 4-FSK at 441 baud, three tones a character, read burst by burst.",
-    tuning: tuning(SCATTER_TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(SCATTER_TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: scatter::fsk441::schema,
     make_receiver: scatter::fsk441::make_receiver,

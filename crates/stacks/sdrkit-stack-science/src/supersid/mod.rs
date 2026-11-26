@@ -854,6 +854,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "The level of each monitored VLF transmitter every 5 s, sudden ionospheric disturbances (as from a solar \
             flare), terminator marks and the SuperSID data file.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 3e3,
         max_hz: 0.1e6,
         default_hz: TEST_DIAL_HZ,
@@ -865,6 +866,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(200e3),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: SupersidSetting::schema,

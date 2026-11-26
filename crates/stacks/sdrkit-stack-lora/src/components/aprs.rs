@@ -50,12 +50,12 @@ pub struct AprsSignal {
     pub busy: bool,
     /// Last time a carrier was present.
     pub carrier_last: f64,
-    /// SNR, dB.
-    pub snr_db: f64,
+    /// SNR, dB. `None` until a carrier was heard.
+    pub snr_db: Option<f64>,
     /// Carrier offset, Hz.
     pub offset_hz: f64,
-    /// Input level, dBFS.
-    pub level_db: f64,
+    /// Input level, dBFS. `None` until it was measured.
+    pub level_db: Option<f64>,
     /// Good frames at 1200 and 9600 bit/s.
     pub good: [u64; 2],
     /// Failed transmissions: frames whose FCS was wrong.
@@ -331,10 +331,7 @@ impl Default for AprsTablesComp {
         AprsTablesComp {
             tables: AprsTables::default(),
             p,
-            sig: AprsSignal {
-                level_db: -200.0,
-                ..Default::default()
-            },
+            sig: AprsSignal::default(),
             sig_fresh: false,
             last_good: -1e9,
             state: 0,
@@ -372,12 +369,14 @@ impl AprsTablesComp {
         t.clear();
         let _ = write!(
             t,
-            "APRS / Packet: {total} frames (1200: {}, 9600: {}), {} stations, {:.1} dBFS",
+            "APRS / Packet: {total} frames (1200: {}, 9600: {}), {} stations",
             s.good[0],
             s.good[1],
             h.stations.len(),
-            s.level_db
         );
+        if let Some(l) = s.level_db {
+            let _ = write!(t, ", {l:.1} dBFS");
+        }
         if self.tables.own_call.is_empty() {
             t.push_str("; no callsign in the station, so nothing is sent");
         }
@@ -391,9 +390,9 @@ impl AprsTablesComp {
         show_status(
             p,
             lock_state,
-            fresh.then_some(s.snr_db),
+            s.snr_db.filter(|_| fresh),
             fresh.then_some(s.offset_hz),
-            fresh.then_some(s.level_db),
+            s.level_db.filter(|_| fresh),
             t,
         );
         p.put(&AprsFields {
@@ -406,8 +405,8 @@ impl AprsTablesComp {
             not_ax25: count(h.bad_parse),
             stations: count(h.stations.len()),
             carrier: fresh && s.carrier,
-            snr_db: fresh.then_some(s.snr_db),
-            level_dbfs: fresh.then_some(s.level_db),
+            snr_db: s.snr_db.filter(|_| fresh),
+            level_dbfs: s.level_db.filter(|_| fresh),
         });
         let call = &self.tables.own_call;
         p.put(&HamFields {
@@ -480,7 +479,7 @@ impl Component for AprsTablesComp {
         for s in io.items::<AprsSignal>(1) {
             self.sig = s.value;
             self.sig_fresh = true;
-            self.tables.signal = Some((s.value.snr_db, s.value.level_db));
+            self.tables.signal = (s.value.snr_db, s.value.level_db);
             self.now = s.value.time;
             if let Some(t) = s.value.tuned_hz {
                 self.tables.freq_hz = t;
@@ -561,7 +560,7 @@ impl Component for AprsTablesComp {
             self.p.clear_rows(&MESH_MESSAGES);
         }
         self.sig_fresh = false;
-        self.tables.signal = None;
+        self.tables.signal = (None, None);
         self.last_good = -1e9;
         self.publish();
     }

@@ -108,6 +108,7 @@ const TUNING: Tuning = Tuning {
     not_circular: false,
     radio_filter_hz: Some(8e6),
     no_offset_tuning: true,
+    ..Tuning::DEFAULT
 };
 
 /// The lock profile of a TV multiplex for the scanner.
@@ -130,7 +131,10 @@ pub static DVBT: StackDescriptor = StackDescriptor {
     name: "DVB-T",
     group: "TV",
     blurb: "Digital terrestrial TV (DVB-T): channels, programme guide, teletext and subtitles. Transmits a transport stream that the host gives.",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..TUNING
+    },
     submodes: &[],
     settings: DvbtSetting::schema,
     make_receiver,
@@ -148,7 +152,10 @@ pub static DVB_TERRESTRIAL: StackDescriptor = StackDescriptor {
     name: "DVB-T2 / DVB-T",
     group: "TV",
     blurb: "Digital terrestrial TV, DVB-T2 or DVB-T, whichever the multiplex is.",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..TUNING
+    },
     submodes: &[],
     settings: TerrestrialSetting::schema,
     make_receiver: make_terrestrial,

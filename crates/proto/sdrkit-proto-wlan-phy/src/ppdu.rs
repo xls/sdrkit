@@ -99,7 +99,7 @@ pub enum Undecoded {
     Data,
     /// Another option of the format (HT extension streams, no data).
     Other,
-    /// The data could be decoded, and the caller turned data decoding off ([`PpduDecoder::set_data`]) to keep up.
+    /// The data could be decoded, and the caller skipped it to keep up with its input.
     Busy,
 }
 
@@ -210,6 +210,96 @@ pub enum Ppdu<'a> {
     },
 }
 
+/// What [`PpduDecoder::read`] made of the signal fields of a PPDU.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Read {
+    /// None of the formats here: the caller decodes it as non-HT.
+    NonHt,
+    /// A PPDU whose data is not decoded, with the reason.
+    Seen {
+        /// The signal fields.
+        info: PpduInfo,
+        /// The reason.
+        why: Undecoded,
+    },
+    /// A PPDU whose data field [`PpduDecoder::decode_data`] decodes.
+    Data(DataPlan),
+}
+
+/// A data field that [`PpduDecoder::read`] found decodable: the signal fields and the layout of the data symbols.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct DataPlan {
+    /// The signal fields.
+    pub info: PpduInfo,
+    kind: PlanKind,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum PlanKind {
+    Ht(HtSig),
+    Vht { a: VhtSigA, n_sym: usize, steps: usize, mcs: VhtMcs },
+}
+
+/// A PPDU copied out of the receiver's buffers, for decoding on another thread. Its buffer is reused by each copy.
+#[derive(Clone, Debug, PartialEq)]
+pub struct OwnedPpdu {
+    samples: Vec<Complex32>,
+    sample: u64,
+    signal: Signal,
+    offset_hz: f64,
+    channel: [Complex32; NFFT],
+    noise: f32,
+    snr_db: f64,
+    level_dbfs: f64,
+}
+
+impl Default for OwnedPpdu {
+    fn default() -> Self {
+        OwnedPpdu {
+            samples: Vec::new(),
+            sample: 0,
+            signal: Signal {
+                rate: Rate::R6,
+                length: 0,
+            },
+            offset_hz: 0.0,
+            channel: [Complex32::default(); NFFT],
+            noise: 0.0,
+            snr_db: 0.0,
+            level_dbfs: 0.0,
+        }
+    }
+}
+
+impl OwnedPpdu {
+    /// Copies `v`, all its samples included.
+    pub fn copy_from(&mut self, v: &PpduView<'_>) {
+        self.samples.clear();
+        self.samples.extend_from_slice(v.samples);
+        self.sample = v.sample;
+        self.signal = v.signal;
+        self.offset_hz = v.offset_hz;
+        self.channel = *v.channel;
+        self.noise = v.noise;
+        self.snr_db = v.snr_db;
+        self.level_dbfs = v.level_dbfs;
+    }
+
+    /// The copy as a view.
+    pub fn view(&self) -> PpduView<'_> {
+        PpduView {
+            samples: &self.samples,
+            sample: self.sample,
+            signal: self.signal,
+            offset_hz: self.offset_hz,
+            channel: &self.channel,
+            noise: self.noise,
+            snr_db: self.snr_db,
+            level_dbfs: self.level_dbfs,
+        }
+    }
+}
+
 /// The decoder of HT, VHT, HE and EHT PPDUs (module documentation). Sized once, then allocates nothing.
 pub struct PpduDecoder {
     ht: HtDecoder,
@@ -221,7 +311,6 @@ pub struct PpduDecoder {
     p52: Permutation,
     viterbi: Viterbi,
     max_bits: usize,
-    data: bool,
 }
 
 impl Default for PpduDecoder {
@@ -264,14 +353,7 @@ impl PpduDecoder {
             p52: Permutation::wifi(52, 1, 13).unwrap_or_else(|_| unreachable!("52 is a multiple of 13")),
             viterbi: Viterbi::new(codes::WIFI_K7, 52).unwrap_or_else(|_| unreachable!("WIFI_K7 is a valid code")),
             max_bits: 16 + 8 * max_psdu + 6,
-            data: true,
         }
-    }
-
-    /// Turns the decoding of data fields on or off. When off, the signal fields are still read and a PPDU whose data could be
-    /// decoded is returned as seen with [`Undecoded::Busy`]: for a caller that falls behind its input.
-    pub fn set_data(&mut self, on: bool) {
-        self.data = on;
     }
 
     /// The FFT bins of symbol `s` after the long training field (0 is L-SIG) with the common phase and the phase slope of its
@@ -400,33 +482,69 @@ impl PpduDecoder {
         self.bits::<104, 52>(&llr)
     }
 
-    /// Reads PPDU `v`.
+    /// Reads PPDU `v`: [`read`](Self::read), then [`decode_data`](Self::decode_data) for a decodable data field.
     pub fn decode(&mut self, v: &PpduView<'_>) -> Ppdu<'_> {
-        if v.signal.rate != Rate::R6 {
-            return Ppdu::NonHt;
-        }
-        if let Some(sig) = self.ht.ht_sig(v) {
-            return self.ht_data(v, sig);
-        }
-        let Some(y1) = self.bins(v, 1) else {
-            return Ppdu::NonHt;
-        };
-        if self.rl_sig(v, &y1) {
-            let Some(y0) = self.bins(v, 0) else {
-                return Ppdu::NonHt;
-            };
-            return match v.signal.length % 3 {
-                0 => self.eht(v, &y0, &y1),
-                r => self.he(v, &y0, &y1, r),
-            };
-        }
-        match self.vht_sig_a(v, &y1) {
-            Some(a) => self.vht_data(v, a),
-            None => Ppdu::NonHt,
+        match self.read(v) {
+            Read::NonHt => Ppdu::NonHt,
+            Read::Seen { info, why } => Ppdu::Seen { info, why },
+            Read::Data(plan) => self.decode_data(v, &plan),
         }
     }
 
-    fn ht_data(&mut self, v: &PpduView<'_>, sig: HtSig) -> Ppdu<'_> {
+    /// Reads the signal fields of PPDU `v` and finds whether its data field can be decoded. The data symbols are not touched.
+    pub fn read(&mut self, v: &PpduView<'_>) -> Read {
+        if v.signal.rate != Rate::R6 {
+            return Read::NonHt;
+        }
+        if let Some(sig) = self.ht.ht_sig(v) {
+            return self.ht_plan(sig);
+        }
+        let Some(y1) = self.bins(v, 1) else {
+            return Read::NonHt;
+        };
+        if self.rl_sig(v, &y1) {
+            let Some(y0) = self.bins(v, 0) else {
+                return Read::NonHt;
+            };
+            let (info, why) = match v.signal.length % 3 {
+                0 => self.eht(v, &y0, &y1),
+                r => self.he(v, &y0, &y1, r),
+            };
+            return Read::Seen { info, why };
+        }
+        match self.vht_sig_a(v, &y1) {
+            Some(a) => self.vht_plan(v, a),
+            None => Read::NonHt,
+        }
+    }
+
+    /// Decodes the data field of PPDU `v` that [`read`](Self::read) planned. Any decoder made with the same PSDU size gives the
+    /// same result as the one that read the signal fields.
+    pub fn decode_data(&mut self, v: &PpduView<'_>, plan: &DataPlan) -> Ppdu<'_> {
+        let info = plan.info;
+        match plan.kind {
+            PlanKind::Ht(sig) => match self.ht.data(v, sig) {
+                Ok((seed, _, snr_db)) => Ppdu::Psdu {
+                    info,
+                    psdu: self.ht.psdu(),
+                    seed,
+                    snr_db,
+                    sig_b_length: None,
+                },
+                Err(DataFail::Short) => Ppdu::Seen {
+                    info,
+                    why: Undecoded::Length,
+                },
+                Err(_) => Ppdu::Seen {
+                    info,
+                    why: Undecoded::Data,
+                },
+            },
+            PlanKind::Vht { a, n_sym, steps, mcs } => self.vht_data(v, info, a, n_sym, steps, mcs),
+        }
+    }
+
+    fn ht_plan(&self, sig: HtSig) -> Read {
         let mut info = PpduInfo::of(Format::Ht, SigFields::Ht(sig));
         info.bandwidth_mhz = if sig.cbw40 { 40 } else { 20 };
         info.streams = sig.streams();
@@ -448,34 +566,19 @@ impl PpduDecoder {
             Some(Undecoded::Other)
         } else if 16 + 8 * usize::from(sig.length) + 6 > self.max_bits {
             Some(Undecoded::Length)
-        } else if !self.data {
-            Some(Undecoded::Busy)
         } else {
             None
         };
-        if let Some(why) = why {
-            return Ppdu::Seen { info, why };
-        }
-        match self.ht.decode_psdu(v) {
-            ht::HtPsdu::Psdu { psdu, seed, snr_db, .. } => Ppdu::Psdu {
+        match why {
+            Some(why) => Read::Seen { info, why },
+            None => Read::Data(DataPlan {
                 info,
-                psdu,
-                seed,
-                snr_db,
-                sig_b_length: None,
-            },
-            ht::HtPsdu::NotDecodable(_, "PPDU longer than its L-SIG") => Ppdu::Seen {
-                info,
-                why: Undecoded::Length,
-            },
-            _ => Ppdu::Seen {
-                info,
-                why: Undecoded::Data,
-            },
+                kind: PlanKind::Ht(sig),
+            }),
         }
     }
 
-    fn vht_data(&mut self, v: &PpduView<'_>, a: VhtSigA) -> Ppdu<'_> {
+    fn vht_plan(&self, v: &PpduView<'_>, a: VhtSigA) -> Read {
         let mut info = PpduInfo::of(Format::Vht, SigFields::Vht(a));
         info.bandwidth_mhz = a.bandwidth_mhz();
         info.streams = a.nsts();
@@ -483,7 +586,7 @@ impl PpduDecoder {
         info.short_gi = a.short_gi();
         info.aggregated = true;
         if !a.is_su() {
-            return Ppdu::Seen {
+            return Read::Seen {
                 info,
                 why: Undecoded::MultiUser,
             };
@@ -506,14 +609,27 @@ impl PpduDecoder {
             Some(Undecoded::Other)
         } else if steps > self.max_bits {
             Some(Undecoded::Length)
-        } else if !self.data {
-            Some(Undecoded::Busy)
         } else {
             None
         };
-        if let Some(why) = why {
-            return Ppdu::Seen { info, why };
+        match why {
+            Some(why) => Read::Seen { info, why },
+            None => Read::Data(DataPlan {
+                info,
+                kind: PlanKind::Vht { a, n_sym, steps, mcs },
+            }),
         }
+    }
+
+    fn vht_data(
+        &mut self,
+        v: &PpduView<'_>,
+        info: PpduInfo,
+        a: VhtSigA,
+        n_sym: usize,
+        steps: usize,
+        mcs: VhtMcs,
+    ) -> Ppdu<'_> {
         let sig_b = self.ht.vht_sig_b(v, vht::DATA_START - 80);
         let field = DataField {
             start: vht::DATA_START,
@@ -549,7 +665,7 @@ impl PpduDecoder {
         }
     }
 
-    fn he(&mut self, v: &PpduView<'_>, y0: &[Complex32; NFFT], y1: &[Complex32; NFFT], rem: u16) -> Ppdu<'_> {
+    fn he(&mut self, v: &PpduView<'_>, y0: &[Complex32; NFFT], y1: &[Complex32; NFFT], rem: u16) -> (PpduInfo, Undecoded) {
         // Remainder 2: HE ER SU sends each half of HE-SIG-A twice, the repeat of the first half on the Q axis.
         let er = rem == 2
             && self.bins(v, 3).is_some_and(|y| {
@@ -558,10 +674,7 @@ impl PpduDecoder {
             });
         let (s1, s2) = if er { (2, 4) } else { (2, 3) };
         let Some(a) = self.sig52(v, y0, y1, s1, s2).and_then(|b| HeSigA::from_bits(&b).ok()) else {
-            return Ppdu::Seen {
-                info: PpduInfo::of(Format::He, SigFields::None),
-                why: Undecoded::SignalField,
-            };
+            return (PpduInfo::of(Format::He, SigFields::None), Undecoded::SignalField);
         };
         let f = match (rem, er, a.format_su()) {
             (2, true, _) => HeFormat::ErSu,
@@ -590,15 +703,12 @@ impl PpduDecoder {
             _ if info.bandwidth_mhz != 20 => Undecoded::Width,
             _ => Undecoded::HeData,
         };
-        Ppdu::Seen { info, why }
+        (info, why)
     }
 
-    fn eht(&mut self, v: &PpduView<'_>, y0: &[Complex32; NFFT], y1: &[Complex32; NFFT]) -> Ppdu<'_> {
+    fn eht(&mut self, v: &PpduView<'_>, y0: &[Complex32; NFFT], y1: &[Complex32; NFFT]) -> (PpduInfo, Undecoded) {
         let Some(u) = self.sig52(v, y0, y1, 2, 3).and_then(|b| USig::from_bits(&b).ok()) else {
-            return Ppdu::Seen {
-                info: PpduInfo::of(Format::Eht, SigFields::None),
-                why: Undecoded::SignalField,
-            };
+            return (PpduInfo::of(Format::Eht, SigFields::None), Undecoded::SignalField);
         };
         let mut info = PpduInfo::of(Format::Eht, SigFields::Eht(u));
         info.bandwidth_mhz = u.bandwidth_mhz();
@@ -612,7 +722,7 @@ impl PpduDecoder {
         } else {
             Undecoded::EhtData
         };
-        Ppdu::Seen { info, why }
+        (info, why)
     }
 }
 

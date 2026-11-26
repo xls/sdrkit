@@ -632,6 +632,7 @@ pub static MAVLINK_SIK: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "Telemetry radios of drones: SiK packets at every air rate, with and without error correction, the MAVLink messages in them and the position of each vehicle.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         no_offset_tuning: true,
         ..Tuning::anywhere(generator::TEST_CENTRE_HZ, 8e6, MIN_RATE_HZ, 8e6)
     },

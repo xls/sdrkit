@@ -222,6 +222,7 @@ const TUNING: Tuning = Tuning {
     not_circular: false,
     radio_filter_hz: Some(8e6),
     no_offset_tuning: true,
+    ..Tuning::DEFAULT
 };
 
 /// The DVB-T2 stack.
@@ -230,7 +231,10 @@ pub static DVBT2: StackDescriptor = StackDescriptor {
     name: "DVB-T2",
     group: "TV",
     blurb: "Digital terrestrial TV (DVB-T2 and T2-Lite): PLPs, channels, programme guide and subtitles. Transmits a transport stream that the host gives.",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..TUNING
+    },
     submodes: &[],
     settings: Dvbt2Setting::schema,
     make_receiver: make_stack,

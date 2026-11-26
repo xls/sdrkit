@@ -5,6 +5,7 @@
 //! Standard: IEEE Std 802.11-2020 clauses 9, 16, 17, 19 and 21; IEEE Std 802.11ax-2021; IEEE Std 802.11be-2024.
 
 mod bench;
+mod fields;
 pub mod frames;
 pub mod gen;
 pub mod mac;
@@ -23,13 +24,13 @@ use sdrkit_core::{
     AutoGain, Complex32, ConfigError, GenConfig, Generator, LockProfile, Receiver, Setting,
     SettingSet, StackConfig, StackDescriptor, Tuning, Values,
 };
+use fields::Fields;
 use sdrkit_graph::{
     no_values, Catalog, Decoder, DecoderComponent, Format, Graph, GraphBuilder, GraphError, Item,
-    Kind, Outbox, Port, Registry, StackGraph, Timed,
+    Kind, Outbox, Port, Registry, RunContext, StackGraph, Timed,
 };
-use sdrkit_proto_wlan_phy::ppdu::{Format as PpduFormat, Ppdu, PpduDecoder, PpduInfo, SigFields, Undecoded};
-use sdrkit_proto_wlan_phy::vht::VhtMcs;
-use sdrkit_proto_wlan_phy::{dsss, mac as phymac, ofdm};
+use sdrkit_proto_wlan_phy::ppdu::{Format as PpduFormat, PpduDecoder, PpduInfo, Read, Undecoded};
+use sdrkit_proto_wlan_phy::{dsss, ofdm};
 use std::sync::Arc;
 
 /// The stack id.
@@ -240,20 +241,6 @@ pub struct PpduCounters {
 }
 
 impl PpduCounters {
-    fn add(&mut self, o: &PpduCounters) {
-        for (a, b) in self.seen.iter_mut().zip(o.seen) {
-            *a += b;
-        }
-        for (a, b) in self.not_decoded.iter_mut().zip(o.not_decoded) {
-            *a += b;
-        }
-        self.decoded += o.decoded;
-        self.mpdus += o.mpdus;
-        self.bad_fcs += o.bad_fcs;
-        self.bad_delimiters += o.bad_delimiters;
-        self.last = o.last.or(self.last);
-    }
-
     /// The counts since `base`.
     pub fn since(mut self, base: &PpduCounters) -> PpduCounters {
         for (a, b) in self.seen.iter_mut().zip(base.seen) {
@@ -306,7 +293,7 @@ pub struct WifiStats {
     pub ofdm: OfdmCounters,
     /// HT, VHT, HE and EHT counters.
     pub ppdu: PpduCounters,
-    /// OFDM chains running.
+    /// The channels listened to at once.
     pub sub_channels: u32,
     /// The level of the input over the piece, dBFS.
     pub level_dbfs: Option<f64>,
@@ -364,13 +351,8 @@ struct Chain {
     out_rate: f64,
     rx: Rx,
     buf: Vec<Complex32>,
-    /// The MPDUs of HT and VHT PPDUs of one piece of input.
-    extra: Vec<Timed<WifiMpdu>>,
-    ppdu: PpduCounters,
     /// How far the OFDM receiver is behind its input, s of work beyond the signal time (it falls back to 0 on quiet input).
     behind_s: f64,
-    /// The keep-up gate is on. The decoder cannot tell a recording from live input, so it is on for both.
-    keep_up: bool,
     /// Signal time of the chain's first sample, s.
     t0: f64,
     band: Option<Band>,
@@ -397,18 +379,16 @@ impl Chain {
             out_rate,
             rx,
             buf: Vec::new(),
-            extra: Vec::new(),
-            ppdu: PpduCounters::default(),
             behind_s: 0.0,
-            keep_up: true,
             t0,
             band,
             channel,
         })
     }
 
-    /// Runs a piece of input. `share` is the part of the processor time this chain may use: 1 over the chains running.
-    fn run(&mut self, x: &[Complex32], share: f64, out: &mut Vec<Timed<WifiMpdu>>) {
+    /// Runs a piece of input. `share` is the part of the processor time this chain may use: 1 over the chains running. DSSS
+    /// frames go to `out`; the OFDM frames and data fields go to `fields`, which lets them out in order.
+    fn run(&mut self, x: &[Complex32], share: f64, out: &mut Vec<Timed<WifiMpdu>>, fields: &mut Fields) {
         self.buf.clear();
         self.ch.process(x, &mut self.buf);
         let (t0, band, channel) = (self.t0, self.band, self.channel);
@@ -432,16 +412,16 @@ impl Chain {
                 out.push(m);
             }),
             Rx::Ofdm(r, dec) => {
-                let (extra, counters) = (&mut self.extra, &mut self.ppdu);
-                // When the work is more than BEHIND_S behind the signal, HT and VHT data fields are counted, not decoded.
-                dec.set_data(!self.keep_up || self.behind_s < BEHIND_S);
+                // With live input and no helpers, a chain more than BEHIND_S behind the signal counts data fields as busy.
+                let behind = self.behind_s >= BEHIND_S;
                 let started = std::time::Instant::now();
                 let signal_s = self.buf.len() as f64 / out_rate * share;
+                let fields = std::cell::RefCell::new(fields);
                 r.process_with(
                     &self.buf,
                     |f| {
                         let rate = f.signal.rate.mbps() as f64;
-                        out.push(mpdu(
+                        fields.borrow_mut().frame(mpdu(
                             f.mpdu,
                             PhyKind::Ofdm,
                             rate,
@@ -453,57 +433,19 @@ impl Chain {
                             band,
                         ));
                     },
-                    |v| {
-                        let (info, psdu, sig_b_length) = match dec.decode(v) {
-                            Ppdu::NonHt => return false,
-                            Ppdu::Seen { info, why } => {
-                                counters.note(&info, Some(why));
-                                return true;
-                            }
-                            Ppdu::Psdu { info, psdu, sig_b_length, .. } => (info, psdu, sig_b_length),
-                        };
-                        counters.note(&info, None);
-                        let rate = match info.sig {
-                            SigFields::Ht(s) => s.rate_mbps(),
-                            _ => VhtMcs(info.mcs.unwrap_or(0)).rate_mbps(info.short_gi),
-                        };
-                        let mut take = |frame: &[u8]| {
-                            if frame.len() < 14 || !phymac::fcs_ok(frame) {
-                                counters.bad_fcs += 1;
-                                return;
-                            }
-                            counters.mpdus += 1;
-                            let mut m = mpdu(
-                                &frame[..frame.len() - 4],
-                                PhyKind::Ofdm,
-                                rate,
-                                v.level_dbfs,
-                                v.offset_hz,
-                                v.snr_db,
-                                at(v.sample),
-                                channel,
-                                band,
-                            );
-                            m.value.format = Some(info.format);
-                            m.value.mcs = info.mcs;
-                            m.value.aggregated = info.aggregated;
-                            extra.push(m);
-                        };
-                        if info.aggregated {
-                            let all = &psdu[..sig_b_length.map_or(psdu.len(), |n| n.min(psdu.len()))];
-                            let mut walk = phymac::Ampdu::new(all);
-                            for sub in walk.by_ref() {
-                                take(sub.mpdu);
-                            }
-                            counters.bad_delimiters += u64::from(walk.bad_delimiters());
-                        } else {
-                            take(psdu);
+                    |v| match dec.read(v) {
+                        Read::NonHt => false,
+                        Read::Seen { info, why } => {
+                            fields.borrow_mut().note(info, why);
+                            true
                         }
-                        true
+                        Read::Data(plan) => {
+                            fields.borrow_mut().field(v, plan, at(v.sample), channel, band, behind);
+                            true
+                        }
                     },
                 );
                 self.behind_s = (self.behind_s + started.elapsed().as_secs_f64() - signal_s).max(0.0);
-                out.append(&mut self.extra);
             }
         }
     }
@@ -550,7 +492,7 @@ pub struct WifiDecoder {
     rate: f64,
     kept_dsss: DsssCounters,
     kept_ofdm: OfdmCounters,
-    kept_ppdu: PpduCounters,
+    fields: Fields,
     band: Option<Band>,
     channel: u32,
     channel_offset: f64,
@@ -571,22 +513,66 @@ impl WifiDecoder {
     }
 
     fn counters(&self) -> (DsssCounters, OfdmCounters, PpduCounters) {
-        let (mut d, mut o, mut p) = (self.kept_dsss, self.kept_ofdm, self.kept_ppdu);
+        let (mut d, mut o) = (self.kept_dsss, self.kept_ofdm);
         for c in &self.chains {
             match &c.rx {
                 Rx::Dsss(r) => d.add(r.stats()),
                 Rx::Ofdm(r, _) => o.add(r.stats()),
             }
-            p.add(&c.ppdu);
         }
-        (d, o, p)
+        (d, o, self.fields.ppdu)
+    }
+
+    /// The channels that the chains listen to at once.
+    fn channels_at_once(&self) -> u32 {
+        let mut seen: Vec<u32> = self.chains.iter().map(|c| c.channel).collect();
+        seen.sort_unstable();
+        seen.dedup();
+        // Chains on a channel that is not known listen at the tuned centre only.
+        seen.len() as u32
+    }
+
+    /// Runs the chains on a piece and lets out what is done: everything when the input is not live.
+    fn run_chains(&mut self, x: &[Complex32]) {
+        self.out.clear();
+        let share = 1.0 / self.chains.len().max(1) as f64;
+        for c in &mut self.chains {
+            c.run(x, share, &mut self.out, &mut self.fields);
+        }
+        self.fields.flush(!self.fields.live);
+        self.out.append(&mut self.fields.ready);
+        self.out.sort_by(|a, b| a.time.total_cmp(&b.time));
+        if self.chains.len() > 2 {
+            keep_best_copies(&mut self.out);
+        }
+    }
+
+    /// The counters and the input level as a stats item at the end of the input so far.
+    fn stats(&mut self) -> Timed<WifiStats> {
+        let (dsss, ofdm, ppdu) = self.counters();
+        let time_s = self.input as f64 / self.rate.max(1.0);
+        let stats = WifiStats {
+            time_s,
+            dsss,
+            ofdm,
+            ppdu,
+            sub_channels: self.channels_at_once(),
+            level_dbfs: self.level.take_dbfs(),
+            band: self.band,
+            channel: self.channel,
+            channel_offset_hz: self.channel_offset,
+            rate_hz: self.rate,
+        };
+        Timed {
+            time: time_s,
+            value: stats,
+        }
     }
 
     fn rebuild(&mut self, f: &Format) {
-        let (d, o, p) = self.counters();
+        let (d, o, _) = self.counters();
         self.kept_dsss = d;
         self.kept_ofdm = o;
-        self.kept_ppdu = p;
         self.chains.clear();
         let rate = f.rate;
         let centre = f.centre_hz;
@@ -609,17 +595,30 @@ impl WifiDecoder {
             } else {
                 (DSSS_LOW_RATE_HZ, (0.85 * rate).min(0.89 * DSSS_LOW_RATE_HZ))
             };
-            if let Ok(r) = dsss::DsssReceiver::new((out / 1e6) as usize) {
-                self.chains.extend(Chain::new(
-                    rate,
-                    offset,
-                    width,
-                    out,
-                    Rx::Dsss(Box::new(r)),
-                    t0,
-                    band,
-                    ch,
-                ));
+            let mut dsss = vec![(offset, width, out, ch)];
+            // Every other 2.4 GHz channel whose main lobe reaches far enough into the capture: the part of the lobe inside
+            // still despreads, as below the OFDM rate.
+            if band == Some(Band::G2) && centre > 0.0 {
+                for (off, c) in neighbours(centre, rate, ch) {
+                    let half = 0.5 * rate - off.abs();
+                    if half >= 0.5 * MIN_RATE_HZ {
+                        dsss.push((off, (1.7 * half).min(0.89 * DSSS_LOW_RATE_HZ), DSSS_LOW_RATE_HZ, c));
+                    }
+                }
+            }
+            for (off, width, out, c) in dsss {
+                if let Ok(r) = dsss::DsssReceiver::new((out / 1e6) as usize) {
+                    self.chains.extend(Chain::new(
+                        rate,
+                        off,
+                        width,
+                        out,
+                        Rx::Dsss(Box::new(r)),
+                        t0,
+                        band,
+                        c,
+                    ));
+                }
             }
         }
         if !ofdm {
@@ -638,6 +637,14 @@ impl WifiDecoder {
         if offsets.is_empty() {
             offsets.push((offset, ch));
         }
+        // On 2.4 GHz, also every other channel whose 16.6 MHz of OFDM tones lie wholly inside the capture.
+        if band == Some(Band::G2) && centre > 0.0 {
+            for (off, c) in neighbours(centre, rate, ch) {
+                if plan::inside((centre + off) / 1e6, centre / 1e6, rate) {
+                    offsets.push((off, c));
+                }
+            }
+        }
         for (off, c) in offsets {
             let r = Rx::Ofdm(Box::new(ofdm::OfdmReceiver::new()), Box::new(PpduDecoder::new()));
             self.chains.extend(Chain::new(
@@ -652,6 +659,39 @@ impl WifiDecoder {
             ));
         }
     }
+}
+
+/// Keeps one copy of each DSSS frame that chains on neighbouring channels both decoded (the same bytes within 20 µs): the copy
+/// with the best SNR, which the chain on the frame's own channel gives. A DSSS frame despreads 5 MHz off its centre too.
+fn keep_best_copies(out: &mut Vec<Timed<WifiMpdu>>) {
+    let mut i = 0;
+    while i < out.len() {
+        if out[i].value.phy == PhyKind::Dsss {
+            let mut j = i + 1;
+            while j < out.len() && out[j].time - out[i].time < 20e-6 {
+                if out[j].value.phy == PhyKind::Dsss && out[j].value.bytes == out[i].value.bytes {
+                    let other = out.remove(j);
+                    if other.value.snr_db > out[i].value.snr_db {
+                        out[i] = other;
+                    }
+                } else {
+                    j += 1;
+                }
+            }
+        }
+        i += 1;
+    }
+}
+
+/// The 2.4 GHz channels other than `tuned` whose centres lie inside a capture of `rate` Hz around `centre` Hz, with their
+/// offsets from `centre`, Hz.
+fn neighbours(centre: f64, rate: f64, tuned: u32) -> Vec<(f64, u32)> {
+    plan::all_channels(Band::G2)
+        .into_iter()
+        .filter(|&c| c != tuned)
+        .filter_map(|c| centre_mhz(Band::G2, c).map(|f| (f * 1e6 - centre, c)))
+        .filter(|(off, _)| off.abs() < 0.5 * rate)
+        .collect()
 }
 
 impl Decoder for WifiDecoder {
@@ -687,38 +727,32 @@ impl Decoder for WifiDecoder {
     fn retune(&mut self, input: &Format) {
         self.rebuild(input);
     }
+    fn attach(&mut self, ctx: &RunContext) {
+        // Data fields still in the window belong to the old context: they leave first.
+        self.fields.flush(true);
+        let ready = std::mem::take(&mut self.fields.ready);
+        let ppdu = self.fields.ppdu;
+        self.fields = Fields::new(&ctx.pool, ctx.pool.workers(), ctx.live);
+        self.fields.ready = ready;
+        self.fields.ppdu = ppdu;
+    }
     fn process(&mut self, x: &[Complex32], first: u64, out: &mut Outbox) {
         self.input = first + x.len() as u64;
         self.level.push(x);
-        self.out.clear();
-        let share = 1.0 / self.chains.len().max(1) as f64;
-        for c in &mut self.chains {
-            c.run(x, share, &mut self.out);
-        }
-        self.out.sort_by(|a, b| a.time.total_cmp(&b.time));
+        self.run_chains(x);
         out.items::<WifiMpdu>(0).append(&mut self.out);
-        let (dsss, ofdm, ppdu) = self.counters();
-        let time_s = self.input as f64 / self.rate.max(1.0);
-        let stats = WifiStats {
-            time_s,
-            dsss,
-            ofdm,
-            ppdu,
-            sub_channels: self
-                .chains
-                .iter()
-                .filter(|c| matches!(c.rx, Rx::Ofdm(..)))
-                .count() as u32,
-            level_dbfs: self.level.take_dbfs(),
-            band: self.band,
-            channel: self.channel,
-            channel_offset_hz: self.channel_offset,
-            rate_hz: self.rate,
-        };
-        out.items::<WifiStats>(1).push(Timed {
-            time: time_s,
-            value: stats,
-        });
+        let stats = self.stats();
+        out.items::<WifiStats>(1).push(stats);
+    }
+    fn finish(&mut self, out: &mut Outbox) {
+        if self.fields.flush_all() {
+            self.out.clear();
+            self.out.append(&mut self.fields.ready);
+            self.out.sort_by(|a, b| a.time.total_cmp(&b.time));
+            out.items::<WifiMpdu>(0).append(&mut self.out);
+            let stats = self.stats();
+            out.items::<WifiStats>(1).push(stats);
+        }
     }
 }
 
@@ -863,6 +897,7 @@ pub static WIFI: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. Works from 4 Msps with the 802.11b (DSSS) frames of 2.4 GHz only; OFDM and the 5 and 6 GHz bands need 20 Msps.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2400e6,
         max_hz: 7125e6,
         default_hz: 2437e6,
@@ -874,6 +909,7 @@ pub static WIFI: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(20e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: WifiSetting::schema,
@@ -890,7 +926,8 @@ pub static WIFI: StackDescriptor = StackDescriptor {
 mod tests {
     use super::*;
     use sdrkit_proto_wlan_phy::ht::{self, HtSig, Mcs, PilotPattern};
-    use sdrkit_proto_wlan_phy::vht;
+    use sdrkit_proto_wlan_phy::mac as phymac;
+    use sdrkit_proto_wlan_phy::vht::{self, VhtMcs};
 
     fn mpdu(n: usize, tag: u8) -> Vec<u8> {
         let mut f = vec![0x08, 0x01, 0, 0, 2, 0, 0, 0, 0, 1, 6, 1, 2, 3, 4, tag, 2, 0, 0, 0, 0, 1, 0x10, 0];
@@ -903,6 +940,19 @@ mod tests {
     fn chain() -> Chain {
         let rx = Rx::Ofdm(Box::new(ofdm::OfdmReceiver::new()), Box::new(PpduDecoder::new()));
         Chain::new(20e6, 0.0, CHAIN_WIDTH_HZ, CHAIN_RATE_HZ, rx, 0.0, Some(Band::G5), 36).unwrap()
+    }
+
+    /// Runs `x` through chain `c` in pieces of `piece` samples and lets out everything after each piece.
+    fn run_all(c: &mut Chain, fields: &mut Fields, x: &[Complex32], piece: usize) -> Vec<Timed<WifiMpdu>> {
+        let mut out = Vec::new();
+        for p in x.chunks(piece) {
+            c.run(p, 1.0, &mut out, fields);
+            fields.flush(!fields.live);
+            out.append(&mut fields.ready);
+        }
+        fields.flush(true);
+        out.append(&mut fields.ready);
+        out
     }
 
     fn padded(parts: &[Vec<Complex32>]) -> Vec<Complex32> {
@@ -936,11 +986,8 @@ mod tests {
         ht::build_ppdu_sig(&parts[0], sig(0, false), Mcs(0), 0x21, PilotPattern::Fixed, &mut one);
         let x = padded(&[h, v, two, one]);
         let mut c = chain();
-        c.keep_up = false;
-        let mut out = Vec::new();
-        for piece in x.chunks(5000) {
-            c.run(piece, 1.0, &mut out);
-        }
+        let mut fields = Fields::default();
+        let out = run_all(&mut c, &mut fields, &x, 5000);
         type Got<'a> = (&'a [u8], Option<PpduFormat>, Option<u8>, bool);
         let got: Vec<Got<'_>> = out
             .iter()
@@ -959,7 +1006,7 @@ mod tests {
             ]
         );
         assert!((out[0].value.rate_mbps - 39.0).abs() < 1e-9 && (out[2].value.rate_mbps - 86.7).abs() < 0.04);
-        let p = c.ppdu;
+        let p = fields.ppdu;
         assert_eq!((p.seen_of(PpduFormat::Ht), p.seen_of(PpduFormat::Vht)), (3, 1));
         assert_eq!((p.decoded, p.mpdus, p.bad_fcs), (3, 5, 0));
         assert_eq!(p.not_decoded_for(Undecoded::Streams), 1);
@@ -970,6 +1017,56 @@ mod tests {
         assert_eq!((r.stats().frames, r.stats().bad_fcs), (0, 0));
     }
 
+    /// The MPDUs that a decoder on channel 6 at `rate` Hz takes from beacons sent at `positions` (Hz from the centre) as
+    /// DSSS and as 6 Mbit/s OFDM, with the channel each was heard on, and the channels it listens to at once.
+    fn heard_around_channel_6(rate: f64, positions: &[(f64, gen::Phy)]) -> (Vec<(u8, PhyKind, u32)>, u32) {
+        use sdrkit_core::Generator;
+        let frames = positions
+            .iter()
+            .enumerate()
+            .map(|(i, &(at, phy))| {
+                let mut f = gen::GenFrame::new(mpdu(60, i as u8 + 1), phy).gap(1e-3);
+                f.position_hz = at;
+                f
+            })
+            .collect();
+        let mut g = gen::WifiGenerator::new(gen::WifiGenParams {
+            rate_hz: rate,
+            frames,
+            looped: false,
+            ..Default::default()
+        });
+        let mut x = vec![Complex32::default(); (0.03 * rate) as usize];
+        g.generate(&mut x);
+        let mut dec = WifiDecoder::default();
+        dec.configure(&Format::iq(rate, 2437e6, 2437e6)).unwrap();
+        let mut got = Vec::new();
+        for p in x.chunks(65_536) {
+            dec.input += p.len() as u64;
+            dec.run_chains(p);
+            got.extend(dec.out.drain(..).map(|m| (m.value.bytes[15], m.value.phy, m.value.channel)));
+        }
+        got.sort_unstable_by_key(|g| g.0);
+        got.dedup();
+        (got, dec.channels_at_once())
+    }
+
+    #[test]
+    fn beacons_on_every_channel_inside_the_capture_are_heard_on_their_own_channel() {
+        use gen::Phy::{Dsss, Ofdm};
+        // At 20 Msps on channel 6: DSSS on channels 5 and 7 from the part of their main lobe inside; OFDM only on channel 6.
+        let (got, at_once) = heard_around_channel_6(20e6, &[(-5e6, Dsss), (0.0, Dsss), (5e6, Dsss), (0.0, Ofdm)]);
+        assert_eq!(
+            got,
+            [(1, PhyKind::Dsss, 5), (2, PhyKind::Dsss, 6), (3, PhyKind::Dsss, 7), (4, PhyKind::Ofdm, 6)]
+        );
+        assert_eq!(at_once, 3);
+        // At 40 Msps: DSSS also on channel 9, and OFDM on channels 5 and 7, whose tones lie wholly inside.
+        let (got, _) =
+            heard_around_channel_6(40e6, &[(15e6, Dsss), (-5e6, Ofdm), (5e6, Ofdm), (15e6, Ofdm)]);
+        assert_eq!(got, [(1, PhyKind::Dsss, 9), (2, PhyKind::Ofdm, 5), (3, PhyKind::Ofdm, 7)]);
+    }
+
     #[test]
     fn wifi_chain_behind_its_input_counts_data_fields_as_busy() {
         let mut one = Vec::new();
@@ -977,10 +1074,11 @@ mod tests {
         let x = padded(&[one]);
         let mut c = chain();
         c.behind_s = 1.0;
-        let mut out = Vec::new();
-        c.run(&x, 1.0, &mut out);
+        let mut fields = Fields::default();
+        fields.live = true;
+        let out = run_all(&mut c, &mut fields, &x, x.len());
         assert!(out.is_empty());
-        assert_eq!(c.ppdu.not_decoded_for(Undecoded::Busy), 1);
+        assert_eq!(fields.ppdu.not_decoded_for(Undecoded::Busy), 1);
         assert!(c.behind_s < 1.0);
     }
 }

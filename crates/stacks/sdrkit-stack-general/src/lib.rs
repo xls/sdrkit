@@ -65,6 +65,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Listening",
     blurb: "AM (with synchronous detection), narrow and wide FM, USB, LSB and CW, with squelch, noise reduction and presets; transmits speech, Morse code and a tune carrier.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6000e6,
         default_hz: 0.0,
@@ -76,11 +77,12 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[
-        SubMode { id: "general", name: "General", default_hz: 0.0 },
-        SubMode { id: "am", name: "AM broadcast", default_hz: 0.0 },
-        SubMode { id: "shortwave", name: "Shortwave", default_hz: 0.0 },
+        SubMode { id: "general", name: "General", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "am", name: "AM broadcast", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "shortwave", name: "Shortwave", default_hz: 0.0, ..SubMode::DEFAULT },
     ],
     settings: GeneralSetting::schema,
     make_receiver,

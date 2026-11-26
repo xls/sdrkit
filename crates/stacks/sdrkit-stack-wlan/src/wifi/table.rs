@@ -71,17 +71,17 @@ impl BandShown {
 /// The band to listen on. Choosing a band requests the host to tune to the first channel of its hop list.
 pub const BAND_SETTING: Setting<field::Choice<Band>> = Setting::choice("band", "Band", Band::G2)
     .help("Choosing a band asks the host to tune to the first channel of its hop list.");
-/// The channel to listen on. A number that is not a channel of the band is refused.
+/// The channel to listen on. A number that is not a channel of the band selects the first channel of its hop list.
 pub const CHANNEL_SETTING: Setting<field::I64> = Setting::new("channel", "Channel", "", 6)
     .range(1.0, 233.0, 1.0)
-    .help("A channel of the band: the host tunes to it.");
+    .help("A channel of the band: the host tunes to it. A number the band lacks selects the first channel of its hop list.");
 /// Hop through the hop list.
-pub const HOP: Setting<field::Bool> = Setting::new("hop", "Hop", "", false).help(
-    "Asks the host to step through the hop list; dwell longer than 102.4 ms (the beacon interval).",
+pub const HOP: Setting<field::Bool> = Setting::new("hop", "Hop", "", true).help(
+    "Asks the host to step through the hop list of the band it is tuned to, from the tuned channel.",
 );
-/// The time on each channel while hopping.
+/// The time on each channel while hopping: at least one beacon interval (102.4 ms) and a margin.
 pub const DWELL_MS: Setting<field::F64> =
-    Setting::new("dwell_ms", "Dwell", "ms", 200.0).range(100.0, 2000.0, 10.0);
+    Setting::new("dwell_ms", "Dwell", "ms", 130.0).range(110.0, 2000.0, 10.0);
 /// Hop only through the preferred scanning channels of 6 GHz.
 pub const PSC_ONLY: Setting<field::Bool> = Setting::new(
     "psc_only",
@@ -91,7 +91,7 @@ pub const PSC_ONLY: Setting<field::Bool> = Setting::new(
 );
 /// The help of the channel list settings.
 const CHANNELS_HELP: &str =
-    "Channel numbers apart by spaces or commas (\"1 6 11\"). Empty: every channel of the band.";
+    "Channel numbers apart by spaces or commas (\"1 6 11\"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.";
 /// The 2.4 GHz channels of the hop list.
 pub const CHANNELS_24: Setting<field::Text> =
     Setting::new("channels_24", "2.4 GHz channels", "", "").help(CHANNELS_HELP);
@@ -501,6 +501,10 @@ pub struct NetworkTable {
     band: Band,
     channel: u32,
     hop: bool,
+    /// The band of the last hop request.
+    hop_band: Option<Band>,
+    /// The band that the band setting asked the host for, until the host has tuned to it.
+    band_asked: Option<Band>,
     dwell_ms: f64,
     psc_only: bool,
     /// The channel list of each band, in the order of [`Band::ALL`]: its text and its numbers.
@@ -550,6 +554,8 @@ impl Default for NetworkTable {
             band: BAND_SETTING.default,
             channel: u32::try_from(CHANNEL_SETTING.default).unwrap_or(6),
             hop: HOP.default,
+            hop_band: None,
+            band_asked: None,
             dwell_ms: DWELL_MS.default,
             psc_only: PSC_ONLY.default,
             lists: Default::default(),
@@ -840,7 +846,14 @@ impl NetworkTable {
                 )
             };
         }
-        let skipped: u64 = pp.not_decoded.iter().sum();
+        let busy = pp.not_decoded_for(sdrkit_proto_wlan_phy::ppdu::Undecoded::Busy);
+        if busy > 0 {
+            let _ = write!(
+                status.summary,
+                "; {busy} HT and VHT data fields skipped: the decoder could not keep up with the busy channel"
+            );
+        }
+        let skipped: u64 = pp.not_decoded.iter().sum::<u64>() - busy;
         if skipped > 0 {
             let _ = write!(status.summary, "; {skipped} PPDUs seen and not decoded");
             let streams = pp.not_decoded_for(sdrkit_proto_wlan_phy::ppdu::Undecoded::Streams);
@@ -1052,7 +1065,13 @@ impl NetworkTable {
     }
 
     fn request_hop(&mut self) {
-        let channels = self.hop_channels();
+        let mut channels = self.hop_channels();
+        // The hop starts at the tuned channel when the list holds it.
+        let tuned = centre_mhz(self.band, self.stats.channel).map(|mhz| mhz * 1e6);
+        if let Some(at) = channels.iter().position(|&f| Some(f) == tuned) {
+            channels.rotate_left(at);
+        }
+        self.hop_band = Some(self.band);
         if !channels.is_empty() {
             self.requests.push(HostRequest::Hop {
                 channels,
@@ -1064,6 +1083,28 @@ impl NetworkTable {
 
     fn hop_changed(&mut self) {
         if self.hop {
+            self.request_hop();
+        }
+    }
+
+    /// Follows the band of the tuned centre and starts the hop on it: the frequency that the host tuned to decides the band,
+    /// except while a band that the band setting asked for is not yet tuned.
+    fn follow_tuning(&mut self) {
+        let Some(b) = self.stats.band else {
+            return;
+        };
+        match self.band_asked {
+            Some(asked) if asked != b => return,
+            Some(_) => self.band_asked = None,
+            None => {}
+        }
+        if b != self.band {
+            self.band = b;
+            if !valid(b, self.channel) {
+                self.channel = self.stats.channel;
+            }
+        }
+        if self.hop && self.hop_band != Some(b) {
             self.request_hop();
         }
     }
@@ -1096,6 +1137,8 @@ impl Component for NetworkTable {
         self.base_dsss = DsssCounters::default();
         self.base_ofdm = OfdmCounters::default();
         self.base_ppdu = PpduCounters::default();
+        // A new session starts the hop again once it knows its band.
+        self.hop_band = None;
         Ok(vec![Format::new(Kind::typed::<HostRequest>(), 0.0)])
     }
 
@@ -1115,6 +1158,7 @@ impl Component for NetworkTable {
         for m in io.items::<WifiMpdu>(0) {
             self.take(&m.value);
         }
+        self.follow_tuning();
         let now = self.now_s;
         for r in self.requests.drain(..) {
             io.items_out::<HostRequest>(0).push(Timed {
@@ -1133,6 +1177,7 @@ impl Component for NetworkTable {
                 let b = BAND_SETTING.read(id, v)?;
                 if b != self.band {
                     self.band = b;
+                    self.band_asked = Some(b);
                     if let Some(&c) = self.hops(b).first() {
                         self.channel = c;
                         self.request_channel();
@@ -1143,9 +1188,12 @@ impl Component for NetworkTable {
             NetworkTableSetting::Channel => {
                 let c = u32::try_from(CHANNEL_SETTING.read(id, v)?)
                     .map_err(|_| SettingError::NotPermitted { id })?;
-                if !valid(self.band, c) {
-                    return Err(SettingError::NotPermitted { id });
-                }
+                // A number the band lacks (the 2.4 GHz default after a 5 GHz band) takes the band's first channel.
+                let c = if valid(self.band, c) {
+                    c
+                } else {
+                    self.hops(self.band).first().copied().unwrap_or(self.channel)
+                };
                 if c != self.channel {
                     self.channel = c;
                     self.request_channel();

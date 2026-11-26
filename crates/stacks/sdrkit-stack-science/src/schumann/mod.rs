@@ -919,6 +919,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "From an ELF sensor on a sound card: the five lowest Schumann resonances (frequency, height, Q) over a 5-minute \
             average, a spectrogram of 3 to 45 Hz, the fundamental minute by minute, and ELF transients.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.0,
         max_hz: 0.1e6,
         default_hz: 0.0,
@@ -930,6 +931,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(10e3),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: SchumannSetting::schema,

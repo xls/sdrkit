@@ -1206,6 +1206,7 @@ pub static BTCLASSIC: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "Bluetooth BR/EDR discovery over a wide capture: devices and piconets by the LAP of every access code; inquiry responses give the address, class of device and clock.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         no_offset_tuning: true,
         ..Tuning::anywhere(gen::TEST_CENTRE_HZ, 20e6, MIN_RATE_HZ, 20e6)
     },

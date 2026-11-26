@@ -502,6 +502,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "One FM broadcast station once a second: peak and RMS deviation, MPX power, carrier offset, pilot, stereo, RDS \
             and subcarrier levels, and the seconds over a threshold.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Wfm, 200e3)),
         min_hz: 64e6,
         max_hz: 110e6,
         default_hz: 100e6,

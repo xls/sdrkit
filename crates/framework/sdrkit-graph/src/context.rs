@@ -92,7 +92,7 @@ impl RunContext {
     }
 }
 
-type Job = Box<dyn FnOnce() + Send>;
+pub(crate) type Job = Box<dyn FnOnce() + Send>;
 
 /// One [`Pool::map`]: the items that wait, the results by index, and the count of finished items.
 struct MapJob<T, R, F> {
@@ -315,6 +315,16 @@ impl Pool {
                 *q = Some(tx);
             }
         });
+    }
+    /// Queues `job` for a helper thread with no ticket. `job` catches its own panics. When no thread could be started the job
+    /// is dropped unrun.
+    pub(crate) fn run(&self, job: Job) {
+        self.start();
+        if let Ok(q) = self.0.queue.lock() {
+            if let Some(q) = q.as_ref() {
+                let _ = q.send(job);
+            }
+        }
     }
     /// Runs `job` on a helper thread and returns a ticket for its result. A job that panics returns [`JobPanicked`] (the thread
     /// carries on).

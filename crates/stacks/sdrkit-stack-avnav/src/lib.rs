@@ -41,6 +41,8 @@ pub static NDB: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Non-directional beacons: the carrier, the Morse identification, the audio, and every beacon in the capture.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 3e3)),
         min_hz: 150e3,
         max_hz: 1800e3,
         default_hz: 344e3,
@@ -68,6 +70,8 @@ pub static VOR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "The radial from a VOR or Doppler VOR, the course deviation for a selected course, and the station's identification.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 10e3)),
         min_hz: 108e6,
         max_hz: 118e6,
         carrier_at_centre: true,
@@ -91,15 +95,16 @@ pub static ILS: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Localizer, glide path and marker beacons: deviation from the course and the path, the flag, the identification, paired frequencies, and the marker passed over.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: ils::MARKER_RANGE_HZ.0,
         max_hz: 336e6,
         carrier_at_centre: true,
         ..Tuning::anywhere(110.3e6, 250e3, ils::MIN_RATE_HZ, ils::CHANNEL_WIDTH_HZ)
     },
     submodes: &[
-        SubMode { id: "localizer", name: "Localizer", default_hz: 110.3e6 },
-        SubMode { id: "glideslope", name: "Glide path", default_hz: 335.0e6 },
-        SubMode { id: "marker", name: "Marker beacon", default_hz: marker::CARRIER_HZ },
+        SubMode { id: "localizer", name: "Localizer", default_hz: 110.3e6, ..SubMode::DEFAULT },
+        SubMode { id: "glideslope", name: "Glide path", default_hz: 335.0e6, ..SubMode::DEFAULT },
+        SubMode { id: "marker", name: "Marker beacon", default_hz: marker::CARRIER_HZ, ..SubMode::DEFAULT },
     ],
     settings: ils::IlsSetting::schema,
     make_receiver: ils::receiver,
@@ -118,6 +123,7 @@ pub static DME: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Pulse pairs of a DME beacon or of interrogating aircraft: the channel, X or Y, the pair rate and the identification.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 960e6,
         max_hz: 1215e6,
         not_circular: true,
@@ -142,6 +148,7 @@ pub static LORAN: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "A Loran chain on 100 kHz: its GRI, the master and secondaries, their time differences, ECD and signal to noise.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 90e3,
         max_hz: 110e3,
         carrier_at_centre: true,
@@ -166,6 +173,7 @@ pub static DGPS: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Differential GPS beacons: RTCM corrections, the base station's position, the beacon almanac and text messages.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 283.5e3,
         max_hz: 325e3,
         ..Tuning::anywhere(304e3, 250e3, dgps::MIN_RATE_HZ, dgps::CHANNEL_WIDTH_HZ)

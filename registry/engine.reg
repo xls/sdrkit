@@ -1,5 +1,5 @@
 # The interface of the stack family engine. The registry test of the family writes this file.
-family engine version=1.8
+family engine version=1.9
 shape.EngineFields since=1.2
 shape.EngineFields.engine.core_units type=f64 unit= optional=yes since=1.2
 shape.EngineFields.engine.core_units_slow type=f64 unit= optional=yes since=1.2
@@ -29,10 +29,17 @@ shape.StackRow.audio type=choice(programme,voice,monitor) unit= optional=yes sin
 shape.StackRow.pictures type=bool unit= optional=no since=1.7
 shape.StackRow.video type=bool unit= optional=no since=1.7
 shape.StackRow.text type=bool unit= optional=no since=1.7
+shape.StackRow.tuning_kind type=choice(free,channels,fixed) unit= optional=yes since=1.9
+shape.StackRow.listen_demod type=choice(am,nfm,wfm,usb,lsb,cw) unit= optional=yes since=1.9
+shape.StackRow.listen_width_hz type=hz unit=Hz optional=yes since=1.9
+shape.StackRow.listen_pitch_hz type=hz unit=Hz optional=yes since=1.9
 shape.SubmodeRow since=1.0
 shape.SubmodeRow.stack type=text unit= optional=no refers_to=stacks since=1.0
 shape.SubmodeRow.name type=text unit= optional=no since=1.0
 shape.SubmodeRow.default_hz type=hz unit=Hz optional=no since=1.0
+shape.SubmodeRow.listen_demod type=choice(am,nfm,wfm,usb,lsb,cw) unit= optional=yes since=1.9
+shape.SubmodeRow.listen_width_hz type=hz unit=Hz optional=yes since=1.9
+shape.SubmodeRow.listen_pitch_hz type=hz unit=Hz optional=yes since=1.9
 shape.StackSignalRow since=1.0
 shape.StackSignalRow.stack type=text unit= optional=no refers_to=stacks since=1.0
 shape.StackSignalRow.signal type=choice(carrier,am_voice,am_broadcast,narrow_fm_voice,keyed_voice,wide_fm,fm_broadcast,ssb_voice_upper,ssb_voice_lower,cw_morse,narrow_digital,digital,wide_digital,ads_b_mode_s,mode_a_c_replies,mode_s_interrogations,uat,dvb_t,dvb_t2,dab,isdb_t,isdb_tsb,dtmb,atsc_1_0,dmr,p25_phase_1,p25_phase_2,nxdn96,nxdn48,dpmr,yaesu_system_fusion,m17,d_star,tetra,pocsag,ais,lora,packet_afsk_1200,rtty,sitor,psk31,mfsk,dominoex,thor,olivia,contestia,mt63,fsq,ifkp,hellschreiber,sstv,ardop,ros,ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8,dji_droneid,flarm,atsc_3_0,analog_tv,mac,fm_video,acars,selcal,hfdl,vdl_mode_2,vdl_mode_4,gnss,sbas,lbj,balise,gsm,nb_iot,lte,nr,dect,ant,ieee_802_15_4,nfc,nrf24,sigfox,wireless_m_bus,wi_sun,z_wave,dvb_s,dvb_s2,dvb_c,dvb_c2,isdb_s,tetrapol,freedv,mpt1327,ltr,edacs,multitone_paging,wifi,wifi_halow,bluetooth_le,ndb,vor,ils,dme,loran_c,dgps,lrit,hrit,hrpt,lrpt,s_vissr,dsc,weather_fax,vdes,atis,drm,hamdrm,hd_radio,cdr,pactor_1,pactor_2,pactor_3,pactor_4,hf_ocean_radar,ale_2g,radiosonde,same,time_signal,dcp,argos,cospas_sarsat_406,inmarsat_c,inmarsat_aero,orbcomm,iridium,globalstar) unit= optional=no since=1.0

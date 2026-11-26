@@ -748,6 +748,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "High-resolution pictures from MetOp (AHRPT), FY-3 frames and archived NOAA HRPT near 1.7 GHz. It needs a tracking dish.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1690e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1701.3e6, 6e6, MIN_RATE, 4.5e6)
@@ -757,6 +758,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         id: hrpt_meteor::SUBMODE,
         name: "Meteor HRPT",
         default_hz: 1700e6,
+        ..SubMode::DEFAULT
     }],
     settings: HrptSetting::schema,
     make_receiver,

@@ -2000,7 +2000,7 @@ pub static WISUN: StackDescriptor = StackDescriptor {
     name: "Wi-SUN FAN",
     group: "IoT, sub-GHz",
     blurb: "Wi-SUN FAN smart utility networks: PAN adverts and configuration, nodes, links and header IEs; secured frames shown as encrypted.",
-    tuning: Tuning { min_hz: 470e6, max_hz: 2484e6, no_offset_tuning: true, ..Tuning::anywhere(0.0, 20e6, 2e6, 18e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 470e6, max_hz: 2484e6, no_offset_tuning: true, ..Tuning::anywhere(0.0, 20e6, 2e6, 18e6) },
     submodes: &[],
     settings: WisunSetting::schema,
     make_receiver,

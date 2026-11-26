@@ -137,6 +137,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The multi-use data link of GOES-13, 14 and 15 (QPSK, 200 ksym/s): the frame list.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         // The default frequency is the one of the test signal. The host gives the frequency of a session.

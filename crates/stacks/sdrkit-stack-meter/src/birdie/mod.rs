@@ -598,6 +598,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Narrow carriers that stay in the capture: frequency, level, drift, scatter, and whether each is bare or \
             modulated.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 2e6)

@@ -1071,7 +1071,11 @@ pub static GWFSK: StackDescriptor = StackDescriptor {
     name: "GW FSK",
     group: "HF utility",
     blurb: "100 Bd 2-FSK bursts of a shore-to-ship data service: free-channel markers with the shore station code, packets with type and subtype, MMSI numbers, position reports, ACKs.",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

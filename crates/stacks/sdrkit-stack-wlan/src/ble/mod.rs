@@ -269,6 +269,7 @@ pub static BLE: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2400e6,
         max_hz: 2484e6,
         default_hz: 2402e6,
@@ -280,6 +281,7 @@ pub static BLE: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: BleSetting::schema,

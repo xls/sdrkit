@@ -485,6 +485,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Counts the radio impulses of lightning as strikes and flashes: strike rates, a 60-minute histogram and a storm \
             trend, with mains impulse trains left out. Any band below 30 MHz; VLF and LF hear them best.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 3e3,
         max_hz: 30e6,
         default_hz: TEST_DIAL_HZ,
@@ -496,6 +497,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(1e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: SfericsSetting::schema,

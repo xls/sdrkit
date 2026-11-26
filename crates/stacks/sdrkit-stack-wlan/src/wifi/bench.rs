@@ -2,7 +2,7 @@
 //! channel of HT and VHT A-MPDUs back to back at 20 Msps with every data field decoded (the keep-up gate off). Items are input
 //! samples. A benchmark whose receiver decodes nothing from its signal reports no throughput.
 
-use super::{receiver, Chain, Rx, WifiSetting, CHAIN_RATE_HZ, CHAIN_WIDTH_HZ, WIFI};
+use super::{receiver, Chain, Fields, Rx, WifiSetting, CHAIN_RATE_HZ, CHAIN_WIDTH_HZ, WIFI};
 use crate::wifi::plan::Band;
 use sdrkit_core::bench::{measure, BenchResult, Benchmark};
 use sdrkit_core::{Complex32, InputInfo, Output, Receiver, SettingSet, StackConfig, Values};
@@ -99,9 +99,40 @@ pub fn busy_signal() -> Vec<Complex32> {
 }
 
 fn busy(seconds: f64) -> BenchResult {
+    busy_with(seconds, 0)
+}
+
+/// The busy channel through one chain whose data fields run on `helpers` helper threads, every field decoded.
+fn busy_with(seconds: f64, helpers: usize) -> BenchResult {
     let x = busy_signal();
+    let Some(mut c) = busy_chain() else {
+        return BenchResult::default();
+    };
+    let pool = sdrkit_graph::Pool::new(helpers.max(1));
+    let mut fields = Fields::new(&pool, helpers, false);
+    let mut out = Vec::new();
+    let mut pass = |c: &mut Chain, out: &mut Vec<_>| {
+        for b in x.chunks(65_536) {
+            c.run(b, 1.0, out, &mut fields);
+            fields.flush(true);
+            out.append(&mut fields.ready);
+        }
+    };
+    pass(&mut c, &mut out);
+    if out.is_empty() {
+        return BenchResult::default();
+    }
+    let n = x.len();
+    measure(seconds, n, n as f64 / CHAIN_RATE_HZ, || {
+        out.clear();
+        pass(&mut c, &mut out);
+    })
+}
+
+/// One OFDM chain at 20 Msps on channel 36.
+fn busy_chain() -> Option<Chain> {
     let rx = Rx::Ofdm(Box::new(ofdm::OfdmReceiver::new()), Box::new(PpduDecoder::new()));
-    let Some(mut c) = Chain::new(
+    Chain::new(
         CHAIN_RATE_HZ,
         0.0,
         CHAIN_WIDTH_HZ,
@@ -110,22 +141,50 @@ fn busy(seconds: f64) -> BenchResult {
         0.0,
         Some(Band::G5),
         36,
-    ) else {
-        return BenchResult::default();
-    };
-    c.keep_up = false;
-    let mut out = Vec::new();
-    for b in x.chunks(65_536) {
-        c.run(b, 1.0, &mut out);
-    }
-    if out.is_empty() {
-        return BenchResult::default();
-    }
-    let n = x.len();
-    measure(seconds, n, n as f64 / CHAIN_RATE_HZ, || {
-        out.clear();
-        for b in x.chunks(65_536) {
-            c.run(b, 1.0, &mut out);
+    )
+}
+
+#[cfg(test)]
+mod keep_up {
+    use super::*;
+
+    /// The share of HT and VHT data fields skipped on two seconds of the busy channel fed at signal pace as live input, and the
+    /// time with every field decoded, for 0, 1, 2 and 4 helper threads beside the chain's own thread. Three rounds, each of
+    /// every count back to back, so that the counts of a round see the same load.
+    #[test]
+    #[ignore = "a timing measurement for a release build"]
+    fn busy_channel_skip_share_at_signal_pace() {
+        let x = busy_signal();
+        for round in 0..3 {
+            for helpers in [0usize, 1, 2, 4] {
+                let mut c = busy_chain().unwrap();
+                let pool = sdrkit_graph::Pool::new(helpers.max(1));
+                let mut fields = Fields::new(&pool, helpers, true);
+                let mut out = Vec::new();
+                let start = std::time::Instant::now();
+                let mut fed = 0usize;
+                for _ in 0..8 {
+                    for b in x.chunks(65_536) {
+                        let due = fed as f64 / CHAIN_RATE_HZ;
+                        let now = start.elapsed().as_secs_f64();
+                        if due > now {
+                            std::thread::sleep(std::time::Duration::from_secs_f64(due - now));
+                        }
+                        c.run(b, 1.0, &mut out, &mut fields);
+                        fields.flush(false);
+                        out.append(&mut fields.ready);
+                        fed += b.len();
+                    }
+                }
+                fields.flush(true);
+                let busy = fields.ppdu.not_decoded_for(sdrkit_proto_wlan_phy::ppdu::Undecoded::Busy);
+                let all = fields.ppdu.decoded + busy;
+                let share = 100.0 * busy as f64 / all.max(1) as f64;
+                let decoded_all = busy_with(1.0, helpers).cpu_fraction_of_realtime;
+                eprintln!(
+                    "round {round}, {helpers} helpers: skipped {share:.1} % at signal pace; every field decoded: {decoded_all:.2} s per s of signal"
+                );
+            }
         }
-    })
+    }
 }

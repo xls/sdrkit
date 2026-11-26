@@ -586,6 +586,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "The packets a phone sends to its Qi charger by load modulation of the power signal: signal strength, control \
 error, received power, charge status, configuration and identification.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         carrier_at_centre: true,
         not_circular: true,
         ..Tuning::anywhere(0.0, 250e3, MIN_RATE_HZ, 12e3)

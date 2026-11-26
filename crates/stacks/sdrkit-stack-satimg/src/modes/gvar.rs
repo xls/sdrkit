@@ -530,6 +530,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The GVAR imager broadcast of GOES I to P (BPSK, 2.11 Mbit/s): the block list and reduced visible and infrared pictures.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         // The default frequency is the one of the test signal. The host gives the frequency of a session.

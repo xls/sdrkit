@@ -52,6 +52,7 @@ pub static REMOTE_ID: StackDescriptor = StackDescriptor {
     blurb: "The identification drones broadcast openly on Bluetooth LE and Wi-Fi (ASTM F3411 / EN 4709-002): serial, position, \
             operator.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2400e6,
         max_hz: 2500e6,
         bandwidth_hz: 20e6,
@@ -84,6 +85,7 @@ pub static DJI_DRONEID: StackDescriptor = StackDescriptor {
     blurb: "DJI drones: DroneID packets (serial number, position, home and pilot) and drone video links recognised by their \
             shape. Nothing is decrypted.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 2300e6,
         max_hz: 6000e6,
         bandwidth_hz: 20e6,
@@ -115,6 +117,7 @@ pub static FLARM: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Gliders and light aircraft on 868 MHz: the old FLARM protocol's positions, privacy flags respected.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 860e6,
         max_hz: 930e6,
         bandwidth_hz: 0.4e6,
@@ -146,6 +149,7 @@ pub static ADSL: StackDescriptor = StackDescriptor {
     blurb: "ADS-L traffic, status and ground uplink of light aircraft on 868.2, 868.4 and 869.525 MHz from one capture, and \
             FLARM from the same capture.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 860e6,
         max_hz: 930e6,
         bandwidth_hz: 1.75e6,
@@ -179,6 +183,7 @@ pub static OGN: StackDescriptor = StackDescriptor {
             speed, heading, climb and aircraft type. Packets with an encrypted position are counted. Experimental: the sync \
             word, the code table, the whitening and the field layout are not confirmed by a public document.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 860e6,
         max_hz: 930e6,
         bandwidth_hz: 0.6e6,

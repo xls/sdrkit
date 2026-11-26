@@ -64,6 +64,7 @@ pub static AIS: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Ships, base stations and aids to navigation on AIS 1 and 2 and the long-range channels, on a map and in a table.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 156e6,
         max_hz: 163e6,
         default_hz: 162.0e6,
@@ -75,6 +76,7 @@ pub static AIS: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: ais::receiver::schema,
@@ -102,6 +104,7 @@ pub static MARINE: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "NAVTEX warnings, DSC calls on MF/HF and VHF channel 70, and HF weather fax charts.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 0.1e6,
         max_hz: 174e6,
         default_hz: 518e3,
@@ -113,22 +116,26 @@ pub static MARINE: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[
         SubMode {
             id: "navtex",
             name: "NAVTEX",
             default_hz: 518e3,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "dsc",
             name: "DSC",
             default_hz: 2187.5e3,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "wefax",
             name: "Weather fax",
             default_hz: 7878.1e3,
+            ..SubMode::DEFAULT
         },
     ],
     settings: marine::schema,
@@ -156,6 +163,7 @@ pub static VDES: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "VHF data exchange: ASM frames decoded, VDE-TER bursts measured and classified.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 150e6,
         max_hz: 165e6,
         default_hz: 161.9e6,
@@ -167,6 +175,7 @@ pub static VDES: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: <vdes::VdesSetting as sdrkit_core::SettingSet>::schema,
@@ -194,6 +203,8 @@ pub static ATIS: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "The voice of an inland waterway channel and the ATIS identity each radio sends after it speaks.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 16e3)),
         min_hz: 156.0e6,
         max_hz: 162.1e6,
         default_hz: 156.5e6,
@@ -232,6 +243,8 @@ pub static MARINEVHF: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Voice on every marine VHF channel in the captured span, with a call log and a scan that watches a priority channel.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 16e3)),
         min_hz: 156.0e6,
         max_hz: 162.1e6,
         default_hz: 159.0e6,

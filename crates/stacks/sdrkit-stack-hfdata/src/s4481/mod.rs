@@ -308,7 +308,11 @@ pub static S4481: StackDescriptor = StackDescriptor {
     name: "STANAG 4481 FSK",
     group: "HF utility",
     blurb: "Naval broadcast FSK: one +-425 Hz channel or up to 16 sub-carriers of +-42.5 Hz; the speed of each, plain ITA2 text, encrypted channels measured.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

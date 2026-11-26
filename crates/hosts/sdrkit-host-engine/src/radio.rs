@@ -482,6 +482,9 @@ impl LeftOut {
 /// samples that wait in the ring are dropped: they have the former rate and would go out with the new one. The loop ends
 /// when `stop` is set, or when the ring is empty and its writer is gone (the radio stopped, or a recording ended).
 ///
+/// A feed that is not live (a recording, a generator) takes no sample before a session or a service reads it, and when its
+/// source ends, its sessions take what waits in their queues and end ([`Feed::input_ended`]).
+///
 /// During a hop ([`crate::hop`]) a step passes the samples of its dwell and no more, then signals the control thread and
 /// passes nothing until the radio has moved: a live radio's samples are dropped meanwhile, those of another source wait in
 /// the ring. The samples before the first one at the new frequency are left out, and the first block of the step starts
@@ -489,12 +492,21 @@ impl LeftOut {
 fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool, hop: &Steps<'_>) {
     let mut rate_changes = tuning.rate_changes.load(Ordering::Acquire);
     let mut left_out = LeftOut::default();
+    let live = feed.live();
     while !stop.load(Ordering::Acquire) {
         drop_former_rate(&mut reader, tuning, &mut rate_changes);
         if reader.wait(1, Duration::from_millis(50)) == 0 {
-            if reader.writer_gone() {
+            // The writer can put its last samples in before it goes: the ring is read once more after it is gone.
+            if reader.writer_gone() && reader.available() == 0 {
+                if !live && !stop.load(Ordering::Acquire) {
+                    feed.input_ended();
+                }
                 return;
             }
+            continue;
+        }
+        // A recording or a generator keeps its samples in the ring until a session or a service reads the feed.
+        if !live && !feed.wait_for_reader(tuning.get(), Duration::from_millis(50)) {
             continue;
         }
         let phase = hop.gate.phase();

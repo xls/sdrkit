@@ -278,6 +278,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite navigation",
     blurb: "The L5 SPS signal of NavIC (IRNSS): satellites tracked, C/N0, Doppler, subframes with the time of week count and the week number. No position. Experimental: the time count scale and the interleaver direction are not confirmed by a public document. Needs an active antenna (bias-tee on).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 1100e6,
         max_hz: 2600e6,
         default_hz: code::L5_HZ,
@@ -289,6 +290,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: NavicSetting::schema,

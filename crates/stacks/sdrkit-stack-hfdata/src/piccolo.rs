@@ -335,7 +335,11 @@ pub static PICCOLO: StackDescriptor = StackDescriptor {
     name: "Piccolo Mk VI",
     group: "HF utility",
     blurb: "6-tone MFSK teleprinter: each ITA2 character a pair of 50 ms tones 20 Hz apart from a 6 x 6 matrix; the tones and the pair phase found.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

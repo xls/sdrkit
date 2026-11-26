@@ -655,6 +655,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb:
         "One frequency hopper in the span: hop rate, dwell, guard, channel count, spacing and span.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 2e6)

@@ -724,7 +724,10 @@ pub static DECT_NRPLUS: StackDescriptor = StackDescriptor {
     name: "DECT NR+",
     group: "IoT, 1.9 GHz",
     blurb: "DECT-2020 NR packets on a 1.728 MHz channel: the physical layer control field (network id, transmitter and receiver ids, length, MCS, HARQ); the data field is not decoded.",
-    tuning: Tuning::anywhere(TEST_DIAL_HZ, 4e6, MIN_RATE_HZ, 1.728e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(TEST_DIAL_HZ, 4e6, MIN_RATE_HZ, 1.728e6)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

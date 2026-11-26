@@ -381,6 +381,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "LoRa frames from and to satellites, with the Doppler shift and Doppler rate of each pass. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 137e6,
         max_hz: 1000e6,
         default_hz: 436.8e6,
@@ -392,6 +393,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: schema,

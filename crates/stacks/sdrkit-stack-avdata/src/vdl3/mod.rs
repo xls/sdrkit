@@ -608,6 +608,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "VDL Mode 3 TDMA bursts on a 25 kHz channel: burst kinds by training sequence and length, Golay words, \
             Reed-Solomon data with its printable text; voice bursts detected, not decoded.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         tune_offset_hz: TUNE_OFFSET_HZ,
         ..Tuning::anywhere(TEST_SIGNAL_HZ, 1e6, MIN_RATE_HZ, 25e3)
     },

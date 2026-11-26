@@ -182,6 +182,7 @@ const fn tuning(
         not_circular: false,
         radio_filter_hz,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     }
 }
 
@@ -198,7 +199,10 @@ pub static MPT1327: StackDescriptor = StackDescriptor {
     name: "MPT1327 trunking",
     group: "Trunking",
     blurb: "MPT 1327 control channels: calls, acknowledgements and broadcasts, the system identity and the channel table.",
-    tuning: tuning(30.0, 520.0, 170e6, 240e3, 48e3, 12.5e3, 50e3, None),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(30.0, 520.0, 170e6, 240e3, 48e3, 12.5e3, 50e3, None)
+    },
     submodes: &[],
     settings: mpt::MptSetting::schema,
     make_receiver: make_mpt,
@@ -223,7 +227,10 @@ pub static LTR: StackDescriptor = StackDescriptor {
     name: "LTR trunking",
     group: "Trunking",
     blurb: "LTR repeaters: the sub-audible 300 bit/s words with talkgroups, go-to and free repeaters, and the repeater table.",
-    tuning: tuning(29.7, 960.0, 460e6, 480e3, 240e3, 25e3, 50e3, Some(150e3)),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(29.7, 960.0, 460e6, 480e3, 240e3, 25e3, 50e3, Some(150e3))
+    },
     submodes: &[],
     settings: ltr::LtrSetting::schema,
     make_receiver: make_ltr,
@@ -248,7 +255,10 @@ pub static EDACS: StackDescriptor = StackDescriptor {
     name: "EDACS trunking",
     group: "Trunking",
     blurb: "EDACS control channels: calls, talkgroups and the site, a power scan of the voice channels, and following calls.",
-    tuning: tuning(29.7, 960.0, 856e6, 480e3, 307.2e3, 25e3, 100e3, Some(300e3)),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(29.7, 960.0, 856e6, 480e3, 307.2e3, 25e3, 100e3, Some(300e3))
+    },
     submodes: &[],
     settings: edacs::EdacsSetting::schema,
     make_receiver: make_edacs,
@@ -273,7 +283,11 @@ pub static TONES: StackDescriptor = StackDescriptor {
     name: "Tone decoders (CTCSS, DCS, DTMF, selcall)",
     group: "Tones and selective calling",
     blurb: "CTCSS tones, DCS codes, DTMF keys, sequential calls, SELCAL and two-tone pages, with a gate that opens for a chosen tone.",
-    tuning: tuning(1.5, 1300.0, 145.5e6, 2e6, 500e3, 25e3, 50e3, Some(1.75e6)),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
+        ..tuning(1.5, 1300.0, 145.5e6, 2e6, 500e3, 25e3, 50e3, Some(1.75e6))
+    },
     submodes: &[],
     settings: tones::ToneSetting::schema,
     make_receiver: make_tones,
@@ -298,7 +312,10 @@ pub static PAGER: StackDescriptor = StackDescriptor {
     name: "Pagers",
     group: "Paging",
     blurb: "POCSAG and FLEX pagers on one channel: addresses, numeric and text messages, with repeated copies combined.",
-    tuning: tuning(25.0, 1000.0, 466.075e6, 2e6, 1e6, 25e3, 50e3, Some(1.75e6)),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(25.0, 1000.0, 466.075e6, 2e6, 1e6, 25e3, 50e3, Some(1.75e6))
+    },
     submodes: &[],
     settings: pager::PagerSetting::schema,
     make_receiver: make_pager,
@@ -323,7 +340,11 @@ pub static MULTITONE: StackDescriptor = StackDescriptor {
     name: "Multitone Paging",
     group: "Paging",
     blurb: "A detector of Multitone paging transmissions: carrier, deviation, tones and FSK measurements.",
-    tuning: tuning(25.0, 480.0, 446.475e6, 2e6, 250e3, 25e3, 50e3, Some(1.75e6)),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
+        ..tuning(25.0, 480.0, 446.475e6, 2e6, 250e3, 25e3, 50e3, Some(1.75e6))
+    },
     submodes: &[],
     settings: multitone::schema,
     make_receiver: make_multitone,
@@ -344,7 +365,10 @@ pub static ERMES: StackDescriptor = StackDescriptor {
     name: "ERMES paging",
     group: "Paging",
     blurb: "ERMES pagers: 4-level FSK at 3125 symbols/s, the network identity, the initial addresses and the numeric and text messages of each batch.",
-    tuning: tuning(25.0, 1000.0, ERMES_TEST_SIGNAL_HZ, 250e3, ermes::MIN_RATE, 25e3, 50e3, None),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(25.0, 1000.0, ERMES_TEST_SIGNAL_HZ, 250e3, ermes::MIN_RATE, 25e3, 50e3, None)
+    },
     submodes: &[],
     settings: ermes::schema,
     make_receiver: ermes::make_receiver,
@@ -365,7 +389,10 @@ pub static MOTOROLA_TYPE2: StackDescriptor = StackDescriptor {
     name: "Motorola Type II trunking",
     group: "Trunking",
     blurb: "Motorola Type II control channels: talkgroups, units, sites, patches and voice grants, with a channel plan file from the host and following calls.",
-    tuning: tuning(29.7, 960.0, TYPE2_TEST_SIGNAL_HZ, 240e3, type2::MIN_RATE, 25e3, 100e3, None),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(29.7, 960.0, TYPE2_TEST_SIGNAL_HZ, 240e3, type2::MIN_RATE, 25e3, 100e3, None)
+    },
     submodes: &[],
     settings: type2::schema,
     make_receiver: type2::make_receiver,
@@ -386,7 +413,10 @@ pub static OPENSKY: StackDescriptor = StackDescriptor {
     name: "OpenSky identifier",
     group: "Trunking",
     blurb: "Says whether an FM channel carries the OpenSky pattern (9600 baud 4-level FSK in TDMA bursts) from its symbol rate, levels, width and bursts; nothing is decoded.",
-    tuning: tuning(30.0, 1000.0, OPENSKY_TEST_SIGNAL_HZ, 240e3, opensky::MIN_RATE, 25e3, 50e3, None),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(30.0, 1000.0, OPENSKY_TEST_SIGNAL_HZ, 240e3, opensky::MIN_RATE, 25e3, 50e3, None)
+    },
     submodes: &[],
     settings: opensky::schema,
     make_receiver: opensky::make_receiver,
@@ -407,7 +437,10 @@ pub static GSC: StackDescriptor = StackDescriptor {
     name: "GSC paging",
     group: "Paging",
     blurb: "Golay sequential code pagers: tone, numeric, alphanumeric and tone-and-voice pages, single calls and batches, with the pager code and its address function.",
-    tuning: tuning(26.0, 1000.0, GSC_TEST_SIGNAL_HZ, 250e3, gsc::MIN_RATE, 12.5e3, 50e3, None),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(26.0, 1000.0, GSC_TEST_SIGNAL_HZ, 250e3, gsc::MIN_RATE, 12.5e3, 50e3, None)
+    },
     submodes: &[],
     settings: gsc::schema,
     make_receiver: gsc::make_receiver,
@@ -428,7 +461,10 @@ pub static SCADA: StackDescriptor = StackDescriptor {
     name: "SCADA telemetry",
     group: "Data and IoT",
     blurb: "Modbus RTU, Modbus ASCII and DNP3 over narrowband FSK radio links: the modem found by itself, the frames, polls paired with replies, and the devices with their registers and points.",
-    tuning: tuning(26.0, 1000.0, SCADA_TEST_SIGNAL_HZ, 250e3, scada::MIN_RATE, 40e3, 50e3, None),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..tuning(26.0, 1000.0, SCADA_TEST_SIGNAL_HZ, 250e3, scada::MIN_RATE, 40e3, 50e3, None)
+    },
     submodes: &[],
     settings: scada::schema,
     make_receiver: scada::make_receiver,

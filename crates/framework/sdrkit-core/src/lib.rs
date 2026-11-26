@@ -87,10 +87,10 @@ pub use settings::{
 };
 pub use signal::SignalType;
 pub use stack::{
-    AdapterCatalog, AudioPart, AutoGain, ConfigError, Elementary, GenConfig, Generator, InputInfo,
-    LockCondition, LockProfile, Lookup, MakeGenerator, MakeReceiver, NameSource, Output,
-    PictureTag, Receiver, SignalInfo, StackConfig, StackDescriptor, StackLookup, StageError,
-    StreamKind, SubMode, Tuning,
+    AdapterCatalog, AudioPart, AutoGain, ConfigError, DemodMode, Elementary, GenConfig, Generator,
+    InputInfo, LockCondition, LockProfile, Lookup, MakeGenerator, MakeReceiver, NameSource, Output,
+    PictureTag, PlainDemod, Receiver, SignalInfo, StackConfig, StackDescriptor, StackLookup,
+    StageError, StreamKind, SubMode, Tuning, TuningKind,
 };
 pub use stage::{
     ComponentLoad, ConnectionLoad, CostRow, CostTable, StageDecl, StageLoad, StageRun, StageSetId,

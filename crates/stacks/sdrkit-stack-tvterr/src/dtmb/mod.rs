@@ -190,6 +190,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb:
         "DTMB digital terrestrial TV (China, Hong Kong, Macau, Cuba, Pakistan), 8 or 6 MHz channel",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 170e6,
         max_hz: 870e6,
         not_circular: true,

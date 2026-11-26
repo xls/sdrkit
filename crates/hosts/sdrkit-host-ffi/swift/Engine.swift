@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the settings that every engine has, version 1.8. MIT licence.
+// sdrkit: the typed interface of the settings that every engine has, version 1.9. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum EngineInterface {
     public static let major = 1
-    public static let minor = 8
+    public static let minor = 9
 }
 
 /// The calibration of the device and the cores of the engine.
@@ -71,6 +71,19 @@ public struct EngineStackRow {
         case voice = 1
         case monitor = 2
     }
+    public enum TuningKind: Int32 {
+        case free = 0
+        case channels = 1
+        case fixed = 2
+    }
+    public enum ListenDemod: Int32 {
+        case am = 0
+        case nfm = 1
+        case wfm = 2
+        case usb = 3
+        case lsb = 4
+        case cw = 5
+    }
     /// The row key.
     public var key: String
     /// Name.
@@ -117,6 +130,14 @@ public struct EngineStackRow {
     public var video: Bool
     /// The stack gives running text for people: decoded characters or whole messages.
     public var text: Bool
+    /// Where the stack listens: anywhere in its range, only on the frequencies that the data lists for it, or on the one frequency of its system. A host keeps the present frequency on a change to a stack that listens anywhere and asks before it moves to another. No value for a stack that does not declare it.
+    public var tuningKind: TuningKind?
+    /// The demodulator of the general stack that hears the signal of the stack by ear. No value for a signal that no plain demodulation suits.
+    public var listenDemod: ListenDemod?
+    /// The usual filter width of that demodulator. No value without a demodulator.
+    public var listenWidthHz: Double?
+    /// The pitch of the beat tone of CW. No value for another demodulator.
+    public var listenPitchHz: Double?
 
     init(_ c: sdrkit_engine_stack_row) {
         key = sdrkitText(c.key)
@@ -142,11 +163,23 @@ public struct EngineStackRow {
         pictures = c.pictures
         video = c.video
         text = c.text
+        tuningKind = c.has_tuning_kind ? TuningKind(rawValue: c.tuning_kind) : nil
+        listenDemod = c.has_listen_demod ? ListenDemod(rawValue: c.listen_demod) : nil
+        listenWidthHz = c.has_listen_width_hz ? c.listen_width_hz : nil
+        listenPitchHz = c.has_listen_pitch_hz ? c.listen_pitch_hz : nil
     }
 }
 
 /// A row of the table "submodes" (Variants).
 public struct EngineSubmodeRow {
+    public enum ListenDemod: Int32 {
+        case am = 0
+        case nfm = 1
+        case wfm = 2
+        case usb = 3
+        case lsb = 4
+        case cw = 5
+    }
     /// The row key.
     public var key: String
     /// Stack.
@@ -155,12 +188,21 @@ public struct EngineSubmodeRow {
     public var name: String
     /// Frequency.
     public var defaultHz: Double
+    /// Heard as.
+    public var listenDemod: ListenDemod?
+    /// Heard with width.
+    public var listenWidthHz: Double?
+    /// Heard at pitch.
+    public var listenPitchHz: Double?
 
     init(_ c: sdrkit_engine_submode_row) {
         key = sdrkitText(c.key)
         stack = sdrkitText(c.stack)
         name = sdrkitText(c.name)
         defaultHz = c.default_hz
+        listenDemod = c.has_listen_demod ? ListenDemod(rawValue: c.listen_demod) : nil
+        listenWidthHz = c.has_listen_width_hz ? c.listen_width_hz : nil
+        listenPitchHz = c.has_listen_pitch_hz ? c.listen_pitch_hz : nil
     }
 }
 

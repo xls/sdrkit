@@ -996,6 +996,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Meteosat high-rate data collection platforms (1200 bit/s offset QPSK, coded): address, sequence, health, data and the platform table, for every carrier in the capture. Experimental: the demodulator's loop values are not confirmed by a public document. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 401.0e6,
         max_hz: 403.0e6,
         default_hz: TEST_SIGNAL_HZ,
@@ -1007,6 +1008,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: HrdcpSetting::schema,

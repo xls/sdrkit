@@ -771,6 +771,7 @@ pub static QAM_VIDEO: StackDescriptor = StackDescriptor {
     blurb: "A single-carrier 16-QAM or 64-QAM link at 700 to 1400 ksymbols a second with LDPC and erasure-coded groups: \
             video, audio, text and data packets, and the station's callsign. Receive and transmit.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 100e6,
         max_hz: 6000e6,
         ..Tuning::anywhere(1290e6, 2.4e6, MIN_RATE, 2.0e6)

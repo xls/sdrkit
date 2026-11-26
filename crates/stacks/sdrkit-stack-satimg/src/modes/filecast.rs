@@ -1136,6 +1136,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     // The stack holds no frequency: the host sets it from the downlinks of data/links/xband_downlinks.csv (the frequency
     // after the LNB). Without one the receiver follows the centre of the input.
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 950e6,
         max_hz: 2150e6,
         ..Tuning::anywhere(0.0, ASKED_RATE, 4.45e6, 3.2e6)
@@ -1145,11 +1146,13 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
             id: HIMAWARICAST,
             name: "HimawariCast",
             default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: GEONETCAST,
             name: "GEONETCAST Americas",
             default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
     ],
     settings: schema,

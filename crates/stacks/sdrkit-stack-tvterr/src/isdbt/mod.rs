@@ -281,7 +281,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     name: "ISDB-T",
     group: "TV",
     blurb: "ISDB-T (Japan, Brazil and most of South America; 8 MHz channels in the Maldives), 6, 7 or 8 MHz channel, 13 segments",
-    tuning: Tuning { min_hz: 90e6, max_hz: 806e6, ..Tuning::anywhere(473e6 + 1e6 / 7.0, 8e6, 6e6, 6e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 90e6, max_hz: 806e6, ..Tuning::anywhere(473e6 + 1e6 / 7.0, 8e6, 6e6, 6e6) },
     submodes: &[],
     settings: IsdbtStackSetting::schema,
     make_receiver,

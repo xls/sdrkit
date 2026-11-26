@@ -123,7 +123,7 @@ pub(crate) const BUDGET: Setting<field::I64> =
 pub(crate) const QUEUE: Setting<field::I64> =
     Setting::new("queue_bytes", "Write queue", "B", 16 * MIB)
         .range(1e6, 4e9, 1.0)
-        .help("Bytes that can wait for storage before data is left out.");
+        .help("Bytes that can wait for storage. When it is full, an IQ recording waits for storage and keeps every sample; an audio or transport stream recording leaves data out and counts it.");
 pub(crate) const AUDIO_CONTAINER: Setting<field::Choice<AudioContainer>> =
     Setting::choice("audio_container", "Audio file", AudioContainer::Wav);
 pub(crate) const MONO: Setting<field::Bool> =
@@ -1139,6 +1139,10 @@ impl RecordService {
             if self.running[i].done {
                 let r = self.running.remove(i);
                 self.p.remove_row(&RUNNING, &r.key);
+                if let (Side::Iq(c), false) = (&r.side, r.state == RunState::Failed) {
+                    let line = iq_summary(&c.live);
+                    self.p.results_mut().log(line);
+                }
                 if let Side::Ts(_, _) = r.side {
                     for f in r.open.iter().flatten().chain(r.last_file.iter()) {
                         self.p.remove_row(&TS_FILES, f.as_str());
@@ -1840,4 +1844,28 @@ impl Drop for RecordService {
             c.live.stop.store(true, Ordering::Relaxed);
         }
     }
+}
+
+/// The line that ends an IQ recording: its length, and the samples that were missing.
+pub(crate) fn iq_summary(live: &Live) -> String {
+    let get = |a: &std::sync::atomic::AtomicU64| a.load(Ordering::Relaxed);
+    let rate = f64::from_bits(get(&live.rate_bits)).max(1.0);
+    let (frames, gaps, lost, left) = (
+        get(&live.frames),
+        get(&live.gaps),
+        get(&live.gap_samples),
+        get(&live.dropped),
+    );
+    let mut line = format!("recorded {:.2} s", frames as f64 / rate);
+    if gaps == 0 && left == 0 {
+        line.push_str(", 0 samples lost");
+    }
+    if gaps > 0 {
+        let s = if gaps == 1 { "" } else { "s" };
+        line.push_str(&format!(", {gaps} gap{s}, {:.2} s lost at the radio", lost as f64 / rate));
+    }
+    if left > 0 {
+        line.push_str(&format!(", {left} samples left out by the recorder"));
+    }
+    line
 }

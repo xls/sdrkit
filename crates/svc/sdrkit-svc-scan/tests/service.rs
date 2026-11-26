@@ -17,7 +17,10 @@ static DAB: StackDescriptor = StackDescriptor {
     name: "DAB",
     group: "Broadcast",
     blurb: "Digital radio.",
-    tuning: Tuning::anywhere(225e6, 2.048e6, 2.048e6, 1.536e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(225e6, 2.048e6, 2.048e6, 1.536e6)
+    },
     submodes: &[],
     settings: Arc::<Schema>::default,
     make_receiver:

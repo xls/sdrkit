@@ -336,6 +336,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Aviation",
     blurb: "Detects the two-tone calls ground stations send to alert an aircraft's crew, on HF or VHF voice channels.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         min_hz: 1.5e6,
         max_hz: 400e6,
         default_hz: 8.891e6,

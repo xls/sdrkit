@@ -553,6 +553,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The TIP beacon (DSB) of the NOAA KLM satellites on 137 MHz: minor frames at 8320 bit/s and HIRS sounder lines.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 136e6,
         max_hz: 138e6,
         // The default frequency is the one of the test signal. The host gives the frequency of a session.

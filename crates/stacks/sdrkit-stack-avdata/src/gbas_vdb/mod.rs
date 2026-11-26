@@ -472,7 +472,10 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Aviation",
     blurb: "A detector of the GBAS VHF data broadcast: bursts, the slots busy of the 500 ms frame and the 10 500 symbol/s \
             line. The message content is not decoded.",
-    tuning: Tuning::anywhere(TEST_SIGNAL_HZ, 250e3, MIN_RATE_HZ, 25e3),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(TEST_SIGNAL_HZ, 250e3, MIN_RATE_HZ, 25e3)
+    },
     submodes: &[],
     settings: gen::GbasSetting::schema,
     make_receiver,

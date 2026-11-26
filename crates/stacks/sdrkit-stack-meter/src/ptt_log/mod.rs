@@ -591,6 +591,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Measurement",
     blurb: "The key-ups of one channel: start, length, level and gap; kerchunks, a stuck key and the duty cycle.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         carrier_at_centre: true,

@@ -29,6 +29,8 @@ sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
 sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
 sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
 sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+# The PNG files of `--save-pictures`.
+sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image", default-features = false }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

@@ -295,6 +295,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
             by a public document.",
     // The stack holds no frequency: the host sets it, for example from data/science/horus_frequencies.csv.
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 400e6,
         max_hz: 450e6,
         default_hz: 0.0,
@@ -306,6 +307,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: HorusSetting::schema,

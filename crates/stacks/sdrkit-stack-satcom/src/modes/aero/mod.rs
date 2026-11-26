@@ -1602,6 +1602,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Inmarsat Aero P channels (600, 1200, 10500 bit/s): log-ons, ACARS, ADS-C and aircraft positions. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 1525e6,
         max_hz: 1559e6,
         default_hz: 1545.57e6,
@@ -1613,6 +1614,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(3.5e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: AeroSetting::schema,

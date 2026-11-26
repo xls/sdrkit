@@ -559,7 +559,10 @@ pub static DSRC_TOLL: StackDescriptor = StackDescriptor {
     name: "DSRC road toll",
     group: "Road toll, 5.8 GHz",
     blurb: "The 5.8 GHz downlink of road toll beacons, structure only: HDLC frames counted as beacon broadcasts or private link frames; no identifier or content is shown.",
-    tuning: Tuning::anywhere(TEST_DIAL_HZ, 4e6, MIN_RATE_HZ, 1e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(TEST_DIAL_HZ, 4e6, MIN_RATE_HZ, 1e6)
+    },
     submodes: &[],
     settings: DsrcStackSetting::schema,
     make_receiver,

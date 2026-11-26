@@ -201,6 +201,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "TV",
     blurb: "ATSC 3.0 (NextGen TV), 6 MHz channel, ROUTE services",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 174e6,
         max_hz: 806e6,
         ..Tuning::anywhere(539e6, 8e6, 6.5e6, 6e6)

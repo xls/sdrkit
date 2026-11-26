@@ -46,6 +46,7 @@ pub static LBJ: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Chinese railway train broadcasts: train number, speed, kilometre post, locomotive, route and position.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 821.0e6,
         max_hz: 821.5e6,
         default_hz: 0.0,
@@ -57,6 +58,7 @@ pub static LBJ: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(150e3),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: lbj::schema,
@@ -76,6 +78,7 @@ pub static EBICAB: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Eurobalise up-link telegrams between the rails (SUBSET-036), and the bursts of other balise systems.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1e6,
         max_hz: 30e6,
         // SUBSET-036 fixes the Eurobalise up-link at 4.234 MHz wherever the system is used.
@@ -88,6 +91,7 @@ pub static EBICAB: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: balise::schema,
@@ -107,6 +111,7 @@ pub static GSMR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "GSM 900 and GSM-R base stations: frequency, BSIC, operator, location area and cell identity from the broadcast channel.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 860e6,
         max_hz: 960e6,
         default_hz: 0.0,
@@ -118,6 +123,7 @@ pub static GSMR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(5e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: gsm::schema,
@@ -137,6 +143,7 @@ pub static NBIOT: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "NB-IoT cells: cell identity, operator, band and level from the synchronisation signals, MIB-NB and SIB1-NB.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 450e6,
         max_hz: 2200e6,
         default_hz: 0.0,
@@ -148,6 +155,7 @@ pub static NBIOT: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: nbiot::schema,
@@ -167,6 +175,7 @@ pub static NR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "5G NR cells: physical cell identity, SS/PBCH beams and the MIB of every SSB on the sync raster, and SIB1 (networks, tracking area, cell identity) where CORESET#0 lies in the capture.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 600e6,
         max_hz: 4200e6,
         default_hz: 0.0,
@@ -178,6 +187,7 @@ pub static NR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(15e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: nr::schema,
@@ -197,6 +207,7 @@ pub static CELL: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "LTE cells: operator, band, cell identity, area code and signal strength from the information every cell broadcasts.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 450e6,
         max_hz: 3800e6,
         default_hz: 0.0,
@@ -208,6 +219,7 @@ pub static CELL: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(15e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: lte::schema,
@@ -230,6 +242,7 @@ pub static EOT: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "End-of-train devices: unit, brake pipe pressure, motion, battery and marker light from 1200 bit/s AFSK on FM, or the head-of-train commands.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 25e6,
         max_hz: 1000e6,
         default_hz: EOT_TEST_SIGNAL_HZ,
@@ -241,6 +254,7 @@ pub static EOT: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: eot::schema,
@@ -260,6 +274,7 @@ pub static CV2X: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Structure only: LTE sidelink (C-V2X) transmissions found by the SC-FDMA prefix and the 1 ms subframe, with the carrier offset and the busy subframes; nothing is decoded.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 5800e6,
         max_hz: 6000e6,
         default_hz: cv2x::TEST_SIGNAL_HZ,
@@ -271,6 +286,7 @@ pub static CV2X: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: cv2x::schema,
@@ -290,6 +306,7 @@ pub static UMTS: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "UMTS (WCDMA) cells: primary scrambling code, Ec/Io, level and carrier offset from the synchronisation channels and the CPICH, and the operator and cell identity from the broadcast channel.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 700e6,
         max_hz: 2700e6,
         default_hz: umts::TEST_SIGNAL_HZ,
@@ -301,6 +318,7 @@ pub static UMTS: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(5e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: umts::schema,
@@ -320,6 +338,7 @@ pub static CDMA2000: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "CDMA2000 1x and IS-95 base stations: every pilot by PN offset with Ec/Io, and its Sync Channel Message (SID, NID, System Time, Paging Channel).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 400e6,
         max_hz: 2200e6,
         default_hz: cdma2000::TEST_SIGNAL_HZ,
@@ -331,6 +350,7 @@ pub static CDMA2000: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: cdma2000::schema,
@@ -350,6 +370,7 @@ pub static TDSCDMA: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "TD-SCDMA cells: SYNC-DL code, cell parameter, frame parity, level and carrier offset from the downlink pilot and the midamble; the broadcast channel is not decoded.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1880e6,
         max_hz: 2400e6,
         default_hz: tdscdma::TEST_SIGNAL_HZ,
@@ -361,6 +382,7 @@ pub static TDSCDMA: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: tdscdma::schema,

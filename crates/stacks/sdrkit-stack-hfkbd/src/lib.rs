@@ -101,7 +101,11 @@ pub static RTTY: StackDescriptor = StackDescriptor {
     name: "RTTY",
     group: GROUP,
     blurb: "Radioteletype: ITA2 text sent by two-tone frequency shift keying.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: rtty_schema,
     make_receiver: make_rtty,
@@ -128,7 +132,11 @@ pub static SITOR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Maritime teleprinter: SITOR-B broadcasts (as used by NAVTEX), four-of-seven code with time diversity, and SITOR-A (AMTOR) ARQ links read by a monitor.",
     // 518 kHz: the international NAVTEX frequency (ITU-R M.540, IMO NAVTEX Manual).
-    tuning: tuning(0.518, 10000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.518, 10000.0)
+    },
     submodes: &[],
     settings: sitor_schema,
     make_receiver: make_sitor,
@@ -152,7 +160,11 @@ pub static PSK: StackDescriptor = StackDescriptor {
     name: "PSK31",
     group: GROUP,
     blurb: "Keyboard chat by phase shift keying: every PSK31, PSK63, PSK125, PSK250 and QPSK signal in the passband at once.",
-    tuning: tuning(0.0, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 4000.0)
+    },
     submodes: &[],
     settings: psk_schema,
     make_receiver: make_psk,
@@ -177,7 +189,11 @@ pub static CW: StackDescriptor = StackDescriptor {
     name: "CW",
     group: GROUP,
     blurb: "Morse code: every keyed carrier in a span of 14 to 192 kHz decoded at once, with the speed of each.",
-    tuning: tuning(0.0, 14000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::cw(500.0, 700.0)),
+        ..tuning(0.0, 14000.0)
+    },
     submodes: &[],
     settings: cw_schema,
     make_receiver: make_cw,
@@ -202,7 +218,11 @@ pub static MFSK: StackDescriptor = StackDescriptor {
     name: "MFSK",
     group: GROUP,
     blurb: "Multi-tone keyboard mode with error correction (MFSK16 and its family), and the pictures sent with it.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: mfsk_schema,
     make_receiver: make_mfsk,
@@ -241,7 +261,11 @@ pub static DOMINOEX: StackDescriptor = StackDescriptor {
     name: "DominoEX",
     group: GROUP,
     blurb: "Incremental frequency keying with 18 tones: tolerant of tuning and drift, no error correction.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: dominoex_schema,
     make_receiver: make_dominoex,
@@ -259,7 +283,11 @@ pub static THOR: StackDescriptor = StackDescriptor {
     name: "THOR",
     group: GROUP,
     blurb: "DominoEX's incremental frequency keying with convolutional error correction and interleaving.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: thor_schema,
     make_receiver: make_thor,
@@ -298,7 +326,11 @@ pub static OLIVIA: StackDescriptor = StackDescriptor {
     name: "Olivia",
     group: GROUP,
     blurb: "Multi-tone frequency shift keying with Walsh-Hadamard block coding and interleaving: copies text below the noise.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: olivia_schema,
     make_receiver: make_olivia,
@@ -316,7 +348,11 @@ pub static CONTESTIA: StackDescriptor = StackDescriptor {
     name: "Contestia",
     group: GROUP,
     blurb: "A faster variant of Olivia with 6-bit upper-case characters.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: contestia_schema,
     make_receiver: make_contestia,
@@ -340,7 +376,11 @@ pub static MT63: StackDescriptor = StackDescriptor {
     name: "MT63",
     group: GROUP,
     blurb: "64 phase-keyed carriers with Walsh-Hadamard coding and long interleaving: keyboard text through fading and noise.",
-    tuning: tuning(0.0, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 4000.0)
+    },
     submodes: &[],
     settings: mt63_schema,
     make_receiver: make_mt63,
@@ -381,7 +421,11 @@ pub static FSQ: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb:
         "Fast Simple QSO: 33-tone incremental keying with addressed messages and automatic replies.",
-    tuning: tuning(0.0, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 4000.0)
+    },
     submodes: &[],
     settings: fsq_schema,
     make_receiver: make_fsq,
@@ -400,7 +444,11 @@ pub static IFKP: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb:
         "Incremental frequency keying with 33 tones, a slower relative of FSQ for keyboard chat.",
-    tuning: tuning(0.0, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 4000.0)
+    },
     submodes: &[],
     settings: ifkp_schema,
     make_receiver: make_ifkp,
@@ -425,7 +473,11 @@ pub static HELL: StackDescriptor = StackDescriptor {
     name: "Hellschreiber",
     group: GROUP,
     blurb: "Text sent as pictures of letters, column by column: the screen draws what it hears.",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: hell_schema,
     make_receiver: make_hell,
@@ -455,7 +507,11 @@ pub static SSTV: StackDescriptor = StackDescriptor {
     name: "SSTV",
     group: GROUP,
     blurb: "Slow-scan television: colour pictures sent line by line as tones (Robot, Martin, Scottie, PD, Wraase).",
-    tuning: tuning(0.0, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 3000.0)
+    },
     submodes: &[],
     settings: sstv_schema,
     make_receiver: make_sstv,
@@ -482,7 +538,11 @@ pub static ARDOP: StackDescriptor = StackDescriptor {
     name: "ARDOP",
     group: GROUP,
     blurb: "Lists the ARDOP frames and stations heard: frame types, IDs, connect requests, and 4FSK, PSK and QAM data. Sends FEC text, the ID frame and Ping, and makes ARQ links.",
-    tuning: tuning(0.0, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 4000.0)
+    },
     submodes: &[],
     settings: ardop_schema,
     make_receiver: make_ardop,
@@ -505,36 +565,43 @@ const ROS_SUBMODES: &[SubMode] = &[
         id: "ros16",
         name: "ROS 16 baud",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "ros8",
         name: "ROS 8 baud",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "ros4",
         name: "ROS 4 baud",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "ros1",
         name: "ROS 1 baud (older versions)",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "rosmf",
         name: "ROS MF (MF1 / MF2 / MF7)",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "roseme",
         name: "ROS EME (VHF)",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "ros500",
         name: "ROS HF 500 Hz",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
 ];
 
@@ -544,7 +611,11 @@ pub static ROS: StackDescriptor = StackDescriptor {
     name: "ROS (HF)",
     group: GROUP,
     blurb: "Identifies ROS transmissions by their publicly reported tones and rate. The text itself is not public and is not read.",
-    tuning: tuning(0.0, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(0.0, 4000.0)
+    },
     submodes: ROS_SUBMODES,
     settings: ros_schema,
     make_receiver: make_ros,
@@ -573,7 +644,11 @@ pub static THROB: StackDescriptor = StackDescriptor {
     name: "Throb",
     group: GROUP,
     blurb: "Throb and ThrobX: one or two tones at a time out of 9 or 11, each pair a character; the variant is found from the signal.",
-    tuning: tuning(SLOW_TEST_SIGNAL_MHZ, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(SLOW_TEST_SIGNAL_MHZ, 3000.0)
+    },
     submodes: &[],
     settings: throb_schema,
     make_receiver: make_throb,
@@ -607,17 +682,23 @@ pub static QRSS: StackDescriptor = StackDescriptor {
     name: "QRSS / DFCW",
     group: GROUP,
     blurb: "Very slow Morse: a narrow spectrogram of the steady tone as picture rows, and the text read from its keying.",
-    tuning: tuning(SLOW_TEST_SIGNAL_MHZ, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(SLOW_TEST_SIGNAL_MHZ, 3000.0)
+    },
     submodes: &[
         SubMode {
             id: "qrss",
             name: "QRSS",
             default_hz: SLOW_TEST_SIGNAL_MHZ * 1e6,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "dfcw",
             name: "DFCW",
             default_hz: SLOW_TEST_SIGNAL_MHZ * 1e6,
+            ..SubMode::DEFAULT
         },
     ],
     settings: qrss_schema,
@@ -650,7 +731,11 @@ pub static CP16: StackDescriptor = StackDescriptor {
     name: "CP16",
     group: GROUP,
     blurb: "16 carriers keyed by 16 x 16 dot characters: a picture of the dots and the characters read against a font. Receive and transmit.",
-    tuning: tuning(CP16_TEST_SIGNAL_MHZ, 4000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(CP16_TEST_SIGNAL_MHZ, 4000.0)
+    },
     submodes: &[],
     settings: cp16::schema,
     make_receiver: make_cp16,
@@ -722,7 +807,11 @@ pub static WINMOR: StackDescriptor = StackDescriptor {
     name: "WINMOR (detect only)",
     group: GROUP,
     blurb: "Detect only: the 1500 Hz alternating-phase pilot of the retired WINMOR modem, the tuning error and the four raw frame-type tones.",
-    tuning: tuning(WINMOR_TEST_SIGNAL_MHZ, 3000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(WINMOR_TEST_SIGNAL_MHZ, 3000.0)
+    },
     submodes: &[],
     settings: winmor_schema,
     make_receiver: make_winmor,

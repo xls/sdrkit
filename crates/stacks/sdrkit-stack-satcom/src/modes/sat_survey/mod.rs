@@ -207,61 +207,73 @@ pub static SUBMODES: [SubMode; 12] = [
         id: "zombie",
         name: "Satellites still transmitting",
         default_hz: 145.970e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "doppler_id",
         name: "Carriers named by Doppler",
         default_hz: 437.5e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "uhf_satcom",
         name: "UHF military satellite channels",
         default_hz: 255e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "gmr1",
         name: "GMR-1 channels",
         default_hz: 1535e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "starlink",
         name: "Starlink frames",
         default_hz: 11_325e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "oneweb",
         name: "OneWeb sequence",
         default_hz: 11_075e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "tdrs",
         name: "TDRS forward link",
         default_hz: 2106.4e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "tiangong",
         name: "Tiangong carriers",
         default_hz: 2224.075e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "tsikada",
         name: "Tsikada navigation carriers",
         default_hz: 150e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "gonets",
         name: "Gonets messaging bursts",
         default_hz: 388.5e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "tiantong",
         name: "Tiantong S-band channels",
         default_hz: 2185e6,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "iss",
         name: "Space station downlinks",
         default_hz: 145.8e6,
+        ..SubMode::DEFAULT
     },
 ];
 
@@ -1077,6 +1089,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Carriers, channels and frame structures of satellite signals without a public specification: measured, never \
             decoded; carriers named by their Doppler curve when element sets and the station position are given. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 30e6,
         max_hz: 12.7e9,
         default_hz: 437.5e6,
@@ -1088,6 +1101,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &SUBMODES,
     settings: SurveySetting::schema,

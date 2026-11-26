@@ -1958,6 +1958,7 @@ pub static SIGFOX: StackDescriptor = StackDescriptor {
     group: "IoT, 868 / 902 MHz",
     blurb: "Sigfox uplinks: device ids, message counters and payloads (authentication codes shown, never checked).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 862e6,
         max_hz: 928e6,
         tune_offset_hz: 250e3,

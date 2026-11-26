@@ -1350,7 +1350,7 @@ pub static SUBGHZCHAT: StackDescriptor = StackDescriptor {
     name: "Sub-GHz chat (Flipper Zero)",
     group: "Chat, 433.92 MHz",
     blurb: "Text chat with Flipper Zero devices: plain lines, and AES-256-GCM lines with the password or key of a chat you take part in.",
-    tuning: Tuning { min_hz: 300e6, max_hz: 928e6, tune_offset_hz: TUNE_OFFSET_HZ, ..Tuning::anywhere(433.92e6, 2e6, 200e3, 0.2e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 300e6, max_hz: 928e6, tune_offset_hz: TUNE_OFFSET_HZ, ..Tuning::anywhere(433.92e6, 2e6, 200e3, 0.2e6) },
     submodes: &[],
     settings: ChatSetting::schema,
     make_receiver,

@@ -664,6 +664,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "The commands an EPC Gen2 reader sends to its tags, with their fields, Tari, RTcal, TRcal and the tag rate they ask. \
 Tag replies are not decoded.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         carrier_at_centre: true,
         not_circular: true,
         ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 600e3)

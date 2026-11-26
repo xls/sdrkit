@@ -7,7 +7,9 @@ use super::impair;
 use sdrkit_proto_wlan_phy::ht::{self, HtSig, Mcs, PilotPattern};
 use sdrkit_proto_wlan_phy::mac::{self, Ampdu};
 use sdrkit_proto_wlan_phy::ofdm::{self, OfdmReceiver, OfdmStats, Rate};
-use sdrkit_proto_wlan_phy::ppdu::{build_he_preamble, Format, Ppdu, PpduDecoder, PpduInfo, SigFields, Undecoded};
+use sdrkit_proto_wlan_phy::ppdu::{
+    build_he_preamble, Format, OwnedPpdu, Ppdu, PpduDecoder, PpduInfo, Read, SigFields, Undecoded,
+};
 use sdrkit_proto_wlan_phy::sig::{self, HeFormat, HeSigA, HeSu, USig, VhtSigA};
 use sdrkit_proto_wlan_phy::vht::{self, VhtMcs};
 use sdrkit_proto_wlan_phy::Complex32;
@@ -471,7 +473,7 @@ fn sensitivity_table() {
 }
 
 #[test]
-fn with_data_decoding_off_ppdus_are_counted_as_busy() {
+fn read_plans_the_data_fields_it_can_decode_and_decode_data_on_a_copy_matches() {
     let a = ampdu(&[mpdu(300, 1)]);
     let y = burst(2, 30.0, 2, |i| {
         if i == 0 {
@@ -484,23 +486,26 @@ fn with_data_decoding_off_ppdus_are_counted_as_busy() {
     });
     let mut rx = OfdmReceiver::new();
     let mut dec = PpduDecoder::new();
-    dec.set_data(false);
-    let mut seen = Vec::new();
+    let mut other = PpduDecoder::new();
+    let mut copy = OwnedPpdu::default();
+    let mut planned = Vec::new();
     rx.process_with(
         &y,
         |_| panic!("no non-HT frame"),
-        |v| match dec.decode(v) {
-            Ppdu::Seen { info, why } => {
-                seen.push((info.format, why, info.mcs));
+        |v| match dec.read(v) {
+            Read::Data(plan) => {
+                planned.push((plan.info.format, plan.info.mcs));
+                // The data field decoded by a second decoder from a copy of the view gives what decode gives.
+                copy.copy_from(v);
+                let apart = format!("{:?}", other.decode_data(&copy.view(), &plan));
+                assert_eq!(apart, format!("{:?}", dec.decode(v)));
+                assert!(apart.starts_with("Psdu"));
                 true
             }
             _ => false,
         },
     );
-    assert_eq!(
-        seen,
-        [(Format::Ht, Undecoded::Busy, Some(5)), (Format::Vht, Undecoded::Busy, Some(5))]
-    );
+    assert_eq!(planned, [(Format::Ht, Some(5)), (Format::Vht, Some(5))]);
 }
 
 /// Prints the time the receiver and decoder take for back-to-back A-MPDUs of 12 kB: HT at MCS 7 and VHT at MCS 8, both with

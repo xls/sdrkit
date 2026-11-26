@@ -827,6 +827,7 @@ pub static DVBC: sdrkit_core::StackDescriptor = sdrkit_core::StackDescriptor {
     group: "TV",
     blurb: "Cable television (DVB-C, J.83 annex A and C), 16- to 256-QAM: services, guide, teletext and subtitles.",
     tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 47e6,
         max_hz: 1002e6,
         radio_filter_hz: Some(8e6),

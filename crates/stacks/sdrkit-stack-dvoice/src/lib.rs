@@ -78,6 +78,7 @@ const fn narrow(
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     }
 }
 
@@ -318,7 +319,10 @@ pub static DMR: StackDescriptor = StackDescriptor {
     name: "DMR",
     group: GROUP,
     blurb: "DMR two-slot TDMA: calls with their speech, talkgroups, talker aliases, text messages and positions. Transmits voice from the microphone and text messages as short data in direct mode.",
-    tuning: narrow(30.0, 1000.0, 0.0, 2.4e6, 12_500.0, 96_000.0, 0.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(30.0, 1000.0, 0.0, 2.4e6, 12_500.0, 96_000.0, 0.0)
+    },
     submodes: &[],
     settings: dmr_schema,
     lock_profile: LockProfile::DEFAULT,
@@ -336,7 +340,10 @@ pub static P25: StackDescriptor = StackDescriptor {
     name: "P25",
     group: GROUP,
     blurb: "APCO P25 Phase 1: voice calls with their speech, talkgroups, encryption IDs, and the trunking control channel (sites, grants).",
-    tuning: narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0)
+    },
     submodes: &[],
     settings: p25_schema,
     lock_profile: LockProfile::DEFAULT,
@@ -368,7 +375,10 @@ pub static M17: StackDescriptor = StackDescriptor {
     name: "M17",
     group: GROUP,
     blurb: "M17 amateur digital voice: callsigns, text, positions, SMS packets; Codec 2 speech through a plug-in. Transmits voice from the microphone (Codec 2 3200) and SMS or data packets.",
-    tuning: narrow(28.0, 1300.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(28.0, 1300.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0)
+    },
     submodes: &[],
     settings: m17_schema,
     lock_profile: LockProfile::DEFAULT,
@@ -396,7 +406,10 @@ pub static DSTAR: StackDescriptor = StackDescriptor {
     name: "D-STAR",
     group: GROUP,
     blurb: "D-STAR digital voice: voice calls with their speech, callsigns and repeaters from the header, slow-data messages and positions. Transmits voice from the microphone and slow-data texts, with the radio header.",
-    tuning: narrow(28.0, 1300.0, 0.0, 2e6, 6_250.0, 96_000.0, 50_000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(28.0, 1300.0, 0.0, 2e6, 6_250.0, 96_000.0, 50_000.0)
+    },
     submodes: &[],
     settings: dstar_schema,
     lock_profile: LockProfile::DEFAULT,
@@ -414,7 +427,10 @@ pub static NXDN: StackDescriptor = StackDescriptor {
     name: "NXDN",
     group: GROUP,
     blurb: "NXDN 6.25 and 12.5 kHz: calls with their speech, status and short data, RAN, and the site of a trunked control channel.",
-    tuning: narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0)
+    },
     submodes: &[],
     settings: MonitorSetting::schema,
     lock_profile: LockProfile::DEFAULT,
@@ -432,7 +448,9 @@ pub static DPMR: StackDescriptor = StackDescriptor {
     name: "dPMR",
     group: GROUP,
     blurb: "dPMR and PMR446 digital: calls with their speech, colour codes, status, short messages and packet data.",
-    tuning: narrow(
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(
         30.0,
         1000.0,
         0.0,
@@ -440,7 +458,8 @@ pub static DPMR: StackDescriptor = StackDescriptor {
         6_250.0,
         96_000.0,
         50_000.0,
-    ),
+    )
+    },
     submodes: &[],
     settings: MonitorSetting::schema,
     lock_profile: LockProfile::DEFAULT,
@@ -458,7 +477,10 @@ pub static YSF: StackDescriptor = StackDescriptor {
     name: "Yaesu System Fusion",
     group: GROUP,
     blurb: "System Fusion (C4FM): calls with their speech in V/D mode 1, V/D mode 2 and voice full rate, callsigns, data type, text and GPS from the data channel.",
-    tuning: narrow(28.0, 1300.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(28.0, 1300.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0)
+    },
     submodes: &[],
     settings: ysf_schema,
     lock_profile: LockProfile::DEFAULT,
@@ -476,7 +498,10 @@ pub static P25P2: StackDescriptor = StackDescriptor {
     name: "P25 Phase 2",
     group: GROUP,
     blurb: "APCO P25 Phase 2 TDMA: two voice channels per carrier with their speech, talkgroups, encryption IDs and the network status.",
-    tuning: narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0)
+    },
     submodes: &[],
     settings: MonitorSetting::schema,
     lock_profile: LockProfile::DEFAULT,
@@ -495,6 +520,7 @@ pub static TETRAPOL: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "TETRAPOL (GMSK 8 kbit/s): system identity and calls; encrypted calls are shown without identities.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 68e6,
         max_hz: 520e6,
         default_hz: 0.0,
@@ -506,6 +532,7 @@ pub static TETRAPOL: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(200_000.0),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: MonitorSetting::schema,
@@ -525,6 +552,7 @@ pub static TETRA: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "TETRA downlink: the cell (MCC, MNC, colour code, location area) and its calls; encrypted calls without identities.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 136e6,
         max_hz: 960e6,
         default_hz: 0.0,
@@ -536,6 +564,7 @@ pub static TETRA: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: MonitorSetting::schema,
@@ -556,6 +585,7 @@ pub static TETRA_DMO: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "TETRA direct mode on one channel: synchronisation and normal bursts, DM messages, addresses and calls, and the speech of clear calls; encrypted calls are marked, never decoded.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 30e6,
         max_hz: 1000e6,
         default_hz: 0.0,
@@ -567,6 +597,7 @@ pub static TETRA_DMO: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: tetra_dmo_schema,
@@ -601,16 +632,18 @@ pub static FREEDV: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "FreeDV on HF (upper sideband): the 1600, 700D and 700E waveforms with their callsign text; Codec 2 speech through a plug-in. RADE is not received. Transmits voice from the microphone on 1600 (Codec 2 1300), 700D or 700E (Codec 2 700C) with the callsign text.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: 20_000.0,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(0.0, 2e6, 96_000.0, 3_000.0)
     },
     submodes: &[
-        SubMode { id: "auto", name: "Automatic (700D, 700E and 1600)", default_hz: 0.0 },
-        SubMode { id: "1600", name: "FreeDV 1600", default_hz: 0.0 },
-        SubMode { id: "700D", name: "FreeDV 700D", default_hz: 0.0 },
-        SubMode { id: "700E", name: "FreeDV 700E", default_hz: 0.0 },
-        SubMode { id: "rade", name: "FreeDV RADE (not received)", default_hz: 0.0 },
+        SubMode { id: "auto", name: "Automatic (700D, 700E and 1600)", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "1600", name: "FreeDV 1600", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "700D", name: "FreeDV 700D", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "700E", name: "FreeDV 700E", default_hz: 0.0, ..SubMode::DEFAULT },
+        SubMode { id: "rade", name: "FreeDV RADE (not received)", default_hz: 0.0, ..SubMode::DEFAULT },
     ],
     settings: freedv_schema,
     lock_profile: LockProfile::DEFAULT,
@@ -714,7 +747,7 @@ pub static AUTO: StackDescriptor = StackDescriptor {
     name: "Digital voice (auto)",
     group: GROUP,
     blurb: "Finds which digital voice mode is on the channel (DMR, NXDN, dPMR, P25, Fusion, M17) and decodes it.",
-    tuning: Tuning { radio_filter_hz: None, ..Tuning::anywhere(0.0, 2.4e6, 96_000.0, 12_500.0) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Free), radio_filter_hz: None, ..Tuning::anywhere(0.0, 2.4e6, 96_000.0, 12_500.0) },
     submodes: &[],
     settings: MonitorSetting::schema,
     lock_profile: LockProfile::DEFAULT,
@@ -748,6 +781,7 @@ pub static DCR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "Japanese digital convenience radio (four-level FSK): calls by user code, call signs, manufacturer messages and data blocks, on one channel or every plan channel in the span; voice frames are counted, not played.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 150e6,
         max_hz: 470e6,
         default_hz: 0.0,
@@ -759,6 +793,7 @@ pub static DCR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(200e3),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: dcr_schema,

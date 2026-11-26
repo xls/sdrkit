@@ -76,8 +76,10 @@ const LANES: usize = 16;
 /// to 256-QAM): the max-log LLR of a bit is the difference of the least squared distances to the two sets.
 #[derive(Clone, Debug)]
 struct Halves {
-    /// Per axis bit: the levels where the bit is 0, then the levels where it is 1, `per` of each.
-    sides: [[[f32; 8]; 2]; 4],
+    /// The levels of the axis, `2 per` of them.
+    levels: [f32; 16],
+    /// Per axis bit: the indices of the levels where the bit is 0, then of those where it is 1, `per` of each.
+    sides: [[[u8; 8]; 2]; 4],
     /// The levels in each set: half the levels of the axis.
     per: usize,
 }
@@ -90,17 +92,19 @@ impl Halves {
             return None;
         }
         let mut h = Halves {
-            sides: [[[0.0; 8]; 2]; 4],
+            levels: [0.0; 16],
+            sides: [[[0; 8]; 2]; 4],
             per: n / 2,
         };
+        h.levels[..n].copy_from_slice(levels);
         for (sides, &pos) in h.sides.iter_mut().zip(bits) {
             let shift = label_bits - 1 - pos as usize;
             for (bit, side) in sides.iter_mut().enumerate() {
-                let of_side: Vec<f32> = levels
+                let of_side: Vec<u8> = part
                     .iter()
-                    .zip(part)
+                    .enumerate()
                     .filter(|&(_, &l)| ((l >> shift) & 1) as usize == bit)
-                    .map(|(&v, _)| v)
+                    .map(|(i, _)| i as u8)
                     .collect();
                 if of_side.len() != n / 2 {
                     return None;
@@ -112,7 +116,9 @@ impl Halves {
     }
 
     /// The max-log LLRs of the bits at `positions` for the coordinates `x` of [`LANES`] cells with the weights `w`: the values
-    /// that [`llrs`] writes for each cell. `out` holds `bits` values per cell.
+    /// that [`llrs`] writes for each cell. `out` holds `bits` values per cell. The squared distance to each level is computed
+    /// once per cell and each bit takes the least of its two sets from them: the values of [`Halves::maxlog_plain`], which
+    /// computes the squares again for every bit.
     #[inline]
     fn maxlog(
         &self,
@@ -122,7 +128,41 @@ impl Halves {
         bits: usize,
         out: &mut [f32],
     ) {
+        let mut sq = [[0f32; LANES]; 16];
+        for (s, &l) in sq[..2 * self.per].iter_mut().zip(&self.levels) {
+            for c in 0..LANES {
+                let e = x[c] - l;
+                s[c] = e * e;
+            }
+        }
         for (&pos, [zero, one]) in positions.iter().zip(&self.sides) {
+            let mut d0 = sq[usize::from(zero[0])];
+            let mut d1 = sq[usize::from(one[0])];
+            for (&a, &b) in zero[1..self.per].iter().zip(&one[1..self.per]) {
+                let (sa, sb) = (&sq[usize::from(a)], &sq[usize::from(b)]);
+                for c in 0..LANES {
+                    d0[c] = d0[c].min(sa[c]);
+                    d1[c] = d1[c].min(sb[c]);
+                }
+            }
+            for c in 0..LANES {
+                out[c * bits + pos as usize] = (d1[c] - d0[c]) * w[c];
+            }
+        }
+    }
+
+    /// The plain form of [`Halves::maxlog`]: for each bit the squared distances to the levels of both sets.
+    #[cfg(test)]
+    fn maxlog_plain(
+        &self,
+        positions: &[u8],
+        x: &[f32; LANES],
+        w: &[f32; LANES],
+        bits: usize,
+        out: &mut [f32],
+    ) {
+        for (&pos, [zero, one]) in positions.iter().zip(&self.sides) {
+            let (zero, one) = (zero.map(|i| self.levels[usize::from(i)]), one.map(|i| self.levels[usize::from(i)]));
             let mut d0 = [0f32; LANES];
             let mut d1 = [0f32; LANES];
             for c in 0..LANES {
@@ -869,6 +909,58 @@ mod tests {
             ("pam4", PointSet::pam(4).unwrap()),
             ("vsb8", PointSet::vsb8()),
         ]
+    }
+
+    #[test]
+    fn the_direct_max_log_kernel_gives_the_values_of_its_plain_form() {
+        let mut seed = 0x9E37_79B9_7F4A_7C15u64;
+        let mut next = || {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed >> 40) as f32 / (1u64 << 23) as f32 - 1.0
+        };
+        let sets = all_sets()
+            .into_iter()
+            .map(|(n, s)| (n.to_owned(), s))
+            .chain(sdrkit_algo_dsp::constellation::NAMES.iter().filter_map(|n| {
+                sdrkit_algo_dsp::constellation::by_name(n).map(|s| (n.to_string(), s))
+            }));
+        let mut tried = 0;
+        for (name, set) in sets {
+            let c = Constellation::new(set).unwrap();
+            let Fast::Separable { i, q } = &c.t.fast else { continue };
+            let m = c.t.bits;
+            for axis in [i, q] {
+                let Some(h) = &axis.halves else { continue };
+                tried += 1;
+                let edges = [0.0, -0.0, 1e30, -1e30, 1e-30, f32::MAX, f32::MIN_POSITIVE];
+                for round in 0..200 {
+                    let mut x = [0f32; LANES];
+                    let mut w = [0f32; LANES];
+                    for k in 0..LANES {
+                        x[k] = match (round + k) % 9 {
+                            // A level, half way between two levels and the far ends.
+                            0 => h.levels[k % (2 * h.per)],
+                            1 => 0.5 * (h.levels[k % (2 * h.per)] + h.levels[(k + 1) % (2 * h.per)]),
+                            2 => edges[(round + k) % edges.len()],
+                            _ => 2.5 * next(),
+                        };
+                        w[k] = match k % 5 {
+                            0 => 0.0,
+                            1 => 1e20,
+                            _ => 3.0 * (1.0 + next()),
+                        };
+                    }
+                    let (mut a, mut b) = (vec![0f32; LANES * m], vec![0f32; LANES * m]);
+                    h.maxlog(&axis.bits, &x, &w, m, &mut a);
+                    h.maxlog_plain(&axis.bits, &x, &w, m, &mut b);
+                    let bits = |v: &[f32]| v.iter().map(|f| f.to_bits()).collect::<Vec<u32>>();
+                    assert_eq!(bits(&a), bits(&b), "{name} round {round}");
+                }
+            }
+        }
+        assert!(tried >= 10, "{tried} axes with the direct form");
     }
 
     #[test]

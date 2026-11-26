@@ -911,7 +911,10 @@ pub static ENOCEAN: StackDescriptor = StackDescriptor {
     name: "EnOcean",
     group: "Home automation",
     blurb: "EnOcean switches, contacts and sensors (ERP1 at 868.3 MHz, ERP2 at 902.875 and 928.35 MHz): sender, telegram type and the readings of the common profiles; secure telegrams shown as encrypted.",
-    tuning: Tuning::anywhere(ERP1_HZ, RATE_HZ, MIN_RATE_HZ, 300e3),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(ERP1_HZ, RATE_HZ, MIN_RATE_HZ, 300e3)
+    },
     submodes: &[],
     settings: EnoceanStackSetting::schema,
     make_receiver,

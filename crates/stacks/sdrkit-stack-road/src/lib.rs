@@ -24,7 +24,10 @@ pub static V2X: StackDescriptor = StackDescriptor {
     group: "Road",
     blurb: "Road vehicles and roadside units on a 10 MHz 802.11p channel: basic safety messages (SAE J2735) and cooperative \
             awareness messages (ETSI) with their positions on the map; hazard warnings counted.",
-    tuning: Tuning::anywhere(V2X_TEST_SIGNAL_HZ, 10e6, v2x::MIN_RATE, 10e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(V2X_TEST_SIGNAL_HZ, 10e6, v2x::MIN_RATE, 10e6)
+    },
     submodes: &[],
     settings: v2x::gen::V2xSetting::schema,
     make_receiver: v2x::make_receiver,

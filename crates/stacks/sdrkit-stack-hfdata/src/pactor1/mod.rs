@@ -146,6 +146,8 @@ pub static PACTOR1: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb: "PACTOR-I monitor: both stations of an ARQ link and unproto broadcasts, with memory ARQ, text and callsigns (experimental).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: 20e3,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(14.080e6, 2e6, 250e3, 4e3)

@@ -244,6 +244,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "TV",
     blurb: "ISDB-TSB narrow-band digital sound and data broadcasting (ITU-R BS.1114 System F), 1 or 3 segments; also the one-segment service of ISDB-T",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 90e6,
         max_hz: 770e6,
         ..Tuning::anywhere(100e6, 2.048e6, 0.5e6, 1.3e6)

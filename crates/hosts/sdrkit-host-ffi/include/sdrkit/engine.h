@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the settings that every engine has, version 1.8. MIT licence.
+ * sdrkit: the typed interface of the settings that every engine has, version 1.9. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ENGINE_VERSION_MAJOR 1
-#define SDRKIT_ENGINE_VERSION_MINOR 8
+#define SDRKIT_ENGINE_VERSION_MINOR 9
 
 // The options of the setting "backend_fft" of the stack "engine".
 typedef enum sdrkit_engine_backend_fft {
@@ -183,6 +183,32 @@ typedef enum sdrkit_engine_stack_row_audio {
   SDRKIT_ENGINE_STACK_ROW_AUDIO_MONITOR = 2,
 } sdrkit_engine_stack_row_audio;
 
+// The options of `tuning_kind` of `sdrkit_engine_stack_row`.
+typedef enum sdrkit_engine_stack_row_tuning_kind {
+  // Anywhere
+  SDRKIT_ENGINE_STACK_ROW_TUNING_KIND_FREE = 0,
+  // Listed frequencies
+  SDRKIT_ENGINE_STACK_ROW_TUNING_KIND_CHANNELS = 1,
+  // One frequency
+  SDRKIT_ENGINE_STACK_ROW_TUNING_KIND_FIXED = 2,
+} sdrkit_engine_stack_row_tuning_kind;
+
+// The options of `listen_demod` of `sdrkit_engine_stack_row`.
+typedef enum sdrkit_engine_stack_row_listen_demod {
+  // AM
+  SDRKIT_ENGINE_STACK_ROW_LISTEN_DEMOD_AM = 0,
+  // NFM
+  SDRKIT_ENGINE_STACK_ROW_LISTEN_DEMOD_NFM = 1,
+  // WFM
+  SDRKIT_ENGINE_STACK_ROW_LISTEN_DEMOD_WFM = 2,
+  // USB
+  SDRKIT_ENGINE_STACK_ROW_LISTEN_DEMOD_USB = 3,
+  // LSB
+  SDRKIT_ENGINE_STACK_ROW_LISTEN_DEMOD_LSB = 4,
+  // CW
+  SDRKIT_ENGINE_STACK_ROW_LISTEN_DEMOD_CW = 5,
+} sdrkit_engine_stack_row_listen_demod;
+
 // A row of the table "stacks" (Stacks).
 typedef struct sdrkit_engine_stack_row {
   // The number of bytes of this struct that the library wrote.
@@ -237,7 +263,39 @@ typedef struct sdrkit_engine_stack_row {
   bool video;
   // The stack gives running text for people: decoded characters or whole messages.
   bool text;
+  // True if `tuning_kind` holds a value.
+  bool has_tuning_kind;
+  // Where the stack listens: anywhere in its range, only on the frequencies that the data lists for it, or on the one frequency of its system. A host keeps the present frequency on a change to a stack that listens anywhere and asks before it moves to another. No value for a stack that does not declare it. A value of `sdrkit_engine_stack_row_tuning_kind`.
+  int32_t tuning_kind;
+  // True if `listen_demod` holds a value.
+  bool has_listen_demod;
+  // The demodulator of the general stack that hears the signal of the stack by ear. No value for a signal that no plain demodulation suits. A value of `sdrkit_engine_stack_row_listen_demod`.
+  int32_t listen_demod;
+  // True if `listen_width_hz` holds a value.
+  bool has_listen_width_hz;
+  // The usual filter width of that demodulator. No value without a demodulator. A frequency in Hz.
+  double listen_width_hz;
+  // True if `listen_pitch_hz` holds a value.
+  bool has_listen_pitch_hz;
+  // The pitch of the beat tone of CW. No value for another demodulator. A frequency in Hz.
+  double listen_pitch_hz;
 } sdrkit_engine_stack_row;
+
+// The options of `listen_demod` of `sdrkit_engine_submode_row`.
+typedef enum sdrkit_engine_submode_row_listen_demod {
+  // AM
+  SDRKIT_ENGINE_SUBMODE_ROW_LISTEN_DEMOD_AM = 0,
+  // NFM
+  SDRKIT_ENGINE_SUBMODE_ROW_LISTEN_DEMOD_NFM = 1,
+  // WFM
+  SDRKIT_ENGINE_SUBMODE_ROW_LISTEN_DEMOD_WFM = 2,
+  // USB
+  SDRKIT_ENGINE_SUBMODE_ROW_LISTEN_DEMOD_USB = 3,
+  // LSB
+  SDRKIT_ENGINE_SUBMODE_ROW_LISTEN_DEMOD_LSB = 4,
+  // CW
+  SDRKIT_ENGINE_SUBMODE_ROW_LISTEN_DEMOD_CW = 5,
+} sdrkit_engine_submode_row_listen_demod;
 
 // A row of the table "submodes" (Variants).
 typedef struct sdrkit_engine_submode_row {
@@ -251,6 +309,18 @@ typedef struct sdrkit_engine_submode_row {
   sdrkit_string name;
   // Frequency. A frequency in Hz.
   double default_hz;
+  // True if `listen_demod` holds a value.
+  bool has_listen_demod;
+  // Heard as. A value of `sdrkit_engine_submode_row_listen_demod`.
+  int32_t listen_demod;
+  // True if `listen_width_hz` holds a value.
+  bool has_listen_width_hz;
+  // Heard with width. A frequency in Hz.
+  double listen_width_hz;
+  // True if `listen_pitch_hz` holds a value.
+  bool has_listen_pitch_hz;
+  // Heard at pitch. A frequency in Hz.
+  double listen_pitch_hz;
 } sdrkit_engine_submode_row;
 
 // The options of `signal` of `sdrkit_engine_stack_signal_row`.

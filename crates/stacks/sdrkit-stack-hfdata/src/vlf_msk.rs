@@ -538,7 +538,10 @@ pub static VLF_MSK: StackDescriptor = StackDescriptor {
     name: "VLF MSK transmitter monitor",
     group: "HF utility",
     blurb: "Carrier and bit rate of a VLF MSK station from the two lines of the squared signal; on, off and change events, a hint of the listed station. A monitor: the traffic is not decoded.",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

@@ -1094,6 +1094,7 @@ const fn sub(id: &'static str, name: &'static str) -> SubMode {
         id,
         name,
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     }
 }
 
@@ -1106,6 +1107,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     // The stack holds no frequency: the host sets it from the downlinks of data/links/xband_downlinks.csv (the
     // down-converted frequency with a down-converter). Without one the receiver follows the centre of the input.
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 950e6,
         max_hz: 9000e6,
         ..Tuning::anywhere(0.0, 25e6, 0.6e6, 21e6)

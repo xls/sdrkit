@@ -42,6 +42,7 @@ const fn mesh_tuning() -> Tuning {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     }
 }
 
@@ -96,26 +97,31 @@ pub const MESH_SUBMODES: &[SubMode] = &[
         id: "meshtastic",
         name: "Meshtastic",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "meshcore",
         name: "MeshCore",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "lorawan",
         name: "LoRaWAN",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "loraaprs",
         name: "LoRa APRS",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "meshcom",
         name: "MeshCom",
         default_hz: 0.0,
+        ..SubMode::DEFAULT
     },
 ];
 
@@ -125,7 +131,10 @@ pub static MESH: StackDescriptor = StackDescriptor {
     name: "Mesh (LoRa)",
     group: "IoT and mesh",
     blurb: "Meshtastic, MeshCore, LoRa APRS, MeshCom and LoRaWAN frames on one band plan, with nodes, messages and maps.",
-    tuning: mesh_tuning(),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..mesh_tuning()
+    },
     submodes: MESH_SUBMODES,
     settings: MeshSetting::schema,
     make_receiver: make_mesh,
@@ -143,7 +152,10 @@ pub static MESHTASTIC: StackDescriptor = StackDescriptor {
     name: "Meshtastic",
     group: "IoT and mesh",
     blurb: "A Meshtastic texting client: channels with keys, direct messages, acknowledgements, the node list and positions.",
-    tuning: mesh_tuning(),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..mesh_tuning()
+    },
     submodes: &[],
     settings: settings::MeshtasticSetting::schema,
     make_receiver: make_meshtastic,
@@ -161,7 +173,10 @@ pub static MESHCORE: StackDescriptor = StackDescriptor {
     name: "MeshCore",
     group: "IoT and mesh",
     blurb: "A MeshCore texting client: adverts, contacts, direct messages with acknowledgements and channels.",
-    tuning: mesh_tuning(),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..mesh_tuning()
+    },
     submodes: &[],
     settings: settings::MeshcoreSetting::schema,
     make_receiver: make_meshcore,
@@ -179,7 +194,10 @@ pub static LORAWAN: StackDescriptor = StackDescriptor {
     name: "LoRaWAN",
     group: "IoT and mesh",
     blurb: "LoRaWAN frame headers and devices on the channels of one plan.",
-    tuning: mesh_tuning(),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..mesh_tuning()
+    },
     submodes: &[],
     settings: settings::LorawanSetting::schema,
     make_receiver: make_lorawan,
@@ -197,7 +215,10 @@ pub static LORAAPRS: StackDescriptor = StackDescriptor {
     name: "LoRa APRS",
     group: "Amateur",
     blurb: "APRS stations, positions and messages over LoRa on 70 cm.",
-    tuning: mesh_tuning(),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..mesh_tuning()
+    },
     submodes: &[],
     settings: settings::LoraAprsSetting::schema,
     make_receiver: make_loraaprs,
@@ -215,7 +236,10 @@ pub static MESHCOM: StackDescriptor = StackDescriptor {
     name: "MeshCom",
     group: "Amateur",
     blurb: "MeshCom 4 amateur mesh texts and positions on 70 cm.",
-    tuning: mesh_tuning(),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..mesh_tuning()
+    },
     submodes: &[],
     settings: settings::MeshcomSetting::schema,
     make_receiver: make_meshcom,
@@ -241,6 +265,7 @@ pub static LORAWANWIDE: StackDescriptor = StackDescriptor {
     group: "IoT and mesh",
     blurb: "Every channel of a LoRaWAN plan at once, uplinks and downlinks, and the FSK channel.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 137e6,
         max_hz: 2500e6,
         default_hz: 0.0,
@@ -252,6 +277,7 @@ pub static LORAWANWIDE: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(3.5e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: WideSetting::schema,
@@ -278,6 +304,7 @@ pub static LORARAW: StackDescriptor = StackDescriptor {
     group: "IoT and mesh",
     blurb: "Plain point-to-point LoRa frames as bytes at every spreading factor and bandwidth; receive and transmit.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 137e6,
         max_hz: 2500e6,
         default_hz: 0.0,
@@ -289,6 +316,7 @@ pub static LORARAW: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: RawSetting::schema,
@@ -315,6 +343,8 @@ pub static APRS: StackDescriptor = StackDescriptor {
     group: "Amateur",
     blurb: "AX.25 packet radio and APRS at 1200 bit/s AFSK and 9600 bit/s G3RUH: stations, positions, weather and messages.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         min_hz: 25e6,
         max_hz: 1000e6,
         default_hz: 0.0,
@@ -352,6 +382,7 @@ pub static FANET: StackDescriptor = StackDescriptor {
     group: "IoT and mesh",
     blurb: "Paraglider, hang glider and glider tracking on one LoRa channel: positions, names, messages, weather stations and thermals.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 860e6,
         max_hz: 930e6,
         default_hz: 0.0,
@@ -363,6 +394,7 @@ pub static FANET: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: components::fanet::FanetSetting::schema,
@@ -389,6 +421,7 @@ pub static RETICULUM: StackDescriptor = StackDescriptor {
     group: "IoT and mesh",
     blurb: "Reticulum packets on RNode LoRa radios: packet type, destination and hops, and announces with the signature checked. Data stays encrypted.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 137e6,
         max_hz: 2500e6,
         default_hz: 0.0,
@@ -400,6 +433,7 @@ pub static RETICULUM: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: components::reticulum::RnsSetting::schema,
@@ -426,6 +460,7 @@ pub static ELRS: StackDescriptor = StackDescriptor {
     group: "IoT and mesh",
     blurb: "ExpressLRS radio-control links on the hop channels of one capture: link id, hop index and nonce from sync frames, frame counts for each link, and the stick values of your own link from its binding phrase. Experimental: the frame layout, the CRC start value, the rate rows and the hop plans are not confirmed by a public document.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 137e6,
         max_hz: 2500e6,
         default_hz: 0.0,
@@ -437,6 +472,7 @@ pub static ELRS: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(2.6e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: components::elrs::ElrsSetting::schema,

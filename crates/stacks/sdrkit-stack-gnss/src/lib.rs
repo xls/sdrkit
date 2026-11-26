@@ -202,6 +202,7 @@ const TUNING: Tuning = Tuning {
     not_circular: false,
     radio_filter_hz: Some(2.5e6),
     no_offset_tuning: true,
+    ..Tuning::DEFAULT
 };
 
 /// GNSS: GPS, QZSS, SBAS, Galileo, BeiDou and GLONASS.
@@ -210,7 +211,10 @@ pub static GNSS: StackDescriptor = StackDescriptor {
     name: "GNSS",
     group: "Satellite navigation",
     blurb: "GPS, Galileo, BeiDou, GLONASS, QZSS and SBAS: satellites tracked, position and time, the sky, interference and spoofing watch. Needs an active antenna (bias-tee on).",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
+        ..TUNING
+    },
     submodes: &[],
     settings: settings::GnssSetting::schema,
     make_receiver: make_gnss,
@@ -228,7 +232,10 @@ pub static SBAS: StackDescriptor = StackDescriptor {
     name: "SBAS",
     group: "Satellite navigation",
     blurb: "WAAS, EGNOS, MSAS, GAGAN and other SBAS satellites: PRN masks, fast and long-term corrections, ionosphere, GEO navigation and time. Shown, never applied.",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..TUNING
+    },
     submodes: &[],
     settings: settings::SbasSetting::schema,
     make_receiver: make_sbas,

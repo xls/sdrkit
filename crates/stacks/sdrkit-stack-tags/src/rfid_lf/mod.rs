@@ -792,6 +792,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The 40-bit identity of EM4100 tags from the load modulation on a 100 to 150 kHz reader carrier.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         carrier_at_centre: true,
         not_circular: true,
         ..Tuning::anywhere(0.0, 250e3, MIN_RATE_HZ, 10e3)

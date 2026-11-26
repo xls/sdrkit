@@ -140,6 +140,7 @@ pub static ADSB: StackDescriptor = StackDescriptor {
     group: "Aircraft",
     blurb: "Aircraft on 1090 MHz: positions, callsigns, altitudes and speeds from ADS-B and Mode S replies.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 1085e6,
         max_hz: 1095e6,
         default_hz: 1090e6,
@@ -151,6 +152,7 @@ pub static ADSB: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(3.5e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: settings::AdsbSetting::schema,
@@ -170,6 +172,7 @@ pub static UAT: StackDescriptor = StackDescriptor {
     group: "Aircraft",
     blurb: "UAT on 978 MHz: aircraft and TIS-B targets, and the FIS-B weather and notices from ground stations.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 960e6,
         max_hz: 990e6,
         default_hz: 978e6,
@@ -181,6 +184,7 @@ pub static UAT: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.5e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: settings::UatSetting::schema,
@@ -201,6 +205,7 @@ pub static MODEAC: StackDescriptor = StackDescriptor {
     blurb:
         "Mode A and Mode C transponder replies on 1090 MHz: squawk codes and pressure altitudes.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 1085e6,
         max_hz: 1095e6,
         default_hz: 1090e6,
@@ -212,6 +217,7 @@ pub static MODEAC: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(3.5e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: settings::ModeAcSetting::schema,
@@ -231,6 +237,7 @@ pub static UPLINK1030: StackDescriptor = StackDescriptor {
     group: "Aircraft",
     blurb: "Radar interrogations on 1030 MHz: Mode A, Mode C, all-calls and Mode S uplink messages with the aircraft they address.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 1025e6,
         max_hz: 1035e6,
         default_hz: 1030e6,
@@ -242,6 +249,7 @@ pub static UPLINK1030: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(8e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: settings::UplinkSetting::schema,

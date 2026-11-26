@@ -651,6 +651,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "Analogue APT pictures of the NOAA KLM satellites on 137 MHz: FM with a 2400 Hz subcarrier, two picture channels a line.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 40e3)),
         min_hz: 136e6,
         max_hz: 138e6,
         // The default frequency is the one of the test signal. The host gives the frequency of a session.

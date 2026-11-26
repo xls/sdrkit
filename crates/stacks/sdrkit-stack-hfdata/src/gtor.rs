@@ -480,7 +480,11 @@ pub static GTOR: StackDescriptor = StackDescriptor {
     name: "G-TOR monitor",
     group: "HF utility",
     blurb: "G-TOR frames at 100, 200 or 300 Bd, plain or in the Golay form, checked by their CRC: plain text, and Huffman frames as hex.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

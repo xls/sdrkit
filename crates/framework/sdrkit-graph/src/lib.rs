@@ -23,6 +23,7 @@ mod graph;
 pub mod guard;
 pub mod media;
 pub mod meter;
+pub mod ordered;
 pub mod plan;
 pub mod settings;
 pub mod stack_graph;
@@ -58,6 +59,7 @@ pub use media::{
 };
 pub use graph::{Stage, StageProblem, AHEAD_BYTES, MAX_STAGES};
 pub use meter::{Meter, SectionTimer};
+pub use ordered::InOrder;
 pub use plan::GraphPlan;
 pub use settings::Every;
 pub use stack_graph::{GuardFields, StackGraph, StackGraphBuilder};

@@ -935,6 +935,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Argos PTT-A2 platform bursts (other modulations listed) and the A-DCS downlink's HDLC frames. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 401.5e6,
         max_hz: 466.1e6,
         default_hz: 401.65e6,
@@ -946,6 +947,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(16e3),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: ArgosSetting::schema,

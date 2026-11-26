@@ -568,6 +568,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "The data channel of the Chinese railway train radio: end-of-train device frames (KLW) or dispatch frames (TDCS) \
             with the train, the locomotive, the brake pipe pressure, the kilometre post and the speed.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 400e6,
         max_hz: 900e6,
         default_hz: TEST_SIGNAL_HZ,
@@ -579,17 +580,20 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(150e3),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[
         SubMode {
             id: "klw",
             name: "End-of-train device (KLW)",
             default_hz: TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "tdcs",
             name: "Dispatch (TDCS)",
             default_hz: TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
     ],
     settings: RailwayCirSetting::schema,

@@ -767,7 +767,10 @@ pub static NPR70: StackDescriptor = StackDescriptor {
     name: "New Packet Radio",
     group: "Amateur digital",
     blurb: "A detector of New Packet Radio 4GFSK IP modems on 70 cm: sync word, network id, symbol rate and tuning offset of each frame; the frame content is not read.",
-    tuning: Tuning::anywhere(TEST_DIAL_HZ, 4e6, MIN_RATE_HZ, 2e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(TEST_DIAL_HZ, 4e6, MIN_RATE_HZ, 2e6)
+    },
     submodes: &[],
     settings: NprSetting::schema,
     make_receiver,

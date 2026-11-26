@@ -340,6 +340,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "TV",
     blurb: "ATSC 1.0, 8-VSB, 6 MHz channel (US, Canada, Mexico, South Korea)",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 54e6,
         max_hz: 806e6,
         ..Tuning::anywhere(539e6, 8e6, 6.5e6, 6e6)

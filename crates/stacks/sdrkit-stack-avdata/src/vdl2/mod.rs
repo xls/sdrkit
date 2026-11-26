@@ -383,6 +383,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Aviation",
     blurb: "The VHF digital data link of airliners: ACARS, ATN and link frames on every VDL2 channel in the capture.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 118e6,
         max_hz: 140e6,
         default_hz: 0.0,
@@ -394,6 +395,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: Vdl2Setting::schema,

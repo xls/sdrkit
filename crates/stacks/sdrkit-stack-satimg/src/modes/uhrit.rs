@@ -578,6 +578,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "GEO-KOMPSAT-2A ultra high rate xRIT on X band (DVB-S2, 15.6 Msym/s): full-disk pictures, keys and texts.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 950e6,
         max_hz: 9000e6,
         ..Tuning::anywhere(8070e6, ASKED_RATE, 26.9e6, 1.5 * LINK_SYMBOL_RATE + 20e3)

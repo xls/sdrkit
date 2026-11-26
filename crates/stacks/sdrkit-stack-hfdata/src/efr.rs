@@ -405,7 +405,10 @@ pub static EFR: StackDescriptor = StackDescriptor {
     name: "EFR teleswitch",
     group: "HF utility",
     blurb: "Long-wave load-control telegrams: 2-FSK at 200 Bd, 11-bit characters, FT1.2 frames with a checksum; the message number, two addresses and the payload as hex.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

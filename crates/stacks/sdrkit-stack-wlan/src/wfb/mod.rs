@@ -589,6 +589,7 @@ pub static WFB: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "Drone video links of injected 802.11n frames: link id, radio port, FEC block and fragment, frames lost. The payload stays encrypted: structure only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         no_offset_tuning: true,
         radio_filter_hz: Some(20e6),
         ..Tuning::anywhere(5805e6, 20e6, MIN_RATE_HZ, 20e6)

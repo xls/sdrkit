@@ -587,6 +587,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Busy and idle time of every channel of a grid over the captured span: duty cycle, transmissions, the longest \
             one, and the band occupancy.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 2e6)

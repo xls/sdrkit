@@ -680,6 +680,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "The noise floor of each sub-band of the span once a second over hours: rises over a baseline and changes of \
             the whole band.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 2e6)

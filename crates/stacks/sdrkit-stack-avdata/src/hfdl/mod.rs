@@ -224,6 +224,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Aviation",
     blurb: "The HF data link of aircraft over oceans and remote areas: squitters, logons, positions and ACARS from ground stations worldwide.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         min_hz: 2e6,
         max_hz: 30e6,
         default_hz: 8.9e6,

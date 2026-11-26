@@ -738,6 +738,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     // The stack holds no frequency: the host sets it from the downlinks of data/links/xband_downlinks.csv (the
     // down-converted frequency with a down-converter). Without one the receiver follows the centre of the input.
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 950e6,
         max_hz: 9000e6,
         ..Tuning::anywhere(0.0, ASKED_RATE, MIN_RATE, 45e6)
@@ -747,11 +748,13 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
             id: ELEKTRO_L,
             name: "Elektro-L",
             default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: ARKTIKA_M,
             name: "Arktika-M",
             default_hz: 0.0,
+            ..SubMode::DEFAULT
         },
     ],
     settings: schema,

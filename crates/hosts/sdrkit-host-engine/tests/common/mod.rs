@@ -177,6 +177,7 @@ pub const METER_DESC: StackDescriptor = StackDescriptor {
         id: "slow",
         name: "Slow",
         default_hz: 100e6,
+        ..SubMode::DEFAULT
     }],
     settings: MeterSetting::schema,
     make_receiver: |cfg| {

@@ -955,6 +955,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Finds your own keyed carrier and its echo from the Moon 2.3 to 2.85 s later within ±500 Hz: delay, Doppler \
             shift, level and spread. The stack listens while you transmit; it transmits nothing.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 50e6,
         max_hz: 10_400e6,
         default_hz: 144e6,
@@ -966,6 +967,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: EmeSetting::schema,

@@ -238,8 +238,7 @@ impl PlanSet {
             .iter()
             .filter(|c| c.code == code)
             .flat_map(|c| &c.services)
-            .filter(|s| s.mode == stack)
-            .last()
+            .rfind(|s| s.mode == stack)
             .filter(|s| !s.in_service)
             .cloned()
     }

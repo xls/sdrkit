@@ -275,8 +275,9 @@ fn every_stack_has_a_known_frequency_where_its_system_is_used() {
 }
 
 /// The cell stacks: in each country of the table, the channels come from a plan of the country's own (a group named after
-/// the stack and listed for the country), at least one of them is a band of the country, and the start of the preset lies
-/// inside a band of the country. A starting dial of another country, alone or as the start, fails.
+/// the stack and listed for the country), at least one of them is a band of the country, the start of the preset lies
+/// inside a band of the country, and the preset sets the band order of the country (`cell/band_order.csv`). A starting
+/// dial of another country, alone or as the start, fails.
 #[test]
 fn cell_stacks_offer_the_bands_of_the_country() {
     let d = data();
@@ -297,6 +298,11 @@ fn cell_stacks_offer_the_bands_of_the_country() {
                 Ok(p) => {
                     if !p.plan.starts_with(&format!("{stack}_")) {
                         problems.push(format!("{stack} {country}: the start comes from {}, not from a plan of the country", p.plan));
+                    }
+                    // The band order of the country, so that a cell is named by a band of the country.
+                    let order = p.settings.iter().find(|(k, _)| k == "band_order");
+                    if !matches!(order, Some((_, sdrkit_core::Value::Text(t))) if !t.is_empty()) {
+                        problems.push(format!("{stack} {country}: no band order of the country: {:?}", p.settings));
                     }
                     if !bands.iter().any(|(lo, hi)| (*lo..=*hi).contains(&p.frequency_hz)) {
                         problems.push(format!("{stack} {country}: the start {} MHz lies in no band of the country", p.frequency_hz / 1e6));

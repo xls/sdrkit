@@ -144,6 +144,8 @@ pub static MS110: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb: "2400 Bd 8-PSK on 1800 Hz, 75 to 4800 bit/s: the rate and interleaver from the preamble, an equaliser, the K = 7 code; text and STANAG 5066 D_PDUs.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: crate::serial::TUNE_OFFSET_HZ,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(TEST_SIGNAL_HZ, 2e6, 250e3, 4e3)

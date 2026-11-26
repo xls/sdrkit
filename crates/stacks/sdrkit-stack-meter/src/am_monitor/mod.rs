@@ -424,6 +424,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "One AM broadcast station once a second: carrier offset and level, modulation depth, peaks, asymmetry, mains \
             hum, audio bandwidth and over-modulation.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 10e3)),
         min_hz: 0.148e6,
         max_hz: 30e6,
         default_hz: 1e6,

@@ -1205,17 +1205,23 @@ pub static XPA: StackDescriptor = StackDescriptor {
     name: "XPA / XPA2 number senders",
     group: "HF utility",
     blurb: "XPA (20 positions, 10 or 20 Bd) and XPA2 (16 tones, 7.8125 Bd) MFSK number senders: the tones found anywhere in the channel, the speed, sideband and numbering found, the five-figure groups.",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[
         SubMode {
             id: "xpa",
             name: "XPA",
             default_hz: TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "xpa2",
             name: "XPA2",
             default_hz: TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
     ],
     settings: schema,

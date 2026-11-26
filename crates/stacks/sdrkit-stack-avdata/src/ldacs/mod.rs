@@ -156,7 +156,10 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     name: "LDACS",
     group: "Aviation",
     blurb: "Structure only: LDACS OFDM found by its cyclic prefix (symbol 120 us, prefix 17.6 us), with the carrier offset and the frame duty; nothing is decoded.",
-    tuning: Tuning::anywhere(TEST_SIGNAL_HZ, 2e6, MIN_RATE_HZ, 0.5e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..Tuning::anywhere(TEST_SIGNAL_HZ, 2e6, MIN_RATE_HZ, 0.5e6)
+    },
     submodes: &[],
     settings: LdacsSetting::schema,
     make_receiver,

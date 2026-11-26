@@ -1117,46 +1117,55 @@ pub static SUBMODES: [SubMode; 9] = [
         id: "geoscan",
         name: "Geoscan",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "lucky7",
         name: "Lucky-7",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "spino",
         name: "Spino",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "erminaz",
         name: "Erminaz",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "usp",
         name: "USP",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "ngham",
         name: "NGHam",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "u482c",
         name: "U482C",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "mobitex",
         name: "Mobitex",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
     SubMode {
         id: "ccsds_concat",
         name: "CCSDS concatenated",
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     },
 ];
 
@@ -1184,6 +1193,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Amateur and small-satellite packet telemetry: AX.25 (AFSK, G3RUH), AX100 Mode 5, CCSDS, and Geoscan, Lucky-7, Spino, Erminaz, USP, NGHam, U482C, Mobitex and CCSDS concatenated frames. Sends AX.25 UI frames in AFSK 1200 and G3RUH 9600 for an amateur satellite uplink.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 130e6,
         max_hz: 1000e6,
         default_hz: TEST_SIGNAL_HZ,
@@ -1195,6 +1205,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &SUBMODES,
     settings: schema,

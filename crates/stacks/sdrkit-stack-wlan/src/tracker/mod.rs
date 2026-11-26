@@ -614,6 +614,7 @@ pub static BLETRACKER: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "Finds item trackers (AirTag and Find My accessories, Tile, Chipolo, SmartTag, Google tags) that stay with you.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2400e6,
         max_hz: 2484e6,
         default_hz: 2402e6,
@@ -625,6 +626,7 @@ pub static BLETRACKER: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(2e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: TrackerSetting::schema,

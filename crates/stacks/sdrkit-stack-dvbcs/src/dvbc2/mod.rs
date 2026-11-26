@@ -169,6 +169,7 @@ pub static DVBC2: sdrkit_core::StackDescriptor = sdrkit_core::StackDescriptor {
     group: "TV",
     blurb: "Second-generation cable TV (DVB-C2, ETSI EN 302 769): one PLP with its common PLP put back into its transport stream, or a PLP bundled over several slices, 16- to 4096-QAM, transport stream, GSE, GFPS or GCS.",
     tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 47e6,
         max_hz: 1002e6,
         radio_filter_hz: Some(8e6),

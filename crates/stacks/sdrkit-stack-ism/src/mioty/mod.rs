@@ -995,7 +995,10 @@ pub static MIOTY: StackDescriptor = StackDescriptor {
     name: "mioty",
     group: "IoT, 868 / 902 MHz",
     blurb: "mioty (TS-UNB) uplinks: the radio bursts of each frame found by their TSMA pattern, the frame decoded and checked, and the MAC fields shown; payloads stay encrypted.",
-    tuning: Tuning::anywhere(TEST_DIAL_HZ, 1e6, MIN_RATE_HZ, 150e3),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(TEST_DIAL_HZ, 1e6, MIN_RATE_HZ, 150e3)
+    },
     submodes: &[],
     settings: MiotySetting::schema,
     make_receiver,

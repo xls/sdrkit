@@ -78,9 +78,10 @@ impl BandLevel {
         }
     }
 
-    /// The mean power since the last call, dBFS; `None` before any sample.
+    /// The mean power since the last call, dBFS; `None` before any sample, and for digital silence, whose level has no
+    /// value in dB.
     fn take_dbfs(&mut self) -> Option<f64> {
-        let v = (self.n > 0).then(|| sdrkit_algo_dsp::meter::power_to_db(self.sum / self.n as f64));
+        let v = (self.n > 0 && self.sum > 0.0).then(|| sdrkit_algo_dsp::meter::power_to_db(self.sum / self.n as f64));
         self.sum = 0.0;
         self.n = 0;
         v

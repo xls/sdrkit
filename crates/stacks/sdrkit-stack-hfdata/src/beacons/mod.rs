@@ -215,6 +215,7 @@ pub static HFBEACONS: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb: "Propagation monitor: the NCDXF/IARU beacons, the Long Dashes and the single-letter beacons heard in a wide HF capture.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         no_offset_tuning: true,
         ..Tuning::anywhere(14.5e6, 10e6, 250e3, 8e6)
     },

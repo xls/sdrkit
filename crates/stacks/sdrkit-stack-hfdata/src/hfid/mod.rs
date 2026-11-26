@@ -482,6 +482,7 @@ pub static HFID: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb: "Identification only: measures an HF data signal's physical layer and ranks the waveforms it could be (estimates).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         tune_offset_hz: 20e3,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(4.625e6, 2e6, 250e3, 6e3)

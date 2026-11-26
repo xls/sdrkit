@@ -683,6 +683,7 @@ pub static LRIT: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "FengYun-4A and 4B LRIT on 1697 MHz (DVB-S2): AGRI channel pictures and messages.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1697.0e6, 2e6, 250e3, 0.3e6)
@@ -705,6 +706,7 @@ pub static HRIT: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "FengYun-4A HRIT on 1679 MHz (DVB-S2, 1 Msym/s): AGRI channel pictures.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1679.0e6, 4e6, 1.5e6, 1.5e6)

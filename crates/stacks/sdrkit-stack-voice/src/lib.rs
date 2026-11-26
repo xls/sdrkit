@@ -52,6 +52,7 @@ const fn tuning(min_hz: f64, max_hz: f64, default_hz: f64, bandwidth_hz: f64) ->
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     }
 }
 
@@ -70,7 +71,11 @@ pub static HFPACKET: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb:
         "AX.25 frames of amateur packet radio on HF: 300 Bd AFSK with a 200 Hz shift on a sideband.",
-    tuning: tuning(1.5e6, 30e6, 0.0, 4e3),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..tuning(1.5e6, 30e6, 0.0, 4e3)
+    },
     submodes: &[],
     settings: hfpacket::PacketSetting::schema,
     make_receiver: make_hfpacket,
@@ -97,6 +102,8 @@ pub static ELT121: StackDescriptor = StackDescriptor {
     group: "Navigation",
     blurb: "Detects the swept tone of an analogue emergency locator transmitter on 121.5 MHz. Detection only: the beacon sends no identity.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 8.33e3)),
         carrier_at_centre: true,
         // ICAO Annex 10 fixes the aeronautical emergency channel at 121.5 MHz worldwide.
         ..tuning(121.0e6, 122.0e6, 121.5e6, 12e3)
@@ -126,7 +133,11 @@ pub static VOICE_INVERSION: StackDescriptor = StackDescriptor {
     name: "Voice inversion scrambler",
     group: "Listening",
     blurb: "Detects speech with an inverted spectrum on a narrow-FM channel, estimates the inversion carrier and descrambles it.",
-    tuning: tuning(1.5e6, 500e6, 0.0, 12e3),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
+        ..tuning(1.5e6, 500e6, 0.0, 12e3)
+    },
     submodes: &[],
     settings: inversion::InversionSetting::schema,
     make_receiver: make_inversion,
@@ -171,6 +182,8 @@ pub static VOICE_CHANNELS: StackDescriptor = StackDescriptor {
     group: "Listening",
     blurb: "Every voice carrier inside the capture at once: CB, FRS / GMRS, PMR446, amateur FM repeaters and HF voice, with tones, a call log and a scan. A plan file that the host loads names the channels.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         min_hz: 2.8e6,
         max_hz: 480e6,
         default_hz: 0.0,
@@ -188,26 +201,31 @@ pub static VOICE_CHANNELS: StackDescriptor = StackDescriptor {
             id: "cb",
             name: "CB radio",
             default_hz: 0.0,
+            demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 8e3)),
         },
         SubMode {
             id: "frs",
             name: "FRS / GMRS",
             default_hz: 0.0,
+            demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         },
         SubMode {
             id: "pmr446",
             name: "PMR446 analog",
             default_hz: 0.0,
+            demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         },
         SubMode {
             id: "ham_repeaters",
             name: "Ham FM repeaters",
             default_hz: 0.0,
+            demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 16e3)),
         },
         SubMode {
             id: "hfvoice",
             name: "HFGCS / HF voice",
             default_hz: 0.0,
+            demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         },
     ],
     settings: channels::VoiceSetting::schema,
@@ -242,6 +260,8 @@ pub static MDC1200: StackDescriptor = StackDescriptor {
     group: "Trunking",
     blurb: "The 1200 bit/s signalling bursts on analogue FM voice channels: every FM carrier inside the capture is followed, and the unit id of each burst is listed with the calls.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         min_hz: 30e6,
         max_hz: 960e6,
         default_hz: 0.0,
@@ -283,6 +303,8 @@ pub static FLEETSYNC: StackDescriptor = StackDescriptor {
     group: "Trunking",
     blurb: "The signalling bursts of FleetSync radios on analogue FM voice channels: every FM carrier inside the capture is followed, and the fleet and unit of each burst are listed with the calls. An identity reader: the other bits are shown raw.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         min_hz: 30e6,
         max_hz: 960e6,
         default_hz: 0.0,
@@ -328,6 +350,7 @@ pub static WMIC: StackDescriptor = StackDescriptor {
     group: "Listening",
     blurb: "Wide FM carriers of wireless microphones and in-ear monitors: the width and the deviation of each one, whether it looks like analogue FM, and the audio of one. A plan file that the host loads names the bands.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 470e6,
         max_hz: 960e6,
         default_hz: 0.0,
@@ -339,6 +362,7 @@ pub static WMIC: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: wmic::WmicSetting::schema,

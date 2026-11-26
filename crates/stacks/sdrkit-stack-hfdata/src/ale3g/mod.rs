@@ -136,7 +136,11 @@ pub static ALE3G: StackDescriptor = StackDescriptor {
     name: "3G-ALE",
     group: "HF utility",
     blurb: "Third-generation ALE bursts: link setup (BW0), traffic management, HDL and LDL packets and acknowledgements (BW1 to BW4), with the datagrams rebuilt.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

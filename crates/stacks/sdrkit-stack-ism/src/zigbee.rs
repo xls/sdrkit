@@ -2188,7 +2188,7 @@ pub static ZIGBEE: StackDescriptor = StackDescriptor {
     name: "Zigbee / 802.15.4",
     group: "IoT, 2.4 GHz",
     blurb: "IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured MAC frames opened with the keys of the setting `keys`, else shown as encrypted.",
-    tuning: Tuning { min_hz: 2405e6, max_hz: 2480e6, tune_offset_hz: 1e6, ..Tuning::anywhere(2405e6, 4e6, 4e6, 2e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 2405e6, max_hz: 2480e6, tune_offset_hz: 1e6, ..Tuning::anywhere(2405e6, 4e6, 4e6, 2e6) },
     submodes: &[],
     settings: ZigbeeSetting::schema,
     make_receiver,

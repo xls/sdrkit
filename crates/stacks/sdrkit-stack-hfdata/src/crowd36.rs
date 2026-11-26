@@ -865,7 +865,11 @@ pub static CROWD36: StackDescriptor = StackDescriptor {
     name: "CROWD36",
     group: "HF utility",
     blurb: "CROWD36 34-tone MFSK at 40 Bd: the tones found anywhere in the channel, the sync tones, the characters of the letters and figures cases. Not deciphered.",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

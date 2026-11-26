@@ -142,6 +142,8 @@ pub static RPR: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb: "Robust Packet physical layer: the eight-carrier comb, the bursts, D-BPSK or D-QPSK and the phase steps (the coding is not public; no frames).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: 20e3,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(10.1473e6, 2e6, 250e3, 4e3)

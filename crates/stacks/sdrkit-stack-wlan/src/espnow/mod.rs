@@ -221,6 +221,7 @@ pub static ESPNOW: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "ESP-NOW frames of Espressif devices on a 2.4 GHz Wi-Fi channel: senders, peers, payloads and encrypted frames.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2400e6,
         max_hz: 2500e6,
         default_hz: 2412e6,
@@ -232,6 +233,7 @@ pub static ESPNOW: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(20e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: EspnowSetting::schema,

@@ -1294,6 +1294,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "One wide L-band capture: every Inmarsat carrier found, classified and decoded at once (Aero P, Inmarsat-C), and the satellite identified. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 1525e6,
         max_hz: 1559e6,
         default_hz: 1545.57e6,
@@ -1305,6 +1306,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(5e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: schema,

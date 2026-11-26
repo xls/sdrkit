@@ -342,7 +342,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     name: "TV (auto)",
     group: "TV",
     blurb: "Finds out which TV standard the channel carries (DVB-T, DVB-T2, DVB-C, DVB-S/S2, ISDB-T, ATSC 1.0 / 3.0, DTMB, analogue) and its parameters, then switches the right stack on",
-    tuning: Tuning { min_hz: 40e6, max_hz: 2.2e9, ..Tuning::anywhere(474e6, 10e6, 2e6, 8e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 40e6, max_hz: 2.2e9, ..Tuning::anywhere(474e6, 10e6, 2e6, 8e6) },
     submodes: &[],
     settings: AutoSetting::schema,
     make_receiver,

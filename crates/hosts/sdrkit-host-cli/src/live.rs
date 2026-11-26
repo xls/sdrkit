@@ -321,12 +321,15 @@ pub struct Watch {
     pub seconds: Option<f64>,
     /// Where the sound goes.
     pub sound: SoundTo,
-    /// Also stop when the radio's stream ends (a recording played to its end).
+    /// The source is a recording: the loop ends when the session ends at the end of the recording, and the status says
+    /// how fast the stack plays it.
     pub to_the_end: bool,
     /// Print every changed field and table row. Without it, only the status line, the log and the console output.
     pub verbose: bool,
     /// The audio that the session gets as its microphone while it asks for host audio.
     pub tx_audio: Option<Arc<crate::txaudio::TxAudio>>,
+    /// The folder that the pictures of the stack are saved in, and the seconds of signal between two saved video frames.
+    pub pictures: Option<(PathBuf, f64)>,
 }
 
 /// What the live loop remembers between two reads of the session: the change counters it printed.
@@ -348,6 +351,8 @@ struct Changes {
     lines: Vec<String>,
     json: Vec<serde_json::Value>,
     state: Option<SessionState>,
+    /// The samples that the session took.
+    samples: u64,
 }
 
 /// Reads what changed in the session's results since `seen`, as text lines or JSON values.
@@ -365,6 +370,7 @@ fn changes(o: &dyn Owner, seen: &mut Seen, json: bool, verbose: bool, now: f64) 
         let _ = write!(status, "  offset {}", text::hz(v));
     }
     let samples = r.fields().get(&SAMPLES).unwrap_or(0);
+    let taken = u64::try_from(samples).unwrap_or(0);
     let dropped = r.fields().get(&DROPPED).unwrap_or(0);
     let _ = write!(status, "  samples {samples}  lost {dropped}");
     if !st.summary.is_empty() {
@@ -376,6 +382,7 @@ fn changes(o: &dyn Owner, seen: &mut Seen, json: bool, verbose: bool, now: f64) 
         lines: Vec::new(),
         json: Vec::new(),
         state: r.fields().get(&STATE),
+        samples: taken,
     };
     if r.change_counter() == seen.results {
         return c;
@@ -467,22 +474,25 @@ fn changes(o: &dyn Owner, seen: &mut Seen, json: bool, verbose: bool, now: f64) 
     c
 }
 
-/// The radio's stream ended: its link field holds the choice `stopped`.
-fn radio_ended(engine: &Engine, live: &Live) -> bool {
-    let Some(r) = live.radio else { return false };
+/// The rate of the samples of radio `r`, 0 if it has none.
+fn radio_rate(engine: &Engine, r: sdrkit_host_engine::RadioId) -> f64 {
     engine
         .owner(OwnerRef::Radio(r), |o| {
-            let res = o.results();
-            let id = res.decl().field_id("state")?;
-            let d = res.decl().fields().field(id)?;
-            match res.fields().value(id)? {
-                Value::Choice(i) => d.choices.get(usize::from(*i)).map(|c| c.key == "stopped"),
-                _ => None,
-            }
+            o.results().fields().get(&sdrkit_driver_core::RATE_GIVEN)
         })
         .ok()
         .flatten()
-        .unwrap_or(false)
+        .unwrap_or(0.0)
+}
+
+/// How fast a stack plays a recording: `samples` at `rate_hz` taken in `elapsed_s`. `None` near real time, and in the
+/// first two seconds.
+fn speed_note(samples: u64, rate_hz: f64, elapsed_s: f64) -> Option<String> {
+    if rate_hz <= 0.0 || elapsed_s < 2.0 {
+        return None;
+    }
+    let x = samples as f64 / rate_hz / elapsed_s;
+    ((x - 1.0).abs() > 0.05).then(|| format!("the stack runs at {x:.1} times real time on this file"))
 }
 
 /// The words of a console line: split at white space, except inside double quotes, which are removed
@@ -571,7 +581,15 @@ pub fn watch(
     let mut sound_file: Option<String> = None;
     let mut buf = vec![0.0f32; 1 << 14];
     let session = OwnerRef::Session(live.session);
-    let mut ran = false;
+    let mut saver = w
+        .pictures
+        .as_ref()
+        .map(|(folder, every)| {
+            crate::pictures::SavePictures::new(folder.clone(), *every, live.stack.unwrap_or("graph"))
+        })
+        .transpose()?;
+    let rate = live.radio.map_or(0.0, |r| radio_rate(engine, r));
+    let mut started: Option<Instant> = None;
     // Stops when the loop ends.
     let _feeder = w
         .tx_audio
@@ -600,6 +618,9 @@ pub fn watch(
             out.json(v)?;
         }
         reflect::print_events(engine, session, "session", out)?;
+        if let Some(s) = saver.as_mut() {
+            s.pump(engine, live.session, out)?;
+        }
         if let Some(p) = sound.pump(engine, live.session, &mut buf)? {
             let note = format!("the sound changed its format: now {}", p.display());
             if json {
@@ -607,10 +628,16 @@ pub fn watch(
             }
             sound_file = Some(note);
         }
-        let status = match &sound_file {
+        let mut status = match &sound_file {
             Some(note) => format!("{}  ({note})", c.status),
             None => c.status,
         };
+        if w.to_the_end && c.samples > 0 {
+            let t0 = *started.get_or_insert_with(Instant::now);
+            if let Some(note) = speed_note(c.samples, rate, t0.elapsed().as_secs_f64()) {
+                let _ = write!(status, "  {note}");
+            }
+        }
         if status != seen.status {
             if json {
                 out.json(&c.status_json)?;
@@ -619,10 +646,25 @@ pub fn watch(
             }
             seen.status = status;
         }
-        ran |= c.state == Some(SessionState::Running);
         let over = w.seconds.is_some_and(|s| t0.elapsed().as_secs_f64() >= s);
-        let ended = matches!(c.state, Some(SessionState::Failed | SessionState::Stopped))
-            || (ran && w.to_the_end && radio_ended(engine, live));
+        // At the end of a recording the session ends by itself once its stack has taken every sample.
+        let ended = matches!(c.state, Some(SessionState::Failed | SessionState::Stopped));
+        if ended {
+            // The last events and pictures reach the host after one more pass of the engine.
+            engine.settle(Duration::from_secs(5));
+            let c = engine.owner(session, |o| changes(o, &mut seen, json, w.verbose, now))?;
+            for l in &c.lines {
+                out.line(l)?;
+            }
+            for v in &c.json {
+                out.json(v)?;
+            }
+            reflect::print_events(engine, session, "session", out)?;
+            if let Some(s) = saver.as_mut() {
+                s.pump(engine, live.session, out)?;
+            }
+            sound.pump(engine, live.session, &mut buf)?;
+        }
         if over || ended || stop() {
             break;
         }
@@ -630,6 +672,47 @@ pub fn watch(
     }
     out.done()?;
     sound.finish()
+}
+
+/// Waits until the record service has no recording that runs, then prints the line that ended the last one: its length
+/// and the samples that were missing. A recording runs until it holds its seconds of samples, however long the stack
+/// takes for them.
+///
+/// # Errors
+///
+/// What the engine returns.
+pub fn wait_recording(engine: &Engine, stop: &dyn Fn() -> bool, out: &mut Out) -> Result<(), CliError> {
+    let service = engine.find("service.record")?;
+    let running = |o: &mut dyn Owner| {
+        let r = o.results();
+        r.decl()
+            .table_id("running")
+            .and_then(|id| r.table(id))
+            .map_or(0, |t| t.rows_newest_first().count())
+    };
+    let t0 = Instant::now();
+    let mut seen = false;
+    loop {
+        let n = engine.owner(service, running)?;
+        seen |= n > 0;
+        if n == 0 && (seen || t0.elapsed() > Duration::from_secs(5)) || stop() {
+            break;
+        }
+        std::thread::sleep(TICK);
+    }
+    engine.settle(Duration::from_secs(5));
+    let line = engine.owner(service, |o| {
+        o.results()
+            .log_lines()
+            .iter()
+            .rev()
+            .find(|l| l.starts_with("recorded "))
+            .cloned()
+    })?;
+    if let Some(l) = line {
+        out.note(&l)?;
+    }
+    Ok(())
 }
 
 /// Turns on the session's spectrum and draws each frame as one line of a waterfall, `width` characters wide, until

@@ -828,6 +828,7 @@ const fn sub(id: &'static str, name: &'static str) -> SubMode {
         id,
         name,
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     }
 }
 
@@ -837,7 +838,10 @@ pub static FSK_MODEMS: StackDescriptor = StackDescriptor {
     name: "Telephone FSK modems",
     group: "HF utility",
     blurb: "Bell 103, V.21, V.23 mode 2 and Bell 202 bursts heard in an SSB channel: the standard, sideband and dial error found, the bytes of each burst (CHU's time code as bytes).",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[
         sub("auto", "Find it"),
         sub("bell103_orig", "Bell 103 originate"),

@@ -159,7 +159,10 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     name: "AeroMACS",
     group: "Aviation",
     blurb: "Structure only: AeroMACS 5 MHz OFDM found by its cyclic prefix, with the carrier offset and the bursts of the 5 ms frame; nothing is decoded.",
-    tuning: Tuning::anywhere(TEST_SIGNAL_HZ, 5.6e6, MIN_RATE_HZ, 5e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(TEST_SIGNAL_HZ, 5.6e6, MIN_RATE_HZ, 5e6)
+    },
     submodes: &[],
     settings: AeromacsSetting::schema,
     make_receiver,

@@ -12,7 +12,7 @@
 
 use sdrkit_algo_dsp::approx;
 use sdrkit_algo_dsp::fft::Fft;
-use sdrkit_algo_fec::conv::{codes, depuncture_frame, puncture, Encoder, Ends, Puncture, Viterbi};
+use sdrkit_algo_fec::conv::{codes, puncture, Encoder, Ends, Puncture, Viterbi};
 use sdrkit_algo_fec::llr::Quantizer;
 use sdrkit_algo_modem::constellation::{Constellation, Demap};
 use sdrkit_algo_modem::ofdm::ieee80211_pilot_polarity;
@@ -584,7 +584,6 @@ pub struct HtDecoder {
     r6: Permutation,
     llr: Vec<f32>,
     scratch: Vec<f32>,
-    sent: Vec<i8>,
     llr8: Vec<i8>,
     bits: Vec<u8>,
     psdu: Vec<u8>,
@@ -640,7 +639,6 @@ impl HtDecoder {
             r6: Rate::R6.interleaver(),
             llr: Vec::with_capacity(2 * steps),
             scratch: vec![0.0; 8 * N_SD],
-            sent: Vec::with_capacity(2 * steps),
             llr8: Vec::with_capacity(2 * steps),
             bits: Vec::with_capacity(steps),
             psdu: Vec::with_capacity(max_psdu),
@@ -805,7 +803,7 @@ impl HtDecoder {
     }
 
     /// Decodes the HT data field into `self.psdu`: the scrambler seed, the pilot pattern and the SNR of the data cells.
-    fn data(&mut self, v: &PpduView<'_>, sig: HtSig) -> Result<(u8, PilotPattern, f64), DataFail> {
+    pub(crate) fn data(&mut self, v: &PpduView<'_>, sig: HtSig) -> Result<(u8, PilotPattern, f64), DataFail> {
         let mcs = Mcs(sig.mcs);
         let length = usize::from(sig.length);
         self.data_field(
@@ -968,17 +966,12 @@ impl HtDecoder {
         }
         self.llr8.clear();
         self.llr8.resize(2 * steps, 0);
+        let q = Quantizer::default();
+        let scale = q.scale_for(&self.llr[..sent]);
         if sent == 2 * steps {
-            Quantizer::default()
-                .quantize_auto(&self.llr[..sent], &mut self.llr8)
-                .ok()?;
+            q.quantize(&self.llr[..sent], scale, &mut self.llr8).ok()?;
         } else {
-            self.sent.clear();
-            self.sent.resize(sent, 0);
-            Quantizer::default()
-                .quantize_auto(&self.llr[..sent], &mut self.sent)
-                .ok()?;
-            depuncture_frame(&p, 0, &self.sent, &mut self.llr8).ok()?;
+            quantize_depunctured(&p, &self.llr[..sent], scale, q.limit, &mut self.llr8)?;
         }
         self.bits.clear();
         self.bits.resize(steps - TAIL_BITS, 0);
@@ -1006,6 +999,46 @@ impl HtDecoder {
     }
 }
 
+/// Quantises the punctured LLRs `llr` as [`Quantizer::quantize`] does with `scale` and `limit` and writes them depunctured
+/// into `out` (phase 0, 0 in the removed places), in one pass: the values of `quantize` then `depuncture_frame`. `None` for a
+/// NaN, a bad scale or a length that does not fit.
+fn quantize_depunctured(p: &Puncture<'_>, llr: &[f32], scale: f32, limit: i8, out: &mut [i8]) -> Option<()> {
+    let (period, kept) = (p.period(), p.kept());
+    let mut places = [0usize; 16];
+    if kept > places.len() || !(scale.is_finite() && scale >= 0.0) || !(1..=127).contains(&limit) {
+        return None;
+    }
+    if p.punctured_len(0, out.len()) != llr.len() {
+        return None;
+    }
+    for (place, j) in places.iter_mut().zip((0..period).filter(|&j| p.keep()[j] == 1)) {
+        *place = j;
+    }
+    let places = &places[..kept];
+    let lim = i32::from(limit);
+    // `as i32` maps NaN to 0 and saturates, as in the quantiser.
+    let one = |v: f32| ((v * scale).round() as i32).clamp(-lim, lim) as i8;
+    let mut nan = false;
+    let whole = out.len() / period;
+    for (o, v) in out.chunks_exact_mut(period).zip(llr.chunks_exact(kept)) {
+        o.fill(0);
+        for (&j, &x) in places.iter().zip(v) {
+            o[j] = one(x);
+            nan |= x.is_nan();
+        }
+    }
+    let mut rest = llr[whole * kept..].iter();
+    for (j, o) in out[whole * period..].iter_mut().enumerate() {
+        *o = 0;
+        if p.keep()[j] == 1 {
+            let x = *rest.next()?;
+            *o = one(x);
+            nan |= x.is_nan();
+        }
+    }
+    (!nan).then_some(())
+}
+
 impl std::fmt::Debug for HtDecoder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("HtDecoder").finish()
@@ -1030,6 +1063,48 @@ mod tests {
         let mut b = s.bits();
         b[10] ^= 1;
         assert_eq!(HtSig::from_bits(&b), Err(HtSigError::Crc));
+    }
+
+    #[test]
+    fn quantising_and_depuncturing_in_one_pass_gives_the_values_of_the_two_steps() {
+        let mut seed = 3u32;
+        for p in [codes::WIFI_2_3, codes::WIFI_3_4, codes::WIFI_5_6] {
+            for steps in [1usize, 7, 26, 260, 1001] {
+                let out_len = 2 * steps;
+                let sent = p.punctured_len(0, out_len);
+                let llr: Vec<f32> = (0..sent)
+                    .map(|i| {
+                        seed = seed.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
+                        let v = ((seed >> 8) as f32 / 16_777_216.0 - 0.5) * 40.0;
+                        // Zeros, a huge value and an exact half step test the edges of the rounding and the clamp.
+                        match i % 97 {
+                            3 => 0.0,
+                            5 => 1e30,
+                            _ => v,
+                        }
+                    })
+                    .collect();
+                let q = Quantizer::default();
+                let mut plain_sent = vec![0i8; sent];
+                let s = q.quantize_auto(&llr, &mut plain_sent).unwrap();
+                let mut plain = vec![0i8; out_len];
+                sdrkit_algo_fec::conv::depuncture_frame(&p, 0, &plain_sent, &mut plain).unwrap();
+                let mut fused = vec![9i8; out_len];
+                quantize_depunctured(&p, &llr, s, q.limit, &mut fused).unwrap();
+                assert_eq!(fused, plain, "{} steps", steps);
+                let half = [0.5 / s, -0.5 / s, 1.5 / s];
+                let mut short = llr.clone();
+                short[..half.len().min(sent)].copy_from_slice(&half[..half.len().min(sent)]);
+                q.quantize(&short, s, &mut plain_sent).unwrap();
+                sdrkit_algo_fec::conv::depuncture_frame(&p, 0, &plain_sent, &mut plain).unwrap();
+                quantize_depunctured(&p, &short, s, q.limit, &mut fused).unwrap();
+                assert_eq!(fused, plain);
+            }
+            let mut out = vec![0i8; 8];
+            let nan = vec![f32::NAN; p.punctured_len(0, 8)];
+            assert!(quantize_depunctured(&p, &nan, 1.0, 127, &mut out).is_none());
+            assert!(quantize_depunctured(&p, &nan[1..], 1.0, 127, &mut out).is_none());
+        }
     }
 
     #[test]

@@ -1286,7 +1286,7 @@ pub static DECT: StackDescriptor = StackDescriptor {
     name: "DECT cordless phones",
     group: "Digital voice",
     blurb: "DECT base stations: their identities (RFPI), slots and broadcast system information; no call content is decoded.",
-    tuning: Tuning { min_hz: 900e6, max_hz: 1930e6, tune_offset_hz: 1e6, ..Tuning::anywhere(1897.344e6, 5e6, 4.608e6, 1.728e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 900e6, max_hz: 1930e6, tune_offset_hz: 1e6, ..Tuning::anywhere(1897.344e6, 5e6, 4.608e6, 1.728e6) },
     submodes: &[],
     settings: DectSetting::schema,
     make_receiver,

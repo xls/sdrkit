@@ -690,7 +690,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     name: "FY-2 S-VISSR",
     group: crate::GROUP,
     blurb: "FengYun-2 stretched VISSR on 1687.5 MHz: full-disk infrared and visible pictures, line by line.",
-    tuning: Tuning { min_hz: 1670e6, max_hz: 1710e6, ..Tuning::anywhere(1687.5e6, 2.4e6, 1.0e6, 1.0e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 1670e6, max_hz: 1710e6, ..Tuning::anywhere(1687.5e6, 2.4e6, 1.0e6, 1.0e6) },
     submodes: &[],
     settings: Fy2Setting::schema,
     make_receiver,

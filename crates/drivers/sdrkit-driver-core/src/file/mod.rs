@@ -201,6 +201,8 @@ impl Source for FileSource {
                 path: data.clone(),
                 source,
             })?;
+        // A start after a stop plays again from the beginning.
+        self.stop = Arc::new(AtomicBool::new(false));
         let (info, pacing, looping, stop) = (
             self.info.clone(),
             self.pacing,
@@ -358,6 +360,20 @@ mod tests {
             .all(|(i, c)| *c == Complex32::new((i % 100) as f32 / 128.0, -0.5)));
         assert_eq!(r.stats().dropped(), 0);
         src.stop();
+    }
+
+    #[test]
+    fn a_start_after_a_stop_plays_the_file_again() {
+        let bytes: Vec<u8> = (0..5_000u32).flat_map(|i| [(i % 100) as u8, 0]).collect();
+        let d = driver(&[("rec/t_1Msps.cs8", &bytes)]);
+        let v = values(&d, &[("benchmark", Value::Bool(true))]);
+        let mut src = d.open("rec/t_1Msps.cs8", &v).unwrap();
+        for _ in 0..2 {
+            let (w, mut r) = ring(1 << 14, SampleType::Cs8);
+            src.start(w).unwrap();
+            assert_eq!(drain(&mut r, Duration::from_secs(5)).len(), 5_000);
+            src.stop();
+        }
     }
 
     #[test]

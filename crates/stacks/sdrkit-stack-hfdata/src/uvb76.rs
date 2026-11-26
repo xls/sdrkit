@@ -598,7 +598,11 @@ pub static UVB76: StackDescriptor = StackDescriptor {
     name: "UVB-76 buzzer monitor",
     group: "HF utility",
     blurb: "Times the buzz train of the UVB-76 AM station: buzz rate, length, period and spread; train breaks and long transmissions. A monitor: no voice is decoded.",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

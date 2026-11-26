@@ -685,6 +685,7 @@ pub static PICTURE_BURST: StackDescriptor = StackDescriptor {
     blurb: "One picture up to 1920 x 1080 in a burst of 10 s at 158 ksymbols a second, in up to 8 layers from robust to \
             fast; the stack shows the picture that the good layers give. Receive and transmit.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6000e6,
         ..Tuning::anywhere(433.0e6, 1.0e6, MIN_RATE, 200e3)

@@ -425,10 +425,10 @@ impl Recording {
         }
     }
 
-    /// Writes the block `b` and the audio of `out` to the recording. `squelch` is the receiver's
-    /// [`SQUELCH_OPEN`](keys::SQUELCH_OPEN): the audio recorder's gate reads it. A transport stream recording reads the
-    /// media packets of [`StreamKind::MpegTs`] in `out`.
-    fn take(&mut self, b: &Block, out: &Output, squelch: bool) {
+    /// Writes the block `b`, before which the session lost `lost` samples, and the audio of `out` to the recording.
+    /// `squelch` is the receiver's [`SQUELCH_OPEN`](keys::SQUELCH_OPEN): the audio recorder's gate reads it. A transport
+    /// stream recording reads the media packets of [`StreamKind::MpegTs`] in `out`.
+    fn take(&mut self, b: &Block, lost: u64, out: &Output, squelch: bool) {
         let input = (b.rate_hz, b.centre_hz);
         let iq = b.samples();
         match &mut self.feed {
@@ -441,7 +441,16 @@ impl Recording {
                 if self.input != input {
                     f.set_format(b.rate_hz, b.centre_hz);
                 }
-                f.push(iq);
+                // The samples lost before the block and at the places the driver marked go into the file as gaps.
+                f.gap(lost);
+                let mut from = 0;
+                for g in b.gaps().iter().filter(|g| !g.deliberate) {
+                    let at = g.at.clamp(from, iq.len());
+                    f.push(&iq[from..at]);
+                    f.gap(g.lost);
+                    from = at;
+                }
+                f.push(&iq[from..]);
             }
             RecordFeed::Rewind(f) if !iq.is_empty() => {
                 if self.input.0 != b.rate_hz {
@@ -547,6 +556,8 @@ pub(crate) struct Run {
     place: Placement,
     /// The samples that the session had lost when the last block was fed.
     dropped_seen: u64,
+    /// The samples that the session lost just before the last block it fed.
+    lost_before: u64,
 }
 
 impl Run {
@@ -771,6 +782,7 @@ impl Run {
         }
         let dropped = dropped.max(self.dropped_seen);
         let lost = dropped - std::mem::replace(&mut self.dropped_seen, dropped);
+        self.lost_before = lost;
         // A gap that the source made on purpose (a retune, a step of a hop) is told to the stack, and is no loss.
         let gaps: u64 = b
             .gaps()
@@ -800,8 +812,9 @@ impl Run {
             .fields()
             .get(&keys::SQUELCH_OPEN)
             .unwrap_or(true);
+        let lost = std::mem::take(&mut self.lost_before);
         for r in &mut self.records {
-            r.take(b, out, squelch);
+            r.take(b, lost, out, squelch);
         }
         self.records.retain(|r| !r.ended());
     }
@@ -1274,6 +1287,7 @@ impl Session {
             acks: Vec::new(),
             place: Placement::new(cores),
             dropped_seen: 0,
+            lost_before: 0,
         };
         // The host reads the receiver before the thread starts.
         let front = Mutex::default();

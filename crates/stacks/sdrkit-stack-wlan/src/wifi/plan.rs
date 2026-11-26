@@ -208,10 +208,16 @@ pub fn channels_in_capture(band: Band, c_mhz: f64, rate: f64) -> Vec<u32> {
         .collect()
 }
 
-/// The hop list of a band: the channels of `channels` that are valid in the band, or every channel of the band when
-/// `channels` is empty; on 6 GHz only the preferred scanning channels when `psc_only` is set.
+/// The 2.4 GHz channels that every region permits.
+pub const WORLDWIDE_24: std::ops::RangeInclusive<u32> = 1..=11;
+
+/// The hop list of a band: the channels of `channels` that are valid in the band, or, when `channels` is empty, every channel
+/// of the band (on 2.4 GHz the channels of [`WORLDWIDE_24`]); on 6 GHz only the preferred scanning channels when `psc_only`
+/// is set.
 pub fn hop_list(band: Band, channels: &[u32], psc_only: bool) -> Vec<u32> {
-    let listed: Vec<u32> = if channels.is_empty() {
+    let listed: Vec<u32> = if channels.is_empty() && band == Band::G2 {
+        WORLDWIDE_24.collect()
+    } else if channels.is_empty() {
         all_channels(band)
     } else {
         channels

@@ -678,6 +678,7 @@ const fn sub(id: &'static str, name: &'static str) -> SubMode {
         id,
         name,
         default_hz: TEST_SIGNAL_HZ,
+        ..SubMode::DEFAULT
     }
 }
 
@@ -687,7 +688,10 @@ pub static CIS_HF: StackDescriptor = StackDescriptor {
     name: "CIS HF data signals",
     group: "HF utility",
     blurb: "CIS HF signals: BEE messages (2-FSK) as hex, CIS-14 frames raw, the CIS-12 phase steps; CIS-36, the CIS OFDM signals, CIS-128 and CIS-3000 identified only.",
-    tuning: crate::ms110::hf_tuning(TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..crate::ms110::hf_tuning(TEST_SIGNAL_HZ)
+    },
     submodes: &[
         sub("bee", "CIS-36-50 / CIS-50-50 (BEE)"),
         sub("cis14", "CIS-14"),

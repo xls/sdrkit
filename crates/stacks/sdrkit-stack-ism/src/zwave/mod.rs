@@ -1731,7 +1731,7 @@ pub static ZWAVE: StackDescriptor = StackDescriptor {
     name: "Z-Wave",
     group: "IoT, sub-GHz",
     blurb: "Z-Wave home automation (ITU-T G.9959, R1 R2 R3): networks, nodes and commands; Security S0 and S2 payloads shown as encrypted.",
-    tuning: Tuning { min_hz: 860e6, max_hz: 930e6, no_offset_tuning: true, ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 1.8e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 860e6, max_hz: 930e6, no_offset_tuning: true, ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 1.8e6) },
     submodes: &[],
     settings: ZwaveSetting::schema,
     make_receiver,

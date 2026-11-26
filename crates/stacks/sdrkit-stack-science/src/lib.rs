@@ -63,6 +63,7 @@ pub static SONDE: StackDescriptor = StackDescriptor {
     group: "Science, time and utility",
     blurb: "Weather balloons: RS41, RS92, DFM, M10, M20 and LMS6 positions, heights, sensors and landing predictions.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 380e6,
         max_hz: 1700e6,
         default_hz: 403e6,
@@ -74,6 +75,7 @@ pub static SONDE: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(7e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: sonde::SondeSetting::schema,
@@ -94,6 +96,8 @@ pub static SAME: StackDescriptor = StackDescriptor {
     blurb:
         "Emergency and weather alerts (SAME headers) on the US and Canadian weather radio channels.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Nfm, 12.5e3)),
         min_hz: 162.400e6,
         max_hz: 162.550e6,
         default_hz: 0.0,
@@ -124,6 +128,7 @@ pub static ECZAS: StackDescriptor = StackDescriptor {
     group: "Science, time and utility",
     blurb: "The official Polish time from the phase keying of the 225 kHz long-wave carrier.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 0.2e6,
         max_hz: 0.25e6,
         default_hz: 225e3,
@@ -135,6 +140,7 @@ pub static ECZAS: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: eczas::EczasSetting::schema,
@@ -155,6 +161,7 @@ pub static MSCATTER: StackDescriptor = StackDescriptor {
     blurb:
         "Counts and measures meteor echoes of a CW beacon such as the GRAVES radar on 143.050 MHz.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 30e6,
         max_hz: 300e6,
         default_hz: 0.0,
@@ -166,6 +173,7 @@ pub static MSCATTER: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: mscatter::MscatterSetting::schema,
@@ -185,6 +193,8 @@ pub static TIME: StackDescriptor = StackDescriptor {
     group: "Science, time and utility",
     blurb: "The time and date from DCF77, MSF, WWVB, JJY, BPC, WWV/WWVH, BPM, HLA and RWM, compared with your clock.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 6e3)),
         min_hz: 0.03e6,
         max_hz: 30e6,
         // 77.5 kHz: the DCF77 carrier (PTB), the station of the test signal; the automatic station choice needs it.
@@ -216,6 +226,7 @@ pub static SSDV: StackDescriptor = StackDescriptor {
     group: "Science, time and utility",
     blurb: "Pictures from high-altitude balloons and small satellites sent as SSDV packets.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 30e6,
         max_hz: 1000e6,
         default_hz: 434.650e6,
@@ -227,6 +238,7 @@ pub static SSDV: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: ssdv::SsdvSetting::schema,
@@ -246,6 +258,7 @@ pub static ASTRO: StackDescriptor = StackDescriptor {
     group: "Science, time and utility",
     blurb: "The hydrogen line (and OH lines): long integrations, velocities, calibration, line fits and maps of the Milky Way.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 10e6,
         max_hz: 6000e6,
         default_hz: 1_420_405_751.0,
@@ -257,6 +270,7 @@ pub static ASTRO: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: astro::AstroSetting::schema,
@@ -276,6 +290,7 @@ pub static IONO: StackDescriptor = StackDescriptor {
     group: "Science, time and utility",
     blurb: "Chirp sounders: finds them, builds their ionograms and scales them (foE, foF2, MUF, path MUF) to tell which bands are open.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 40e6,
         default_hz: 10e6,
@@ -287,6 +302,7 @@ pub static IONO: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: iono::IonoSetting::schema,

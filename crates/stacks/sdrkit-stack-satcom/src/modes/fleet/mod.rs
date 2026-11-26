@@ -348,6 +348,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "The 16-channel 1200 Bd DBPSK multiplex of UHF Fleet Broadcast: carrier, clock, frame alignment and the activity of each channel. Nothing is decoded. Experimental: the sync channel's pattern is not public. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 240e6,
         max_hz: 270e6,
         default_hz: TEST_SIGNAL_HZ,
@@ -359,6 +360,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: FleetSetting::schema,

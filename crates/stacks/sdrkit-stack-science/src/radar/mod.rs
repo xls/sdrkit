@@ -757,6 +757,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Rotating pulse radars in S, C and X band: the rotation period, the pulse repetition frequency (single or dual), \
             the pulse width and the beamwidth from the beam passing; for weather radars, the sweeps and volume restarts.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2700e6,
         max_hz: 9600e6,
         default_hz: 3050e6,
@@ -768,17 +769,20 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[
         SubMode {
             id: MARINE,
             name: "Marine radar",
             default_hz: 3050e6,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: WEATHER,
             name: "Weather radar",
             default_hz: 5625e6,
+            ..SubMode::DEFAULT
         },
     ],
     settings: RadarSetting::schema,

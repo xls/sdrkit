@@ -74,6 +74,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Broadcast",
     blurb: "Digital radio ensembles: DAB+ and DAB audio with labels, slideshow, programme guide, Journaline and DMB video.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 174e6,
         max_hz: 1_492e6,
         default_hz: 0.0,
@@ -85,6 +86,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: DabSetting::schema,

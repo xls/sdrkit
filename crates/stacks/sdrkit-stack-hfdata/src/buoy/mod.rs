@@ -117,7 +117,10 @@ pub static WAVEBUOY: StackDescriptor = StackDescriptor {
     name: "Wave-buoy HF link (Datawell)",
     group: "HF utility",
     blurb: "Datawell wave buoys on HF: heave, north and west, the sea state and the wave spectrum from the 2FSK HXV link (receive only).",
-    tuning: Tuning::anywhere(30.475e6, 250e3, 24e3, 250e3),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(30.475e6, 250e3, 24e3, 250e3)
+    },
     submodes: &[],
     settings: BuoySetting::schema,
     make_receiver,

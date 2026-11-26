@@ -1092,6 +1092,7 @@ pub static RC_LINKS: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "2.4 GHz radio-control links from bursts anywhere in the capture: FrSky, FlySky, Futaba S-FHSS and Spektrum DSM transmitter ids and channel values. Hops are not followed.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         no_offset_tuning: true,
         ..Tuning::anywhere(generator::TEST_CENTRE_HZ, 8e6, MIN_RATE_HZ, 8e6)
     },

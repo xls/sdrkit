@@ -2234,6 +2234,7 @@ dependencies = [
  "ratatui",
  "sdrkit-algo-crypto",
  "sdrkit-algo-sim",
+ "sdrkit-codec-image",
  "sdrkit-core",
  "sdrkit-dev-test",
  "sdrkit-driver-core",

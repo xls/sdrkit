@@ -217,6 +217,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Broadcast radio",
     blurb: "Studio-to-transmitter links of broadcast stations: the sound and RDS of an analogue FM link; a digital link detected and measured, not decoded.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 100e6,
         max_hz: 6000e6,
         default_hz: 947.5e6,
@@ -228,6 +229,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: StlSetting::schema,

@@ -188,7 +188,11 @@ pub static S4285: StackDescriptor = StackDescriptor {
     name: "STANAG 4285",
     group: "HF utility",
     blurb: "2400 Bd frames of 256 symbols on 1800 Hz, 75 to 3600 bit/s: coded rates found by their start of message; text and STANAG 5066 D_PDUs.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

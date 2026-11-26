@@ -1185,7 +1185,7 @@ pub static FILE_TRANSFER: StackDescriptor = StackDescriptor {
     blurb: "One file over the air in frames of LDPC blocks, each with a CRC-32, and a hash of the whole file: 1 MHz, 500 kHz \
             or 200 kHz wide, ten profiles from BPSK rate 1/4 to 1024-QAM rate 9/10; one way in repeated passes or a two-way \
             session with acknowledged bursts and resume. Receive and transmit.",
-    tuning: Tuning { min_hz: 100e6, max_hz: 6000e6, ..Tuning::anywhere(1290e6, DEFAULT_RATE, MIN_RATE, 1.0e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Free), min_hz: 100e6, max_hz: 6000e6, ..Tuning::anywhere(1290e6, DEFAULT_RATE, MIN_RATE, 1.0e6) },
     submodes: &[],
     settings: schema,
     make_receiver,

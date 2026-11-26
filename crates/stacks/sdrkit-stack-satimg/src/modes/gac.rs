@@ -528,6 +528,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The recorder playback (GAC) of the NOAA KLM satellites at 2.66 Mbit/s: reduced AVHRR pictures and HIRS sounder lines.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1690e6,
         max_hz: 2255e6,
         // The default frequency is the one of the test signal. The host gives the frequency of a session.

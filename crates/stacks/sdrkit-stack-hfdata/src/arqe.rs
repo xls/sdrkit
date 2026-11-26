@@ -761,17 +761,23 @@ pub static ARQE: StackDescriptor = StackDescriptor {
     name: "ARQ-E / ARQ-N",
     group: "HF utility",
     blurb: "Duplex ARQ teleprinter on 2-FSK with 7-unit words: speed, shift, word alignment, polarity and the inversion cycle found; ITA2 text.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[
         SubMode {
             id: "arqe",
             name: "ARQ-E",
             default_hz: crate::ms110::TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "arqn",
             name: "ARQ-N",
             default_hz: crate::ms110::TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
     ],
     settings: schema,

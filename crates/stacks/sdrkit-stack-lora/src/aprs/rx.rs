@@ -90,12 +90,12 @@ pub struct FrontEnd {
     pub carrier_since: f64,
     /// Last time a carrier was present.
     pub carrier_last: f64,
-    /// Smoothed SNR, dB.
-    pub snr_db: f64,
+    /// Smoothed SNR, dB. `None` until a carrier was heard.
+    pub snr_db: Option<f64>,
     /// Smoothed carrier offset, Hz.
     pub offset_hz: f64,
-    /// Mean power of the whole input over the last report, dBFS.
-    pub level_db: f64,
+    /// Mean power of the whole input over the last report, dBFS. `None` until a report period had samples.
+    pub level_db: Option<f64>,
     lev_acc: f64,
     lev_n: u64,
     audio_res: Option<Resampler<f32>>,
@@ -103,6 +103,9 @@ pub struct FrontEnd {
     clip: f32,
     t: f64,
 }
+
+/// The lowest power that the carrier detector takes as its noise floor.
+const FLOOR_MIN: f64 = 1e-20;
 
 impl FrontEnd {
     /// A front end for input at `rate`.
@@ -153,9 +156,9 @@ impl FrontEnd {
             carrier: false,
             carrier_since: 0.0,
             carrier_last: -1e9,
-            snr_db: 0.0,
+            snr_db: None,
             offset_hz: 0.0,
-            level_db: -200.0,
+            level_db: None,
             lev_acc: 0.0,
             lev_n: 0,
             audio_res,
@@ -165,10 +168,11 @@ impl FrontEnd {
         })
     }
 
-    /// Closes a report period and returns the level of the input, dBFS.
-    pub fn take_level(&mut self) -> f64 {
+    /// Closes a report period and returns the level of the input, dBFS; `None` before any samples, and for a period
+    /// of digital silence, whose level has no value in dB.
+    pub fn take_level(&mut self) -> Option<f64> {
         if self.lev_n > 0 {
-            self.level_db = 10.0 * (self.lev_acc / self.lev_n as f64).max(1e-20).log10();
+            self.level_db = (self.lev_acc > 0.0).then(|| 10.0 * (self.lev_acc / self.lev_n as f64).log10());
         }
         self.lev_acc = 0.0;
         self.lev_n = 0;
@@ -176,7 +180,8 @@ impl FrontEnd {
     }
 
     fn carrier_piece(&mut self, p: f64, dc: f64) {
-        let floor = *self.carrier_det.floor.get_or_insert(p);
+        // A floor of zero (digital silence) would make every later piece a carrier of infinite SNR.
+        let floor = self.carrier_det.floor.get_or_insert(p).max(FLOOR_MIN);
         let on = p > 6.0 * floor;
         if on {
             if !self.carrier {
@@ -184,7 +189,7 @@ impl FrontEnd {
             }
             self.carrier_last = self.t;
             let snr = 10.0 * (p / floor - 1.0).max(1e-3).log10();
-            self.snr_db += 0.3 * (snr - self.snr_db);
+            self.snr_db = Some(self.snr_db.map_or(snr, |s| s + 0.3 * (snr - s)));
             self.offset_hz += 0.3 * (dc - self.offset_hz);
             // The floor rises slowly even under a carrier.
             self.carrier_det.floor = Some(floor * 1.0005);

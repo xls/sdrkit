@@ -1316,6 +1316,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Orbcomm 137 MHz downlinks: packets, satellite positions, orbital elements, channel lists and messages. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 136e6,
         max_hz: 139e6,
         default_hz: DEFAULT_DIAL_HZ,
@@ -1327,6 +1328,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: OrbcommSetting::schema,

@@ -143,6 +143,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "A QPSK data link of GEO-KOMPSAT-2A (3.096 Msym/s): the frame list. Its frequency is not known: tune by hand.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1e6,
         max_hz: 12e9,
         // The frequency of this link is not known. The default is the one of the test signal; the host gives the frequency

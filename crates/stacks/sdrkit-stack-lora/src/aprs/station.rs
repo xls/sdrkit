@@ -291,8 +291,9 @@ pub struct AprsTables {
     pub match_ssid: bool,
     /// The frequency the stack listens to, Hz.
     pub freq_hz: f64,
-    /// The SNR (dB) and the level (dBFS) of the latest signal report, for the rows of received messages.
-    pub signal: Option<(f64, f64)>,
+    /// The SNR (dB) and the level (dBFS) of the latest signal report, for the rows of received messages; each `None`
+    /// while not known.
+    pub signal: (Option<f64>, Option<f64>),
     /// Log lines waiting for the component.
     pub logs: Vec<String>,
 }
@@ -304,7 +305,7 @@ impl Default for AprsTables {
             own_call: String::new(),
             match_ssid: false,
             freq_hz: 144.8e6,
-            signal: None,
+            signal: (None, None),
             logs: Vec::new(),
         }
     }
@@ -449,8 +450,8 @@ impl AprsTables {
                     if let Some((mut m, key)) =
                         message_row(Protocol::Aprs, &from, &i, time).filter(|_| !own)
                     {
-                        m.snr_db = self.signal.map(|s| s.0);
-                        m.level_dbfs = self.signal.map(|s| s.1);
+                        m.snr_db = self.signal.0;
+                        m.level_dbfs = self.signal.1;
                         self.heard.messages.add(m, &key, 0.0);
                     }
                     if !copy {

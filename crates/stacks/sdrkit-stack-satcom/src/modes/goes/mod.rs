@@ -794,6 +794,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "GOES / Meteosat data collection platforms at 100, 300 and 1200 bit/s: address, sensor data, platform table. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 401.0e6,
         max_hz: 403.0e6,
         default_hz: 401.85e6,
@@ -805,6 +806,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: GoesSetting::schema,

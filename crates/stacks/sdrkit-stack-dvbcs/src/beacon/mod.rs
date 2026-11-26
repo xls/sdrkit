@@ -1052,6 +1052,7 @@ pub static SATBEACON: sdrkit_core::StackDescriptor = sdrkit_core::StackDescripto
     group: "TV",
     blurb: "The beacon carrier of a TV satellite through an LNB: carrier measurements and PCM telemetry frames.",
     tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 1000e6,
         max_hz: 20_000e6,
         no_offset_tuning: true,

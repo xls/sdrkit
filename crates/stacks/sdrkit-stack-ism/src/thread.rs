@@ -1336,7 +1336,7 @@ pub static THREAD: StackDescriptor = StackDescriptor {
     name: "Thread",
     group: "IoT, 2.4 GHz",
     blurb: "Thread networks on the 802.15.4 channels 11 to 26: beacons with the network name, devices, 6LoWPAN headers, and MLE and CoAP where they are sent in the clear. Encrypted frames are marked.",
-    tuning: Tuning { min_hz: 2405e6, max_hz: 2480e6, tune_offset_hz: TUNE_OFFSET_HZ, ..Tuning::anywhere(2405e6, 4e6, 4e6, 2e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 2405e6, max_hz: 2480e6, tune_offset_hz: TUNE_OFFSET_HZ, ..Tuning::anywhere(2405e6, 4e6, 4e6, 2e6) },
     submodes: &[],
     settings: ThreadSetting::schema,
     make_receiver,

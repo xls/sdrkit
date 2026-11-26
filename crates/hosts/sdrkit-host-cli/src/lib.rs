@@ -8,6 +8,7 @@ pub mod error;
 pub mod host;
 pub mod live;
 pub mod out;
+pub mod pictures;
 pub mod reflect;
 pub mod serve;
 pub mod serve_screen;
@@ -106,6 +107,26 @@ impl TuneArgs {
             set,
             submode: self.submode.clone(),
         }
+    }
+}
+
+/// Where `run` and `play` save the pictures of the stack.
+#[derive(Debug, Args, Clone)]
+struct PictureArgs {
+    /// Save each finished picture of the stack (SSTV, weather satellite, TV) as a PNG file in this folder, and print
+    /// its path. The name is <stack>_<UTC time>_<index>.png.
+    #[arg(long, value_name = "FOLDER")]
+    save_pictures: Option<PathBuf>,
+    /// Of the video frames, and of the pictures that have one name, save one in each this many seconds of signal.
+    #[arg(long, value_name = "SECONDS", default_value_t = 5.0, requires = "save_pictures")]
+    picture_every: f64,
+}
+
+impl PictureArgs {
+    fn folder(&self) -> Option<(PathBuf, f64)> {
+        self.save_pictures
+            .clone()
+            .map(|f| (f, self.picture_every))
     }
 }
 
@@ -292,6 +313,8 @@ enum Command {
         /// audio, such as after `call session ptt on=true`.
         #[arg(long, value_name = "FILE")]
         tx_audio: Option<PathBuf>,
+        #[command(flatten)]
+        pictures: PictureArgs,
     },
     /// Play a recording (SigMF, WAV or raw IQ) through a stack, to its end.
     Play {
@@ -306,6 +329,8 @@ enum Command {
         /// Where the sound goes: speaker, none, or a .wav file.
         #[arg(long)]
         audio: Option<SoundTo>,
+        #[command(flatten)]
+        pictures: PictureArgs,
     },
     /// Record the samples of a source into the storage with the record service, while a stack runs on it.
     Record {
@@ -649,6 +674,7 @@ fn command(
             tune,
             audio,
             tx_audio,
+            pictures,
         } => {
             let tx_audio = tx_audio
                 .map(|p| txaudio::TxAudio::read(&p).map(Arc::new))
@@ -665,6 +691,7 @@ fn command(
                 to_the_end: source.mount.is_some(),
                 verbose: tune.verbose,
                 tx_audio,
+                pictures: pictures.folder(),
             };
             let r = live::watch(&engine, &live, &w, out, lines, &stop);
             let e = live::end(&engine, &live);
@@ -676,6 +703,7 @@ fn command(
             values,
             mut tune,
             audio,
+            pictures,
         } => {
             tune.source = format!("file:{}", file.display());
             let source = source_of(&tune, &stack);
@@ -689,6 +717,7 @@ fn command(
                 to_the_end: true,
                 verbose: tune.verbose,
                 tx_audio: None,
+                pictures: pictures.folder(),
             };
             let r = live::watch(&engine, &live, &w, out, lines, &stop);
             let e = live::end(&engine, &live);
@@ -720,21 +749,7 @@ fn command(
                 out,
             )
             .and_then(|()| {
-                let w = Watch {
-                    seconds: Some(seconds + 1.0),
-                    sound: SoundTo::Off,
-                    to_the_end: false,
-                    verbose: false,
-                    tx_audio: None,
-                };
-                live::watch(
-                    &engine,
-                    &live,
-                    &w,
-                    &mut Out::new(&mut std::io::sink(), &mut std::io::sink(), false, false),
-                    lines,
-                    &stop,
-                )?;
+                live::wait_recording(&engine, &stop, out)?;
                 reflect::show(
                     &engine,
                     Some(&live),

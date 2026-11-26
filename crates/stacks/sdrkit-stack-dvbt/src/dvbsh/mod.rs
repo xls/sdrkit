@@ -261,6 +261,7 @@ pub static DVBSH: StackDescriptor = StackDescriptor {
     group: "TV",
     blurb: "DVB-SH mobile TV to handhelds (ETSI EN 302 583): the OFDM form (1K to 8K, QPSK and 16-QAM, 1.7 to 8 MHz) and the TDM form (QPSK, 8PSK, 16APSK), turbo coded with a long time interleaver.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 400e6,
         max_hz: 3000e6,
         ..Tuning::anywhere(2177.5e6, 8e6, MIN_RATE, 5e6)

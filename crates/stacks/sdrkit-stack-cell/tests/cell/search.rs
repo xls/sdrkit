@@ -170,8 +170,9 @@ fn a_quiet_live_frequency_starts_the_search() {
     }
 }
 
-/// Plays the host of `rx` at `rate` for `seconds` of noise from `centre`: follows each hop with its dwell and each retune.
-/// Returns the requests seen and the frequency where the radio ended.
+/// Plays the host of `rx` at `rate` for up to `seconds` of noise from `centre`: follows each hop with its dwell and each
+/// retune when `follow`, and then stops after the first whole pass. Returns the requests seen and the frequency where the
+/// radio ended.
 fn host_on_noise(
     rx: &mut sdrkit_graph::StackGraph,
     rate: f64,
@@ -186,7 +187,7 @@ fn host_on_noise(
     let mut hop: Option<(Vec<f64>, f64, usize)> = None;
     let mut seen = Vec::new();
     let (mut fed, mut step) = (0.0, 0.0);
-    while fed < seconds {
+    while fed < seconds && !(follow && value(Owner::results(&*rx), "search_passes").unwrap_or(0.0) >= 1.0) {
         buf.iter_mut().for_each(|v| *v = r.complex_normal(2.0 * 0.05 * 0.05));
         rx.feed(&buf, &mut out);
         fed += 0.05;
@@ -244,7 +245,7 @@ fn a_pass_without_a_cell_does_not_stay_on_an_old_one() {
     rx.feed(&noise(rate, 0.05, 0.05, 12), &mut Output::default());
     command(&mut rx, "search");
     let steps = sdrkit_stack_cell::scan::lte_steps(20, rate).len();
-    let (seen, _) = host_on_noise(&mut rx, rate, 1000e6, 2.4 * steps as f64, true);
+    let (seen, _) = host_on_noise(&mut rx, rate, 1000e6, 12.0 * steps as f64, true);
     assert!(seen.iter().any(|q| matches!(q, HostRequest::Hop { .. })), "{seen:?}");
     assert!(!seen.iter().any(|q| matches!(q, HostRequest::Retune { .. })), "no stay: {seen:?}");
     let r = sdrkit_core::Owner::results(&rx);
@@ -268,4 +269,117 @@ fn a_search_the_radio_does_not_follow_ends() {
     let s = Owner::results(&rx).status().summary.clone();
     assert!(s.contains("did not move"), "{s}");
     assert!(!s.contains("Searching"), "{s}");
+}
+
+/// The text of the results field `key` of `rx`.
+fn field_text(rx: &sdrkit_graph::StackGraph, key: &str) -> Option<String> {
+    let r = Owner::results(rx);
+    let id = r.decl().field_id(key)?;
+    match r.fields().value(id) {
+        Some(sdrkit_core::Value::Text(t)) => Some(t.clone()),
+        _ => None,
+    }
+}
+
+/// A 20 MHz carrier at 7.68 Msps: the cell is listed with what the centre gives (PCI, bandwidth from the MIB), and the
+/// status and `quiet_reason` say the operator needs about 18 Msps. On a live radio in auto the stack asks for 20 Msps at
+/// the carrier centre, once.
+#[test]
+fn a_carrier_wider_than_the_capture_says_what_it_needs() {
+    let rate = 7.68e6;
+    let c = sdrkit_stack_cell::lte::gen::scene(3, None);
+    let hz = sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
+    let pci = i64::from(c.pci);
+    let g = sdrkit_stack_cell::lte::gen::LteGenerator::new(rate, c, Default::default());
+    let x = impaired(g, &snr(25.0), 0.6);
+    let mut rx = stack_graph(&CELL, &[("band_search", J::from("off"))]);
+    run_graph(&mut rx, InputInfo::new(rate, hz, hz).recording(), &x, &[]);
+    assert_eq!(cells_of(&rx), [pci]);
+    let s = Owner::results(&rx).status().summary.clone();
+    assert!(s.contains("20 MHz carrier") && s.contains("about 18 Msps"), "{s}");
+    let why = field_text(&rx, "quiet_reason").unwrap_or_default();
+    assert!(why.contains("about 18 Msps"), "{why}");
+    // Live, in auto: one request for the rate.
+    let mut rx = stack_graph(&CELL, &[]);
+    rx.configure(&InputInfo::new(rate, hz, hz)).unwrap();
+    let mut out = Output::default();
+    let mut asked = Vec::new();
+    for p in x.chunks(65536) {
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        rx.feed(p, &mut out);
+        asked.append(&mut out.requests);
+        out.clear();
+    }
+    rx.finish(&mut out);
+    asked.append(&mut out.requests);
+    let tunes: Vec<&HostRequest> = asked.iter().filter(|q| matches!(q, HostRequest::Tune { .. })).collect();
+    assert_eq!(tunes.len(), 1, "{asked:?}");
+    match tunes[0] {
+        HostRequest::Tune { rate_hz, freq_hz, .. } => {
+            assert_eq!(*rate_hz, Some(20e6));
+            assert!((freq_hz.unwrap() - hz).abs() < 50e3);
+        }
+        _ => unreachable!(),
+    }
+}
+
+/// Noise, and noise with two steady tones (spurs of a radio): no LTE or NR cell is ever listed. 50 captures of LTE and 50 of
+/// NR: the false listings counted are 0.
+#[test]
+fn noise_and_spurs_list_no_cell() {
+    for (desc, rate, hz, seconds) in [(&CELL, 7.68e6, 2140e6, 10.0), (&NR, 7.68e6, 2140e6, 4.0)] {
+        for tones in [false, true] {
+            let mut x = noise(rate, seconds, 0.05, 21);
+            if tones {
+                for (i, v) in x.iter_mut().enumerate() {
+                    let t = i as f64 / rate;
+                    for f in [1.2e6, -2.3e6] {
+                        let ph = std::f64::consts::TAU * f * t;
+                        *v += Complex32::new(0.2 * ph.cos() as f32, 0.2 * ph.sin() as f32);
+                    }
+                }
+            }
+            let mut rx = stack_graph(desc, &[("band_search", J::from("off"))]);
+            run_graph(&mut rx, InputInfo::new(rate, hz, hz).recording(), &x, &[]);
+            assert!(cells_of(&rx).is_empty(), "{} tones {tones}: {:?}", desc.id, cells_of(&rx));
+        }
+    }
+}
+
+/// The recording of a live n5 cell (PCI 897 at 884.45 MHz, 7.68 Msps): only that cell is listed, without the "sync only"
+/// cells that its SSB gave at the neighbouring raster points. Skipped when the recording is not on this machine.
+#[test]
+fn live_n5_recording_lists_one_cell() {
+    let Some(rec) = onair("sdrkit_nr_884.720MHz_7.68Msps_20261126-132757") else { return };
+    let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
+    run_graph(&mut rx, InputInfo::new(rec.rate_hz, rec.centre_hz, rec.centre_hz).recording(), &rec.samples, &[]);
+    assert_eq!(cells_of(&rx), [897]);
+}
+
+/// The recording of a live 10 MHz band 28 carrier (PCI 367, 505-02, 11.52 Msps): the cell, its operator, band 28 with the
+/// Australian band order. Skipped when the recording is not on this machine.
+#[test]
+fn live_band28_recording_reads_the_operator() {
+    let Some(rec) = onair("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305") else { return };
+    let mut rx = stack_graph(&CELL, &[("band_search", J::from("off")), ("band_order", J::from("28 5 26 8 3 1 7 40"))]);
+    run_graph(&mut rx, InputInfo::new(rec.rate_hz, rec.centre_hz, rec.centre_hz).recording(), &rec.samples, &[]);
+    let cs = cells(&state(&rx));
+    assert_eq!(cs.len(), 1, "{cs:#?}");
+    assert_eq!(cs[0]["pci"], 367);
+    assert_eq!(cs[0]["band"], 28);
+    assert_eq!(cs[0]["sib1"]["plmns"][0], "505-02", "{}", cs[0]);
+}
+
+/// A recording of `~/Development/sdrkit-recordings/onair-2026-11-27/store/recordings/<name>.sigmf-meta`, or None.
+fn onair(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
+    let home = std::env::var("HOME").ok()?;
+    let p = std::path::PathBuf::from(home)
+        .join("Development/sdrkit-recordings/onair-2026-11-27/store/recordings")
+        .join(format!("{name}.sigmf-meta"));
+    if !p.exists() {
+        eprintln!("skipped: {} is not here", p.display());
+        return None;
+    }
+    let data = p.with_file_name(format!("{name}.sigmf-data"));
+    Some(sdrkit_dev_test::sigmf::read_pair(&p, &data).expect("the recording"))
 }

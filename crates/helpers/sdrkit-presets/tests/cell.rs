@@ -13,7 +13,10 @@ fn rows() -> Vec<CellList> {
 #[test]
 fn every_row_loads() {
     let rows = rows();
-    assert_eq!(rows.len(), 12);
+    // 12 rows named by area, and 3 rows (cell, nr, nbiot) for each of the 34 countries named by code.
+    assert_eq!(rows.len(), 12 + 3 * 34);
+    let au = cell_settings(&rows, "cell", "AU").expect("an AU row");
+    assert_eq!(au, vec![("band_order".to_owned(), Value::Text("28 5 26 8 3 1 7 40".into()))]);
     for r in &rows {
         assert!(["cell", "nr", "nbiot", "gsmr"].contains(&r.stack.as_str()), "{r:?}");
         match r.list.as_str() {

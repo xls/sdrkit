@@ -507,6 +507,7 @@ fn write_save(storage: &dyn Storage, job: SaveJob, rx: &Receiver<Piece>, notes: 
         datetime: iso_utc(start),
         description: job.stack_id.clone(),
         annotation,
+        gaps: Vec::new(),
     };
     let r = finish_out(
         storage,

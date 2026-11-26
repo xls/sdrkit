@@ -1090,6 +1090,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Distress beacons on 406 MHz, first and second generation: identity, protocol, country and position. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 406.0e6,
         max_hz: 1546.0e6,
         default_hz: 406.028e6,
@@ -1101,6 +1102,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(16e3),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: SarsatSetting::schema,

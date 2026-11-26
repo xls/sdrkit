@@ -584,6 +584,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "The 99 % and x dB bandwidths, the centre, power and SNR, and the adjacent and alternate power of the \
             strongest signal in the span.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         ..Tuning::anywhere(0.0, 1e6, MIN_RATE_HZ, 500e3)

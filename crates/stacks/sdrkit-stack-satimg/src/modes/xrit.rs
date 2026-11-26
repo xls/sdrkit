@@ -1168,6 +1168,7 @@ pub static GOES: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "GOES-16, 18 and 19 HRIT and EMWIN on 1694.1 MHz: full-disk and mesoscale pictures, relayed pictures and text.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 1670e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1694.1e6, 2.4e6, 2.0e6, 1.4e6)
@@ -1190,6 +1191,7 @@ pub static GK2A_LRIT: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "GEO-KOMPSAT-2A LRIT on 1692.14 MHz: full-disk channel pictures and text.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1692.14e6, 2.4e6, 300e3, 0.3e6)
@@ -1212,6 +1214,7 @@ pub static GK2A_HRIT: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "GEO-KOMPSAT-2A HRIT on 1695.4 MHz (3 Msym/s QPSK): full-disk channel pictures.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1695.4e6, 10e6, 6.4e6, 5.2e6)
@@ -1234,6 +1237,7 @@ pub static ELEKTRO: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "Elektro-L N3, N4 and N5: HRIT and LRIT pictures on 1691 MHz and GGAK telemetry on 1693 MHz.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1670e6,
         max_hz: 1710e6,
         ..Tuning::anywhere(1691.0e6, 2.4e6, 200e3, 1.0e6)
@@ -1243,6 +1247,7 @@ pub static ELEKTRO: StackDescriptor = StackDescriptor {
         id: ARKTIKA_SUBMODE,
         name: "Arktika-M GGAK",
         default_hz: 1703e6,
+        ..SubMode::DEFAULT
     }],
     settings: elektro_schema,
     make_receiver: elektro_receiver,

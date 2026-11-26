@@ -649,6 +649,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Inmarsat BGAN forward carriers of the L band: every carrier found and classed, frames and FEC blocks decoded with the published tables, and the broadcast signalling read (bulletin boards, networks, satellites, spot beams, return schedules). Broadcast signalling only: no user data. Synthetic signals only. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 1518e6,
         max_hz: 1559e6,
         default_hz: 1545e6,
@@ -660,6 +661,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(2e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: BganSetting::schema,

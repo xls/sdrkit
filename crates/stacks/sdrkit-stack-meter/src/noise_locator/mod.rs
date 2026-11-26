@@ -625,6 +625,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Impulse rate, level and repetition rate of the noise in a band, with a class: twice the mains, the mains, \
             another steady rate, or none.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 1e9,
         ..Tuning::anywhere(0.0, 250e3, MIN_RATE_HZ, 20e3)

@@ -821,6 +821,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Follows a beacon carrier within ±1 kHz and logs every opening: start, duration, peak S/N, width, shift and \
             flutter, with a class by the character of the signal (steady, fluttering or Doppler-spread).",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 28e6,
         max_hz: 1300e6,
         default_hz: 50e6,
@@ -832,6 +833,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: BeaconSetting::schema,

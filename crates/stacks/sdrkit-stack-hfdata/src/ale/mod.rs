@@ -187,6 +187,8 @@ pub static ALE: StackDescriptor = StackDescriptor {
     group: "HF utility",
     blurb: "Automatic link establishment (2G, 8-FSK): soundings, calls, nets and AMD messages, with the stations heard.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: 20e3,
         radio_filter_hz: Some(1.75e6),
         ..Tuning::anywhere(14.109e6, 2e6, 250e3, 3e3)

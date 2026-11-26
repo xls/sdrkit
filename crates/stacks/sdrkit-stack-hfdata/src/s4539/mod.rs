@@ -161,7 +161,11 @@ pub static S4539: StackDescriptor = StackDescriptor {
     name: "STANAG 4539 high-rate serial tone",
     group: "HF utility",
     blurb: "3200 to 12800 bit/s on 1800 Hz (QPSK to 64-QAM): rate and interleaver from the preamble, probe-based MMSE equaliser, tail-biting code; text and STANAG 5066 D_PDUs.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

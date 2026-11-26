@@ -519,17 +519,23 @@ pub static AUTOSPEC: StackDescriptor = StackDescriptor {
     name: "AUTOSPEC / SPREAD",
     group: "HF utility",
     blurb: "FEC teleprinter on 2-FSK: 10-unit Bauer code words of ITA2 characters, one error corrected; SPREAD spreads each word over 11, 21 or 51 places (found).",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[
         SubMode {
             id: "autospec",
             name: "AUTOSPEC",
             default_hz: crate::ms110::TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
         SubMode {
             id: "spread",
             name: "SPREAD",
             default_hz: crate::ms110::TEST_SIGNAL_HZ,
+            ..SubMode::DEFAULT
         },
     ],
     settings: schema,

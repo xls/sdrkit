@@ -1,5 +1,6 @@
 //! The writer thread of a recorder. The feeding side fills blocks from a fixed pool and queues them, and the writer thread
-//! writes them through `Storage` and returns the buffers. When no block is free, the feeding side leaves data out.
+//! writes them through `Storage` and returns the buffers. When no block is free, the feeding side either leaves data out
+//! and counts it ([`Spool::block`]) or waits for the writer ([`Spool::block_waiting`]).
 
 use crate::error::RecordError;
 use crate::flac::FlacWriter;
@@ -119,6 +120,12 @@ pub(crate) enum Op<B> {
     },
     /// Writes a block to the file of `slot`.
     Data { slot: usize, block: B },
+    /// Writes `meta` again beside the file of `slot`, under the extension `ext`.
+    Meta {
+        slot: usize,
+        ext: &'static str,
+        meta: Vec<u8>,
+    },
     /// Closes the file of `slot`, and removes it if `keep` is false. A kept file adds `log` to its log.
     Close {
         slot: usize,
@@ -249,6 +256,24 @@ impl<B: Block> Spool<B> {
                 Ok(b) => self.filling[slot] = Some(b),
                 Err(TryRecvError::Empty) => return None,
                 Err(TryRecvError::Disconnected) => {
+                    self.gone = true;
+                    return None;
+                }
+            }
+        }
+        self.filling[slot].as_mut()
+    }
+
+    /// The block being filled for `slot`. When no block is free it waits until the writer returns one. `None` only when the
+    /// writer has ended.
+    pub(crate) fn block_waiting(&mut self, slot: usize) -> Option<&mut B> {
+        if self.gone {
+            return None;
+        }
+        if self.filling[slot].is_none() {
+            match self.free.recv() {
+                Ok(b) => self.filling[slot] = Some(b),
+                Err(_) => {
                     self.gone = true;
                     return None;
                 }
@@ -394,6 +419,20 @@ impl Worker {
                     }
                 }
             }
+            Op::Meta { slot, ext, meta } => {
+                let Some(Some(f)) = self.files.get(slot) else {
+                    return;
+                };
+                let written = f
+                    .path
+                    .with_extension(ext)
+                    .map_err(StorageError::InvalidPath)
+                    .and_then(|m| self.storage.write(&m, &meta));
+                if let Err(error) = written {
+                    let path = f.path.clone();
+                    self.note(Note::Failed { path, error });
+                }
+            }
             Op::Data { .. } | Op::Finish => {}
         }
     }
@@ -523,6 +562,13 @@ pub(crate) struct Live {
     pub frames: std::sync::atomic::AtomicU64,
     /// Frames, samples or packets left out because no block was free.
     pub dropped: std::sync::atomic::AtomicU64,
+    /// The places where samples were missing before they reached the recorder (lost at the radio or before the
+    /// session).
+    pub gaps: std::sync::atomic::AtomicU64,
+    /// The samples missing at those places.
+    pub gap_samples: std::sync::atomic::AtomicU64,
+    /// The sample rate of an IQ recording, as the bits of an `f64`.
+    pub rate_bits: std::sync::atomic::AtomicU64,
     /// A transmission is open (gated audio).
     pub gate_open: std::sync::atomic::AtomicBool,
 }

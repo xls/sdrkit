@@ -1141,6 +1141,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
             S/N, the period and DM found, the pulse profile and the S/N curves. Needs a dish or long Yagis and a low-noise \
             amplifier.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 100e6,
         max_hz: 6000e6,
         default_hz: 408e6,
@@ -1152,6 +1153,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: PulsarSetting::schema,

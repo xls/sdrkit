@@ -653,6 +653,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "The direct broadcast of the Arctic Weather Satellite (QPSK, 1.785 Msym/s): scans of the microwave radiometer in 19 channels. It needs a tracking dish.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1690e6,
         max_hz: 1710e6,
         // The default frequency is the one of the test signal. The host gives the frequency of a session.

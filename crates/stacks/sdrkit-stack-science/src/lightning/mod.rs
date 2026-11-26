@@ -1351,6 +1351,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Each station times sferics to the microsecond on a disciplined sample clock; one station, the server, collects \
             the detections of all and locates each strike by time difference of arrival, with a 95 % error ellipse.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 3e3,
         max_hz: 30e6,
         default_hz: TEST_DIAL_HZ,
@@ -1362,6 +1363,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: true,
         radio_filter_hz: Some(0.5e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: TdoaSetting::schema,

@@ -50,6 +50,8 @@ pub static CQUAM: StackDescriptor = StackDescriptor {
     group: "Broadcast",
     blurb: "Medium-wave AM stereo stations using C-QUAM, with the 25 Hz pilot, stereo meters and separation.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 10e3)),
         min_hz: 0.1e6,
         max_hz: 30e6,
         default_hz: 0.0,
@@ -81,6 +83,7 @@ pub static DRM: StackDescriptor = StackDescriptor {
     group: "Digital radio",
     blurb: "Digital Radio Mondiale on short wave (DRM30) and VHF (DRM+): services, text messages, slide shows and Journaline.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 0.1e6,
         max_hz: 240e6,
         default_hz: 0.0,
@@ -92,6 +95,7 @@ pub static DRM: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: drm::DrmSetting::schema,
@@ -113,6 +117,8 @@ pub static HAMDRM: StackDescriptor = StackDescriptor {
     blurb:
         "Digital picture transfer between amateur stations on a DRM-style modem in an SSB channel.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         min_hz: 0.0,
         max_hz: 1e12,
         default_hz: 0.0,
@@ -143,6 +149,7 @@ pub static HDRADIO: StackDescriptor = StackDescriptor {
     group: "Digital radio",
     blurb: "HD Radio (NRSC-5) on FM and AM: station information, programs HD1 to HD8, song titles and album art.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 0.52e6,
         max_hz: 108e6,
         default_hz: 0.0,
@@ -154,6 +161,7 @@ pub static HDRADIO: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: hd::HdSetting::schema,
@@ -182,6 +190,7 @@ pub static CDR: StackDescriptor = StackDescriptor {
     group: "Digital radio",
     blurb: "China Digital Radio (GY/T 268) in the FM band: the multiplex, its services, the network table and DRA+ audio units.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 87e6,
         max_hz: 108e6,
         default_hz: 0.0,
@@ -193,6 +202,7 @@ pub static CDR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: cdr::CdrSetting::schema,

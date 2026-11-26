@@ -344,7 +344,11 @@ pub static COQUELET: StackDescriptor = StackDescriptor {
     name: "Coquelet-8",
     group: "HF utility",
     blurb: "8-tone MFSK teleprinter: each ITA2 character a pair of tones 26.67 Hz apart; the tones, the tone length (37.5, 50 or 75 ms) and the pair phase found.",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,

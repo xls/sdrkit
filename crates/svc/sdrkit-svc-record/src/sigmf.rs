@@ -23,7 +23,13 @@ pub(crate) struct Meta {
     pub description: String,
     /// One annotation over the samples from `start` for `count`, with a label. `None` for no annotation.
     pub annotation: Option<(u64, u64, String)>,
+    /// The places where samples are missing: the samples of the file before each, and the samples lost there. Each is an
+    /// annotation of no samples whose label starts with [`GAP`].
+    pub gaps: Vec<(u64, u64)>,
 }
+
+/// The start of the label of the annotation of a gap.
+pub(crate) const GAP: &str = "gap: ";
 
 #[derive(Serialize, Deserialize)]
 struct Doc {
@@ -111,6 +117,11 @@ pub(crate) fn write(m: &Meta) -> Vec<u8> {
                 sample_count: *count,
                 label: label.clone(),
             })
+            .chain(m.gaps.iter().map(|&(at, lost)| Annotation {
+                sample_start: at,
+                sample_count: 0,
+                label: format!("{GAP}{lost} samples lost before this sample"),
+            }))
             .collect(),
     };
     // Plain structs of strings and numbers always serialise.
@@ -138,10 +149,18 @@ pub(crate) fn read(text: &[u8]) -> Result<Meta, FormatError> {
         centre_hz: first.and_then(|c| c.frequency).unwrap_or(0.0),
         datetime: first.map(|c| c.datetime.clone()).unwrap_or_default(),
         description: doc.global.description,
+        gaps: doc
+            .annotations
+            .iter()
+            .filter_map(|a| {
+                let lost = a.label.strip_prefix(GAP)?.split(' ').next()?.parse().ok()?;
+                Some((a.sample_start, lost))
+            })
+            .collect(),
         annotation: doc
             .annotations
             .into_iter()
-            .next()
+            .find(|a| !a.label.starts_with(GAP))
             .map(|a| (a.sample_start, a.sample_count, a.label)),
     })
 }
@@ -159,6 +178,7 @@ mod tests {
             datetime: "2025-01-01T12:00:00Z".into(),
             description: String::new(),
             annotation: Some((100, 200, "button".into())),
+            gaps: vec![(5000, 16_384), (9000, 7)],
         };
         assert_eq!(read(&write(&m)).unwrap(), m);
         assert_eq!(

@@ -6,8 +6,9 @@ use crate::EngineError;
 use sdrkit_core::interface::{Family, StackShape};
 use sdrkit_core::publish::field;
 use sdrkit_core::{
-    AdapterCatalog, AudioKind, AutoGain, Command, ContentKind, Commands, Facilities, Field, Owner, Published, Receiver,
-    ResultsDecl, Schema, SignalType, StackConfig, StackDescriptor, TableDef, TxContent, Values,
+    AdapterCatalog, AudioKind, AutoGain, Command, ContentKind, Commands, DemodMode, Facilities, Field, Owner,
+    PlainDemod, Published, Receiver, ResultsDecl, Schema, SignalType, StackConfig, StackDescriptor, TableDef,
+    TuningKind, TxContent, Values,
 };
 use sdrkit_driver_core::DriverDescriptor;
 use sdrkit_graph::components::HostIn;
@@ -34,6 +35,14 @@ pub const MIN_RATE_HZ: Field<field::Hz> = Field::new("min_rate_hz", "Lowest samp
 pub const MAX_RATE_HZ: Field<field::Hz> = Field::new("max_rate_hz", "Highest sample rate", "Hz");
 /// The width of the signal.
 pub const BANDWIDTH_HZ: Field<field::Hz> = Field::new("bandwidth_hz", "Bandwidth", "Hz");
+/// Where a stack listens. No value for a stack that does not declare it.
+pub const TUNING_KIND: Field<field::Choice<TuningKind>> = Field::new("tuning_kind", "Listens", "");
+/// The demodulator of the general stack that hears the signal by ear. No value where none suits.
+pub const LISTEN_DEMOD: Field<field::Choice<DemodMode>> = Field::new("listen_demod", "Heard as", "");
+/// The filter width of that demodulator.
+pub const LISTEN_WIDTH_HZ: Field<field::Hz> = Field::new("listen_width_hz", "Heard with width", "Hz");
+/// The pitch of CW heard that way.
+pub const LISTEN_PITCH_HZ: Field<field::Hz> = Field::new("listen_pitch_hz", "Heard at pitch", "Hz");
 /// What automatic gain means for the stack.
 pub const AUTO_GAIN: Field<field::Choice<AutoGain>> = Field::new("auto_gain", "Automatic gain", "");
 /// The stack makes a test signal.
@@ -126,6 +135,10 @@ pub static STACKS: TableDef = TableDef {
         &PICTURES,
         &VIDEO,
         &TEXT,
+        &TUNING_KIND,
+        &LISTEN_DEMOD,
+        &LISTEN_WIDTH_HZ,
+        &LISTEN_PITCH_HZ,
     ],
     cap: ROWS,
     marks: sdrkit_core::RowMarks {
@@ -138,7 +151,14 @@ pub static STACKS: TableDef = TableDef {
 pub static SUBMODES: TableDef = TableDef {
     key: "submodes",
     label: "Variants",
-    columns: &[&STACK, &NAME, &DEFAULT_HZ],
+    columns: &[
+        &STACK,
+        &NAME,
+        &DEFAULT_HZ,
+        &LISTEN_DEMOD,
+        &LISTEN_WIDTH_HZ,
+        &LISTEN_PITCH_HZ,
+    ],
     cap: ROWS,
     marks: sdrkit_core::RowMarks::NONE,
 };
@@ -273,6 +293,13 @@ pub(crate) struct Sources<'a> {
     pub(crate) usb: &'a dyn sdrkit_driver_usb::UsbBus,
 }
 
+/// Writes a plain demodulation to the listen columns of a row: no values for none, and no pitch but for CW.
+fn write_demod(r: &mut sdrkit_core::RowMut<'_>, d: Option<PlainDemod>) {
+    r.opt(&LISTEN_DEMOD, d.map(|d| d.mode));
+    r.opt(&LISTEN_WIDTH_HZ, d.map(|d| d.width_hz));
+    r.opt(&LISTEN_PITCH_HZ, d.filter(|d| d.mode == DemodMode::Cw).map(|d| d.cw_pitch_hz));
+}
+
 /// Writes the rows of the catalogs of `sources` and of the services.
 pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
     let Sources {
@@ -325,12 +352,15 @@ pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
             r.set(&PICTURES, media.pictures);
             r.set(&VIDEO, media.video);
             r.set(&TEXT, media.text);
+            r.opt(&TUNING_KIND, t.kind);
+            write_demod(&mut r, t.demod);
         }
         for m in s.submodes {
             if let Some(mut r) = p.row_mut(&SUBMODES, &format!("{}/{}", s.id, m.id)) {
                 r.set(&STACK, s.id);
                 r.set(&NAME, m.name);
                 r.set(&DEFAULT_HZ, m.default_hz);
+                write_demod(&mut r, m.demod.or(t.demod));
             }
         }
         for g in s.signal_types {

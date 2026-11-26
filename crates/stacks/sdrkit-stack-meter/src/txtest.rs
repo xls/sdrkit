@@ -438,6 +438,7 @@ macro_rules! tx_stack {
             group: "Measurement",
             blurb: $blurb,
             tuning: sdrkit_core::Tuning {
+                kind: Some(sdrkit_core::TuningKind::Free),
                 min_hz: $min,
                 max_hz: $max,
                 carrier_at_centre: $centre,

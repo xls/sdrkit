@@ -800,6 +800,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Iridium bursts over the whole band, demodulated and written as RAW text lines. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Fixed),
         min_hz: 1610e6,
         max_hz: 1630e6,
         default_hz: 1622e6,
@@ -811,6 +812,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(9e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: IridiumSetting::schema,

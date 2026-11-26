@@ -177,7 +177,11 @@ pub static PACTOR2: StackDescriptor = StackDescriptor {
     name: "PACTOR-II (physical layer)",
     group: "HF utility",
     blurb: "PACTOR-II physical layer: the two carriers, the symbol clock and the frame structure (the coding is proprietary; no text).",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..TUNING
+    },
     submodes: &[],
     settings: Pactor2Setting::schema,
     make_receiver: rx2,
@@ -195,7 +199,11 @@ pub static PACTOR3: StackDescriptor = StackDescriptor {
     name: "PACTOR-III (physical layer)",
     group: "HF utility",
     blurb: "PACTOR-III physical layer: the carriers and speed level, the symbol clock and the frame structure (no text).",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..TUNING
+    },
     submodes: &[],
     settings: Pactor3Setting::schema,
     make_receiver: rx3,
@@ -213,7 +221,11 @@ pub static PACTOR4: StackDescriptor = StackDescriptor {
     name: "PACTOR-IV (physical layer)",
     group: "HF utility",
     blurb: "PACTOR-IV physical layer: the 1800 baud carrier and an estimate of its constellation (no text).",
-    tuning: TUNING,
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
+        ..TUNING
+    },
     submodes: &[],
     settings: Pactor4Setting::schema,
     make_receiver: rx4,

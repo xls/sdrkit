@@ -600,6 +600,7 @@ pub static HALOW: StackDescriptor = StackDescriptor {
     group: "Data and IoT",
     blurb: "Sub-GHz Wi-Fi HaLow networks from their S1G beacons: names, security, channels, widths and MCS.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 755e6,
         max_hz: 928e6,
         default_hz: 0.0,
@@ -611,6 +612,7 @@ pub static HALOW: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(4e6),
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: HalowSetting::schema,

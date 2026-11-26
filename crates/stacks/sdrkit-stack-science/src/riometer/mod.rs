@@ -641,6 +641,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Cosmic radio noise near 30 MHz with interference rejected, against a quiet-day curve per sidereal time: the \
             absorption of the ionosphere in dB and its events. Needs a fixed radio gain.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 20e6,
         max_hz: 60e6,
         default_hz: 30e6,
@@ -652,6 +653,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: RiometerSetting::schema,

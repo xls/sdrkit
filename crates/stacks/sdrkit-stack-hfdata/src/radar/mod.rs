@@ -108,7 +108,10 @@ pub static HFRADAR: StackDescriptor = StackDescriptor {
     name: "CODAR / HF ocean radar",
     group: "HF utility",
     blurb: "Coastal HF ocean radars (CODAR SeaSonde, WERA): their FMCW sweeps, repetition, band and keyed ID (receive only).",
-    tuning: Tuning::anywhere(13.5e6, 2e6, 240e3, 2e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(13.5e6, 2e6, 240e3, 2e6)
+    },
     submodes: &[],
     settings: RadarStackSetting::schema,
     make_receiver,

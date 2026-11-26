@@ -696,7 +696,10 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "A CCSDS telemetry link on S or L band, set by its link settings (modulation, rate, code, frame): the frame list with spacecraft and virtual channel ids. It needs a tracking dish.",
     // The default frequency is the one of the test signal, and the rate and width are those of the default link (1 Msym/s).
     // The host gives the frequency and the link of a session.
-    tuning: Tuning::anywhere(2215e6, 4e6, MIN_RATE, 1.52e6),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
+        ..Tuning::anywhere(2215e6, 4e6, MIN_RATE, 1.52e6)
+    },
     submodes: &[],
     settings: SbandSetting::schema,
     make_receiver,

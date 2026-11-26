@@ -582,10 +582,10 @@
           "note": "GSCN 2177 to 2230 (15 kHz SSB); GSCN 2183 to 2224 (30 kHz SSB); NR-ARFCN on the channel raster",
           "channels": [
             {
-              "name": "Telstra n5 (884.72 MHz)",
-              "centre_hz": 884720000.0,
-              "width_hz": 7200000.0,
-              "note": "the width of a 30 kHz SSB; a Telstra cell (PLMN 505-01) was read here on the air in Sydney by this project; 884.72 MHz is not a sync raster point, so the SSB lies on a raster point near it: the exact GSCN is unconfirmed"
+              "name": "Telstra n5 SSB (884.45 MHz, GSCN 2210)",
+              "centre_hz": 884450000.0,
+              "width_hz": 3600000.0,
+              "note": "read on the air in Sydney on 2026-11-26 with a network radio: PCI 897, 15 kHz SSB, PLMN 505-01, MIB and SIB1"
             },
             {
               "name": "NR band n5, search (869 to 894 MHz)",

@@ -41,25 +41,112 @@ pub struct Tuning {
     /// The stack must not be offset-tuned: the radio is tuned onto the signal even when the user requested
     /// automatic offset tuning (a stack that watches several channels, or handles the DC spike itself).
     pub no_offset_tuning: bool,
+    /// Where the stack listens: anywhere in its range, only on its listed frequencies, or on one frequency. `None` when
+    /// the stack does not declare it.
+    pub kind: Option<TuningKind>,
+    /// The plain demodulation that the general stack takes to listen to the signal of the stack by ear. `None` for a
+    /// signal that no plain demodulation suits (OFDM, cells, most digital modes).
+    pub demod: Option<PlainDemod>,
+}
+
+crate::choice_enum! {
+    /// Where a stack listens. A host keeps the present frequency on a change to a stack that listens anywhere, and asks
+    /// before it moves to a listed frequency of another stack.
+    pub enum TuningKind {
+        /// Anywhere in its range: the user tunes freely (CW, SSTV, DMR, the general stack).
+        Free = ("free", "Anywhere"),
+        /// Only on the frequencies that the data lists for it: a plan, channels or dials (FM, FT8, TV).
+        Channels = ("channels", "Listed frequencies"),
+        /// On the one frequency of its system, its default frequency (ADS-B on 1090 MHz, GNSS L1).
+        Fixed = ("fixed", "One frequency"),
+    }
+}
+
+crate::choice_enum! {
+    /// A plain demodulation, as the demodulators of the general stack name them.
+    pub enum DemodMode {
+        /// Amplitude modulation.
+        Am = ("am", "AM"),
+        /// Narrow FM.
+        Nfm = ("nfm", "NFM"),
+        /// Wide FM (broadcast).
+        Wfm = ("wfm", "WFM"),
+        /// Upper sideband.
+        Usb = ("usb", "USB"),
+        /// Lower sideband.
+        Lsb = ("lsb", "LSB"),
+        /// Morse code: a beat tone at a pitch.
+        Cw = ("cw", "CW"),
+    }
+}
+
+/// How the general stack is set to listen to the signal of a stack by ear: the demodulator, its filter width and, for
+/// CW, the pitch.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PlainDemod {
+    /// The demodulator.
+    pub mode: DemodMode,
+    /// The usual width of the channel filter, Hz.
+    pub width_hz: Hz,
+    /// The pitch of the beat tone of CW, Hz. 0 for another demodulator.
+    pub cw_pitch_hz: Hz,
+}
+
+impl PlainDemod {
+    /// `mode` with the filter width `width_hz`, for a demodulator other than CW.
+    pub const fn new(mode: DemodMode, width_hz: Hz) -> Self {
+        PlainDemod {
+            mode,
+            width_hz,
+            cw_pitch_hz: 0.0,
+        }
+    }
+
+    /// CW with the filter width `width_hz` and the pitch `pitch_hz`.
+    pub const fn cw(width_hz: Hz, pitch_hz: Hz) -> Self {
+        PlainDemod {
+            mode: DemodMode::Cw,
+            width_hz,
+            cw_pitch_hz: pitch_hz,
+        }
+    }
 }
 
 impl Tuning {
+    /// The value of every field that a descriptor does not state: the whole range, no rates, no width, every flag off.
+    /// A descriptor ends its literal with `..Tuning::DEFAULT`, so that a field added later needs no edit of every stack.
+    pub const DEFAULT: Tuning = Tuning {
+        min_hz: 0.0,
+        max_hz: 1e12,
+        default_hz: 0.0,
+        rate_hz: 0.0,
+        min_rate_hz: 0.0,
+        bandwidth_hz: 0.0,
+        tune_offset_hz: 0.0,
+        carrier_at_centre: false,
+        not_circular: false,
+        radio_filter_hz: None,
+        no_offset_tuning: false,
+        kind: None,
+        demod: None,
+    };
+
     /// A stack that can be tuned anywhere, with every flag off. A `const fn`, so a descriptor can start from it:
     /// `Tuning { carrier_at_centre: true, ..Tuning::anywhere(100e6, 2e6, 1e6, 200e3) }`.
     pub const fn anywhere(default_hz: Hz, rate_hz: Hz, min_rate_hz: Hz, bandwidth_hz: Hz) -> Self {
         Tuning {
-            min_hz: 0.0,
-            max_hz: 1e12,
             default_hz,
             rate_hz,
             min_rate_hz,
             bandwidth_hz,
-            tune_offset_hz: 0.0,
-            carrier_at_centre: false,
-            not_circular: false,
-            radio_filter_hz: None,
-            no_offset_tuning: false,
+            ..Tuning::DEFAULT
         }
+    }
+}
+
+impl Default for Tuning {
+    fn default() -> Self {
+        Tuning::DEFAULT
     }
 }
 
@@ -69,6 +156,19 @@ pub struct SubMode {
     pub id: &'static str,
     pub name: &'static str,
     pub default_hz: Hz,
+    /// The plain demodulation of the submode, where it differs from that of the stack ([`Tuning::demod`]).
+    pub demod: Option<PlainDemod>,
+}
+
+impl SubMode {
+    /// The value of every field that a submode does not state. A submode literal ends with `..SubMode::DEFAULT`, so that
+    /// a field added later needs no edit of every stack.
+    pub const DEFAULT: SubMode = SubMode {
+        id: "",
+        name: "",
+        default_hz: 0.0,
+        demod: None,
+    };
 }
 
 /// Everything a receiver is made with.

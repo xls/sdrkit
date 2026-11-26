@@ -641,6 +641,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     blurb: "Every transmission shorter than 3 s anywhere in the span: frequency, length, bandwidth and level; sources \
             that repeat at a steady interval.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 2e6)

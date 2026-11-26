@@ -179,6 +179,9 @@ struct FeedRun {
     out: Output,
     /// Demands of services, which read the feed with no session of their own.
     extra: Vec<Arc<Demand>>,
+    /// The rate and centre of the newest block, or of the samples that wait for the first reader of a feed that is not
+    /// live.
+    waiting: (f64, f64),
 }
 
 /// A source of blocks: its sessions, its block pool and its derivation graph.
@@ -226,6 +229,7 @@ impl Feed {
                 graph_input: (0.0, 0.0),
                 out: Output::default(),
                 extra: Vec::new(),
+                waiting: (0.0, 0.0),
             }),
             changed: AtomicBool::new(false),
             queue: AtomicUsize::new(crate::session::QUEUE),
@@ -259,6 +263,8 @@ impl Feed {
         }
         run.subs.push(sub);
         self.demand_changed();
+        drop(run);
+        self.room.notify_all();
         true
     }
 
@@ -266,6 +272,7 @@ impl Feed {
     pub(crate) fn add_demand(&self, d: Arc<Demand>) {
         lock(&self.run).extra.push(d);
         self.demand_changed();
+        self.room.notify_all();
     }
 
     /// Removes a demand of a service.
@@ -285,14 +292,46 @@ impl Feed {
             .store(blocks.max(crate::session::QUEUE), Ordering::Relaxed);
     }
 
-    /// The rate and centre of the newest block.
+    /// The rate and centre of the newest block, or of the samples that wait for the first reader.
     pub(crate) fn tuning(&self) -> (f64, f64) {
-        lock(&self.run).graph_input
+        let run = lock(&self.run);
+        if run.graph_input.0 > 0.0 {
+            run.graph_input
+        } else {
+            run.waiting
+        }
     }
 
     /// Returns the number of sessions that read the feed and can steer its radio ([`Sub::steers`]).
     pub(crate) fn readers(&self) -> usize {
         lock(&self.run).subs.iter().filter(|s| s.steers).count()
+    }
+
+    /// Waits up to `timeout` for a session or a service to read the feed, whose samples have the rate and centre
+    /// `tuning`. Returns true if one reads it, false after the timeout or [`Feed::cancel_waits`]. A feed that is not live
+    /// calls it before it takes samples from its source, so that no sample goes to a feed that nobody reads.
+    pub(crate) fn wait_for_reader(&self, tuning: (f64, f64), timeout: Duration) -> bool {
+        let read = |run: &FeedRun| !run.subs.is_empty() || !run.extra.is_empty();
+        let mut run = lock(&self.run);
+        if read(&run) {
+            return true;
+        }
+        run.waiting = tuning;
+        if self.no_wait.load(Ordering::SeqCst) {
+            return false;
+        }
+        let run = match self.room.wait_timeout(run, timeout) {
+            Ok((g, _)) => g,
+            Err(p) => p.into_inner().0,
+        };
+        read(&run)
+    }
+
+    /// The source of the feed ended (a recording played to its end). Each session takes the blocks in its queue, finishes
+    /// its stack and ends.
+    pub(crate) fn input_ended(&self) {
+        lock(&self.run).subs.clear();
+        self.room.notify_all();
     }
 
     /// Marks the feed as closing if no session reads it, and returns the number of sessions that read it.
@@ -429,6 +468,7 @@ impl Feed {
         let run = &mut *guard;
         let changed = run.graph_input != (rate_hz, centre_hz);
         run.graph_input = (rate_hz, centre_hz);
+        run.waiting = (rate_hz, centre_hz);
         if let Some(g) = run.graph.as_mut() {
             if changed {
                 self.centre.store(centre_hz.to_bits(), Ordering::Relaxed);

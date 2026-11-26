@@ -1033,6 +1033,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: crate::GROUP,
     blurb: "Pictures from the Meteor-M weather satellites as they pass over, on 137 MHz.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 136e6,
         max_hz: 139e6,
         default_hz: 137.9e6,

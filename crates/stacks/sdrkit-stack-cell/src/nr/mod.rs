@@ -12,7 +12,7 @@ pub mod sib1;
 use crate::bands::{coreset0, hz_to_gscn, nr_band_of};
 use crate::decoder::{
     build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, SearchConfig, SearchStack,
-    BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
+    Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
 };
 use crate::decoder::RowSync;
 use crate::typed::{
@@ -545,6 +545,10 @@ pub struct NrSearch {
     scan: SearchConfig,
     /// Why the newest capture showed no cell.
     quiet: Option<String>,
+    /// The cells seen by their synchronisation signals only, not yet listed.
+    sightings: Sightings<NrKey>,
+    /// The SSB frequencies of the decoded cells of the newest capture, Hz (absolute when the centre is known).
+    decoded_hz: Vec<f64>,
 }
 
 impl Default for NrSearch {
@@ -558,6 +562,8 @@ impl Default for NrSearch {
             filter: NrFilter::default(),
             scan: SearchConfig::new(),
             quiet: None,
+            sightings: Sightings::default(),
+            decoded_hz: Vec::new(),
         }
     }
 }
@@ -570,7 +576,7 @@ fn quiet_reason(out: &NrSearchOut, rate: f64, threshold_db: f64) -> Option<Strin
     let narrow30 = rate < crate::scan::nr_least_rate(30);
     let note30 = if narrow30 {
         format!(
-            "; this capture is too narrow for a 30 kHz SSB (n77, n78, n79 and most n5, n40, n41 cells): that needs {:.2} Msps",
+            "; this capture is too narrow for a 30 kHz SSB (those of n77, n78 and n79, and of some cells of other bands): that needs {:.2} Msps",
             256.0 * 30e3 / 1e6
         )
     } else {
@@ -625,6 +631,18 @@ impl NrSearch {
             scs_khz: scs,
             raster: (nominal / 30e3).round() as i64,
         };
+        if f.mib.is_none() && !t.cells.contains(&key) {
+            // A cell seen by its sync only, beside a decoded SSB that overlaps it, is that SSB seen from a neighbouring
+            // raster point; else it is listed when a second capture shows it.
+            let width = 240.0 * f64::from(scs) * 1e3;
+            let actual = nominal + f.cfo_hz;
+            if self.decoded_hz.iter().any(|d| (d - actual).abs() > 20e3 && (d - actual).abs() < width) {
+                return;
+            }
+            if !self.sightings.again(key, time) {
+                return;
+            }
+        }
         let Ok(up) = t.cells.upsert(&key, log.stamp(time), || {
             let gscn = if known {
                 f.cand.gscn.or_else(|| hz_to_gscn(nominal))
@@ -865,6 +883,19 @@ impl SearchStack for NrSearch {
         t.gscn_range = found.gscn_range;
         t.candidates = Some(found.candidates);
         self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db);
+        let base = if cap.centre_known() { cap.centre_hz } else { 0.0 };
+        self.decoded_hz = found
+            .cells
+            .iter()
+            .filter(|f| f.mib.is_some())
+            .map(|f| base + f.cand.offset_hz + f.cfo_hz)
+            .chain(
+                t.cells
+                    .iter()
+                    .filter(|r| r.record.mib.is_some() && cap.end_time - r.seen.last_s <= Sightings::<NrKey>::WITHIN_S)
+                    .map(|r| r.record.frequency_hz + r.record.carrier_offset_hz),
+            )
+            .collect();
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
@@ -897,6 +928,7 @@ impl SearchStack for NrSearch {
                 level_dbfs: r.record.rsrp_dbfs,
                 name: format!("PCI {} at {:.2} MHz", r.record.pci, r.record.frequency_hz / 1e6),
                 last_s: r.seen.last_s,
+                identified: r.record.sib1.is_some(),
             })
             .collect()
     }

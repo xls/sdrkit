@@ -867,6 +867,7 @@ pub static ISDBS: sdrkit_core::StackDescriptor = sdrkit_core::StackDescriptor {
     group: "TV",
     blurb: "Japanese BS satellite television (ISDB-S): TC8PSK, QPSK, BPSK and up to eight transport streams.",
     tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 950e6,
         max_hz: 2150e6,
         no_offset_tuning: true,

@@ -48,7 +48,6 @@ Only this driver has these.
 | `buffer_size` | Buffer size | choice | `auto` | `auto` (Auto (25 ms)), `65536` (65 536), `131072` (131 072), `262144` (262 144), `524288` (524 288), `1048576` (1 048 576), `2097152` (2 097 152) | Samples per transfer. Auto holds at least 25 ms, which keeps high rates flowing over a network. |
 | `protocol` | Protocol | choice | `auto` | `auto` (Auto), `text` (Text only) | Auto streams over the binary protocol if the server of the board offers it (libiio 1.x), else the text protocol. |
 | `link` | Link | choice | `auto` | `auto` (Auto), `usb` (USB cable), `ethernet` (Ethernet) | Auto takes the default address as the network of the USB cable (about 3 Msps without loss). Ethernet means a Pluto+ or a USB Ethernet adapter, with no cap. USB holds the USB rate. |
-| `format` | Sample format | choice | `cs16` | `cs16` (CS16), `cs8` (CS8) | CS16 is 16-bit (the 12-bit converter). CS8 is half the data, so a higher rate over USB or a slow network, with less dynamic range. Tezuka firmware only. |
 | `readings_s` | Readings every | number (s) | 5 | 0 to 60 | How often the temperature, the RSSI, the gain and the state of the board are read, on a connection of their own. 0 reads none. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.

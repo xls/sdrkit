@@ -1298,7 +1298,7 @@ pub static WMBUS: StackDescriptor = StackDescriptor {
     name: "Wireless M-Bus meters",
     group: "Meters, 868 / 169 MHz",
     blurb: "Water, heat, gas and electricity meters (EN 13757-4 S, T, C, R2 and N): ids and unencrypted readings; encrypted payloads shown as such. R2 and N1 have no real-signal confirmation yet.",
-    tuning: Tuning { min_hz: 150e6, max_hz: 880e6, no_offset_tuning: true, ..Tuning::anywhere(868.625e6, 2e6, MIN_RATE_HZ, 1.6e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 150e6, max_hz: 880e6, no_offset_tuning: true, ..Tuning::anywhere(868.625e6, 2e6, MIN_RATE_HZ, 1.6e6) },
     submodes: &[],
     settings: WmbusSetting::schema,
     make_receiver,

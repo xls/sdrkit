@@ -391,6 +391,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Measurement",
     blurb: "The offset of a known carrier in Hz and ppm, its C/N0, drift, Allan deviation, steps, loss and return.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
         min_hz: 0.1e6,
         max_hz: 6e9,
         carrier_at_centre: true,

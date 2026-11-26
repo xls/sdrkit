@@ -1033,6 +1033,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "Activity of the Globalstar terminal uplink: occupancy, power and Doppler per CDMA channel. Nothing is decoded. Receive only.",
     tuning: Tuning {
+        kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 1600e6,
         max_hz: 1640e6,
         default_hz: BAND_CENTRE_HZ,
@@ -1044,6 +1045,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: GlobalstarSetting::schema,

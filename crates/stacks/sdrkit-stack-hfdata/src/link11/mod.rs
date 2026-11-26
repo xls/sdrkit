@@ -258,7 +258,10 @@ pub static LINK11: StackDescriptor = StackDescriptor {
     name: "Link 11 CLEW (structure)",
     group: "HF utility",
     blurb: "The 16-tone Link 11 waveform: messages, frame rate, frame count, Doppler offset and the raw phase steps of the 15 data tones (no bits).",
-    tuning: crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ),
+    tuning: sdrkit_core::Tuning {
+        kind: Some(sdrkit_core::TuningKind::Free),
+        ..crate::ms110::hf_tuning(crate::ms110::TEST_SIGNAL_HZ)
+    },
     submodes: &[],
     settings: schema,
     make_receiver,
