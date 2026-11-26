@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.1. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of `ble`.
@@ -55,6 +55,10 @@ public struct BleFields {
     public var auxOutside: Int64
     /// Periodic advertising trains whose packets the receivers take.
     public var periodicTrains: Int64
+    /// Connections whose events the receivers follow now (from a CONNECT_IND or AUX_CONNECT_REQ heard).
+    public var connectionsFollowed: Int64
+    /// Good packets of followed connections.
+    public var connectionPackets: Int64
 
     init(_ c: sdrkit_ble_fields) {
         devices = c.devices
@@ -79,6 +83,8 @@ public struct BleFields {
         auxFollowed = c.aux_followed
         auxOutside = c.aux_outside
         periodicTrains = c.periodic_trains
+        connectionsFollowed = c.connections_followed
+        connectionPackets = c.connection_packets
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -266,6 +272,95 @@ public struct BleDeviceLevelRow {
         device = sdrkitText(c.device)
         sample = c.sample
         levelDbfs = c.level_dbfs
+    }
+}
+
+/// A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address as eight hex digits.
+public struct BleConnectionRow {
+    /// The row key.
+    public var key: String
+    /// The access address of the connection, eight hex digits.
+    public var accessAddress: String
+    /// The central (the initiator of the connection).
+    public var central: String
+    /// The peripheral (the advertiser it connected to).
+    public var peripheral: String
+    /// The connection interval.
+    public var intervalMs: Double
+    /// The peripheral latency, events.
+    public var latency: Int64
+    /// The supervision timeout.
+    public var timeoutMs: Double
+    /// The PHY ("LE 1M", "LE 2M", "LE Coded").
+    public var phy: String
+    /// The channel selection algorithm (1 or 2). No value until a packet tells.
+    public var csa: Int64?
+    /// The data channels its channel map uses.
+    public var channelsUsed: Int64
+    /// Packets of the connection heard.
+    public var packets: Int64
+    /// The connection is encrypted: LL_ENC_REQ or LL_START_ENC_REQ was heard. Its payloads are then not read.
+    public var encrypted: Bool
+    /// The LL control procedures heard, joined with ", " ("LL_VERSION_IND, LL_ENC_REQ").
+    public var procedures: String
+    /// ATT PDUs read in the clear.
+    public var att: Int64
+    /// LL_TERMINATE_IND was heard.
+    public var ended: Bool
+    /// The UTC of the CONNECT_IND.
+    public var firstHeard: Double?
+    /// The UTC of the last packet.
+    public var lastHeard: Double?
+
+    init(_ c: sdrkit_ble_connection_row) {
+        key = sdrkitText(c.key)
+        accessAddress = sdrkitText(c.access_address)
+        central = sdrkitText(c.central)
+        peripheral = sdrkitText(c.peripheral)
+        intervalMs = c.interval_ms
+        latency = c.latency
+        timeoutMs = c.timeout_ms
+        phy = sdrkitText(c.phy)
+        csa = c.has_csa ? c.csa : nil
+        channelsUsed = c.channels_used
+        packets = c.packets
+        encrypted = c.encrypted
+        procedures = sdrkitText(c.procedures)
+        att = c.att
+        ended = c.ended
+        firstHeard = c.has_first_heard ? c.first_heard : nil
+        lastHeard = c.has_last_heard ? c.last_heard : nil
+    }
+}
+
+/// A row of the Attribute Protocol log of `ble`: an ATT PDU sent in the clear on a followed connection.
+public struct BleAttRow {
+    /// The row key.
+    public var key: String
+    /// The signal time of the packet.
+    public var signalS: Double
+    /// The connection.
+    public var connection: String
+    /// The central sent it (the first packet of its connection event); false for the peripheral.
+    public var fromCentral: Bool
+    /// The ATT opcode name ("ATT_READ_REQ").
+    public var opcode: String
+    /// The attribute handle the PDU names. No value when it names none.
+    public var handle: Int64?
+    /// The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was heard. No value otherwise.
+    public var service: String?
+    /// The bytes after the opcode and the handle as hex, at most 32 bytes.
+    public var value: String
+
+    init(_ c: sdrkit_ble_att_row) {
+        key = sdrkitText(c.key)
+        signalS = c.signal_s
+        connection = sdrkitText(c.connection)
+        fromCentral = c.from_central
+        opcode = sdrkitText(c.opcode)
+        handle = c.has_handle ? c.handle : nil
+        service = c.has_service ? sdrkitText(c.service) : nil
+        value = sdrkitText(c.value)
     }
 }
 
@@ -2225,6 +2320,28 @@ public enum WlanTables {
         let code = sdrkit_ble_device_levels_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleDeviceLevelRow.init))
+    }
+    /// The changed rows of the table "connections" of the stack "ble", newest first, at most `capacity` rows.
+    /// The column `access_address` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
+    public static func bleConnections(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[BleConnectionRow], SDRKitCode> {
+        var rows = [sdrkit_ble_connection_row](repeating: sdrkit_ble_connection_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_ble_connections_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleConnectionRow.init))
+    }
+    /// The changed rows of the table "att" of the stack "ble", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// The column `opcode` names a row.
+    /// Time: `signal_s`.
+    public static func bleAtt(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BleAttRow], SDRKitCode> {
+        var rows = [sdrkit_ble_att_row](repeating: sdrkit_ble_att_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_ble_att_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleAttRow.init))
     }
     /// The changed rows of the table "trackers" of the stack "bletracker", newest first, at most `capacity` rows.
     /// The rows are the stations or nodes of the stack.

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 1
+#define SDRKIT_WLAN_VERSION_MINOR 2
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -261,6 +261,10 @@ typedef struct sdrkit_ble_fields {
   int64_t aux_outside;
   // Periodic advertising trains whose packets the receivers take.
   int64_t periodic_trains;
+  // Connections whose events the receivers follow now (from a CONNECT_IND or AUX_CONNECT_REQ heard).
+  int64_t connections_followed;
+  // Good packets of followed connections.
+  int64_t connection_packets;
 } sdrkit_ble_fields;
 
 // The result fields of the advertising sender of `ble` and `bletracker`.
@@ -428,6 +432,78 @@ typedef struct sdrkit_ble_device_level_row {
   // The level. Unit: dBFS.
   double level_dbfs;
 } sdrkit_ble_device_level_row;
+
+// A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address as eight hex digits.
+typedef struct sdrkit_ble_connection_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The access address of the connection, eight hex digits.
+  sdrkit_string access_address;
+  // The central (the initiator of the connection).
+  sdrkit_string central;
+  // The peripheral (the advertiser it connected to).
+  sdrkit_string peripheral;
+  // The connection interval. Unit: ms.
+  double interval_ms;
+  // The peripheral latency, events.
+  int64_t latency;
+  // The supervision timeout. Unit: ms.
+  double timeout_ms;
+  // The PHY ("LE 1M", "LE 2M", "LE Coded").
+  sdrkit_string phy;
+  // True if `csa` holds a value.
+  bool has_csa;
+  // The channel selection algorithm (1 or 2). No value until a packet tells.
+  int64_t csa;
+  // The data channels its channel map uses.
+  int64_t channels_used;
+  // Packets of the connection heard.
+  int64_t packets;
+  // The connection is encrypted: LL_ENC_REQ or LL_START_ENC_REQ was heard. Its payloads are then not read.
+  bool encrypted;
+  // The LL control procedures heard, joined with ", " ("LL_VERSION_IND, LL_ENC_REQ").
+  sdrkit_string procedures;
+  // ATT PDUs read in the clear.
+  int64_t att;
+  // LL_TERMINATE_IND was heard.
+  bool ended;
+  // True if `first_heard` holds a value.
+  bool has_first_heard;
+  // The UTC of the CONNECT_IND. Seconds since 1970 (UTC).
+  double first_heard;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the last packet. Seconds since 1970 (UTC).
+  double last_heard;
+} sdrkit_ble_connection_row;
+
+// A row of the Attribute Protocol log of `ble`: an ATT PDU sent in the clear on a followed connection.
+typedef struct sdrkit_ble_att_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The signal time of the packet. Unit: s.
+  double signal_s;
+  // The connection.
+  sdrkit_string connection;
+  // The central sent it (the first packet of its connection event); false for the peripheral.
+  bool from_central;
+  // The ATT opcode name ("ATT_READ_REQ").
+  sdrkit_string opcode;
+  // True if `handle` holds a value.
+  bool has_handle;
+  // The attribute handle the PDU names. No value when it names none.
+  int64_t handle;
+  // True if `service` holds a value.
+  bool has_service;
+  // The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was heard. No value otherwise.
+  sdrkit_string service;
+  // The bytes after the opcode and the handle as hex, at most 32 bytes.
+  sdrkit_string value;
+} sdrkit_ble_att_row;
 
 // The result fields of `bletracker`.
 typedef struct sdrkit_bletracker_fields {
@@ -2377,6 +2453,30 @@ static inline int32_t sdrkit_ble_device_levels_rows(SDRKIT_HANDLE handle,
                                                    uint32_t capacity,
                                                    sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "wlan.BleDeviceLevelRow", "device_levels", rows, sizeof(sdrkit_ble_device_level_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "connections" of the stack "ble" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `access_address` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_ble_connections_rows(SDRKIT_HANDLE handle,
+                                                 sdrkit_ble_connection_row *rows,
+                                                 uint32_t capacity,
+                                                 sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wlan.BleConnectionRow", "connections", rows, sizeof(sdrkit_ble_connection_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "att" of the stack "ble" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// The column `opcode` names a row.
+// Time: `signal_s`.
+static inline int32_t sdrkit_ble_att_rows(SDRKIT_HANDLE handle,
+                                         sdrkit_ble_att_row *rows,
+                                         uint32_t capacity,
+                                         sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wlan.BleAttRow", "att", rows, sizeof(sdrkit_ble_att_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "ble.device"

@@ -2,12 +2,13 @@
 //! the log are kept in the saved state.
 
 use super::adv::{kind_of, parse_ad, AdvInfo, DeviceKind};
+use super::conn::{self, AttLine, ConnRecord};
 use super::follow::{Follower, Role};
 use super::{AdvChannel, AdvStats, Advert};
 use crate::report::{hex, push_history, remove_older_rows, wall, BLE_PRIVACY_NOTE};
 use crate::typed::{
     BleDeviceEvent, BleDeviceLevelRow, BleDeviceRow, BleFields, BlePacketRow, BlePduTypeRow,
-    BLE_DEVICE, BLE_DEVICES, BLE_DEVICE_LEVELS, BLE_DEVICE_ROW, BLE_PACKETS, BLE_PDU_TYPES,
+    BLE_ATT, BLE_CONNECTIONS, BLE_DEVICE, BLE_DEVICES, BLE_DEVICE_LEVELS, BLE_DEVICE_ROW, BLE_PACKETS, BLE_PDU_TYPES,
     BLE_REMOVE,
 };
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
@@ -21,7 +22,7 @@ use sdrkit_core::{
 use sdrkit_graph::{
     values_of, Applied, Component, ComponentInfo, Format, Io, Kept, Kind, Port, RunContext, Timed,
 };
-use sdrkit_proto_wlan_phy::ble::{channel_hz, Addr, AddrKind, Body, Coding, PduType, Phy};
+use sdrkit_proto_wlan_phy::ble::{channel_hz, Addr, AddrKind, Body, Coding, LinkKind, PduType, Phy};
 use sdrkit_util_objects::commands::{self as objcmd, Tables as _};
 use sdrkit_util_objects::publish::columns;
 use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
@@ -325,13 +326,17 @@ impl Shaped for LogEntry {
     }
 }
 
-/// The devices and the log, kept across sessions.
+/// The devices, the logs and the connections, kept across sessions.
 #[derive(Serialize, Deserialize)]
 pub struct Store {
     /// The devices, by address and "r" or "p".
     pub devices: ObjectTable<String, Device>,
     /// The packet log.
     pub log: LogRing<LogEntry>,
+    /// The connections, by access address.
+    pub conns: ObjectTable<String, ConnRecord>,
+    /// The ATT log.
+    pub att: LogRing<AttLine>,
 }
 
 impl Default for Store {
@@ -339,6 +344,8 @@ impl Default for Store {
         Store {
             devices: ObjectTable::new(DEVICE_CAP),
             log: LogRing::new(LOG_CAP),
+            conns: ObjectTable::new(conn::CONN_CAP),
+            att: LogRing::new(conn::ATT_CAP),
         }
     }
 }
@@ -347,16 +354,22 @@ impl Shift for Store {
     fn shift_times(&mut self, by_s: f64) {
         self.devices.shift_times(by_s);
         self.log.shift_times(by_s);
+        self.conns.shift_times(by_s);
+        self.att.shift_times(by_s);
     }
 }
 
 impl objcmd::Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 4);
+    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 5);
     fn clear(&mut self) {
         self.devices.clear();
         self.log.clear();
+        self.conns.clear();
+        self.att.clear();
     }
     fn adopt(&mut self, saved: Self) {
+        self.conns.adopt(saved.conns);
+        self.att.adopt(saved.att);
         self.devices.adopt(saved.devices);
         self.log.adopt(saved.log);
     }
@@ -376,6 +389,8 @@ pub struct Counters {
     pub per_type: Vec<(&'static str, u64)>,
     /// Good packets on 37, 38 and 39.
     pub per_channel: [u64; 3],
+    /// Good packets of followed connections.
+    pub conn_packets: u64,
     /// The running mean of the eye SNR.
     pub snr_db: Option<f64>,
     /// The last packet's carrier offset, Hz.
@@ -436,6 +451,8 @@ impl Default for DeviceTable {
                 BLE_PACKETS.def(),
                 BLE_PDU_TYPES.def(),
                 BLE_DEVICE_LEVELS.def(),
+                BLE_CONNECTIONS.def(),
+                BLE_ATT.def(),
             ]),
             store: Store::default(),
             counters: Counters::default(),
@@ -534,12 +551,20 @@ impl DeviceTable {
 
     /// Takes a good packet: the counters, the log and the device rows. Returns the event of the device it updated.
     pub fn take(&mut self, a: &Advert) -> Option<Event> {
-        let p = a.parsed()?;
-        let t = p.header.pdu_type;
         let at = match wall(self.live, &self.clock) {
             Some(w) => Stamp::at(a.time_s).with_wall(w),
             None => Stamp::at(a.time_s),
         };
+        if a.kind == LinkKind::Data {
+            self.counters.conn_packets += 1;
+            conn::take(&mut self.store.conns, &mut self.store.att, a, at);
+            return None;
+        }
+        let p = a.parsed()?;
+        let t = p.header.pdu_type;
+        if t == PduType::ConnectInd {
+            conn::connect(&mut self.store.conns, &p, a.phy, a.channel < 37, at);
+        }
         let f = self.follow.take(a, self.stats.capture);
         let role = f.as_ref().map_or(Role::Primary, |f| f.role);
         let name = role.pdu_name(t);
@@ -760,6 +785,8 @@ impl DeviceTable {
             aux_followed: c.aux_followed as i64,
             aux_outside: c.aux_outside as i64,
             periodic_trains: i64::from(self.stats.trains),
+            connections_followed: i64::from(self.stats.connections),
+            connection_packets: c.conn_packets as i64,
         });
         for &(name, n) in &per_type {
             BLE_PDU_TYPES.put(
@@ -780,6 +807,8 @@ impl DeviceTable {
                 && (!named_only || !r.record.name.is_empty())
         });
         shaped::log_rows(&self.store.log, &BLE_PACKETS, now, p);
+        shaped::rows(&self.store.conns, &BLE_CONNECTIONS, now, p);
+        shaped::log_rows(&self.store.att, &BLE_ATT, now, p);
         self.publish_levels();
     }
 
@@ -1004,6 +1033,12 @@ impl Component for DeviceTable {
         }
         if !kept.table(BLE_PACKETS.key) {
             self.store.log.clear();
+        }
+        if !kept.table(BLE_CONNECTIONS.key) {
+            self.store.conns.clear();
+        }
+        if !kept.table(BLE_ATT.key) {
+            self.store.att.clear();
         }
         if !kept.table(BLE_DEVICE_LEVELS.key) {
             for (_, d) in self.store.devices.records_mut() {

@@ -690,3 +690,68 @@ fn the_test_signal_has_each_kind_a_tracker_and_a_spread_of_levels() {
     let (hi, lo) = l.iter().fold((f64::MIN, f64::MAX), |(h, m), &v| (h.max(v), m.min(v)));
     assert!(hi - lo > 28.0 && hi <= 0.0, "{hi} {lo}");
 }
+
+/// The connection schedule at 40 Msps, moved so that channel 37 lands at -9 MHz of a capture centred on 2411 MHz: channel 37
+/// and data channels 0 to 8 are inside.
+fn connection_capture(ch_sel: bool, snr_db: f64) -> sdrkit_graph::StackGraph {
+    let rate = 40e6;
+    let p = BleGenParams {
+        rate_hz: rate,
+        looped: false,
+        whitening: Whitening::Fixed(37),
+        packets: ble::gen::connection_schedule(ch_sel),
+    };
+    let x = shifted(&signal(p, &snr(snr_db), 2, 0.15), -9e6, rate);
+    let mut r = rx(&[]);
+    r.configure(&InputInfo::new(rate, 2411e6, 2402e6).recording())
+        .unwrap();
+    feed(&mut r, &x, 65536);
+    r
+}
+
+#[test]
+fn a_connection_is_followed_over_its_data_channels_until_it_is_encrypted() {
+    use sdrkit_stack_wlan::typed::{BleAttRow as A, BleConnectionRow as C};
+    for ch_sel in [false, true] {
+        let r = connection_capture(ch_sel, 30.0);
+        let res = Owner::results(&r);
+        let conns = rows(res, "connections");
+        assert_eq!(conns.len(), 1, "ChSel {ch_sel}");
+        let c = conns[0];
+        assert_eq!(text(c, &C::ACCESS_ADDRESS), "5A3C9617");
+        assert_eq!(text(c, &C::CENTRAL), "C1:23:45:67:89:AB");
+        assert_eq!(text(c, &C::PERIPHERAL), "D2:34:56:78:9A:BC");
+        assert_eq!(cnum(c, &C::INTERVAL_MS), 10.0);
+        assert_eq!(cnum(c, &C::CHANNELS_USED), 9.0);
+        assert_eq!(cnum(c, &C::CSA), if ch_sel { 2.0 } else { 1.0 }, "ChSel {ch_sel}");
+        assert_eq!(cnum(c, &C::PACKETS), 20.0, "ChSel {ch_sel}");
+        assert_eq!(c.at(&C::ENCRYPTED), Some(true));
+        let procs = text(c, &C::PROCEDURES);
+        for p in ["LL_VERSION_IND", "LL_ENC_REQ", "LL_ENC_RSP", "LL_START_ENC_REQ"] {
+            assert!(procs.contains(p), "{procs}");
+        }
+        assert_eq!(num(res, "connection_packets"), Some(20.0));
+        // The ATT PDUs in the clear, oldest first; the ciphertext after the encryption start is not read.
+        let mut att = rows(res, "att");
+        att.reverse();
+        let ops: Vec<String> = att.iter().map(|a| text(a, &A::OPCODE)).collect();
+        assert_eq!(
+            ops,
+            [
+                "ATT_READ_BY_GROUP_TYPE_REQ",
+                "ATT_READ_BY_GROUP_TYPE_RSP",
+                "ATT_READ_REQ",
+                "ATT_READ_RSP",
+                "ATT_HANDLE_VALUE_NTF"
+            ]
+        );
+        let from: Vec<bool> = att
+            .iter()
+            .map(|a| a.at(&A::FROM_CENTRAL) == Some(true))
+            .collect();
+        assert_eq!(from, [true, false, true, false, false]);
+        assert_eq!(text(att[4], &A::SERVICE), "Battery");
+        assert_eq!(cnum(att[4], &A::HANDLE), 8.0);
+        assert_eq!(text(att[4], &A::VALUE), "59");
+    }
+}

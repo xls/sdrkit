@@ -29,6 +29,8 @@ field FieldDecl { key: "channels_in_capture", label: "Channels in the capture", 
 field FieldDecl { key: "aux_followed", label: "Auxiliary packets followed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "aux_outside", label: "Pointers outside the capture", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "periodic_trains", label: "Periodic trains", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "connections_followed", label: "Connections followed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "connection_packets", label: "Connection packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sent", label: "Packets sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_left", label: "Packets left", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -73,6 +75,33 @@ table "device_levels" "Device levels" cap 9600
   column FieldDecl { key: "device", label: "Device", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "devices", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "sample", label: "Sample", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+table "connections" "Connections" cap 64
+  marks TableMarks { label: Some(0), sort: Some((15, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: Some(15), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "access_address", label: "Access address", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "central", label: "Central", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "devices", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "peripheral", label: "Peripheral", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "devices", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "interval_ms", label: "Interval", unit: "ms", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "latency", label: "Latency", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "timeout_ms", label: "Timeout", unit: "ms", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "phy", label: "PHY", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "csa", label: "Channel selection", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channels_used", label: "Channels used", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "encrypted", label: "Encrypted", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "procedures", label: "LL control", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "att", label: "ATT PDUs", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "ended", label: "Ended", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+table "att" "ATT" cap 400
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "signal_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "connection", label: "Connection", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "connections", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "from_central", label: "From central", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "opcode", label: "Opcode", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "handle", label: "Handle", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "value", label: "Value", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "ble.device" "Bluetooth LE device"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

@@ -130,7 +130,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -343,3 +343,14 @@ sdrkit run wifi --source iiod:192.168.2.1 --freq 2437
 ## Settings: notes
 
 Advanced settings. The owner works without any of them set.
+
+## Sample rates and what is skipped
+
+- From 20 Msps the stack receives everything it decodes: DSSS, non-HT OFDM, and HT and VHT PPDUs with one spatial stream
+  at 20 MHz. From 43.5 Msps a 5 or 6 GHz capture is split into its 20 MHz channels.
+- From 4 Msps to 20 Msps only the 802.11b (DSSS) frames of 2.4 GHz are received. The status line says so. Nothing is
+  received in the 5 and 6 GHz bands at these rates.
+- On a busy channel the HT and VHT data fields can cost more processor time than the signal lasts. When an OFDM channel
+  falls more than 50 ms behind its input, the stack stops decoding the data fields of HT and VHT PPDUs until it has
+  caught up. Those PPDUs are counted from their signal fields in `ppdu_not_decoded_busy`; their MPDUs (and so their
+  stations and frame counts) are missing. Non-HT frames, beacons among them, are always decoded.

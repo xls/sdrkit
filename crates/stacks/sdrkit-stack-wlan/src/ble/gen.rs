@@ -631,6 +631,120 @@ pub fn kinds_schedule() -> Vec<GenPacket> {
     v
 }
 
+/// The access address of the connection of [`connection_schedule`].
+pub const CONN_AA: u32 = 0x5A3C_9617;
+/// The CRC preset of that connection.
+pub const CONN_CRC: u32 = 0x0A_BCDE;
+/// Its channel map: data channels 0 to 8.
+pub const CONN_MAP: [u8; 5] = [0xFF, 0x01, 0, 0, 0];
+/// Its interval, units of 1.25 ms (10 ms).
+pub const CONN_INTERVAL: u16 = 8;
+
+/// A connection from its CONNECT_IND on channel 37 to ten connection events on data channels 0 to 8: version exchange, a
+/// primary service discovery (GAP, then Battery at handles 6 to 9), a read and a notification of handle 8 in the clear,
+/// then the encryption start and four events of ciphertext. The central is C1:..., the peripheral D2:.... `ch_sel` sets the
+/// ChSel bit of the CONNECT_IND: the connection then uses channel selection algorithm #2.
+pub fn connection_schedule(ch_sel: bool) -> Vec<GenPacket> {
+    let central = addr("C1:23:45:67:89:AB", true);
+    let peripheral = addr("D2:34:56:78:9A:BC", true);
+    let (win_size, win_offset, hop) = (2u8, 1u16, 7u8);
+    let mut ll = Vec::new();
+    ll.extend(CONN_AA.to_le_bytes());
+    ll.extend(&CONN_CRC.to_le_bytes()[..3]);
+    ll.push(win_size);
+    ll.extend(win_offset.to_le_bytes());
+    ll.extend(CONN_INTERVAL.to_le_bytes());
+    ll.extend(0u16.to_le_bytes());
+    ll.extend(100u16.to_le_bytes());
+    ll.extend(CONN_MAP);
+    ll.push(hop);
+    let mut payload = central.bytes.to_vec();
+    payload.extend_from_slice(&peripheral.bytes);
+    payload.extend(&ll);
+    let h = Header {
+        pdu_type: PduType::ConnectInd,
+        ch_sel,
+        tx_add: true,
+        rx_add: true,
+        length: payload.len() as u8,
+    };
+    let mut connect = Vec::new();
+    build_pdu(&mut connect, h, &payload).expect("the CONNECT_IND of the schedule");
+    // A packet of `n` PDU bytes lasts (n + 8) bytes of 8 µs on LE 1M, with the generator's carrier before and after.
+    let air = |n: usize| ((n + 8) * 8 + 2 * PAD_BITS) as f64 * 1e-6;
+    let interval = f64::from(CONN_INTERVAL) * 1.25e-3;
+    // The first central packet 0.5 ms into the transmit window: 1.25 ms after the CONNECT_IND, then WinOffset.
+    let first = air(connect.len()) + 1.25e-3 + f64::from(win_offset) * 1.25e-3 + 0.5e-3;
+    let link = Link::new(CONN_AA, CONN_CRC, LinkKind::Data);
+    let map = ChannelMap::from_bytes(CONN_MAP).expect("the channel map of the schedule");
+    let l2 = |att: &[u8]| {
+        let mut v = (att.len() as u16).to_le_bytes().to_vec();
+        v.extend(4u16.to_le_bytes());
+        v.extend_from_slice(att);
+        v
+    };
+    let data = |llid: u8, p: &[u8]| {
+        let mut v = vec![llid, p.len() as u8];
+        v.extend_from_slice(p);
+        v
+    };
+    let cipher = |n: usize, seed: u8| -> Vec<u8> {
+        (0..n)
+            .map(|i| seed.wrapping_mul(31).wrapping_add((i as u8).wrapping_mul(17)))
+            .collect()
+    };
+    let mut rsp = vec![0x11, 6];
+    for (a, b, u) in [(1u16, 5u16, 0x1800u16), (6, 9, 0x180F)] {
+        rsp.extend(a.to_le_bytes());
+        rsp.extend(b.to_le_bytes());
+        rsp.extend(u.to_le_bytes());
+    }
+    let mut enc_req = vec![0x03];
+    enc_req.extend(cipher(22, 3));
+    let mut enc_rsp = vec![0x04];
+    enc_rsp.extend(cipher(12, 4));
+    let mut events: Vec<(Vec<u8>, Vec<u8>)> = vec![
+        (
+            data(3, &[0x0C, 0x0D, 0x5F, 0x00, 0x01, 0x00]),
+            data(3, &[0x0C, 0x0D, 0x59, 0x00, 0x02, 0x00]),
+        ),
+        (
+            data(2, &l2(&[0x10, 0x01, 0x00, 0xFF, 0xFF, 0x00, 0x28])),
+            data(2, &l2(&rsp)),
+        ),
+        (data(2, &l2(&[0x0A, 0x08, 0x00])), data(2, &l2(&[0x0B, 0x5A]))),
+        (data(1, &[]), data(2, &l2(&[0x1B, 0x08, 0x00, 0x59]))),
+        (data(3, &enc_req), data(3, &enc_rsp)),
+        // The peripheral starts the encryption in the clear; both LL_START_ENC_RSP come encrypted (with their MIC).
+        (data(1, &[]), data(3, &[0x05])),
+        (data(3, &cipher(5, 6)), data(3, &cipher(5, 7))),
+    ];
+    for k in 0..3u8 {
+        events.push((data(2, &cipher(12, 10 + k)), data(2, &cipher(12, 20 + k))));
+    }
+    let mut v = vec![GenPacket::new(connect, 0.0).next_after(first)];
+    for (k, (c, p)) in events.into_iter().enumerate() {
+        let counter = k as u16;
+        let ch = if ch_sel {
+            csa::csa2_channel(counter, csa::channel_identifier(CONN_AA), &map)
+        } else {
+            csa::Csa1::channel_of(hop, counter, &map)
+        };
+        let c_air = air(c.len());
+        v.push(GenPacket::new(c, 0.0).on(ch).link(link).next_after(c_air + 150e-6));
+        v.push(
+            GenPacket::new(p, 0.0)
+                .on(ch)
+                .link(link)
+                .next_after(interval - c_air - 150e-6),
+        );
+    }
+    if let Some(last) = v.last_mut() {
+        *last = last.clone().next_after(0.05);
+    }
+    v
+}
+
 /// The schedule of the `bletracker` stack: all random static addresses.
 pub fn tracker_schedule() -> Vec<GenPacket> {
     let mut v = Vec::new();

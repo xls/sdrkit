@@ -7,6 +7,7 @@
 pub mod adv;
 pub mod bank;
 pub mod bench;
+pub mod conn;
 pub mod follow;
 pub mod gen;
 pub mod table;
@@ -66,7 +67,8 @@ impl AdvChannel {
     }
 }
 
-/// A good advertising packet (the `ble.adv` stream): the PDU, what its advertising data says, and how it was received.
+/// A good packet (the `ble.adv` stream): the PDU, what its advertising data says, and how it was received. A packet of a
+/// connection has an empty `info`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Advert {
     /// Signal time of the end of the access address, s.
@@ -91,10 +93,12 @@ pub struct Advert {
     pub phy: Phy,
     /// The coding on the LE Coded PHY.
     pub coding: Option<Coding>,
-    /// The kind of the link the packet came on (advertising or a periodic train).
+    /// The kind of the link the packet came on (advertising, a periodic train or a connection).
     pub kind: LinkKind,
     /// The access address.
     pub access_address: u32,
+    /// The connection event of a packet of a followed connection, and whether the central sent it.
+    pub conn: Option<conn::Placed>,
 }
 
 impl Advert {
@@ -127,6 +131,8 @@ pub struct AdvStats {
     pub capture: u64,
     /// The periodic trains whose packets the receivers take.
     pub trains: u32,
+    /// The connections followed.
+    pub connections: u32,
 }
 
 impl Item for AdvStats {

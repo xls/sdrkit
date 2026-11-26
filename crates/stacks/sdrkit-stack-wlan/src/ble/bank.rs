@@ -7,6 +7,7 @@
 //! Standard: Bluetooth Core Specification v5.4 Vol 6 Part B clauses 1.4.1, 2.3.4.5, 2.3.4.6, 4.4.2.12 and 4.5.8.3.
 
 use super::adv::{parse_ad, summary};
+use super::conn::Conn;
 use super::follow::start_to_aa_end_s;
 use super::{AdvStats, Advert, HINT_TOLERANCE_HZ, RATE_HZ};
 use sdrkit_algo_dsp::channel::{ChannelConfig, Channelizer};
@@ -173,9 +174,11 @@ pub struct AdvDecoder {
     level: BandLevel,
     kept: ReceiverStats,
     trains: Vec<Train>,
+    conns: Vec<Conn>,
     out: Vec<Timed<Advert>>,
     capture: u64,
     events: Vec<(f64, u8)>,
+    conn_events: Vec<(f64, f64, u8)>,
 }
 
 impl Default for AdvDecoder {
@@ -190,9 +193,11 @@ impl Default for AdvDecoder {
             level: BandLevel::new(),
             kept: ReceiverStats::default(),
             trains: Vec::new(),
+            conns: Vec::new(),
             out: Vec::new(),
             capture: 0,
             events: Vec::new(),
+            conn_events: Vec::new(),
         }
     }
 }
@@ -215,6 +220,8 @@ enum Ask {
     Train(SyncInfo, f64),
     /// A packet of a train's link that started at the given time.
     Heard(u32, f64),
+    /// A CONNECT_IND or AUX_CONNECT_REQ: the connection to follow.
+    Connect(Box<Conn>),
 }
 
 /// What packet `p` (an advert at `time_s`) asks of the other channels.
@@ -222,6 +229,23 @@ fn asks(a: &Advert, out: &mut Vec<Ask>) {
     let start = a.time_s - start_to_aa_end_s(a.phy);
     if a.kind == LinkKind::Periodic {
         out.push(Ask::Heard(a.access_address, start));
+    }
+    if let Some(AdvPdu {
+        header,
+        body: Body::Connect { init_a, adv_a, ll },
+    }) = a.parsed()
+    {
+        // The packet ends after the PDU and the CRC (8 µs a byte on LE 1M, 4 on LE 2M, 64 on LE Coded S=8).
+        let per_byte = match a.phy {
+            Phy::Le1M => 8e-6,
+            Phy::Le2M => 4e-6,
+            Phy::LeCoded => 64e-6,
+        };
+        let end = a.time_s + (a.pdu.len() + 3) as f64 * per_byte;
+        let aux = a.channel < 37;
+        if let Some(c) = Conn::new(init_a, adv_a, &ll, end, a.phy, aux, header.ch_sel) {
+            out.push(Ask::Connect(Box::new(c)));
+        }
     }
     let Some(AdvPdu {
         body: Body::Extended { ext, .. },
@@ -312,6 +336,9 @@ impl AdvDecoder {
             for t in &self.trains {
                 let _ = rx.add_link(t.link);
             }
+            for c in &self.conns {
+                let _ = rx.add_link(Link::new(c.aa, c.crc_init, LinkKind::Data));
+            }
             self.chains.push(Chain {
                 ratio: rate / ch.output_rate(),
                 ch,
@@ -369,6 +396,64 @@ impl AdvDecoder {
         });
         for c in &mut self.chains {
             let _ = c.rx.add_link(link);
+        }
+    }
+
+    /// Follows connection `c`, or starts it again when its access address is followed already.
+    fn follow_conn(&mut self, c: Conn) {
+        if let Some(old) = self.conns.iter_mut().find(|o| o.aa == c.aa) {
+            *old = c;
+            return;
+        }
+        if self.trains.len() + self.conns.len() + 1 >= MAX_LINKS {
+            return;
+        }
+        let link = Link::new(c.aa, c.crc_init, LinkKind::Data);
+        for ch in &mut self.chains {
+            let _ = ch.rx.add_link(link);
+        }
+        self.conns.push(c);
+    }
+
+    /// Drops the connections that are over at `now_s`.
+    fn drop_old_conns(&mut self, now_s: f64) {
+        let mut i = 0;
+        while i < self.conns.len() {
+            if self.conns[i].over(now_s) {
+                let aa = self.conns[i].aa;
+                for c in &mut self.chains {
+                    c.rx.remove_link(aa);
+                }
+                self.conns.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    /// Opens the channels of the connection events that may start in this block.
+    fn open_conn_events(&mut self, from_s: f64, to_s: f64) {
+        self.conn_events.clear();
+        for c in &self.conns {
+            c.events(from_s, to_s, &mut self.conn_events);
+        }
+        for i in 0..self.conn_events.len() {
+            let (a, b, ch) = self.conn_events[i];
+            self.open(ch, a, b);
+        }
+    }
+
+    /// Places the packets of the followed connections in this block's output, in time order.
+    fn place_conn_packets(&mut self) {
+        for t in &mut self.out {
+            let a = &mut t.value;
+            if a.kind != LinkKind::Data {
+                continue;
+            }
+            if let Some(c) = self.conns.iter_mut().find(|c| c.aa == a.access_address) {
+                let start = a.time_s - start_to_aa_end_s(a.phy);
+                a.conn = c.heard(start, a.channel, &a.pdu);
+            }
         }
     }
 
@@ -482,9 +567,14 @@ impl AdvDecoder {
 
 /// The advert of a good packet at signal time `time_s`.
 fn advert(p: &BlePacket<'_>, time_s: f64) -> Option<Advert> {
-    let pdu = AdvPdu::parse(p.pdu).ok()?;
-    let info = parse_ad(pdu.data().unwrap_or(&[]));
-    let summary = summary(&pdu, &info);
+    let (info, summary) = if p.link.kind == LinkKind::Data {
+        (Default::default(), super::conn::summary(p.pdu))
+    } else {
+        let pdu = AdvPdu::parse(p.pdu).ok()?;
+        let info = parse_ad(pdu.data().unwrap_or(&[]));
+        let summary = summary(&pdu, &info);
+        (info, summary)
+    };
     Some(Advert {
         time_s,
         channel: p.channel,
@@ -499,6 +589,7 @@ fn advert(p: &BlePacket<'_>, time_s: f64) -> Option<Advert> {
         coding: p.coding,
         kind: p.link.kind,
         access_address: p.link.access_address,
+        conn: None,
     })
 }
 
@@ -554,6 +645,7 @@ impl Decoder for AdvDecoder {
         let (b0, b1) = (first as f64 / rate, (first + x.len() as u64) as f64 / rate);
         self.out.clear();
         self.open_train_events(b0, b1);
+        self.open_conn_events(b0, b1);
         let mut asks_v: Vec<Ask> = Vec::new();
         // At most 40 chains: bit `i` is chain `i`.
         let mut done = 0u64;
@@ -583,9 +675,11 @@ impl Decoder for AdvDecoder {
                     Ask::Open(ch, from, to) => self.open(ch, from, to),
                     Ask::Train(s, t) => self.follow_train(s, t),
                     Ask::Heard(aa, t) => self.heard_train(aa, t),
+                    Ask::Connect(c) => self.follow_conn(*c),
                 }
             }
             self.open_train_events(b0, b1);
+            self.open_conn_events(b0, b1);
         }
         for (i, c) in self.chains.iter_mut().enumerate() {
             if done & (1 << i) == 0 {
@@ -597,6 +691,8 @@ impl Decoder for AdvDecoder {
         let end_s = self.input as f64 / rate;
         self.drop_old_trains(end_s);
         self.out.sort_by(|a, b| a.time.total_cmp(&b.time));
+        self.place_conn_packets();
+        self.drop_old_conns(end_s);
         out.items::<Advert>(0).append(&mut self.out);
         let s = self.stats();
         let stats = AdvStats {
@@ -608,6 +704,7 @@ impl Decoder for AdvDecoder {
             level_dbfs: self.level.take_dbfs(),
             capture: self.capture,
             trains: self.trains.len() as u32,
+            connections: self.conns.len() as u32,
         };
         out.items::<AdvStats>(1).push(Timed {
             time: end_s,

@@ -206,6 +206,12 @@ pub struct BleFields<'a> {
     /// Periodic advertising trains whose packets the receivers take.
     #[field(label = "Periodic trains")]
     pub periodic_trains: i64,
+    /// Connections whose events the receivers follow now (from a CONNECT_IND or AUX_CONNECT_REQ heard).
+    #[field(label = "Connections followed")]
+    pub connections_followed: i64,
+    /// Good packets of followed connections.
+    #[field(label = "Connection packets")]
+    pub connection_packets: i64,
 }
 
 /// A row of the devices of `ble`. The row key is the address and "r" (random) or "p" (public).
@@ -328,6 +334,87 @@ pub struct BleDeviceLevelRow<'a> {
     pub level_dbfs: f64,
 }
 
+/// A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address
+/// as eight hex digits.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BleConnectionRow<'a> {
+    /// The access address of the connection, eight hex digits.
+    #[field(label = "Access address")]
+    pub access_address: &'a str,
+    /// The central (the initiator of the connection).
+    #[field(label = "Central", refers_to = "devices")]
+    pub central: &'a str,
+    /// The peripheral (the advertiser it connected to).
+    #[field(label = "Peripheral", refers_to = "devices")]
+    pub peripheral: &'a str,
+    /// The connection interval.
+    #[field(label = "Interval", unit = "ms")]
+    pub interval_ms: f64,
+    /// The peripheral latency, events.
+    #[field(label = "Latency")]
+    pub latency: i64,
+    /// The supervision timeout.
+    #[field(label = "Timeout", unit = "ms")]
+    pub timeout_ms: f64,
+    /// The PHY ("LE 1M", "LE 2M", "LE Coded").
+    #[field(label = "PHY")]
+    pub phy: &'a str,
+    /// The channel selection algorithm (1 or 2). No value until a packet tells.
+    #[field(label = "Channel selection")]
+    pub csa: Option<i64>,
+    /// The data channels its channel map uses.
+    #[field(label = "Channels used")]
+    pub channels_used: i64,
+    /// Packets of the connection heard.
+    #[field(label = "Packets")]
+    pub packets: i64,
+    /// The connection is encrypted: LL_ENC_REQ or LL_START_ENC_REQ was heard. Its payloads are then not read.
+    #[field(label = "Encrypted")]
+    pub encrypted: bool,
+    /// The LL control procedures heard, joined with ", " ("LL_VERSION_IND, LL_ENC_REQ").
+    #[field(label = "LL control")]
+    pub procedures: &'a str,
+    /// ATT PDUs read in the clear.
+    #[field(label = "ATT PDUs")]
+    pub att: i64,
+    /// LL_TERMINATE_IND was heard.
+    #[field(label = "Ended")]
+    pub ended: bool,
+    /// The UTC of the CONNECT_IND.
+    #[field(shared = columns::FIRST_HEARD)]
+    pub first_heard: Option<Time>,
+    /// The UTC of the last packet.
+    #[field(shared = columns::LAST_HEARD, role = Time)]
+    pub last_heard: Option<Time>,
+}
+
+/// A row of the Attribute Protocol log of `ble`: an ATT PDU sent in the clear on a followed connection.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BleAttRow<'a> {
+    /// The signal time of the packet.
+    #[field(label = "Signal time", unit = "s", role = Time)]
+    pub signal_s: f64,
+    /// The connection.
+    #[field(label = "Connection", refers_to = "connections")]
+    pub connection: &'a str,
+    /// The central sent it (the first packet of its connection event); false for the peripheral.
+    #[field(label = "From central")]
+    pub from_central: bool,
+    /// The ATT opcode name ("ATT_READ_REQ").
+    #[field(label = "Opcode")]
+    pub opcode: &'a str,
+    /// The attribute handle the PDU names. No value when it names none.
+    #[field(label = "Handle")]
+    pub handle: Option<i64>,
+    /// The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was
+    /// heard. No value otherwise.
+    #[field(label = "Service")]
+    pub service: Option<&'a str>,
+    /// The bytes after the opcode and the handle as hex, at most 32 bytes.
+    #[field(label = "Value")]
+    pub value: &'a str,
+}
+
 /// The fields of a good packet with an address.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BleDeviceEvent<'a> {
@@ -365,6 +452,16 @@ pub static BLE_DEVICE_LEVELS: Table<BleDeviceLevelRow<'static>> = Table::new(
     crate::ble::table::DEVICE_CAP * crate::ble::table::HISTORY,
 )
 .label(&BleDeviceLevelRow::DEVICE);
+/// The connections of `ble`, most recently heard first.
+pub static BLE_CONNECTIONS: Table<BleConnectionRow<'static>> =
+    Table::new("connections", "Connections", crate::ble::conn::CONN_CAP)
+        .label(&BleConnectionRow::ACCESS_ADDRESS)
+        .sorted(&BleConnectionRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
+/// The ATT log of `ble`, newest first.
+pub static BLE_ATT: Table<BleAttRow<'static>> =
+    Table::new("att", "ATT", crate::ble::conn::ATT_CAP)
+        .label(&BleAttRow::OPCODE)
+        .role(sdrkit_core::TableRole::Log);
 /// A good packet with an address.
 pub static BLE_DEVICE: EventKind<BleDeviceEvent<'static>> =
     EventKind::new("ble.device", "Bluetooth LE device");
@@ -2015,13 +2112,48 @@ pub static BTCLASSIC_INQUIRY: EventKind<BtclassicInquiryEvent<'static>> =
 pub const BTCLASSIC_CLEAR: Command =
     Command::new("clear_devices", "Clear").help(sdrkit_graph::decoder::CLEAR.help);
 
+/// What version 4.2 added: the connections of `ble` and their ATT log.
+const ADDED_4_2: &[&str] = &[
+    "shape.BleFields.connections_followed",
+    "shape.BleFields.connection_packets",
+    "ble.table.connections",
+    "ble.table.att",
+    "shape.BleConnectionRow",
+    "shape.BleConnectionRow.access_address",
+    "shape.BleConnectionRow.central",
+    "shape.BleConnectionRow.peripheral",
+    "shape.BleConnectionRow.interval_ms",
+    "shape.BleConnectionRow.latency",
+    "shape.BleConnectionRow.timeout_ms",
+    "shape.BleConnectionRow.phy",
+    "shape.BleConnectionRow.csa",
+    "shape.BleConnectionRow.channels_used",
+    "shape.BleConnectionRow.packets",
+    "shape.BleConnectionRow.encrypted",
+    "shape.BleConnectionRow.procedures",
+    "shape.BleConnectionRow.att",
+    "shape.BleConnectionRow.ended",
+    "shape.BleConnectionRow.first_heard",
+    "shape.BleConnectionRow.last_heard",
+    "shape.BleAttRow",
+    "shape.BleAttRow.signal_s",
+    "shape.BleAttRow.connection",
+    "shape.BleAttRow.from_central",
+    "shape.BleAttRow.opcode",
+    "shape.BleAttRow.handle",
+    "shape.BleAttRow.service",
+    "shape.BleAttRow.value",
+    "ble.kept.connections",
+    "ble.kept.att",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 1)
+        Described::new("wlan", 4, 2)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2043,6 +2175,8 @@ pub fn family() -> &'static Described {
                     .table(&BLE_PACKETS)
                     .table(&BLE_PDU_TYPES)
                     .table(&BLE_DEVICE_LEVELS)
+                    .table(&BLE_CONNECTIONS)
+                    .table(&BLE_ATT)
                     .event(&BLE_DEVICE)
                     .settings(BleSetting::SETTINGS)
                     .command(CLEAR)
@@ -2051,8 +2185,16 @@ pub fn family() -> &'static Described {
                     .event(&BLE_TX)
                     .command(&BLE_SEND)
                     .command(&BLE_HALT)
-                    .kept(&["devices", "packets", "device_levels", "BleFields.devices"]),
+                    .kept(&[
+                        "devices",
+                        "packets",
+                        "device_levels",
+                        "connections",
+                        "att",
+                        "BleFields.devices",
+                    ]),
             )
+            .added(4, 2, ADDED_4_2)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()

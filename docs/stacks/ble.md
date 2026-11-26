@@ -65,6 +65,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `aux_followed` | Auxiliary packets followed | whole number |
 | `aux_outside` | Pointers outside the capture | whole number |
 | `periodic_trains` | Periodic trains | whole number |
+| `connections_followed` | Connections followed | whole number |
+| `connection_packets` | Connection packets | whole number |
 | `tx_sending` | Sending | yes or no |
 | `tx_sent` | Packets sent | whole number |
 | `tx_left` | Packets left | whole number |
@@ -78,6 +80,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `packets` | Packets | `signal_s` (number (s)), `channel` (whole number), `pdu` (text), `address` (text), `level_dbfs` (number (dBFS)), `length` (whole number (B)), `details` (text), `phy` (text) |
 | `pdu_types` | PDU types | `pdu` (text), `packets` (whole number) |
 | `device_levels` | Device levels | `device` (text), `sample` (whole number), `level_dbfs` (number (dBFS)) |
+| `connections` | Connections | `access_address` (text), `central` (text), `peripheral` (text), `interval_ms` (number (ms)), `latency` (whole number), `timeout_ms` (number (ms)), `phy` (text), `csa` (whole number), `channels_used` (whole number), `packets` (whole number), `encrypted` (yes or no), `procedures` (text), `att` (whole number), `ended` (yes or no), `first_heard` (time), `last_heard` (time) |
+| `att` | ATT | `signal_s` (number (s)), `connection` (text), `from_central` (yes or no), `opcode` (text), `handle` (whole number), `service` (text), `value` (text) |
 
 ## Events
 
@@ -97,7 +101,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -131,6 +135,8 @@ Struct `BleFields`. The result fields of `ble`.
 | `aux_followed` | whole number | always | 1.0 | Auxiliary packets reached through the AuxPtr that pointed to them. |
 | `aux_outside` | whole number | always | 1.0 | AuxPtr fields that point to a channel outside the capture: their data cannot be received here. |
 | `periodic_trains` | whole number | always | 1.0 | Periodic advertising trains whose packets the receivers take. |
+| `connections_followed` | whole number | always | 4.2 | Connections whose events the receivers follow now (from a CONNECT_IND or AUX_CONNECT_REQ heard). |
+| `connection_packets` | whole number | always | 4.2 | Good packets of followed connections. |
 
 ### Result fields
 
@@ -208,6 +214,47 @@ Struct `BleDeviceLevelRow`. A row of the level history of the devices of `ble`. 
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level. |
 
 The column `device` names a row.
+
+### Table `connections`
+
+Struct `BleConnectionRow`. A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address as eight hex digits.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `access_address` | text | always | 4.2 | The access address of the connection, eight hex digits. |
+| `central` | text | always | 4.2 | The central (the initiator of the connection). |
+| `peripheral` | text | always | 4.2 | The peripheral (the advertiser it connected to). |
+| `interval_ms` | number (ms) | always | 4.2 | The connection interval. |
+| `latency` | whole number | always | 4.2 | The peripheral latency, events. |
+| `timeout_ms` | number (ms) | always | 4.2 | The supervision timeout. |
+| `phy` | text | always | 4.2 | The PHY ("LE 1M", "LE 2M", "LE Coded"). |
+| `csa` | whole number | optional | 4.2 | The channel selection algorithm (1 or 2). No value until a packet tells. |
+| `channels_used` | whole number | always | 4.2 | The data channels its channel map uses. |
+| `packets` | whole number | always | 4.2 | Packets of the connection heard. |
+| `encrypted` | yes or no | always | 4.2 | The connection is encrypted: LL_ENC_REQ or LL_START_ENC_REQ was heard. Its payloads are then not read. |
+| `procedures` | text | always | 4.2 | The LL control procedures heard, joined with ", " ("LL_VERSION_IND, LL_ENC_REQ"). |
+| `att` | whole number | always | 4.2 | ATT PDUs read in the clear. |
+| `ended` | yes or no | always | 4.2 | LL_TERMINATE_IND was heard. |
+| `first_heard` | time | optional | 4.2 | The UTC of the CONNECT_IND. |
+| `last_heard` | time | optional | 4.2 | The UTC of the last packet. |
+
+The column `access_address` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
+
+### Table `att`
+
+Struct `BleAttRow`. A row of the Attribute Protocol log of `ble`: an ATT PDU sent in the clear on a followed connection.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `signal_s` | number (s) | always | 4.2 | The signal time of the packet. |
+| `connection` | text | always | 4.2 | The connection. |
+| `from_central` | yes or no | always | 4.2 | The central sent it (the first packet of its connection event); false for the peripheral. |
+| `opcode` | text | always | 4.2 | The ATT opcode name ("ATT_READ_REQ"). |
+| `handle` | whole number | optional | 4.2 | The attribute handle the PDU names. No value when it names none. |
+| `service` | text | optional | 4.2 | The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was heard. No value otherwise. |
+| `value` | text | always | 4.2 | The bytes after the opcode and the handle as hex, at most 32 bytes. |
+
+The rows are a log: they arrive over time. The column `opcode` names a row. Time: `signal_s`.
 
 ### Event `ble.device`
 
