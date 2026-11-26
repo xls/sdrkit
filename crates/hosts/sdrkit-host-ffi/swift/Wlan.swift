@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.2. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of `ble`.
@@ -349,8 +349,10 @@ public struct BleAttRow {
     public var handle: Int64?
     /// The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was heard. No value otherwise.
     public var service: String?
-    /// The bytes after the opcode and the handle as hex, at most 32 bytes.
+    /// The bytes after the opcode and the handle as hex, at most 32 bytes; empty when the setting `att_values` is off.
     public var value: String
+    /// The number of bytes after the opcode and the handle.
+    public var length: Int64
 
     init(_ c: sdrkit_ble_att_row) {
         key = sdrkitText(c.key)
@@ -361,6 +363,7 @@ public struct BleAttRow {
         handle = c.has_handle ? c.handle : nil
         service = c.has_service ? sdrkitText(c.service) : nil
         value = sdrkitText(c.value)
+        length = c.length
     }
 }
 
@@ -2767,6 +2770,15 @@ public enum WlanSettings {
     }
     public static func setBleNamedOnly(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "named_only", value))
+    }
+    /// ATT values.
+    public static func bleAttValues(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
+        var v: Bool = false
+        let code = sdrkit_typed_setting_get_bool(handle, "att_values", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setBleAttValues(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_bool(handle, "att_values", value))
     }
     /// Level.
     public static func bleTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

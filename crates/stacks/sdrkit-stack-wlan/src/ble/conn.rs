@@ -170,37 +170,73 @@ impl Conn {
         m
     }
 
-    /// The (open from, open to, channel) of each event that may start in `from_s..to_s`.
+    /// The (open from, open to, channel) of each event that may start in `from_s..to_s`. A connection update moves the events
+    /// from its instant on: they follow its new timing.
     pub fn events(&self, from_s: f64, to_s: f64, out: &mut Vec<(f64, f64, u8)>) {
+        let mut c = self.clone();
+        for _ in 0..4 {
+            match c.events_until_update(from_s, to_s, out) {
+                Some(instant) => c.apply_pending(instant),
+                None => return,
+            }
+        }
+    }
+
+    /// As [`Conn::events`] up to the instant of a pending connection update, which it returns.
+    fn events_until_update(&self, from_s: f64, to_s: f64, out: &mut Vec<(f64, f64, u8)>) -> Option<u16> {
         if self.ended || self.interval_s <= 0.0 {
-            return;
+            return None;
         }
         let slack = self.window_s + ANCHOR_SLACK_S;
+        let update = self.next_update();
         let first = ((from_s - EVENT_OPEN_S - slack - self.at_s) / self.interval_s)
             .ceil()
             .max(0.0) as u32;
+        let first = match update {
+            // The events before the instant can be over before this block: the update is reached all the same.
+            Some(i) => first.min(u32::from(i.wrapping_sub(self.counter))),
+            None => first,
+        };
         for k in first..first + 64 {
+            let counter = self.counter.wrapping_add(k as u16);
+            if update == Some(counter) {
+                return update;
+            }
             let start = self.at_s + f64::from(k) * self.interval_s;
             if start > to_s + ANCHOR_SLACK_S {
                 break;
             }
-            let counter = self.counter.wrapping_add(k as u16);
-            // A connection update moves the events from its instant on: they are found again from the next packet.
-            if self.pending.iter().any(|p| {
-                matches!(p.change, Change::Update { .. }) && counter.wrapping_sub(p.instant) < 0x8000
-            }) {
-                break;
+            if start + slack + EVENT_OPEN_S < from_s {
+                continue;
             }
             let map = self.map_at(counter);
             for ch in self.channels(counter, &map).into_iter().flatten() {
                 out.push((start - ANCHOR_SLACK_S, start + slack + EVENT_OPEN_S, ch));
             }
         }
+        None
+    }
+
+    /// The instant of the next pending connection update.
+    fn next_update(&self) -> Option<u16> {
+        self.pending
+            .iter()
+            .filter(|p| matches!(p.change, Change::Update { .. }))
+            .map(|p| p.instant)
+            .min_by_key(|&i| i.wrapping_sub(self.counter))
     }
 
     /// Places a packet of the connection that started at `start_s` on `channel`, moves the anchor to it when it is the
     /// first of its event, and applies what its payload changes. `None` when it does not fit an event.
     pub fn heard(&mut self, start_s: f64, channel: u8, pdu: &[u8]) -> Option<Placed> {
+        // A packet after the instant of a connection update is on the new timing.
+        while let Some(instant) = self.next_update() {
+            let at = self.at_s + f64::from(instant.wrapping_sub(self.counter)) * self.interval_s;
+            if start_s < at - ANCHOR_SLACK_S {
+                break;
+            }
+            self.apply_pending(instant);
+        }
         let k = ((start_s - self.at_s - self.window_s / 2.0) / self.interval_s).round();
         if k < 0.0 || k > 65_535.0 {
             return None;
@@ -433,7 +469,9 @@ pub struct AttLine {
     pub handle: Option<u16>,
     /// The service name of the handle.
     pub service: Option<String>,
-    /// The value as hex.
+    /// The bytes after the opcode and the handle.
+    pub len: u16,
+    /// The value as hex; empty when the values are not kept.
     pub value: String,
 }
 
@@ -453,6 +491,7 @@ impl Shaped for AttLine {
             opcode: &self.opcode,
             handle: self.handle.map(i64::from),
             service: self.service.as_deref(),
+            length: i64::from(self.len),
             value: &self.value,
         });
     }
@@ -495,8 +534,14 @@ pub fn connect(rows: &mut ObjectTable<String, ConnRecord>, pdu: &AdvPdu<'_>, phy
 }
 
 /// Takes a packet `a` of a followed connection, stamped `at`: the counters of its row, the procedures it shows, and the ATT
-/// PDU it carries in the clear (into `log`).
-pub fn take(rows: &mut ObjectTable<String, ConnRecord>, log: &mut LogRing<AttLine>, a: &Advert, at: Stamp) {
+/// PDU it carries in the clear (into `log`, with its value bytes when `values`).
+pub fn take(
+    rows: &mut ObjectTable<String, ConnRecord>,
+    log: &mut LogRing<AttLine>,
+    a: &Advert,
+    at: Stamp,
+    values: bool,
+) {
     let key = conn_key(a.access_address);
     if rows.get_mut(key.as_str()).is_none() {
         return;
@@ -534,17 +579,33 @@ pub fn take(rows: &mut ObjectTable<String, ConnRecord>, log: &mut LogRing<AttLin
                 if op == ll::opcode::TERMINATE_IND {
                     r.ended = true;
                 }
-                if let Some(Change::Phy {
-                    central_to_peripheral,
-                    ..
-                }) = ll::change(p)
-                {
-                    r.phy = match central_to_peripheral {
-                        2 => phy_name(Phy::Le2M),
-                        4 => phy_name(Phy::LeCoded),
-                        1 => phy_name(Phy::Le1M),
-                        _ => r.phy.clone(),
-                    };
+                // The row shows the parameters that the connection has or is about to take.
+                match ll::change(p) {
+                    Some(Change::Phy {
+                        central_to_peripheral,
+                        ..
+                    }) => {
+                        r.phy = match central_to_peripheral {
+                            2 => phy_name(Phy::Le2M),
+                            4 => phy_name(Phy::LeCoded),
+                            1 => phy_name(Phy::Le1M),
+                            _ => r.phy.clone(),
+                        };
+                    }
+                    Some(Change::Update {
+                        interval,
+                        latency,
+                        timeout,
+                        ..
+                    }) if interval > 0 => {
+                        r.interval_ms = f64::from(interval) * UNIT_S * 1e3;
+                        r.latency = latency;
+                        r.timeout_ms = f64::from(timeout) * 10.0;
+                    }
+                    Some(Change::ChannelMap { map, .. }) => {
+                        r.channels_used = ChannelMap::from_bytes(map).map_or(r.channels_used, |m| m.used().len() as u8);
+                    }
+                    _ => {}
                 }
             }
         }
@@ -564,8 +625,9 @@ pub fn take(rows: &mut ObjectTable<String, ConnRecord>, log: &mut LogRing<AttLin
             }
             r.att += 1;
             let service = att.handle.and_then(|h| r.service_of(h)).map(str::to_owned);
-            let n = att.value.len().min(32);
+            let n = if values { att.value.len().min(32) } else { 0 };
             log.push(AttLine {
+                len: att.value.len() as u16,
                 t: a.time_s,
                 conn: key,
                 central,

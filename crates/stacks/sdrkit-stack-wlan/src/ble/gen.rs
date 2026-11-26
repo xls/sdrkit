@@ -639,15 +639,68 @@ pub const CONN_CRC: u32 = 0x0A_BCDE;
 pub const CONN_MAP: [u8; 5] = [0xFF, 0x01, 0, 0, 0];
 /// Its interval, units of 1.25 ms (10 ms).
 pub const CONN_INTERVAL: u16 = 8;
+/// Its hop increment (channel selection algorithm #1).
+pub const CONN_HOP: u8 = 7;
 
 /// A connection from its CONNECT_IND on channel 37 to ten connection events on data channels 0 to 8: version exchange, a
 /// primary service discovery (GAP, then Battery at handles 6 to 9), a read and a notification of handle 8 in the clear,
 /// then the encryption start and four events of ciphertext. The central is C1:..., the peripheral D2:.... `ch_sel` sets the
 /// ChSel bit of the CONNECT_IND: the connection then uses channel selection algorithm #2.
 pub fn connection_schedule(ch_sel: bool) -> Vec<GenPacket> {
+    connection_schedule_with(&ConnSchedule {
+        ch_sel,
+        ..ConnSchedule::default()
+    })
+}
+
+/// A connection update that [`connection_schedule_with`] sends: LL_CONNECTION_UPDATE_IND in the central's packet of event 3.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ConnUpdate {
+    /// The event at which it applies (after 3).
+    pub instant: u16,
+    /// The new interval, units of 1.25 ms.
+    pub interval: u16,
+    /// WinOffset, units of 1.25 ms.
+    pub win_offset: u16,
+}
+
+/// The choices of [`connection_schedule_with`].
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ConnSchedule {
+    /// The ChSel bit of the CONNECT_IND.
+    pub ch_sel: bool,
+    /// The channel map.
+    pub map: [u8; 5],
+    /// A connection update.
+    pub update: Option<ConnUpdate>,
+}
+
+impl Default for ConnSchedule {
+    fn default() -> Self {
+        ConnSchedule {
+            ch_sel: false,
+            map: CONN_MAP,
+            update: None,
+        }
+    }
+}
+
+/// The data channel of event `counter` of the schedule's connection.
+pub fn conn_channel(c: &ConnSchedule, counter: u16) -> u8 {
+    let map = ChannelMap::from_bytes(c.map).expect("the channel map of the schedule");
+    if c.ch_sel {
+        csa::csa2_channel(counter, csa::channel_identifier(CONN_AA), &map)
+    } else {
+        csa::Csa1::channel_of(CONN_HOP, counter, &map)
+    }
+}
+
+/// As [`connection_schedule`] with the channel map and the update of `c`.
+pub fn connection_schedule_with(c: &ConnSchedule) -> Vec<GenPacket> {
+    let ch_sel = c.ch_sel;
     let central = addr("C1:23:45:67:89:AB", true);
     let peripheral = addr("D2:34:56:78:9A:BC", true);
-    let (win_size, win_offset, hop) = (2u8, 1u16, 7u8);
+    let (win_size, win_offset, hop) = (2u8, 1u16, CONN_HOP);
     let mut ll = Vec::new();
     ll.extend(CONN_AA.to_le_bytes());
     ll.extend(&CONN_CRC.to_le_bytes()[..3]);
@@ -656,7 +709,7 @@ pub fn connection_schedule(ch_sel: bool) -> Vec<GenPacket> {
     ll.extend(CONN_INTERVAL.to_le_bytes());
     ll.extend(0u16.to_le_bytes());
     ll.extend(100u16.to_le_bytes());
-    ll.extend(CONN_MAP);
+    ll.extend(c.map);
     ll.push(hop);
     let mut payload = central.bytes.to_vec();
     payload.extend_from_slice(&peripheral.bytes);
@@ -676,7 +729,6 @@ pub fn connection_schedule(ch_sel: bool) -> Vec<GenPacket> {
     // The first central packet 0.5 ms into the transmit window: 1.25 ms after the CONNECT_IND, then WinOffset.
     let first = air(connect.len()) + 1.25e-3 + f64::from(win_offset) * 1.25e-3 + 0.5e-3;
     let link = Link::new(CONN_AA, CONN_CRC, LinkKind::Data);
-    let map = ChannelMap::from_bytes(CONN_MAP).expect("the channel map of the schedule");
     let l2 = |att: &[u8]| {
         let mut v = (att.len() as u16).to_le_bytes().to_vec();
         v.extend(4u16.to_le_bytes());
@@ -713,7 +765,21 @@ pub fn connection_schedule(ch_sel: bool) -> Vec<GenPacket> {
             data(2, &l2(&rsp)),
         ),
         (data(2, &l2(&[0x0A, 0x08, 0x00])), data(2, &l2(&[0x0B, 0x5A]))),
-        (data(1, &[]), data(2, &l2(&[0x1B, 0x08, 0x00, 0x59]))),
+        (
+            match c.update {
+                Some(u) => {
+                    let mut p = vec![0x00, 1];
+                    p.extend(u.win_offset.to_le_bytes());
+                    p.extend(u.interval.to_le_bytes());
+                    p.extend(0u16.to_le_bytes());
+                    p.extend(100u16.to_le_bytes());
+                    p.extend(u.instant.to_le_bytes());
+                    data(3, &p)
+                }
+                None => data(1, &[]),
+            },
+            data(2, &l2(&[0x1B, 0x08, 0x00, 0x59])),
+        ),
         (data(3, &enc_req), data(3, &enc_rsp)),
         // The peripheral starts the encryption in the clear; both LL_START_ENC_RSP come encrypted (with their MIC).
         (data(1, &[]), data(3, &[0x05])),
@@ -722,21 +788,29 @@ pub fn connection_schedule(ch_sel: bool) -> Vec<GenPacket> {
     for k in 0..3u8 {
         events.push((data(2, &cipher(12, 10 + k)), data(2, &cipher(12, 20 + k))));
     }
-    let mut v = vec![GenPacket::new(connect, 0.0).next_after(first)];
-    for (k, (c, p)) in events.into_iter().enumerate() {
-        let counter = k as u16;
-        let ch = if ch_sel {
-            csa::csa2_channel(counter, csa::channel_identifier(CONN_AA), &map)
-        } else {
-            csa::Csa1::channel_of(hop, counter, &map)
+    // The start of each event's central packet after the CONNECT_IND starts: the update moves the events from its instant
+    // on, 0.3 ms into its new transmit window.
+    let mut starts = Vec::with_capacity(events.len() + 1);
+    let mut t = first;
+    for k in 0..=events.len() as u16 {
+        starts.push(t);
+        let next = k + 1;
+        t = match c.update {
+            Some(u) if next == u.instant => t + interval + f64::from(u.win_offset) * 1.25e-3 + 0.3e-3,
+            Some(u) if next > u.instant => t + f64::from(u.interval) * 1.25e-3,
+            _ => t + interval,
         };
-        let c_air = air(c.len());
-        v.push(GenPacket::new(c, 0.0).on(ch).link(link).next_after(c_air + 150e-6));
+    }
+    let mut v = vec![GenPacket::new(connect, 0.0).next_after(first)];
+    for (k, (cp, pp)) in events.into_iter().enumerate() {
+        let ch = conn_channel(c, k as u16);
+        let c_air = air(cp.len());
+        v.push(GenPacket::new(cp, 0.0).on(ch).link(link).next_after(c_air + 150e-6));
         v.push(
-            GenPacket::new(p, 0.0)
+            GenPacket::new(pp, 0.0)
                 .on(ch)
                 .link(link)
-                .next_after(interval - c_air - 150e-6),
+                .next_after(starts[k + 1] - starts[k] - c_air - 150e-6),
         );
     }
     if let Some(last) = v.last_mut() {

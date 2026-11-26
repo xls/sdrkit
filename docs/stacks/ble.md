@@ -31,6 +31,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:bl
 | `filter_text` | Filter | text | empty |  | Shows only the devices whose name, address, vendor or beacon holds this text. |
 | `min_level_dbfs` | Level above | number (dBFS) | -120 | -120 to 0 |  |
 | `named_only` | Named only | yes or no | false |  |  |
+| `att_values` | ATT values | yes or no | true |  | Keeps the value bytes of the attribute messages read on a connection. Off, the ATT log holds the handle, the type and the length only. |
 | `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
@@ -81,7 +82,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `pdu_types` | PDU types | `pdu` (text), `packets` (whole number) |
 | `device_levels` | Device levels | `device` (text), `sample` (whole number), `level_dbfs` (number (dBFS)) |
 | `connections` | Connections | `access_address` (text), `central` (text), `peripheral` (text), `interval_ms` (number (ms)), `latency` (whole number), `timeout_ms` (number (ms)), `phy` (text), `csa` (whole number), `channels_used` (whole number), `packets` (whole number), `encrypted` (yes or no), `procedures` (text), `att` (whole number), `ended` (yes or no), `first_heard` (time), `last_heard` (time) |
-| `att` | ATT | `signal_s` (number (s)), `connection` (text), `from_central` (yes or no), `opcode` (text), `handle` (whole number), `service` (text), `value` (text) |
+| `att` | ATT | `signal_s` (number (s)), `connection` (text), `from_central` (yes or no), `opcode` (text), `handle` (whole number), `service` (text), `value` (text), `length` (whole number (B)) |
 
 ## Events
 
@@ -101,7 +102,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.3. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -252,7 +253,8 @@ Struct `BleAttRow`. A row of the Attribute Protocol log of `ble`: an ATT PDU sen
 | `opcode` | text | always | 4.2 | The ATT opcode name ("ATT_READ_REQ"). |
 | `handle` | whole number | optional | 4.2 | The attribute handle the PDU names. No value when it names none. |
 | `service` | text | optional | 4.2 | The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was heard. No value otherwise. |
-| `value` | text | always | 4.2 | The bytes after the opcode and the handle as hex, at most 32 bytes. |
+| `value` | text | always | 4.2 | The bytes after the opcode and the handle as hex, at most 32 bytes; empty when the setting `att_values` is off. |
+| `length` | whole number (B) | always | 4.3 | The number of bytes after the opcode and the handle. |
 
 The rows are a log: they arrive over time. The column `opcode` names a row. Time: `signal_s`.
 
@@ -300,6 +302,7 @@ The argument `address` of `send` takes the column `address` of a row of the tabl
 | `filter_text` | `sdrkit_ble_get_filter_text` | `sdrkit_ble_set_filter_text` |
 | `min_level_dbfs` | `sdrkit_ble_get_min_level_dbfs` | `sdrkit_ble_set_min_level_dbfs` |
 | `named_only` | `sdrkit_ble_get_named_only` | `sdrkit_ble_set_named_only` |
+| `att_values` | `sdrkit_ble_get_att_values` | `sdrkit_ble_set_att_values` |
 | `tx_level` | `sdrkit_ble_get_tx_level` | `sdrkit_ble_set_tx_level` |
 
 ### Settings of the test signal generator

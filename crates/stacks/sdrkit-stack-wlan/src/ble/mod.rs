@@ -216,6 +216,8 @@ sdrkit_core::settings! {
         MinLevel = table::MIN_LEVEL,
         /// Only named devices.
         NamedOnly = table::NAMED_ONLY,
+        /// Keep the ATT values.
+        AttValues = table::ATT_VALUES,
         /// The level sent.
         TxLevel = tx::TX_LEVEL,
         /// The whitening of the test signal.

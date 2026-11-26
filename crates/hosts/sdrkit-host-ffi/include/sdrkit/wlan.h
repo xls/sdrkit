@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 2
+#define SDRKIT_WLAN_VERSION_MINOR 3
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -501,8 +501,10 @@ typedef struct sdrkit_ble_att_row {
   bool has_service;
   // The GATT service that holds the handle, by its assigned name, when a service discovery on the connection was heard. No value otherwise.
   sdrkit_string service;
-  // The bytes after the opcode and the handle as hex, at most 32 bytes.
+  // The bytes after the opcode and the handle as hex, at most 32 bytes; empty when the setting `att_values` is off.
   sdrkit_string value;
+  // The number of bytes after the opcode and the handle. Unit: B.
+  int64_t length;
 } sdrkit_ble_att_row;
 
 // The result fields of `bletracker`.
@@ -2563,6 +2565,14 @@ static inline int32_t sdrkit_ble_get_named_only(SDRKIT_HANDLE handle, bool *valu
 }
 static inline int32_t sdrkit_ble_set_named_only(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "named_only", value);
+}
+
+// The setting "att_values" (ATT values) of the stack "ble". Keeps the value bytes of the attribute messages read on a connection. Off, the ATT log holds the handle, the type and the length only.
+static inline int32_t sdrkit_ble_get_att_values(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "att_values", value);
+}
+static inline int32_t sdrkit_ble_set_att_values(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "att_values", value);
 }
 
 // The setting "tx_level" (Level) of the stack "ble". Unit: of full scale. The magnitude of the signal sent, of full scale.

@@ -694,15 +694,31 @@ fn the_test_signal_has_each_kind_a_tracker_and_a_spread_of_levels() {
 /// The connection schedule at 40 Msps, moved so that channel 37 lands at -9 MHz of a capture centred on 2411 MHz: channel 37
 /// and data channels 0 to 8 are inside.
 fn connection_capture(ch_sel: bool, snr_db: f64) -> sdrkit_graph::StackGraph {
+    connection_capture_with(
+        &ble::gen::ConnSchedule {
+            ch_sel,
+            ..Default::default()
+        },
+        snr_db,
+        &[],
+    )
+}
+
+/// As [`connection_capture`] for the schedule `c`, with the stack settings `settings`.
+fn connection_capture_with(
+    c: &ble::gen::ConnSchedule,
+    snr_db: f64,
+    settings: &[(&str, Value)],
+) -> sdrkit_graph::StackGraph {
     let rate = 40e6;
     let p = BleGenParams {
         rate_hz: rate,
         looped: false,
         whitening: Whitening::Fixed(37),
-        packets: ble::gen::connection_schedule(ch_sel),
+        packets: ble::gen::connection_schedule_with(c),
     };
     let x = shifted(&signal(p, &snr(snr_db), 2, 0.15), -9e6, rate);
-    let mut r = rx(&[]);
+    let mut r = rx(settings);
     r.configure(&InputInfo::new(rate, 2411e6, 2402e6).recording())
         .unwrap();
     feed(&mut r, &x, 65536);
@@ -755,3 +771,64 @@ fn a_connection_is_followed_over_its_data_channels_until_it_is_encrypted() {
         assert_eq!(text(att[4], &A::VALUE), "59");
     }
 }
+
+#[test]
+fn a_connection_update_is_applied_at_its_instant() {
+    use sdrkit_stack_wlan::typed::BleConnectionRow as C;
+    let c = ble::gen::ConnSchedule {
+        update: Some(ble::gen::ConnUpdate {
+            instant: 6,
+            interval: 6,
+            win_offset: 1,
+        }),
+        ..Default::default()
+    };
+    let r = connection_capture_with(&c, 30.0, &[]);
+    let res = Owner::results(&r);
+    let row = rows(res, "connections")[0];
+    // Every packet after the instant is heard on the new timing.
+    assert_eq!(cnum(row, &C::PACKETS), 20.0);
+    assert_eq!(cnum(row, &C::INTERVAL_MS), 7.5);
+    assert!(text(row, &C::PROCEDURES).contains("LL_CONNECTION_UPDATE_IND"));
+}
+
+#[test]
+fn a_connection_keeps_its_place_over_the_events_outside_the_capture() {
+    use sdrkit_stack_wlan::typed::BleConnectionRow as C;
+    // All 37 data channels: the capture holds channels 0 to 12 only.
+    let c = ble::gen::ConnSchedule {
+        map: [0xFF, 0xFF, 0xFF, 0xFF, 0x1F],
+        ..Default::default()
+    };
+    let inside: Vec<u8> = ble::bank::channels_in_capture(2411e6, 40e6)
+        .into_iter()
+        .map(|(ch, _)| ch)
+        .collect();
+    let heard = (0..10u16)
+        .filter(|&k| inside.contains(&ble::gen::conn_channel(&c, k)))
+        .count();
+    assert!(heard > 0 && heard < 10, "{heard}");
+    let r = connection_capture_with(&c, 30.0, &[]);
+    let row = rows(Owner::results(&r), "connections")[0];
+    assert_eq!(cnum(row, &C::PACKETS), 2.0 * heard as f64);
+    assert_eq!(cnum(row, &C::CHANNELS_USED), 37.0);
+}
+
+#[test]
+fn without_att_values_the_log_keeps_handles_types_and_lengths() {
+    use sdrkit_stack_wlan::typed::BleAttRow as A;
+    let r = connection_capture_with(
+        &ble::gen::ConnSchedule::default(),
+        30.0,
+        &[("att_values", Value::Bool(false))],
+    );
+    let att = rows(Owner::results(&r), "att");
+    assert_eq!(att.len(), 5);
+    assert!(att.iter().all(|a| text(a, &A::VALUE).is_empty()));
+    let ntf = att
+        .iter()
+        .find(|a| text(a, &A::OPCODE) == "ATT_HANDLE_VALUE_NTF")
+        .unwrap();
+    assert_eq!((cnum(ntf, &A::HANDLE), cnum(ntf, &A::LENGTH)), (8.0, 1.0));
+}
+

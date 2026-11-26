@@ -95,6 +95,10 @@ pub const MIN_LEVEL: Setting<field::F64> =
 /// Show only the devices with a name.
 pub const NAMED_ONLY: Setting<field::Bool> =
     Setting::new("named_only", "Named only", "", false).section("Display");
+/// Keep the value bytes of the attribute messages of a connection.
+pub const ATT_VALUES: Setting<field::Bool> = Setting::new("att_values", "ATT values", "", true)
+    .help("Keeps the value bytes of the attribute messages read on a connection. Off, the ATT log holds the handle, the type and the length only.")
+    .section("Display");
 
 sdrkit_core::settings! {
     /// The settings of [`DeviceTable`].
@@ -111,6 +115,8 @@ sdrkit_core::settings! {
         MinLevel = MIN_LEVEL,
         /// Only named devices.
         NamedOnly = NAMED_ONLY,
+        /// Keep the ATT values.
+        AttValues = ATT_VALUES,
     }
 }
 
@@ -437,6 +443,7 @@ pub struct DeviceTable {
     filter_lower: String,
     min_level_dbfs: f64,
     named_only: bool,
+    att_values: bool,
     now_s: f64,
     live: bool,
     clock: Clock,
@@ -473,6 +480,7 @@ impl Default for DeviceTable {
             filter_lower: String::new(),
             min_level_dbfs: MIN_LEVEL.default,
             named_only: NAMED_ONLY.default,
+            att_values: ATT_VALUES.default,
             now_s: 0.0,
             live: false,
             clock: Clock::fixed(0.0),
@@ -557,7 +565,7 @@ impl DeviceTable {
         };
         if a.kind == LinkKind::Data {
             self.counters.conn_packets += 1;
-            conn::take(&mut self.store.conns, &mut self.store.att, a, at);
+            conn::take(&mut self.store.conns, &mut self.store.att, a, at, self.att_values);
             return None;
         }
         let p = a.parsed()?;
@@ -958,6 +966,7 @@ impl Component for DeviceTable {
             }
             DeviceTableSetting::MinLevel => self.min_level_dbfs = MIN_LEVEL.read(id, v)?,
             DeviceTableSetting::NamedOnly => self.named_only = NAMED_ONLY.read(id, v)?,
+            DeviceTableSetting::AttValues => self.att_values = ATT_VALUES.read(id, v)?,
         }
         if self.configured {
             self.publish();
@@ -985,6 +994,7 @@ impl Component for DeviceTable {
                 Value::F64(self.min_level_dbfs),
             ),
             (DeviceTableSetting::NamedOnly, Value::Bool(self.named_only)),
+            (DeviceTableSetting::AttValues, Value::Bool(self.att_values)),
         ])
     }
 

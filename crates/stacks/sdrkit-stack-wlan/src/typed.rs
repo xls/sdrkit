@@ -410,9 +410,12 @@ pub struct BleAttRow<'a> {
     /// heard. No value otherwise.
     #[field(label = "Service")]
     pub service: Option<&'a str>,
-    /// The bytes after the opcode and the handle as hex, at most 32 bytes.
+    /// The bytes after the opcode and the handle as hex, at most 32 bytes; empty when the setting `att_values` is off.
     #[field(label = "Value")]
     pub value: &'a str,
+    /// The number of bytes after the opcode and the handle.
+    #[field(label = "Length", unit = "B")]
+    pub length: i64,
 }
 
 /// The fields of a good packet with an address.
@@ -2147,13 +2150,16 @@ const ADDED_4_2: &[&str] = &[
     "ble.kept.att",
 ];
 
+/// What version 4.3 added: the length of an ATT value and the setting that keeps the values out of the log.
+const ADDED_4_3: &[&str] = &["shape.BleAttRow.length", "ble.setting.att_values"];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 2)
+        Described::new("wlan", 4, 3)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2195,6 +2201,7 @@ pub fn family() -> &'static Described {
                     ]),
             )
             .added(4, 2, ADDED_4_2)
+            .added(4, 3, ADDED_4_3)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()

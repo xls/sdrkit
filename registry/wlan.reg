@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=4.2
+family wlan version=4.3
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -91,6 +91,7 @@ shape.BleAttRow.opcode type=text unit= optional=no since=4.2
 shape.BleAttRow.handle type=i64 unit= optional=yes since=4.2
 shape.BleAttRow.service type=text unit= optional=yes since=4.2
 shape.BleAttRow.value type=text unit= optional=no since=4.2
+shape.BleAttRow.length type=i64 unit=B optional=no since=4.3
 shape.BleDeviceEvent since=1.0
 shape.BleDeviceEvent.source type=text unit= optional=no since=1.0
 shape.BleDeviceEvent.text type=text unit= optional=yes since=1.0
@@ -530,6 +531,7 @@ ble.setting.hop_seconds type=duration unit=s since=1.0
 ble.setting.filter_text type=text unit= since=1.0
 ble.setting.min_level_dbfs type=f64 unit=dBFS since=1.0
 ble.setting.named_only type=bool unit= since=1.0
+ble.setting.att_values type=bool unit= since=4.3
 ble.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 ble.setting.gen_channel type=choice(round,37,38,39) unit= since=1.0
 ble.command.clear args= reply= since=1.0
