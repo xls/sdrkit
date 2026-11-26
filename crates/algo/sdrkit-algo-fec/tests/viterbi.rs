@@ -5,7 +5,7 @@ mod common;
 use common::*;
 use sdrkit_algo_fec::conv::{
     check_backend, codes, depuncture_frame, encode_tail_biting, puncture, ConvCode, Depuncturer,
-    Encoder, Ends, Kernel, Viterbi, BACKENDS,
+    Encoder, Ends, Kernel, Puncture, Viterbi, BACKENDS,
 };
 
 /// Galileo OS SIS ICD issue 2.1 annex D.2: the I/NAV numerical example (120 input bits, the last 6 tail zeros) and its 240
@@ -382,4 +382,171 @@ fn last_gain_is_the_growth_of_each_pushed_step() {
     let noise: Vec<i8> = (0..200).map(|_| (rng.gauss() * 40.0) as i8).collect();
     v.push(&noise, &mut out);
     assert!(v.last_gain() < 60.0, "{}", v.last_gain());
+}
+
+/// The vector kernels against the plain one, bit for bit, on random soft values: the K = 7 rate 1/2 code through every
+/// puncturing pattern of 802.11 and DVB, frames of 1 to 20000 steps (densely up to 320 and around multiples of the 105-step
+/// batch), every end mode, and the stream. The values mix coded bits with noise, saturated ±127, punctured zeros and small
+/// values that make ties.
+#[test]
+fn vector_kernels_match_the_plain_one_on_every_puncturing_and_length() {
+    let plain = Kernel::Butterfly(BACKENDS.plain());
+    let fast: Vec<Kernel> = BACKENDS
+        .all()
+        .iter()
+        .filter(|b| b.available() && b.name() != BACKENDS.plain().name())
+        .map(|&b| Kernel::Butterfly(b))
+        .filter(|&k| Viterbi::with_kernel(codes::WIFI_K7, 16, k).is_ok())
+        .collect();
+    if cfg!(any(target_arch = "aarch64", target_arch = "x86_64")) {
+        assert!(!fast.is_empty(), "no vector kernel runs here");
+    }
+    let mut lengths: Vec<usize> = (1..=320).collect();
+    for m in [420usize, 1050, 2100] {
+        lengths.extend([m - 1, m, m + 1]);
+    }
+    lengths.extend([1000, 4095, 4096, 4097, 12_345, 20_000]);
+    let patterns = [
+        codes::NONE_1_2,
+        codes::WIFI_2_3,
+        codes::WIFI_3_4,
+        codes::WIFI_5_6,
+        codes::DVB_2_3,
+        codes::DVB_3_4,
+        codes::DVB_5_6,
+        codes::DVB_7_8,
+    ];
+    let mut rng = Rng::new(0x5eed_1234);
+    for (pi, p) in patterns.iter().enumerate() {
+        for (li, &len) in lengths.iter().enumerate() {
+            let llr = soft_values(&mut rng, codes::WIFI_K7, p, len, li % 3);
+            for &k in &fast {
+                compare_kernels(
+                    codes::WIFI_K7,
+                    &llr,
+                    plain,
+                    k,
+                    (li + pi) % 5 == 0 || len > 320,
+                );
+            }
+        }
+    }
+    // The other codes of the butterfly kernels, on fewer lengths.
+    // The last two K = 7 codes do not have the negated groups of 133 and 171.
+    for code in [
+        codes::DVB_K7,
+        codes::CCSDS_K7,
+        codes::LTE_K7_R3,
+        codes::GSM_K5,
+        codes::UMTS_K9,
+        ConvCode::new(7, &[0o155, 0o117]),
+        ConvCode::new(7, &[0o133, 0o117]),
+    ] {
+        for (li, &len) in lengths.iter().enumerate().step_by(7) {
+            let llr = soft_values(&mut rng, code, &codes::NONE_1_2, len, li % 3);
+            for &k in &fast {
+                if Viterbi::with_kernel(code, 16, k).is_ok() {
+                    compare_kernels(code, &llr, plain, k, true);
+                }
+            }
+        }
+    }
+}
+
+/// `len` steps of depunctured soft values for `code` through `p`. Kind 0: a terminated frame of random bits with noise; 1: the
+/// same at full scale, so that many values saturate at ±127; 2: small random values with many ties.
+fn soft_values(
+    rng: &mut Rng,
+    code: ConvCode,
+    p: &Puncture<'_>,
+    len: usize,
+    kind: usize,
+) -> Vec<i8> {
+    let n = code.n();
+    let k = code.k() as usize;
+    let mut bits = rng.bits(len);
+    if len >= k - 1 {
+        bits[len - (k - 1)..].fill(0);
+    }
+    let mut coded = Vec::new();
+    Encoder::new(code).encode(&bits, &mut coded);
+    let full = if n == 2 { *p } else { codes::NONE_1_2 };
+    let mut sent = Vec::new();
+    puncture(&full, 0, &coded, &mut sent);
+    let soft: Vec<i8> = sent
+        .iter()
+        .map(|&c| {
+            let noise = rng.gauss();
+            let v = match kind {
+                0 => (if c == 0 { 20.0 } else { -20.0 }) + 18.0 * noise,
+                1 => (if c == 0 { 127.0 } else { -127.0 }) + 90.0 * noise,
+                _ => (rng.below(7) as f64) - 3.0,
+            };
+            v.round().clamp(-127.0, 127.0) as i8
+        })
+        .collect();
+    let mut llr = vec![0i8; coded.len()];
+    if n == 2 {
+        depuncture_frame(&full, 0, &soft, &mut llr).unwrap();
+    } else {
+        llr.copy_from_slice(&soft);
+    }
+    llr
+}
+
+/// Decodes `llr` with kernels `a` and `b` in every end mode (and as a stream when `stream`) and asserts the same bits, counts,
+/// metrics and gains.
+fn compare_kernels(code: ConvCode, llr: &[i8], a: Kernel, b: Kernel, stream: bool) {
+    let n = code.n();
+    let steps = llr.len() / n;
+    let k = code.k() as usize;
+    let mut ends = vec![
+        Ends::Open,
+        Ends::Start(0),
+        Ends::Start(steps as u32 * 7),
+        Ends::TailBiting,
+    ];
+    if steps >= k - 1 {
+        ends.push(Ends::Zero);
+    }
+    let mut va = Viterbi::with_kernel(code, steps, a).unwrap();
+    let mut vb = Viterbi::with_kernel(code, steps, b).unwrap();
+    for e in ends {
+        let mut oa = vec![0u8; steps];
+        let mut ob = vec![0u8; steps];
+        let ra = va.decode(llr, e, &mut oa).unwrap();
+        let rb = vb.decode(llr, e, &mut ob).unwrap();
+        assert_eq!(oa, ob, "{code:?} {b:?} {e:?} {steps} steps");
+        assert_eq!(ra, rb, "{code:?} {b:?} {e:?} {steps} steps");
+        assert_eq!(
+            va.mean_gain(),
+            vb.mean_gain(),
+            "{code:?} {b:?} {e:?} {steps} steps"
+        );
+        vb.decode_only(llr, e, &mut ob).unwrap();
+        assert_eq!(oa, ob, "decode_only {code:?} {b:?} {e:?} {steps} steps");
+    }
+    if stream {
+        let mut sa = Viterbi::with_kernel(code, 0, a).unwrap();
+        let mut sb = Viterbi::with_kernel(code, 0, b).unwrap();
+        let (mut oa, mut ob) = (Vec::new(), Vec::new());
+        for c in llr.chunks(37 * n + 1) {
+            sa.push(c, &mut oa);
+            sb.push(c, &mut ob);
+            assert_eq!(sa.last_gain(), sb.last_gain());
+        }
+        sa.flush(&mut oa);
+        sb.flush(&mut ob);
+        assert_eq!(oa, ob, "stream {code:?} {b:?} {steps} steps");
+        if steps >= k - 1 {
+            sa.reset();
+            sb.reset();
+            let (mut oa, mut ob) = (Vec::new(), Vec::new());
+            sa.push(llr, &mut oa);
+            sb.push(llr, &mut ob);
+            sa.flush_terminated(&mut oa);
+            sb.flush_terminated(&mut ob);
+            assert_eq!(oa, ob, "terminated stream {code:?} {b:?} {steps} steps");
+        }
+    }
 }

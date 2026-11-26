@@ -307,6 +307,9 @@ pub struct ButterflyState {
     pub cur: usize,
     /// `sgn[i][j]`: +1 when output `i` of the branch from state `2j` with input 0 is 0, else −1.
     pub sgn: [[i16; MAX_HALF]; 8],
+    /// Codes with two outputs: bytes `2j` and `2j + 1` pick the branch metric of butterfly `j` out of the 16-bit values
+    /// `[la + lb, −(la + lb), la − lb, −(la − lb)]` of a step.
+    pub(super) pick: [u8; 2 * MAX_HALF],
 }
 
 impl ButterflyState {
@@ -319,12 +322,26 @@ impl ButterflyState {
                 row[j] = if (l >> i) & 1 == 0 { 1 } else { -1 };
             }
         }
+        let mut pick = [0u8; 2 * MAX_HALF];
+        if code.n() == 2 {
+            for j in 0..half {
+                let lane = match (sgn[0][j] > 0, sgn[1][j] > 0) {
+                    (true, true) => 0,
+                    (false, false) => 1,
+                    (true, false) => 2,
+                    (false, true) => 3,
+                };
+                pick[2 * j] = 2 * lane;
+                pick[2 * j + 1] = 2 * lane + 1;
+            }
+        }
         ButterflyState {
             half,
             n: code.n(),
             bufs: [[0; 2 * MAX_HALF]; 2],
             cur: 0,
             sgn,
+            pick,
         }
     }
 
@@ -701,6 +718,23 @@ impl Viterbi {
         }
     }
 
+    /// The (wrapped) metric of [`best`](Self::best), without the search for its state.
+    fn best_metric(&self) -> i32 {
+        match &self.engine {
+            Engine::Fast(f) => {
+                let b = &f.bufs[f.cur][..2 * f.half];
+                let base = b[0];
+                let top = b.iter().fold(0i16, |m, v| m.max(v.wrapping_sub(base)));
+                base.wrapping_add(top) as i32
+            }
+            Engine::Generic(g) => {
+                let base = g.m[0];
+                let top = g.m.iter().fold(0i32, |m, v| m.max(v.wrapping_sub(base)));
+                base.wrapping_add(top)
+            }
+        }
+    }
+
     /// Runs the kernel over `llr` (a whole number of steps), decisions from step `t0` (ring-indexed by `mask`), tracking the gain.
     fn run(&mut self, llr: &[i8], t0: usize, mask: usize) {
         let n = self.code.n();
@@ -717,7 +751,7 @@ impl Viterbi {
             }
             let steps = part.len() / n;
             t += steps;
-            let (_, b) = self.best();
+            let b = self.best_metric();
             let delta = match self.engine {
                 Engine::Fast(_) => (b as i16).wrapping_sub(self.last_best as i16) as i64,
                 Engine::Generic(_) => b.wrapping_sub(self.last_best) as i64,
@@ -740,6 +774,46 @@ impl Viterbi {
     /// Traces back from `state` at the end of step `end - 1` down to step `begin`, writing the bits of steps
     /// `[begin, end)` that fall in `[out_from, out_from + out.len())` into `out`. Returns the state before step `begin`.
     fn traceback(
+        &self,
+        mut state: u32,
+        end: u64,
+        begin: u64,
+        mask: usize,
+        out_from: u64,
+        out: &mut [u8],
+    ) -> u32 {
+        let k = self.code.k();
+        let smask = (self.states - 1) as u32;
+        let w = self.words;
+        if w == 1 {
+            // One word per step: the load does not wait for the state, so only the shift and the insert are serial. The
+            // steps above, inside and below the output are run in separate loops.
+            let out_end = out_from + out.len() as u64;
+            let step = |state: u32, t: u64| -> u32 {
+                let d = (self.decisions[(t as usize) & mask] >> state) & 1;
+                ((state << 1) & smask) | d as u32
+            };
+            let (hi, lo) = (out_end.clamp(begin, end), out_from.clamp(begin, end));
+            for t in (hi..end).rev() {
+                state = step(state, t);
+            }
+            if hi > lo {
+                let span = (lo - out_from) as usize..(hi - out_from) as usize;
+                for (o, t) in out[span].iter_mut().rev().zip((lo..hi).rev()) {
+                    *o = (state >> (k - 2)) as u8 & 1;
+                    state = step(state, t);
+                }
+            }
+            for t in (begin..lo).rev() {
+                state = step(state, t);
+            }
+            return state;
+        }
+        self.traceback_any(state, end, begin, mask, out_from, out)
+    }
+
+    /// [`traceback`](Self::traceback) for any number of decision words per step, one step at a time.
+    fn traceback_any(
         &self,
         mut state: u32,
         end: u64,
@@ -1148,4 +1222,78 @@ pub fn reencode_errors(
         });
     }
     Ok(count_disagreements(code, start_state, bits, false, llr))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn xorshift(seed: &mut u64) -> u64 {
+        *seed ^= *seed << 13;
+        *seed ^= *seed >> 7;
+        *seed ^= *seed << 17;
+        *seed
+    }
+
+    /// The one-word traceback against the general one on random decisions: frames and rings, every start state, output
+    /// windows inside, across and outside the traced steps.
+    #[test]
+    fn one_word_traceback_matches_the_general_one() {
+        let mut seed = 0x9e37_79b9_7f4a_7c15u64;
+        for code in [
+            super::super::codes::WIFI_K7,
+            super::super::codes::GSM_K5,
+            super::super::codes::DSTAR_K3,
+        ] {
+            let mut v = Viterbi::new(code, 600).unwrap();
+            assert_eq!(v.words, 1);
+            for d in v.decisions.iter_mut() {
+                *d = xorshift(&mut seed);
+            }
+            for _ in 0..3000 {
+                let r = xorshift(&mut seed);
+                let mask = if r & 1 == 0 { usize::MAX } else { 511 };
+                let end = 1 + (r >> 8) % 599;
+                let begin = (r >> 20) % (end + 1);
+                let from = (r >> 32) % 620;
+                let len = ((r >> 44) % 200) as usize;
+                let state = (r >> 56) as u32 & (v.states as u32 - 1);
+                let (mut a, mut b) = (vec![7u8; len], vec![7u8; len]);
+                let sa = v.traceback(state, end, begin, mask, from, &mut a);
+                let sb = v.traceback_any(state, end, begin, mask, from, &mut b);
+                assert_eq!(
+                    (sa, &a),
+                    (sb, &b),
+                    "{code:?} {state} {end} {begin} {mask} {from} {len}"
+                );
+            }
+        }
+    }
+
+    /// The best metric alone equals the metric of the best state, for both engines, on wrapped metrics.
+    #[test]
+    fn best_metric_is_the_metric_of_the_best_state() {
+        let mut seed = 5u64;
+        for kernel in [Kernel::Butterfly(BACKENDS.plain()), Kernel::Generic32] {
+            let mut v = Viterbi::with_kernel(super::super::codes::WIFI_K7, 16, kernel).unwrap();
+            for _ in 0..500 {
+                let spread = 1 << (xorshift(&mut seed) % 15);
+                match &mut v.engine {
+                    Engine::Fast(f) => {
+                        let base = xorshift(&mut seed) as i16;
+                        for m in f.bufs[f.cur][..2 * f.half].iter_mut() {
+                            *m = base.wrapping_add((xorshift(&mut seed) % spread) as i16);
+                        }
+                    }
+                    Engine::Generic(g) => {
+                        let base = xorshift(&mut seed) as i32;
+                        for m in g.m.iter_mut() {
+                            *m = base.wrapping_add((xorshift(&mut seed) % spread) as i32);
+                        }
+                    }
+                }
+                assert_eq!(v.best_metric(), v.best().1);
+            }
+        }
+    }
 }

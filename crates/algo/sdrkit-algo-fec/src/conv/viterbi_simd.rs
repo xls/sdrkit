@@ -21,11 +21,20 @@ pub(super) fn run_neon16(
     if f.half == 32 {
         let steps = llr.len() / f.n;
         // Every decision index the kernel writes is below the slice length.
-        if (0..steps).all(|i| ((t0 + i) & mask) < dec.len()) || steps == 0 {
+        let fits = mask < dec.len() || t0.checked_add(steps).is_some_and(|e| e <= dec.len());
+        if fits || (0..steps).all(|i| ((t0 + i) & mask) < dec.len()) {
             // SAFETY: NEON is baseline; indices checked above; metric loads and stores are within `f.bufs`.
             unsafe {
                 if f.n == 2 {
-                    run_neon_k7_n2(f, llr, dec, t0, mask);
+                    // Groups 1 and 3 have the branch metrics of groups 0 and 2 negated (codes that tap register bit 4 in both
+                    // generators, such as 133 and 171).
+                    let p = &f.pick;
+                    let neg = (0..16).all(|i| p[16 + i] == p[i] ^ 2 && p[48 + i] == p[32 + i] ^ 2);
+                    if neg {
+                        run_neon_k7_n2::<true>(f, llr, dec, t0, mask);
+                    } else {
+                        run_neon_k7_n2::<false>(f, llr, dec, t0, mask);
+                    }
                 } else {
                     run_neon_k7(f, llr, dec, t0, mask);
                 }
@@ -184,10 +193,12 @@ unsafe fn run_neon_k7(f: &mut ButterflyState, llr: &[i8], dec: &mut [u64], t0: u
     }
 }
 
-/// [`run_neon_k7`] for two outputs per step, with the signs of the branch labels held in registers.
+/// [`run_neon_k7`] for two outputs per step. A branch metric is one of `±(la + lb)` and `±(la − lb)`: the four values of a step
+/// are packed into one 64-bit word on the integer side, and one table lookup per group spreads them to the butterflies. With
+/// `NEG`, groups 1 and 3 reuse the metrics of groups 0 and 2 with the additions and subtractions swapped.
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]
-unsafe fn run_neon_k7_n2(
+unsafe fn run_neon_k7_n2<const NEG: bool>(
     f: &mut ButterflyState,
     llr: &[i8],
     dec: &mut [u64],
@@ -210,25 +221,19 @@ unsafe fn run_neon_k7_n2(
     );
     let wts: [u8; 16] = [1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128];
     let w = vld1q_u8(wts.as_ptr());
-    let (sa, sb) = (f.sgn[0].as_ptr(), f.sgn[1].as_ptr());
-    let (a0, a1, a2, a3) = (
-        vld1q_s16(sa),
-        vld1q_s16(sa.add(8)),
-        vld1q_s16(sa.add(16)),
-        vld1q_s16(sa.add(24)),
-    );
-    let (b0, b1, b2, b3) = (
-        vld1q_s16(sb),
-        vld1q_s16(sb.add(8)),
-        vld1q_s16(sb.add(16)),
-        vld1q_s16(sb.add(24)),
+    let pp = f.pick.as_ptr();
+    let (i0, i1, i2, i3) = (
+        vld1q_u8(pp),
+        vld1q_u8(pp.add(16)),
+        vld1q_u8(pp.add(32)),
+        vld1q_u8(pp.add(48)),
     );
     // One group of eight butterflies: the survivors of the low and of the high states and their decisions.
     macro_rules! group {
-        ($e:expr, $o:expr, $sa:expr, $sb:expr, $la:expr, $lb:expr) => {{
-            let bm = vmlaq_s16(vmulq_s16($sa, $la), $sb, $lb);
-            let (p0, p1) = (vaddq_s16($e, bm), vsubq_s16($o, bm));
-            let (q0, q1) = (vsubq_s16($e, bm), vaddq_s16($o, bm));
+        ($e:expr, $o:expr, $bm:expr, $add:ident, $sub:ident) => {{
+            let bm = $bm;
+            let (p0, p1) = ($add($e, bm), $sub($o, bm));
+            let (q0, q1) = ($sub($e, bm), $add($o, bm));
             (
                 vmaxq_s16(p0, p1),
                 vmaxq_s16(q0, q1),
@@ -238,11 +243,29 @@ unsafe fn run_neon_k7_n2(
         }};
     }
     for (i, l) in llr.as_chunks::<2>().0.iter().enumerate() {
-        let (la, lb) = (vdupq_n_s16(l[0] as i16), vdupq_n_s16(l[1] as i16));
-        let (lo0, hi0, m00, m10) = group!(e0, o0, a0, b0, la, lb);
-        let (lo1, hi1, m01, m11) = group!(e1, o1, a1, b1, la, lb);
-        let (lo2, hi2, m02, m12) = group!(e2, o2, a2, b2, la, lb);
-        let (lo3, hi3, m03, m13) = group!(e3, o3, a3, b3, la, lb);
+        // |la ± lb| <= 256, so the 16-bit values and their negations are exact.
+        let (la, lb) = (l[0] as i16, l[1] as i16);
+        let (a, b) = (la + lb, la - lb);
+        let word = a as u16 as u64
+            | ((a.wrapping_neg() as u16 as u64) << 16)
+            | ((b as u16 as u64) << 32)
+            | ((b.wrapping_neg() as u16 as u64) << 48);
+        let tab = vreinterpretq_u8_u64(vdupq_n_u64(word));
+        let bm = |ix| vreinterpretq_s16_u8(vqtbl1q_u8(tab, ix));
+        let (b0, b2) = (bm(i0), bm(i2));
+        let (lo0, hi0, m00, m10) = group!(e0, o0, b0, vaddq_s16, vsubq_s16);
+        let (lo2, hi2, m02, m12) = group!(e2, o2, b2, vaddq_s16, vsubq_s16);
+        let ((lo1, hi1, m01, m11), (lo3, hi3, m03, m13)) = if NEG {
+            (
+                group!(e1, o1, b0, vsubq_s16, vaddq_s16),
+                group!(e3, o3, b2, vsubq_s16, vaddq_s16),
+            )
+        } else {
+            (
+                group!(e1, o1, bm(i1), vaddq_s16, vsubq_s16),
+                group!(e3, o3, bm(i3), vaddq_s16, vsubq_s16),
+            )
+        };
         e0 = vuzp1q_s16(lo0, lo1);
         e1 = vuzp1q_s16(lo2, lo3);
         e2 = vuzp1q_s16(hi0, hi1);
