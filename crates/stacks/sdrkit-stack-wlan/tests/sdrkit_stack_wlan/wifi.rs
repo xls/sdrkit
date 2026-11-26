@@ -1045,32 +1045,57 @@ fn display_filters_limit_the_network_rows() {
 
 #[test]
 fn channel_band_and_hop_ask_the_host() {
+    let hops = |q: &[sdrkit_core::HostRequest]| -> Vec<(Vec<f64>, f64)> {
+        q.iter()
+            .filter_map(|q| match q {
+                sdrkit_core::HostRequest::Hop { channels, dwell_s, .. } => Some((channels.clone(), *dwell_s)),
+                _ => None,
+            })
+            .collect()
+    };
+    let quiet = vec![Complex32::default(); 200_000];
+    // With no settings the stack hops by itself: channels 1 to 11 from the tuned channel, a beacon interval and a margin on
+    // each.
     let mut r = rx();
     r.configure(&InputInfo::new(20e6, 2437e6, 2437e6)).unwrap();
-    assert!(
-        set(&mut r, "channel", Value::F64(36.0)).is_err(),
-        "36 is not a 2.4 GHz channel"
-    );
-    set(&mut r, "channel", Value::F64(11.0)).unwrap();
-    set(&mut r, "band", Value::Text("5".into())).unwrap();
-    set(&mut r, "hop", Value::Bool(true)).unwrap();
-    let fed = feed(&mut r, &vec![Complex32::default(); 200_000], 200_000);
-    assert_eq!(fed.requests.len(), 3, "{:?}", fed.requests);
+    let fed = feed(&mut r, &quiet, 200_000);
     assert!(fed.requests.iter().all(|q| q.validate().is_ok()));
-    match (&fed.requests[0], &fed.requests[1], &fed.requests[2]) {
-        (
-            sdrkit_core::HostRequest::Retune { tuned_hz: a, .. },
-            sdrkit_core::HostRequest::Retune { tuned_hz: b, .. },
-            sdrkit_core::HostRequest::Hop {
-                channels, dwell_s, ..
-            },
-        ) => {
-            assert_eq!((*a, *b), (2462e6, 5180e6));
-            assert_eq!(channels[0], 5180e6);
-            assert_eq!(*dwell_s, 0.2);
+    let want: Vec<f64> = [6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5].iter().map(|&c| (2407.0 + 5.0 * f64::from(c)) * 1e6).collect();
+    assert_eq!(hops(&fed.requests), [(want, 0.13)]);
+    // A frequency on 5 GHz decides the band: the hop goes over the 5 GHz channels from the tuned one.
+    let mut r = rx();
+    r.configure(&InputInfo::new(20e6, 5745e6, 5745e6)).unwrap();
+    let fed = feed(&mut r, &quiet, 200_000);
+    let h = hops(&fed.requests);
+    assert_eq!(h.len(), 1);
+    assert_eq!((h[0].0[0], h[0].0.contains(&5180e6)), (5745e6, true));
+    // Band 5 with the 2.4 GHz default channel is not refused: the band's first channel is asked for, then the hop.
+    let mut r = wifi::receiver(&config(WifiSetting::schema(), &[("band", Value::Text("5".into()))])).unwrap();
+    r.configure(&InputInfo::new(20e6, 2437e6, 2437e6)).unwrap();
+    let fed = feed(&mut r, &quiet, 200_000);
+    match &fed.requests[..] {
+        [sdrkit_core::HostRequest::Retune { tuned_hz, .. }, sdrkit_core::HostRequest::Hop { channels, .. }] => {
+            assert_eq!((*tuned_hz, channels[0]), (5180e6, 5180e6));
         }
         q => panic!("{q:?}"),
     }
+    // With the hop off a channel is asked for alone; a number the band lacks takes its first channel.
+    let mut r = rx();
+    set(&mut r, "hop", Value::Bool(false)).unwrap();
+    r.configure(&InputInfo::new(20e6, 2437e6, 2437e6)).unwrap();
+    set(&mut r, "channel", Value::F64(11.0)).unwrap();
+    set(&mut r, "channel", Value::F64(36.0)).unwrap();
+    let fed = feed(&mut r, &quiet, 200_000);
+    let tuned: Vec<f64> = fed
+        .requests
+        .iter()
+        .map(|q| match q {
+            sdrkit_core::HostRequest::Retune { tuned_hz, .. } => *tuned_hz,
+            q => panic!("{q:?}"),
+        })
+        .collect();
+    // Turning the hop off asks for the channel set; then 11, then the band's first channel for 36.
+    assert_eq!(tuned, [2437e6, 2462e6, 2412e6]);
 }
 
 /// The channel lists of two domains of the data file give the hop list of each band, with and without the DFS channels.
@@ -1436,3 +1461,56 @@ fn the_dsss_level_stays_the_signal_level_down_to_a_weak_signal() {
 }
 
 
+
+/// Live recordings of the `wifi` stack in the folder that `SDRKIT_LIVE_RECORDINGS` names (private: only counts are printed or
+/// asserted). A file is not real time, so no data field is skipped. Skips when the variable is unset.
+#[test]
+#[ignore = "a long run over private recordings"]
+fn live_recordings_skip_no_data_field() {
+    let Some(dir) = std::env::var_os("SDRKIT_LIVE_RECORDINGS") else {
+        eprintln!("SDRKIT_LIVE_RECORDINGS is not set: skipped");
+        return;
+    };
+    let mut metas = Vec::new();
+    let mut folders = vec![std::path::PathBuf::from(dir)];
+    while let Some(d) = folders.pop() {
+        for e in std::fs::read_dir(&d).into_iter().flatten().flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                folders.push(p);
+            } else if p.extension().is_some_and(|x| x == "sigmf-meta") {
+                metas.push(p);
+            }
+        }
+    }
+    metas.sort();
+    let mut runs = 0;
+    for meta in metas {
+        let data = meta.with_extension("sigmf-data");
+        let Ok(rec) = sdrkit_dev_test::sigmf::read_pair(&meta, &data) else {
+            continue;
+        };
+        if rec.description != "wifi" {
+            continue;
+        }
+        runs += 1;
+        let r = run(&rec.samples, rec.rate_hz, rec.centre_hz, rec.centre_hz, 65536);
+        let res = Owner::results(&r);
+        let mut channels: Vec<u32> = networks(&r).iter().map(|n| n.channel).collect();
+        channels.sort_unstable();
+        channels.dedup();
+        eprintln!(
+            "{:.0} MHz: {} networks on channels {channels:?}; frames {:?} good, {:?} bad; HT/VHT decoded {:?}, skipped {:?}; channels at once {:?}",
+            rec.centre_hz / 1e6,
+            networks(&r).len(),
+            num(res, "frames_ok"),
+            num(res, "frames_bad"),
+            num(res, "ppdu_decoded"),
+            num(res, "ppdu_not_decoded_busy"),
+            num(res, "sub_channels"),
+        );
+        assert!(!networks(&r).is_empty());
+        assert_eq!(num(res, "ppdu_not_decoded_busy"), Some(0.0));
+    }
+    assert!(runs > 0, "no Wi-Fi recording in the folder");
+}

@@ -2908,7 +2908,7 @@ static inline int32_t sdrkit_wifi_set_band(SDRKIT_HANDLE handle, sdrkit_wifi_ban
   return sdrkit_typed_setting_set_enum(handle, "band", (int32_t)value);
 }
 
-// The setting "channel" (Channel) of the stack "wifi". A channel of the band: the host tunes to it.
+// The setting "channel" (Channel) of the stack "wifi". A channel of the band: the host tunes to it. A number the band lacks selects the first channel of its hop list.
 static inline int32_t sdrkit_wifi_get_channel(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "channel", value);
 }
@@ -2916,7 +2916,7 @@ static inline int32_t sdrkit_wifi_set_channel(SDRKIT_HANDLE handle, int64_t valu
   return sdrkit_typed_setting_set_i64(handle, "channel", value);
 }
 
-// The setting "hop" (Hop) of the stack "wifi". Asks the host to step through the hop list; dwell longer than 102.4 ms (the beacon interval).
+// The setting "hop" (Hop) of the stack "wifi". Asks the host to step through the hop list of the band it is tuned to, from the tuned channel.
 static inline int32_t sdrkit_wifi_get_hop(SDRKIT_HANDLE handle, bool *value) {
   return sdrkit_typed_setting_get_bool(handle, "hop", value);
 }
@@ -2940,7 +2940,7 @@ static inline int32_t sdrkit_wifi_set_psc_only(SDRKIT_HANDLE handle, bool value)
   return sdrkit_typed_setting_set_bool(handle, "psc_only", value);
 }
 
-// The setting "channels_24" (2.4 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band.
+// The setting "channels_24" (2.4 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
 static inline int32_t sdrkit_wifi_get_channels_24(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_24", value);
 }
@@ -2948,7 +2948,7 @@ static inline int32_t sdrkit_wifi_set_channels_24(SDRKIT_HANDLE handle, sdrkit_s
   return sdrkit_typed_setting_set_string(handle, "channels_24", value);
 }
 
-// The setting "channels_5" (5 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band.
+// The setting "channels_5" (5 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
 static inline int32_t sdrkit_wifi_get_channels_5(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_5", value);
 }
@@ -2956,7 +2956,7 @@ static inline int32_t sdrkit_wifi_set_channels_5(SDRKIT_HANDLE handle, sdrkit_st
   return sdrkit_typed_setting_set_string(handle, "channels_5", value);
 }
 
-// The setting "channels_6" (6 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band.
+// The setting "channels_6" (6 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
 static inline int32_t sdrkit_wifi_get_channels_6(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_6", value);
 }
@@ -3401,7 +3401,7 @@ static inline int32_t sdrkit_espnow_set_dwell_ms(SDRKIT_HANDLE handle, double va
   return sdrkit_typed_setting_set_f64(handle, "dwell_ms", value);
 }
 
-// The setting "channels_24" (2.4 GHz channels) of the stack "espnow". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band.
+// The setting "channels_24" (2.4 GHz channels) of the stack "espnow". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
 static inline int32_t sdrkit_espnow_get_channels_24(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_24", value);
 }

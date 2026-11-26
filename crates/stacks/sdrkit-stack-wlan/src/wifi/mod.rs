@@ -26,7 +26,7 @@ use sdrkit_core::{
 };
 use fields::Fields;
 use sdrkit_graph::{
-    no_values, Catalog, Decoder, DecoderComponent, Format, Graph, GraphBuilder, GraphError, Item,
+    no_values, Catalog, Decoder, DecoderComponent, Format, Graph, GraphBuilder, GraphError, InOrder, Item,
     Kind, Outbox, Port, Registry, RunContext, StackGraph, Timed,
 };
 use sdrkit_proto_wlan_phy::ppdu::{Format as PpduFormat, PpduDecoder, PpduInfo, Read, Undecoded};
@@ -355,11 +355,42 @@ struct Chain {
     behind_s: f64,
     /// Signal time of the chain's first sample, s.
     t0: f64,
+    /// A DSSS chain on a channel next to the tuned one: its counters are left out and its frames are kept only when no
+    /// chain on their own channel has a better copy.
+    neighbour: bool,
+    /// The frames of a DSSS chain from the last piece, for a run on a helper thread.
+    found: Vec<Timed<WifiMpdu>>,
     band: Option<Band>,
     channel: u32,
 }
 
 impl Chain {
+    /// Runs a piece of input through a DSSS chain; its frames are left in `found`.
+    fn run_dsss(&mut self, x: &[Complex32]) {
+        self.buf.clear();
+        self.ch.process(x, &mut self.buf);
+        let (t0, band, channel, out_rate) = (self.t0, self.band, self.channel, self.out_rate);
+        let found = &mut self.found;
+        if let Rx::Dsss(r) = &mut self.rx {
+            r.process(&self.buf, |f| {
+                let rate = f.header.rate.units_100k() as f64 / 10.0;
+                let mut m = mpdu(
+                    f.mpdu,
+                    PhyKind::Dsss,
+                    rate,
+                    f.level_dbfs,
+                    f.offset_hz,
+                    f.snr_db,
+                    t0 + f.sample as f64 / out_rate,
+                    channel,
+                    band,
+                );
+                m.value.short_preamble = f.preamble == dsss::Preamble::Short;
+                found.push(m);
+            });
+        }
+    }
+
     /// A chain of `width` Hz at `out_rate` Hz around `offset` Hz of an input at `rate` Hz.
     #[allow(clippy::too_many_arguments)]
     fn new(
@@ -381,6 +412,8 @@ impl Chain {
             buf: Vec::new(),
             behind_s: 0.0,
             t0,
+            neighbour: false,
+            found: Vec::new(),
             band,
             channel,
         })
@@ -389,28 +422,18 @@ impl Chain {
     /// Runs a piece of input. `share` is the part of the processor time this chain may use: 1 over the chains running. DSSS
     /// frames go to `out`; the OFDM frames and data fields go to `fields`, which lets them out in order.
     fn run(&mut self, x: &[Complex32], share: f64, out: &mut Vec<Timed<WifiMpdu>>, fields: &mut Fields) {
+        if matches!(self.rx, Rx::Dsss(_)) {
+            self.run_dsss(x);
+            out.append(&mut self.found);
+            return;
+        }
         self.buf.clear();
         self.ch.process(x, &mut self.buf);
         let (t0, band, channel) = (self.t0, self.band, self.channel);
         let out_rate = self.out_rate;
         let at = |n: u64| t0 + n as f64 / out_rate;
         match &mut self.rx {
-            Rx::Dsss(r) => r.process(&self.buf, |f| {
-                let rate = f.header.rate.units_100k() as f64 / 10.0;
-                let mut m = mpdu(
-                    f.mpdu,
-                    PhyKind::Dsss,
-                    rate,
-                    f.level_dbfs,
-                    f.offset_hz,
-                    f.snr_db,
-                    at(f.sample),
-                    channel,
-                    band,
-                );
-                m.value.short_preamble = f.preamble == dsss::Preamble::Short;
-                out.push(m);
-            }),
+            Rx::Dsss(_) => {}
             Rx::Ofdm(r, dec) => {
                 // With live input and no helpers, a chain more than BEHIND_S behind the signal counts data fields as busy.
                 let behind = self.behind_s >= BEHIND_S;
@@ -492,6 +515,14 @@ pub struct WifiDecoder {
     rate: f64,
     kept_dsss: DsssCounters,
     kept_ofdm: OfdmCounters,
+    /// DSSS frames that only a chain on a neighbouring channel decoded.
+    neighbour_frames: u64,
+    /// The DSSS chains of a piece on the helper threads, when the run context has helpers.
+    dsss_jobs: Option<InOrder<ChainJob, ()>>,
+    /// The chains while their DSSS part is on the helper threads.
+    back: Vec<Chain>,
+    /// The piece of input for the helper threads, reused while no helper holds it.
+    samples: Arc<Vec<Complex32>>,
     fields: Fields,
     band: Option<Band>,
     channel: u32,
@@ -516,34 +547,86 @@ impl WifiDecoder {
         let (mut d, mut o) = (self.kept_dsss, self.kept_ofdm);
         for c in &self.chains {
             match &c.rx {
+                Rx::Dsss(_) if c.neighbour => {}
                 Rx::Dsss(r) => d.add(r.stats()),
                 Rx::Ofdm(r, _) => o.add(r.stats()),
             }
         }
+        d.frames += self.neighbour_frames;
         (d, o, self.fields.ppdu)
     }
 
-    /// The channels that the chains listen to at once.
+    /// The channels that the chains listen to at once, counted without allocating. Chains on a channel that is not known
+    /// listen at the tuned centre only.
     fn channels_at_once(&self) -> u32 {
-        let mut seen: Vec<u32> = self.chains.iter().map(|c| c.channel).collect();
-        seen.sort_unstable();
-        seen.dedup();
-        // Chains on a channel that is not known listen at the tuned centre only.
-        seen.len() as u32
+        let mut seen = 0u32;
+        for (i, c) in self.chains.iter().enumerate() {
+            seen += u32::from(self.chains[..i].iter().all(|d| d.channel != c.channel));
+        }
+        seen
     }
 
     /// Runs the chains on a piece and lets out what is done: everything when the input is not live.
     fn run_chains(&mut self, x: &[Complex32]) {
         self.out.clear();
         let share = 1.0 / self.chains.len().max(1) as f64;
-        for c in &mut self.chains {
-            c.run(x, share, &mut self.out, &mut self.fields);
+        let dsss = self.chains.iter().filter(|c| matches!(c.rx, Rx::Dsss(_))).count();
+        match self.dsss_jobs.as_mut() {
+            // Several DSSS chains run on the helper threads and come back in the order of the chains; the OFDM chains follow
+            // in line.
+            Some(jobs) if dsss > 1 => {
+                let samples = match Arc::get_mut(&mut self.samples) {
+                    Some(v) => {
+                        v.clear();
+                        v.extend_from_slice(x);
+                        Arc::clone(&self.samples)
+                    }
+                    None => {
+                        self.samples = Arc::new(x.to_vec());
+                        Arc::clone(&self.samples)
+                    }
+                };
+                // The DSSS chains come back into `back` in order; the OFDM chains follow them there. Both vectors keep their
+                // size, so this allocates nothing.
+                let (out, back) = (&mut self.out, &mut self.back);
+                back.clear();
+                let kept = &mut *back;
+                for c in self.chains.drain(..dsss) {
+                    let mut c = Some(c);
+                    if !jobs.give(|j| (j.chain, j.samples) = (c.take(), Some(Arc::clone(&samples)))) {
+                        // The window holds every DSSS chain of a capture: this does not happen.
+                        if let Some(mut c) = c {
+                            c.run_dsss(&samples);
+                            out.append(&mut c.found);
+                            kept.push(c);
+                        }
+                    }
+                }
+                jobs.take_all(|j, _| {
+                    j.samples = None;
+                    if let Some(mut c) = j.chain.take() {
+                        out.append(&mut c.found);
+                        kept.push(c);
+                    }
+                });
+                drop(samples);
+                self.back.append(&mut self.chains);
+                std::mem::swap(&mut self.chains, &mut self.back);
+                for c in &mut self.chains[dsss..] {
+                    c.run(x, share, &mut self.out, &mut self.fields);
+                }
+            }
+            _ => {
+                for c in &mut self.chains {
+                    c.run(x, share, &mut self.out, &mut self.fields);
+                }
+            }
         }
         self.fields.flush(!self.fields.live);
         self.out.append(&mut self.fields.ready);
         self.out.sort_by(|a, b| a.time.total_cmp(&b.time));
-        if self.chains.len() > 2 {
-            keep_best_copies(&mut self.out);
+        if self.chains.iter().any(|c| c.neighbour) {
+            self.neighbour_frames += keep_best_copies(&mut self.out, self.channel);
         }
     }
 
@@ -606,18 +689,13 @@ impl WifiDecoder {
                     }
                 }
             }
-            for (off, width, out, c) in dsss {
+            for (k, (off, width, out, c)) in dsss.into_iter().enumerate() {
                 if let Ok(r) = dsss::DsssReceiver::new((out / 1e6) as usize) {
-                    self.chains.extend(Chain::new(
-                        rate,
-                        off,
-                        width,
-                        out,
-                        Rx::Dsss(Box::new(r)),
-                        t0,
-                        band,
-                        c,
-                    ));
+                    let chain = Chain::new(rate, off, width, out, Rx::Dsss(Box::new(r)), t0, band, c);
+                    self.chains.extend(chain.map(|mut c| {
+                        c.neighbour = k > 0;
+                        c
+                    }));
                 }
             }
         }
@@ -661,16 +739,34 @@ impl WifiDecoder {
     }
 }
 
-/// Keeps one copy of each DSSS frame that chains on neighbouring channels both decoded (the same bytes within 20 µs): the copy
-/// with the best SNR, which the chain on the frame's own channel gives. A DSSS frame despreads 5 MHz off its centre too.
-fn keep_best_copies(out: &mut Vec<Timed<WifiMpdu>>) {
+/// The time within which two chains give their copies of one frame: more than the difference of their filter delays, s.
+const COPY_WINDOW_S: f64 = 400e-6;
+
+/// The most DSSS chains of one capture: one for each 2.4 GHz channel.
+const MAX_DSSS_CHAINS: usize = 14;
+
+/// A DSSS chain with a piece of input, for a helper thread.
+#[derive(Default)]
+struct ChainJob {
+    chain: Option<Chain>,
+    samples: Option<Arc<Vec<Complex32>>>,
+}
+
+/// Keeps one copy of each DSSS frame that chains on different channels both decoded (the same bytes within
+/// [`COPY_WINDOW_S`]): the copy with the best SNR, which the chain on the frame's own channel gives. A DSSS frame despreads
+/// 5 MHz off its centre too. Returns the frames kept that no chain on channel `tuned` decoded.
+fn keep_best_copies(out: &mut Vec<Timed<WifiMpdu>>, tuned: u32) -> u64 {
+    let mut only_neighbours = 0;
     let mut i = 0;
     while i < out.len() {
         if out[i].value.phy == PhyKind::Dsss {
+            let mut on_tuned = out[i].value.channel == tuned;
             let mut j = i + 1;
-            while j < out.len() && out[j].time - out[i].time < 20e-6 {
-                if out[j].value.phy == PhyKind::Dsss && out[j].value.bytes == out[i].value.bytes {
+            while j < out.len() && out[j].time - out[i].time < COPY_WINDOW_S {
+                let (a, b) = (&out[i].value, &out[j].value);
+                if b.phy == PhyKind::Dsss && b.channel != a.channel && b.bytes == a.bytes {
                     let other = out.remove(j);
+                    on_tuned |= other.value.channel == tuned;
                     if other.value.snr_db > out[i].value.snr_db {
                         out[i] = other;
                     }
@@ -678,9 +774,11 @@ fn keep_best_copies(out: &mut Vec<Timed<WifiMpdu>>) {
                     j += 1;
                 }
             }
+            only_neighbours += u64::from(!on_tuned);
         }
         i += 1;
     }
+    only_neighbours
 }
 
 /// The 2.4 GHz channels other than `tuned` whose centres lie inside a capture of `rate` Hz around `centre` Hz, with their
@@ -733,6 +831,13 @@ impl Decoder for WifiDecoder {
         let ready = std::mem::take(&mut self.fields.ready);
         let ppdu = self.fields.ppdu;
         self.fields = Fields::new(&ctx.pool, ctx.pool.workers(), ctx.live);
+        self.dsss_jobs = (ctx.pool.workers() > 0).then(|| {
+            InOrder::new(&ctx.pool, ctx.pool.workers(), MAX_DSSS_CHAINS, || (), ChainJob::default, |_, j: &mut ChainJob| {
+                if let (Some(c), Some(x)) = (&mut j.chain, &j.samples) {
+                    c.run_dsss(x);
+                }
+            })
+        });
         self.fields.ready = ready;
         self.fields.ppdu = ppdu;
     }
@@ -1065,6 +1170,35 @@ mod tests {
         let (got, _) =
             heard_around_channel_6(40e6, &[(15e6, Dsss), (-5e6, Ofdm), (5e6, Ofdm), (15e6, Ofdm)]);
         assert_eq!(got, [(1, PhyKind::Dsss, 9), (2, PhyKind::Ofdm, 5), (3, PhyKind::Ofdm, 7)]);
+    }
+
+    #[test]
+    fn chains_on_helper_threads_give_what_they_give_in_line() {
+        use sdrkit_core::Generator;
+        let mut g = gen::WifiGenerator::new(gen::WifiGenParams::default());
+        let mut x = vec![Complex32::default(); 4_000_000];
+        g.generate(&mut x);
+        let run = |helpers: usize| {
+            let mut dec = WifiDecoder::default();
+            if helpers > 0 {
+                let pool = sdrkit_graph::Pool::new(helpers);
+                dec.attach(&RunContext {
+                    pool,
+                    ..RunContext::default()
+                });
+            }
+            dec.configure(&Format::iq(20e6, 2437e6, 2437e6)).unwrap();
+            let mut got = Vec::new();
+            for p in x.chunks(65_536) {
+                dec.input += p.len() as u64;
+                dec.run_chains(p);
+                got.append(&mut dec.out);
+            }
+            (got, dec.counters())
+        };
+        let (one, counters) = run(0);
+        assert!(one.len() > 20);
+        assert!(run(3) == (one, counters));
     }
 
     #[test]

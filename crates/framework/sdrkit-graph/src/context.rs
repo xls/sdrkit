@@ -10,7 +10,8 @@ use crate::components::{HostStreams, MakeGenerator};
 use sdrkit_core::codec::CodecSet;
 use sdrkit_core::net::Transport;
 use sdrkit_core::{Clock, MemStorage, Random, Station, Storage};
-use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
+use std::collections::VecDeque;
+use std::sync::mpsc::{channel, Receiver, TryRecvError};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
 
@@ -92,7 +93,29 @@ impl RunContext {
     }
 }
 
-pub(crate) type Job = Box<dyn FnOnce() + Send>;
+/// A job of the helper threads: run once, or a task that its owner keeps and queues again, which queues without allocating.
+pub(crate) enum Job {
+    Once(Box<dyn FnOnce() + Send>),
+    Shared(Arc<dyn Fn() + Send + Sync>),
+}
+
+impl Job {
+    fn run(self) {
+        match self {
+            Job::Once(f) => f(),
+            Job::Shared(f) => f(),
+        }
+    }
+}
+
+/// The jobs that wait for a helper thread. Its buffer keeps its size, so queuing allocates nothing in the steady state.
+#[derive(Default)]
+struct Queue {
+    jobs: Mutex<VecDeque<Job>>,
+    ready: Condvar,
+    /// The pool is gone: the threads end.
+    closed: std::sync::atomic::AtomicBool,
+}
 
 /// One [`Pool::map`]: the items that wait, the results by index, and the count of finished items.
 struct MapJob<T, R, F> {
@@ -130,10 +153,19 @@ struct Inner {
     threads: usize,
     /// The most helper threads of one [`Pool::map`].
     workers: AtomicUsize,
-    queue: Mutex<Option<Sender<Job>>>,
-    started: OnceLock<()>,
+    queue: Arc<Queue>,
+    /// The threads that started.
+    started: OnceLock<usize>,
     /// Runs on each helper thread when it starts.
     on_start: Option<Arc<dyn Fn() + Send + Sync>>,
+}
+
+impl Drop for Inner {
+    /// The threads end once their present job is done.
+    fn drop(&mut self) {
+        self.queue.closed.store(true, Ordering::Release);
+        self.queue.ready.notify_all();
+    }
 }
 
 /// A small pool of helper threads for work too slow for the decoding thread. Cloning shares the pool.
@@ -210,7 +242,7 @@ impl Pool {
             on_start,
             threads: threads.max(1),
             workers: AtomicUsize::new(threads.max(1)),
-            queue: Mutex::new(None),
+            queue: Arc::new(Queue::default()),
             started: OnceLock::new(),
         }))
     }
@@ -260,14 +292,9 @@ impl Pool {
             all_done: Condvar::new(),
             f,
         });
-        self.start();
-        if let Ok(q) = self.0.queue.lock() {
-            if let Some(q) = q.as_ref() {
-                for _ in 0..helpers {
-                    let job = Arc::clone(&job);
-                    let _ = q.send(Box::new(move || job.work()));
-                }
-            }
+        for _ in 0..helpers {
+            let job = Arc::clone(&job);
+            self.run(Job::Once(Box::new(move || job.work())));
         }
         job.work();
         let mut done = job.done.lock().unwrap_or_else(|p| p.into_inner());
@@ -286,62 +313,66 @@ impl Pool {
             })
             .collect()
     }
-    fn start(&self) {
-        self.0.started.get_or_init(|| {
-            let (tx, rx) = channel::<Job>();
-            let rx = Arc::new(Mutex::new(rx));
+    /// Starts the threads on the first call; returns how many started.
+    fn start(&self) -> usize {
+        *self.0.started.get_or_init(|| {
+            let mut started = 0;
             for i in 0..self.0.threads {
-                let rx = rx.clone();
+                let q = Arc::clone(&self.0.queue);
                 let on_start = self.0.on_start.clone();
-                let _ = std::thread::Builder::new()
+                let ok = std::thread::Builder::new()
                     .name(format!("sdrkit-helper-{i}"))
                     .spawn(move || {
                         if let Some(f) = on_start {
                             f();
                         }
                         loop {
-                        let job = {
-                            let Ok(guard) = rx.lock() else { return };
-                            match guard.recv() {
-                                Ok(j) => j,
-                                Err(_) => return,
-                            }
-                        };
-                        job();
+                            let job = {
+                                let mut jobs = q.jobs.lock().unwrap_or_else(|p| p.into_inner());
+                                loop {
+                                    if q.closed.load(Ordering::Acquire) {
+                                        return;
+                                    }
+                                    if let Some(j) = jobs.pop_front() {
+                                        break j;
+                                    }
+                                    jobs = q.ready.wait(jobs).unwrap_or_else(|p| p.into_inner());
+                                }
+                            };
+                            job.run();
                         }
-                    });
+                    })
+                    .is_ok();
+                started += usize::from(ok);
             }
-            if let Ok(mut q) = self.0.queue.lock() {
-                *q = Some(tx);
-            }
-        });
+            started
+        })
     }
     /// Queues `job` for a helper thread with no ticket. `job` catches its own panics. When no thread could be started the job
     /// is dropped unrun.
     pub(crate) fn run(&self, job: Job) {
-        self.start();
-        if let Ok(q) = self.0.queue.lock() {
-            if let Some(q) = q.as_ref() {
-                let _ = q.send(job);
-            }
+        if self.start() == 0 {
+            return;
         }
+        self.0
+            .queue
+            .jobs
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .push_back(job);
+        self.0.queue.ready.notify_one();
     }
     /// Runs `job` on a helper thread and returns a ticket for its result. A job that panics returns [`JobPanicked`] (the thread
     /// carries on).
     pub fn spawn<T: Send + 'static>(&self, job: impl FnOnce() -> T + Send + 'static) -> Ticket<T> {
-        self.start();
         let (tx, rx) = channel();
-        let wrapped: Job = Box::new(move || {
+        let wrapped = Job::Once(Box::new(move || {
             let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(job))
                 .map_err(|_| JobPanicked);
             let _ = tx.send(r);
-        });
+        }));
         // When no thread could be started the job is dropped with its sender, and the ticket reports it as failed.
-        if let Ok(q) = self.0.queue.lock() {
-            if let Some(q) = q.as_ref() {
-                let _ = q.send(wrapped);
-            }
-        }
+        self.run(wrapped);
         Ticket { rx, done: false }
     }
 }

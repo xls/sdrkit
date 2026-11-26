@@ -501,8 +501,11 @@ pub struct NetworkTable {
     band: Band,
     channel: u32,
     hop: bool,
-    /// The band of the last hop request.
+    /// The band and the channels of the last hop request, in list order.
     hop_band: Option<Band>,
+    hop_sent: Vec<f64>,
+    /// The dwell changed since the last hop request.
+    hop_dwell_changed: bool,
     /// The band that the band setting asked the host for, until the host has tuned to it.
     band_asked: Option<Band>,
     dwell_ms: f64,
@@ -555,6 +558,8 @@ impl Default for NetworkTable {
             channel: u32::try_from(CHANNEL_SETTING.default).unwrap_or(6),
             hop: HOP.default,
             hop_band: None,
+            hop_sent: Vec::new(),
+            hop_dwell_changed: false,
             band_asked: None,
             dwell_ms: DWELL_MS.default,
             psc_only: PSC_ONLY.default,
@@ -1066,6 +1071,12 @@ impl NetworkTable {
 
     fn request_hop(&mut self) {
         let mut channels = self.hop_channels();
+        // The same hop again is not asked for.
+        if self.hop_band == Some(self.band) && channels == self.hop_sent && !self.hop_dwell_changed {
+            return;
+        }
+        self.hop_dwell_changed = false;
+        self.hop_sent.clone_from(&channels);
         // The hop starts at the tuned channel when the list holds it.
         let tuned = centre_mhz(self.band, self.stats.channel).map(|mhz| mhz * 1e6);
         if let Some(at) = channels.iter().position(|&f| Some(f) == tuned) {
@@ -1137,8 +1148,6 @@ impl Component for NetworkTable {
         self.base_dsss = DsssCounters::default();
         self.base_ofdm = OfdmCounters::default();
         self.base_ppdu = PpduCounters::default();
-        // A new session starts the hop again once it knows its band.
-        self.hop_band = None;
         Ok(vec![Format::new(Kind::typed::<HostRequest>(), 0.0)])
     }
 
@@ -1204,6 +1213,7 @@ impl Component for NetworkTable {
                 if on != self.hop {
                     self.hop = on;
                     if on {
+                        self.hop_sent.clear();
                         self.request_hop();
                     } else {
                         self.request_channel();
@@ -1214,6 +1224,7 @@ impl Component for NetworkTable {
                 let d = DWELL_MS.read(id, v)?;
                 if d != self.dwell_ms {
                     self.dwell_ms = d;
+                    self.hop_dwell_changed = true;
                     self.hop_changed();
                 }
             }

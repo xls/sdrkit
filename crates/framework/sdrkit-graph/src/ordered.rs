@@ -5,13 +5,13 @@
 //!
 //! A slot holds a payload of the caller's type: the caller fills it, a worker changes it in place, and the caller reads it when
 //! it takes the slot back. Payloads and worker states are made once and reused, so a job allocates nothing once its payload has
-//! grown to its working size. The one allocation left is the small task that starts a worker on the pool after the workers
-//! were idle.
+//! grown to its working size. A helper task is made once and queued on the pool again whenever a job waits and fewer helpers
+//! run than allowed, which allocates nothing either.
 //!
 //! The caller keeps a worker state of its own. With no helpers a job runs in line in [`InOrder::give`], and the waiting calls
 //! work on queued jobs instead of only waiting. The results never depend on the number of helpers.
 
-use crate::context::{JobPanicked, Pool};
+use crate::context::{Job, JobPanicked, Pool};
 use std::collections::VecDeque;
 use std::sync::{Arc, Condvar, Mutex, MutexGuard};
 
@@ -88,6 +88,9 @@ impl<T, S> Shared<T, S> {
 /// A bounded window of independent jobs whose results are taken back in the order given (module documentation).
 pub struct InOrder<T, S> {
     shared: Arc<Shared<T, S>>,
+    /// The helper task, queued on the pool again for each helper that starts. It holds the window weakly, so a dropped window
+    /// ends its helpers.
+    task: Arc<dyn Fn() + Send + Sync>,
     pool: Pool,
     helpers: usize,
     /// The caller's worker state.
@@ -121,8 +124,16 @@ impl<T: Send + 'static, S: Send + 'static> InOrder<T, S> {
             finished: Condvar::new(),
             work: Box::new(work),
         };
+        let shared = Arc::new(shared);
+        let weak = Arc::downgrade(&shared);
+        let task: Arc<dyn Fn() + Send + Sync> = Arc::new(move || {
+            if let Some(s) = weak.upgrade() {
+                s.drain();
+            }
+        });
         InOrder {
-            shared: Arc::new(shared),
+            shared,
+            task,
             pool: pool.clone(),
             helpers,
             own: make_state(),
@@ -176,8 +187,7 @@ impl<T: Send + 'static, S: Send + 'static> InOrder<T, S> {
         if c.running < self.helpers {
             c.running += 1;
             drop(c);
-            let shared = Arc::clone(&self.shared);
-            self.pool.run(Box::new(move || shared.drain()));
+            self.pool.run(Job::Shared(Arc::clone(&self.task)));
         }
         true
     }

@@ -148,6 +148,30 @@ fn busy_chain() -> Option<Chain> {
 mod keep_up {
     use super::*;
 
+    /// The time of the stack on its 2.4 GHz scene at 20 Msps with the centre known (chains on channels 5, 6 and 7) and not
+    /// known (channel 6 only), fastest of the runs.
+    #[test]
+    #[ignore = "a timing measurement for a release build"]
+    fn the_cost_of_the_neighbouring_channels() {
+        let rate = CHAIN_RATE_HZ;
+        let cfg = sdrkit_core::GenConfig::new(rate, Values::defaults(&(WIFI.settings)())).with_seed(1);
+        let mut g = (WIFI.make_generator.unwrap())(&cfg).unwrap();
+        let mut x = vec![Complex32::default(); (rate * 0.5) as usize];
+        g.generate(&mut x);
+        for centre in [2437e6, 0.0] {
+            let mut rx = receiver(&StackConfig::new(Values::defaults(&WifiSetting::schema()))).unwrap();
+            let _ = rx.configure(&InputInfo::new(rate, centre, centre).recording());
+            let mut out = Output::default();
+            let r = measure(3.0, x.len(), x.len() as f64 / rate, || {
+                for b in x.chunks(65_536) {
+                    out.clear();
+                    rx.feed(b, &mut out);
+                }
+            });
+            eprintln!("centre {:.0} MHz: {:.3} s per s of signal", centre / 1e6, r.cpu_fraction_of_realtime);
+        }
+    }
+
     /// The share of HT and VHT data fields skipped on two seconds of the busy channel fed at signal pace as live input, and the
     /// time with every field decoded, for 0, 1, 2 and 4 helper threads beside the chain's own thread. Three rounds, each of
     /// every count back to back, so that the counts of a round see the same load.
