@@ -1,7 +1,7 @@
 # id: wifi_domains
 # name: Wi-Fi channels by regulatory domain
 # stacks: wifi espnow
-# source: channel numbers of IEEE Std 802.11-2020 Annex E and 802.11ax-2021 Annex E.4; the channels that each domain permits and the DFS (radar sharing) channels are not confirmed against the rules of each regulator
+# source: channel numbers of IEEE Std 802.11-2020 Annex E and 802.11ax-2021 Annex E.4; the channels that each domain permits and the DFS (radar sharing) channels are not confirmed against the rules of each regulator, except au: ACMA, Radiocommunications (Low Interference Potential Devices) Class Licence 2025 (F2025L01047), Schedule 1 Table 8 items 7 to 14 (2400-2483.5, 5150-5350, 5470-5600, 5650-5850 and 5925-6585 MHz); the dfs channels of au are those of 5250-5350 and 5470-5725 MHz as in the other rows, clauses 46 and 47 of the licence were not read. Channel 14 of jp is the 2471-2497 MHz band of the Japanese 2.4 GHz low-power data systems, not compared with the Radio Equipment Regulations
 # note: One row for each domain and band. channels lists the channels of the band that the domain permits, dfs the channels of them that need radar detection, not_hopped the channels that a hop list leaves out (2.4 GHz channel 14 carries DSSS only). A host sets channels_24, channels_5 and channels_6 of wifi to the hop list of each band, without the dfs channels when it skips them, and channels_24 of espnow to the 2.4 GHz list.
 domain,name,band,channels,dfs,not_hopped
 all,All,2.4,1 2 3 4 5 6 7 8 9 10 11 12 13 14,,14
@@ -13,9 +13,12 @@ eu,Europe (ETSI),6,1 5 9 13 17 21 25 29 33 37 41 45 49 53 57 61 65 69 73 77 81 8
 us,USA (FCC),2.4,1 2 3 4 5 6 7 8 9 10 11,,
 us,USA (FCC),5,36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 136 140 144 149 153 157 161 165 169 173 177,52 56 60 64 100 104 108 112 116 120 124 128 132 136 140 144,
 us,USA (FCC),6,1 2 5 9 13 17 21 25 29 33 37 41 45 49 53 57 61 65 69 73 77 81 85 89 93 97 101 105 109 113 117 121 125 129 133 137 141 145 149 153 157 161 165 169 173 177 181 185 189 193 197 201 205 209 213 217 221 225 229 233,,
-jp,Japan,2.4,1 2 3 4 5 6 7 8 9 10 11 12 13,,
+jp,Japan,2.4,1 2 3 4 5 6 7 8 9 10 11 12 13 14,,14
 jp,Japan,5,36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 136 140,52 56 60 64 100 104 108 112 116 120 124 128 132 136 140,
 jp,Japan,6,1 5 9 13 17 21 25 29 33 37 41 45 49 53 57 61 65 69 73 77 81 85 89 93,,
 cn,China,2.4,1 2 3 4 5 6 7 8 9 10 11 12 13,,
 cn,China,5,36 40 44 48 52 56 60 64 149 153 157 161 165,52 56 60 64,
 cn,China,6,1 5 9 13 17 21 25 29 33 37 41 45 49 53 57 61 65 69 73 77 81 85 89 93,,
+au,Australia (ACMA),2.4,1 2 3 4 5 6 7 8 9 10 11 12 13,,
+au,Australia (ACMA),5,36 40 44 48 52 56 60 64 100 104 108 112 116 132 136 140 144 149 153 157 161 165,52 56 60 64 100 104 108 112 116 132 136 140 144,
+au,Australia (ACMA),6,1 2 5 9 13 17 21 25 29 33 37 41 45 49 53 57 61 65 69 73 77 81 85 89 93 97 101 105 109 113 117 121 125,,

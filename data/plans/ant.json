@@ -1,0 +1,709 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "ant",
+      "name": "ANT and ANT+ channels",
+      "kind": "ism",
+      "source": {
+        "publisher": "Garmin Canada (Dynastream Innovations)",
+        "title": "ANT Message Protocol and Usage",
+        "number": "Rev 5.1",
+        "date": "2014",
+        "clause": "Set Channel RF Frequency (2400 + n MHz, n = 0 to 124)"
+      },
+      "also": [
+        {
+          "publisher": "ANT Wireless",
+          "title": "ANT+ device profiles: channel configuration, RF channel frequency 57 (2457 MHz)",
+          "date": "not recorded",
+          "url": "https://www.thisisant.com/developer/ant-plus/device-profiles"
+        },
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the RF channel range 0 to 124 and the ANT+ frequency 2457 MHz are from the documents named; not compared with a received signal",
+      "note": "The first channel is the start of the stack ant: ANT+ at 2457 MHz. Private ANT networks use any RF channel.",
+      "bands": [
+        {
+          "name": "ANT RF channels in the 2.4 GHz ISM band",
+          "service": "short_range",
+          "start_hz": 2399500000,
+          "end_hz": 2483500000,
+          "modes": [
+            "ant"
+          ],
+          "note": "RF channel 0 (2400 MHz) reaches 0.5 MHz below the ISM band",
+          "channels": [
+            {
+              "name": "ANT+ 2457 MHz",
+              "centre_hz": 2457000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2400 MHz",
+              "centre_hz": 2400000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2401 MHz",
+              "centre_hz": 2401000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2402 MHz",
+              "centre_hz": 2402000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2403 MHz",
+              "centre_hz": 2403000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2404 MHz",
+              "centre_hz": 2404000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2405 MHz",
+              "centre_hz": 2405000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2406 MHz",
+              "centre_hz": 2406000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2407 MHz",
+              "centre_hz": 2407000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2408 MHz",
+              "centre_hz": 2408000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2409 MHz",
+              "centre_hz": 2409000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2410 MHz",
+              "centre_hz": 2410000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2411 MHz",
+              "centre_hz": 2411000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2412 MHz",
+              "centre_hz": 2412000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2413 MHz",
+              "centre_hz": 2413000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2414 MHz",
+              "centre_hz": 2414000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2415 MHz",
+              "centre_hz": 2415000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2416 MHz",
+              "centre_hz": 2416000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2417 MHz",
+              "centre_hz": 2417000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2418 MHz",
+              "centre_hz": 2418000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2419 MHz",
+              "centre_hz": 2419000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2420 MHz",
+              "centre_hz": 2420000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2421 MHz",
+              "centre_hz": 2421000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2422 MHz",
+              "centre_hz": 2422000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2423 MHz",
+              "centre_hz": 2423000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2424 MHz",
+              "centre_hz": 2424000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2425 MHz",
+              "centre_hz": 2425000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2426 MHz",
+              "centre_hz": 2426000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2427 MHz",
+              "centre_hz": 2427000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2428 MHz",
+              "centre_hz": 2428000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2429 MHz",
+              "centre_hz": 2429000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2430 MHz",
+              "centre_hz": 2430000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2431 MHz",
+              "centre_hz": 2431000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2432 MHz",
+              "centre_hz": 2432000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2433 MHz",
+              "centre_hz": 2433000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2434 MHz",
+              "centre_hz": 2434000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2435 MHz",
+              "centre_hz": 2435000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2436 MHz",
+              "centre_hz": 2436000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2437 MHz",
+              "centre_hz": 2437000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2438 MHz",
+              "centre_hz": 2438000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2439 MHz",
+              "centre_hz": 2439000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2440 MHz",
+              "centre_hz": 2440000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2441 MHz",
+              "centre_hz": 2441000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2442 MHz",
+              "centre_hz": 2442000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2443 MHz",
+              "centre_hz": 2443000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2444 MHz",
+              "centre_hz": 2444000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2445 MHz",
+              "centre_hz": 2445000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2446 MHz",
+              "centre_hz": 2446000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2447 MHz",
+              "centre_hz": 2447000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2448 MHz",
+              "centre_hz": 2448000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2449 MHz",
+              "centre_hz": 2449000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2450 MHz",
+              "centre_hz": 2450000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2451 MHz",
+              "centre_hz": 2451000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2452 MHz",
+              "centre_hz": 2452000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2453 MHz",
+              "centre_hz": 2453000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2454 MHz",
+              "centre_hz": 2454000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2455 MHz",
+              "centre_hz": 2455000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2456 MHz",
+              "centre_hz": 2456000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2458 MHz",
+              "centre_hz": 2458000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2459 MHz",
+              "centre_hz": 2459000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2460 MHz",
+              "centre_hz": 2460000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2461 MHz",
+              "centre_hz": 2461000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2462 MHz",
+              "centre_hz": 2462000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2463 MHz",
+              "centre_hz": 2463000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2464 MHz",
+              "centre_hz": 2464000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2465 MHz",
+              "centre_hz": 2465000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2466 MHz",
+              "centre_hz": 2466000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2467 MHz",
+              "centre_hz": 2467000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2468 MHz",
+              "centre_hz": 2468000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2469 MHz",
+              "centre_hz": 2469000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2470 MHz",
+              "centre_hz": 2470000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2471 MHz",
+              "centre_hz": 2471000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2472 MHz",
+              "centre_hz": 2472000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2473 MHz",
+              "centre_hz": 2473000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2474 MHz",
+              "centre_hz": 2474000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2475 MHz",
+              "centre_hz": 2475000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2476 MHz",
+              "centre_hz": 2476000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2477 MHz",
+              "centre_hz": 2477000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2478 MHz",
+              "centre_hz": 2478000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2479 MHz",
+              "centre_hz": 2479000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2480 MHz",
+              "centre_hz": 2480000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2481 MHz",
+              "centre_hz": 2481000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2482 MHz",
+              "centre_hz": 2482000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2483 MHz",
+              "centre_hz": 2483000000,
+              "width_hz": 1000000
+            }
+          ]
+        },
+        {
+          "name": "ANT RF channels above the 2.4 GHz ISM band",
+          "service": "short_range",
+          "start_hz": 2483500000,
+          "end_hz": 2524500000,
+          "modes": [
+            "ant"
+          ],
+          "note": "RF channels 84 to 124 lie above 2483.5 MHz, outside the ISM band; national rules do not generally permit them",
+          "channels": [
+            {
+              "name": "ANT 2484 MHz",
+              "centre_hz": 2484000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2485 MHz",
+              "centre_hz": 2485000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2486 MHz",
+              "centre_hz": 2486000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2487 MHz",
+              "centre_hz": 2487000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2488 MHz",
+              "centre_hz": 2488000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2489 MHz",
+              "centre_hz": 2489000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2490 MHz",
+              "centre_hz": 2490000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2491 MHz",
+              "centre_hz": 2491000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2492 MHz",
+              "centre_hz": 2492000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2493 MHz",
+              "centre_hz": 2493000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2494 MHz",
+              "centre_hz": 2494000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2495 MHz",
+              "centre_hz": 2495000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2496 MHz",
+              "centre_hz": 2496000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2497 MHz",
+              "centre_hz": 2497000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2498 MHz",
+              "centre_hz": 2498000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2499 MHz",
+              "centre_hz": 2499000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2500 MHz",
+              "centre_hz": 2500000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2501 MHz",
+              "centre_hz": 2501000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2502 MHz",
+              "centre_hz": 2502000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2503 MHz",
+              "centre_hz": 2503000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2504 MHz",
+              "centre_hz": 2504000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2505 MHz",
+              "centre_hz": 2505000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2506 MHz",
+              "centre_hz": 2506000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2507 MHz",
+              "centre_hz": 2507000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2508 MHz",
+              "centre_hz": 2508000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2509 MHz",
+              "centre_hz": 2509000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2510 MHz",
+              "centre_hz": 2510000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2511 MHz",
+              "centre_hz": 2511000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2512 MHz",
+              "centre_hz": 2512000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2513 MHz",
+              "centre_hz": 2513000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2514 MHz",
+              "centre_hz": 2514000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2515 MHz",
+              "centre_hz": 2515000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2516 MHz",
+              "centre_hz": 2516000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2517 MHz",
+              "centre_hz": 2517000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2518 MHz",
+              "centre_hz": 2518000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2519 MHz",
+              "centre_hz": 2519000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2520 MHz",
+              "centre_hz": 2520000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2521 MHz",
+              "centre_hz": 2521000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2522 MHz",
+              "centre_hz": 2522000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2523 MHz",
+              "centre_hz": 2523000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "ANT 2524 MHz",
+              "centre_hz": 2524000000,
+              "width_hz": 1000000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "ant"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "ant"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "ant"
+      ]
+    }
+  ]
+}

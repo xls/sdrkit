@@ -1,0 +1,734 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "ble",
+      "name": "Bluetooth LE channels",
+      "kind": "ism",
+      "source": {
+        "publisher": "Bluetooth SIG",
+        "title": "Bluetooth Core Specification",
+        "number": "Version 5.4",
+        "date": "2023",
+        "clause": "Vol 6, Part B, 1.4.1 (LE channel indices); Vol 2, Part A, 2 (BR/EDR channels)"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels follow the formula of the clause (RF channel k at 2402 + 2k MHz, channel index 37, 38 and 39 at RF channels 0, 12 and 39); the band is the 2.4 GHz ISM band of every ITU region; not compared with national rules",
+      "note": "The first channel is the start of the stacks ble and bletracker: primary advertising channel 37.",
+      "bands": [
+        {
+          "name": "Bluetooth LE primary advertising channels",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "ble",
+            "bletracker"
+          ],
+          "note": "the three channels of legacy advertising and of the primary channel of extended advertising",
+          "channels": [
+            {
+              "name": "Advertising 37 (2402 MHz)",
+              "centre_hz": 2402000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Advertising 38 (2426 MHz)",
+              "centre_hz": 2426000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Advertising 39 (2480 MHz)",
+              "centre_hz": 2480000000,
+              "width_hz": 2000000
+            }
+          ]
+        },
+        {
+          "name": "Bluetooth LE data channels",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "ble",
+            "bletracker"
+          ],
+          "note": "the 37 general-purpose channels: secondary advertising (extended and periodic advertising) and connections",
+          "channels": [
+            {
+              "name": "Data 0 (2404 MHz)",
+              "centre_hz": 2404000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 1 (2406 MHz)",
+              "centre_hz": 2406000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 2 (2408 MHz)",
+              "centre_hz": 2408000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 3 (2410 MHz)",
+              "centre_hz": 2410000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 4 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 5 (2414 MHz)",
+              "centre_hz": 2414000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 6 (2416 MHz)",
+              "centre_hz": 2416000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 7 (2418 MHz)",
+              "centre_hz": 2418000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 8 (2420 MHz)",
+              "centre_hz": 2420000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 9 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 10 (2424 MHz)",
+              "centre_hz": 2424000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 11 (2428 MHz)",
+              "centre_hz": 2428000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 12 (2430 MHz)",
+              "centre_hz": 2430000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 13 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 14 (2434 MHz)",
+              "centre_hz": 2434000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 15 (2436 MHz)",
+              "centre_hz": 2436000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 16 (2438 MHz)",
+              "centre_hz": 2438000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 17 (2440 MHz)",
+              "centre_hz": 2440000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 18 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 19 (2444 MHz)",
+              "centre_hz": 2444000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 20 (2446 MHz)",
+              "centre_hz": 2446000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 21 (2448 MHz)",
+              "centre_hz": 2448000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 22 (2450 MHz)",
+              "centre_hz": 2450000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 23 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 24 (2454 MHz)",
+              "centre_hz": 2454000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 25 (2456 MHz)",
+              "centre_hz": 2456000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 26 (2458 MHz)",
+              "centre_hz": 2458000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 27 (2460 MHz)",
+              "centre_hz": 2460000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 28 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 29 (2464 MHz)",
+              "centre_hz": 2464000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 30 (2466 MHz)",
+              "centre_hz": 2466000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 31 (2468 MHz)",
+              "centre_hz": 2468000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 32 (2470 MHz)",
+              "centre_hz": 2470000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 33 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 34 (2474 MHz)",
+              "centre_hz": 2474000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 35 (2476 MHz)",
+              "centre_hz": 2476000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Data 36 (2478 MHz)",
+              "centre_hz": 2478000000,
+              "width_hz": 2000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bletracker",
+      "name": "Bluetooth LE channels, tracker stack",
+      "kind": "ism",
+      "source": {
+        "publisher": "Bluetooth SIG",
+        "title": "Bluetooth Core Specification",
+        "number": "Version 5.4",
+        "date": "2023",
+        "clause": "Vol 6, Part B, 1.4.1 (LE channel indices); Vol 2, Part A, 2 (BR/EDR channels)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels of the group ble",
+      "include": [
+        "ble"
+      ]
+    },
+    {
+      "id": "btclassic",
+      "name": "Bluetooth BR/EDR channels",
+      "kind": "ism",
+      "source": {
+        "publisher": "Bluetooth SIG",
+        "title": "Bluetooth Core Specification",
+        "number": "Version 5.4",
+        "date": "2023",
+        "clause": "Vol 6, Part B, 1.4.1 (LE channel indices); Vol 2, Part A, 2 (BR/EDR channels)"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels follow the formula of the clause (channel k at 2402 + k MHz, k = 0 to 78); not compared with national rules",
+      "note": "The first channel is the start of the stack btclassic: channel 39 (2441 MHz), the middle of the 79 channels, as the stack captures a wide part of the band.",
+      "bands": [
+        {
+          "name": "Bluetooth BR/EDR channels",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "btclassic"
+          ],
+          "channels": [
+            {
+              "name": "Channel 39 (2441 MHz)",
+              "centre_hz": 2441000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 0 (2402 MHz)",
+              "centre_hz": 2402000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 1 (2403 MHz)",
+              "centre_hz": 2403000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 2 (2404 MHz)",
+              "centre_hz": 2404000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 3 (2405 MHz)",
+              "centre_hz": 2405000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 4 (2406 MHz)",
+              "centre_hz": 2406000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 5 (2407 MHz)",
+              "centre_hz": 2407000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 6 (2408 MHz)",
+              "centre_hz": 2408000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 7 (2409 MHz)",
+              "centre_hz": 2409000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 8 (2410 MHz)",
+              "centre_hz": 2410000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 9 (2411 MHz)",
+              "centre_hz": 2411000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 10 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 11 (2413 MHz)",
+              "centre_hz": 2413000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 12 (2414 MHz)",
+              "centre_hz": 2414000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 13 (2415 MHz)",
+              "centre_hz": 2415000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 14 (2416 MHz)",
+              "centre_hz": 2416000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 15 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 16 (2418 MHz)",
+              "centre_hz": 2418000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 17 (2419 MHz)",
+              "centre_hz": 2419000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 18 (2420 MHz)",
+              "centre_hz": 2420000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 19 (2421 MHz)",
+              "centre_hz": 2421000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 20 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 21 (2423 MHz)",
+              "centre_hz": 2423000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 22 (2424 MHz)",
+              "centre_hz": 2424000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 23 (2425 MHz)",
+              "centre_hz": 2425000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 24 (2426 MHz)",
+              "centre_hz": 2426000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 25 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 26 (2428 MHz)",
+              "centre_hz": 2428000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 27 (2429 MHz)",
+              "centre_hz": 2429000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 28 (2430 MHz)",
+              "centre_hz": 2430000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 29 (2431 MHz)",
+              "centre_hz": 2431000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 30 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 31 (2433 MHz)",
+              "centre_hz": 2433000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 32 (2434 MHz)",
+              "centre_hz": 2434000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 33 (2435 MHz)",
+              "centre_hz": 2435000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 34 (2436 MHz)",
+              "centre_hz": 2436000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 35 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 36 (2438 MHz)",
+              "centre_hz": 2438000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 37 (2439 MHz)",
+              "centre_hz": 2439000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 38 (2440 MHz)",
+              "centre_hz": 2440000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 40 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 41 (2443 MHz)",
+              "centre_hz": 2443000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 42 (2444 MHz)",
+              "centre_hz": 2444000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 43 (2445 MHz)",
+              "centre_hz": 2445000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 44 (2446 MHz)",
+              "centre_hz": 2446000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 45 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 46 (2448 MHz)",
+              "centre_hz": 2448000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 47 (2449 MHz)",
+              "centre_hz": 2449000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 48 (2450 MHz)",
+              "centre_hz": 2450000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 49 (2451 MHz)",
+              "centre_hz": 2451000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 50 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 51 (2453 MHz)",
+              "centre_hz": 2453000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 52 (2454 MHz)",
+              "centre_hz": 2454000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 53 (2455 MHz)",
+              "centre_hz": 2455000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 54 (2456 MHz)",
+              "centre_hz": 2456000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 55 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 56 (2458 MHz)",
+              "centre_hz": 2458000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 57 (2459 MHz)",
+              "centre_hz": 2459000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 58 (2460 MHz)",
+              "centre_hz": 2460000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 59 (2461 MHz)",
+              "centre_hz": 2461000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 60 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 61 (2463 MHz)",
+              "centre_hz": 2463000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 62 (2464 MHz)",
+              "centre_hz": 2464000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 63 (2465 MHz)",
+              "centre_hz": 2465000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 64 (2466 MHz)",
+              "centre_hz": 2466000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 65 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 66 (2468 MHz)",
+              "centre_hz": 2468000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 67 (2469 MHz)",
+              "centre_hz": 2469000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 68 (2470 MHz)",
+              "centre_hz": 2470000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 69 (2471 MHz)",
+              "centre_hz": 2471000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 70 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 71 (2473 MHz)",
+              "centre_hz": 2473000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 72 (2474 MHz)",
+              "centre_hz": 2474000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 73 (2475 MHz)",
+              "centre_hz": 2475000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 74 (2476 MHz)",
+              "centre_hz": 2476000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 75 (2477 MHz)",
+              "centre_hz": 2477000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 76 (2478 MHz)",
+              "centre_hz": 2478000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 77 (2479 MHz)",
+              "centre_hz": 2479000000,
+              "width_hz": 1000000
+            },
+            {
+              "name": "Channel 78 (2480 MHz)",
+              "centre_hz": 2480000000,
+              "width_hz": 1000000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "ble",
+        "bletracker",
+        "btclassic"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "ble",
+        "bletracker",
+        "btclassic"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "ble",
+        "bletracker",
+        "btclassic"
+      ]
+    }
+  ]
+}

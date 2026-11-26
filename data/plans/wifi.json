@@ -1,0 +1,2998 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "wifi_eu",
+      "name": "Wi-Fi channels, Europe (ETSI)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the rows of the domain in wlan/wifi_domains.csv, which also gives the hop lists of the stack. The first channel is the start of the stack wifi: 2.4 GHz channel 6 (2437 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (Europe (ETSI))",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 5 GHz (Europe (ETSI))",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5895000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 36 (5180 MHz)",
+              "centre_hz": 5180000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 40 (5200 MHz)",
+              "centre_hz": 5200000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 44 (5220 MHz)",
+              "centre_hz": 5220000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 48 (5240 MHz)",
+              "centre_hz": 5240000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 52 (5260 MHz)",
+              "centre_hz": 5260000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 56 (5280 MHz)",
+              "centre_hz": 5280000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 60 (5300 MHz)",
+              "centre_hz": 5300000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 64 (5320 MHz)",
+              "centre_hz": 5320000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 100 (5500 MHz)",
+              "centre_hz": 5500000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 104 (5520 MHz)",
+              "centre_hz": 5520000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 108 (5540 MHz)",
+              "centre_hz": 5540000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 112 (5560 MHz)",
+              "centre_hz": 5560000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 116 (5580 MHz)",
+              "centre_hz": 5580000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 120 (5600 MHz)",
+              "centre_hz": 5600000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 124 (5620 MHz)",
+              "centre_hz": 5620000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 128 (5640 MHz)",
+              "centre_hz": 5640000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 132 (5660 MHz)",
+              "centre_hz": 5660000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 136 (5680 MHz)",
+              "centre_hz": 5680000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 140 (5700 MHz)",
+              "centre_hz": 5700000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 6 GHz (Europe (ETSI))",
+          "service": "short_range",
+          "start_hz": 5925000000,
+          "end_hz": 7125000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (5955 MHz)",
+              "centre_hz": 5955000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (5975 MHz)",
+              "centre_hz": 5975000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (5995 MHz)",
+              "centre_hz": 5995000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (6015 MHz)",
+              "centre_hz": 6015000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 17 (6035 MHz)",
+              "centre_hz": 6035000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 21 (6055 MHz)",
+              "centre_hz": 6055000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 25 (6075 MHz)",
+              "centre_hz": 6075000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 29 (6095 MHz)",
+              "centre_hz": 6095000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 33 (6115 MHz)",
+              "centre_hz": 6115000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 37 (6135 MHz)",
+              "centre_hz": 6135000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 41 (6155 MHz)",
+              "centre_hz": 6155000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 45 (6175 MHz)",
+              "centre_hz": 6175000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 49 (6195 MHz)",
+              "centre_hz": 6195000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 53 (6215 MHz)",
+              "centre_hz": 6215000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 57 (6235 MHz)",
+              "centre_hz": 6235000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 61 (6255 MHz)",
+              "centre_hz": 6255000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 65 (6275 MHz)",
+              "centre_hz": 6275000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 69 (6295 MHz)",
+              "centre_hz": 6295000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 73 (6315 MHz)",
+              "centre_hz": 6315000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 77 (6335 MHz)",
+              "centre_hz": 6335000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 81 (6355 MHz)",
+              "centre_hz": 6355000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 85 (6375 MHz)",
+              "centre_hz": 6375000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 89 (6395 MHz)",
+              "centre_hz": 6395000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 93 (6415 MHz)",
+              "centre_hz": 6415000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "espnow_eu",
+      "name": "ESP-NOW channels, Europe (ETSI)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the 2.4 GHz hop list of the domain in wlan/wifi_domains.csv. The first channel is the start of the stack espnow: channel 1 (2412 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (Europe (ETSI))",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "espnow"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wifi_us",
+      "name": "Wi-Fi channels, USA (FCC)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the rows of the domain in wlan/wifi_domains.csv, which also gives the hop lists of the stack. The first channel is the start of the stack wifi: 2.4 GHz channel 6 (2437 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (USA (FCC))",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 5 GHz (USA (FCC))",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5895000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 36 (5180 MHz)",
+              "centre_hz": 5180000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 40 (5200 MHz)",
+              "centre_hz": 5200000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 44 (5220 MHz)",
+              "centre_hz": 5220000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 48 (5240 MHz)",
+              "centre_hz": 5240000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 52 (5260 MHz)",
+              "centre_hz": 5260000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 56 (5280 MHz)",
+              "centre_hz": 5280000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 60 (5300 MHz)",
+              "centre_hz": 5300000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 64 (5320 MHz)",
+              "centre_hz": 5320000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 100 (5500 MHz)",
+              "centre_hz": 5500000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 104 (5520 MHz)",
+              "centre_hz": 5520000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 108 (5540 MHz)",
+              "centre_hz": 5540000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 112 (5560 MHz)",
+              "centre_hz": 5560000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 116 (5580 MHz)",
+              "centre_hz": 5580000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 120 (5600 MHz)",
+              "centre_hz": 5600000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 124 (5620 MHz)",
+              "centre_hz": 5620000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 128 (5640 MHz)",
+              "centre_hz": 5640000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 132 (5660 MHz)",
+              "centre_hz": 5660000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 136 (5680 MHz)",
+              "centre_hz": 5680000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 140 (5700 MHz)",
+              "centre_hz": 5700000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 144 (5720 MHz)",
+              "centre_hz": 5720000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 149 (5745 MHz)",
+              "centre_hz": 5745000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 153 (5765 MHz)",
+              "centre_hz": 5765000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 157 (5785 MHz)",
+              "centre_hz": 5785000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 161 (5805 MHz)",
+              "centre_hz": 5805000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 165 (5825 MHz)",
+              "centre_hz": 5825000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 169 (5845 MHz)",
+              "centre_hz": 5845000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 173 (5865 MHz)",
+              "centre_hz": 5865000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 177 (5885 MHz)",
+              "centre_hz": 5885000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 6 GHz (USA (FCC))",
+          "service": "short_range",
+          "start_hz": 5925000000,
+          "end_hz": 7125000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (5955 MHz)",
+              "centre_hz": 5955000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (5935 MHz)",
+              "centre_hz": 5935000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (5975 MHz)",
+              "centre_hz": 5975000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (5995 MHz)",
+              "centre_hz": 5995000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (6015 MHz)",
+              "centre_hz": 6015000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 17 (6035 MHz)",
+              "centre_hz": 6035000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 21 (6055 MHz)",
+              "centre_hz": 6055000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 25 (6075 MHz)",
+              "centre_hz": 6075000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 29 (6095 MHz)",
+              "centre_hz": 6095000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 33 (6115 MHz)",
+              "centre_hz": 6115000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 37 (6135 MHz)",
+              "centre_hz": 6135000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 41 (6155 MHz)",
+              "centre_hz": 6155000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 45 (6175 MHz)",
+              "centre_hz": 6175000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 49 (6195 MHz)",
+              "centre_hz": 6195000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 53 (6215 MHz)",
+              "centre_hz": 6215000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 57 (6235 MHz)",
+              "centre_hz": 6235000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 61 (6255 MHz)",
+              "centre_hz": 6255000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 65 (6275 MHz)",
+              "centre_hz": 6275000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 69 (6295 MHz)",
+              "centre_hz": 6295000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 73 (6315 MHz)",
+              "centre_hz": 6315000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 77 (6335 MHz)",
+              "centre_hz": 6335000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 81 (6355 MHz)",
+              "centre_hz": 6355000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 85 (6375 MHz)",
+              "centre_hz": 6375000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 89 (6395 MHz)",
+              "centre_hz": 6395000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 93 (6415 MHz)",
+              "centre_hz": 6415000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 97 (6435 MHz)",
+              "centre_hz": 6435000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 101 (6455 MHz)",
+              "centre_hz": 6455000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 105 (6475 MHz)",
+              "centre_hz": 6475000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 109 (6495 MHz)",
+              "centre_hz": 6495000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 113 (6515 MHz)",
+              "centre_hz": 6515000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 117 (6535 MHz)",
+              "centre_hz": 6535000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 121 (6555 MHz)",
+              "centre_hz": 6555000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 125 (6575 MHz)",
+              "centre_hz": 6575000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 129 (6595 MHz)",
+              "centre_hz": 6595000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 133 (6615 MHz)",
+              "centre_hz": 6615000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 137 (6635 MHz)",
+              "centre_hz": 6635000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 141 (6655 MHz)",
+              "centre_hz": 6655000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 145 (6675 MHz)",
+              "centre_hz": 6675000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 149 (6695 MHz)",
+              "centre_hz": 6695000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 153 (6715 MHz)",
+              "centre_hz": 6715000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 157 (6735 MHz)",
+              "centre_hz": 6735000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 161 (6755 MHz)",
+              "centre_hz": 6755000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 165 (6775 MHz)",
+              "centre_hz": 6775000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 169 (6795 MHz)",
+              "centre_hz": 6795000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 173 (6815 MHz)",
+              "centre_hz": 6815000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 177 (6835 MHz)",
+              "centre_hz": 6835000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 181 (6855 MHz)",
+              "centre_hz": 6855000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 185 (6875 MHz)",
+              "centre_hz": 6875000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 189 (6895 MHz)",
+              "centre_hz": 6895000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 193 (6915 MHz)",
+              "centre_hz": 6915000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 197 (6935 MHz)",
+              "centre_hz": 6935000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 201 (6955 MHz)",
+              "centre_hz": 6955000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 205 (6975 MHz)",
+              "centre_hz": 6975000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 209 (6995 MHz)",
+              "centre_hz": 6995000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 213 (7015 MHz)",
+              "centre_hz": 7015000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 217 (7035 MHz)",
+              "centre_hz": 7035000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 221 (7055 MHz)",
+              "centre_hz": 7055000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 225 (7075 MHz)",
+              "centre_hz": 7075000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 229 (7095 MHz)",
+              "centre_hz": 7095000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 233 (7115 MHz)",
+              "centre_hz": 7115000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "espnow_us",
+      "name": "ESP-NOW channels, USA (FCC)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the 2.4 GHz hop list of the domain in wlan/wifi_domains.csv. The first channel is the start of the stack espnow: channel 1 (2412 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (USA (FCC))",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "espnow"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wifi_jp",
+      "name": "Wi-Fi channels, Japan",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the rows of the domain in wlan/wifi_domains.csv, which also gives the hop lists of the stack. The first channel is the start of the stack wifi: 2.4 GHz channel 6 (2437 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (Japan)",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 14 (2484 MHz)",
+              "centre_hz": 2484000000,
+              "width_hz": 20000000,
+              "note": "DSSS only"
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 5 GHz (Japan)",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5895000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 36 (5180 MHz)",
+              "centre_hz": 5180000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 40 (5200 MHz)",
+              "centre_hz": 5200000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 44 (5220 MHz)",
+              "centre_hz": 5220000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 48 (5240 MHz)",
+              "centre_hz": 5240000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 52 (5260 MHz)",
+              "centre_hz": 5260000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 56 (5280 MHz)",
+              "centre_hz": 5280000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 60 (5300 MHz)",
+              "centre_hz": 5300000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 64 (5320 MHz)",
+              "centre_hz": 5320000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 100 (5500 MHz)",
+              "centre_hz": 5500000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 104 (5520 MHz)",
+              "centre_hz": 5520000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 108 (5540 MHz)",
+              "centre_hz": 5540000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 112 (5560 MHz)",
+              "centre_hz": 5560000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 116 (5580 MHz)",
+              "centre_hz": 5580000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 120 (5600 MHz)",
+              "centre_hz": 5600000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 124 (5620 MHz)",
+              "centre_hz": 5620000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 128 (5640 MHz)",
+              "centre_hz": 5640000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 132 (5660 MHz)",
+              "centre_hz": 5660000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 136 (5680 MHz)",
+              "centre_hz": 5680000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 140 (5700 MHz)",
+              "centre_hz": 5700000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 6 GHz (Japan)",
+          "service": "short_range",
+          "start_hz": 5925000000,
+          "end_hz": 7125000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (5955 MHz)",
+              "centre_hz": 5955000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (5975 MHz)",
+              "centre_hz": 5975000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (5995 MHz)",
+              "centre_hz": 5995000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (6015 MHz)",
+              "centre_hz": 6015000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 17 (6035 MHz)",
+              "centre_hz": 6035000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 21 (6055 MHz)",
+              "centre_hz": 6055000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 25 (6075 MHz)",
+              "centre_hz": 6075000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 29 (6095 MHz)",
+              "centre_hz": 6095000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 33 (6115 MHz)",
+              "centre_hz": 6115000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 37 (6135 MHz)",
+              "centre_hz": 6135000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 41 (6155 MHz)",
+              "centre_hz": 6155000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 45 (6175 MHz)",
+              "centre_hz": 6175000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 49 (6195 MHz)",
+              "centre_hz": 6195000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 53 (6215 MHz)",
+              "centre_hz": 6215000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 57 (6235 MHz)",
+              "centre_hz": 6235000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 61 (6255 MHz)",
+              "centre_hz": 6255000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 65 (6275 MHz)",
+              "centre_hz": 6275000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 69 (6295 MHz)",
+              "centre_hz": 6295000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 73 (6315 MHz)",
+              "centre_hz": 6315000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 77 (6335 MHz)",
+              "centre_hz": 6335000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 81 (6355 MHz)",
+              "centre_hz": 6355000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 85 (6375 MHz)",
+              "centre_hz": 6375000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 89 (6395 MHz)",
+              "centre_hz": 6395000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 93 (6415 MHz)",
+              "centre_hz": 6415000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "espnow_jp",
+      "name": "ESP-NOW channels, Japan",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the 2.4 GHz hop list of the domain in wlan/wifi_domains.csv. The first channel is the start of the stack espnow: channel 1 (2412 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (Japan)",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "espnow"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wifi_cn",
+      "name": "Wi-Fi channels, China",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the rows of the domain in wlan/wifi_domains.csv, which also gives the hop lists of the stack. The first channel is the start of the stack wifi: 2.4 GHz channel 6 (2437 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (China)",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 5 GHz (China)",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5895000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 36 (5180 MHz)",
+              "centre_hz": 5180000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 40 (5200 MHz)",
+              "centre_hz": 5200000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 44 (5220 MHz)",
+              "centre_hz": 5220000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 48 (5240 MHz)",
+              "centre_hz": 5240000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 52 (5260 MHz)",
+              "centre_hz": 5260000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 56 (5280 MHz)",
+              "centre_hz": 5280000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 60 (5300 MHz)",
+              "centre_hz": 5300000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 64 (5320 MHz)",
+              "centre_hz": 5320000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 149 (5745 MHz)",
+              "centre_hz": 5745000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 153 (5765 MHz)",
+              "centre_hz": 5765000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 157 (5785 MHz)",
+              "centre_hz": 5785000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 161 (5805 MHz)",
+              "centre_hz": 5805000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 165 (5825 MHz)",
+              "centre_hz": 5825000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 6 GHz (China)",
+          "service": "short_range",
+          "start_hz": 5925000000,
+          "end_hz": 7125000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (5955 MHz)",
+              "centre_hz": 5955000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (5975 MHz)",
+              "centre_hz": 5975000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (5995 MHz)",
+              "centre_hz": 5995000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (6015 MHz)",
+              "centre_hz": 6015000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 17 (6035 MHz)",
+              "centre_hz": 6035000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 21 (6055 MHz)",
+              "centre_hz": 6055000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 25 (6075 MHz)",
+              "centre_hz": 6075000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 29 (6095 MHz)",
+              "centre_hz": 6095000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 33 (6115 MHz)",
+              "centre_hz": 6115000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 37 (6135 MHz)",
+              "centre_hz": 6135000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 41 (6155 MHz)",
+              "centre_hz": 6155000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 45 (6175 MHz)",
+              "centre_hz": 6175000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 49 (6195 MHz)",
+              "centre_hz": 6195000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 53 (6215 MHz)",
+              "centre_hz": 6215000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 57 (6235 MHz)",
+              "centre_hz": 6235000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 61 (6255 MHz)",
+              "centre_hz": 6255000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 65 (6275 MHz)",
+              "centre_hz": 6275000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 69 (6295 MHz)",
+              "centre_hz": 6295000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 73 (6315 MHz)",
+              "centre_hz": 6315000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 77 (6335 MHz)",
+              "centre_hz": 6335000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 81 (6355 MHz)",
+              "centre_hz": 6355000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 85 (6375 MHz)",
+              "centre_hz": 6375000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 89 (6395 MHz)",
+              "centre_hz": 6395000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 93 (6415 MHz)",
+              "centre_hz": 6415000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "espnow_cn",
+      "name": "ESP-NOW channels, China",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain in wlan/wifi_domains.csv, which are not confirmed against the rules of the regulator",
+      "note": "Made from the 2.4 GHz hop list of the domain in wlan/wifi_domains.csv. The first channel is the start of the stack espnow: channel 1 (2412 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (China)",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "espnow"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wifi_au",
+      "name": "Wi-Fi channels, Australia (ACMA)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain au in wlan/wifi_domains.csv, from the bands of the class licence; the DFS channels were not compared with its clauses 46 and 47",
+      "note": "Made from the rows of the domain in wlan/wifi_domains.csv, which also gives the hop lists of the stack. The first channel is the start of the stack wifi: 2.4 GHz channel 6 (2437 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (Australia (ACMA))",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 5 GHz (Australia (ACMA))",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5895000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 36 (5180 MHz)",
+              "centre_hz": 5180000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 40 (5200 MHz)",
+              "centre_hz": 5200000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 44 (5220 MHz)",
+              "centre_hz": 5220000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 48 (5240 MHz)",
+              "centre_hz": 5240000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 52 (5260 MHz)",
+              "centre_hz": 5260000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 56 (5280 MHz)",
+              "centre_hz": 5280000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 60 (5300 MHz)",
+              "centre_hz": 5300000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 64 (5320 MHz)",
+              "centre_hz": 5320000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 100 (5500 MHz)",
+              "centre_hz": 5500000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 104 (5520 MHz)",
+              "centre_hz": 5520000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 108 (5540 MHz)",
+              "centre_hz": 5540000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 112 (5560 MHz)",
+              "centre_hz": 5560000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 116 (5580 MHz)",
+              "centre_hz": 5580000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 132 (5660 MHz)",
+              "centre_hz": 5660000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 136 (5680 MHz)",
+              "centre_hz": 5680000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 140 (5700 MHz)",
+              "centre_hz": 5700000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 144 (5720 MHz)",
+              "centre_hz": 5720000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 149 (5745 MHz)",
+              "centre_hz": 5745000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 153 (5765 MHz)",
+              "centre_hz": 5765000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 157 (5785 MHz)",
+              "centre_hz": 5785000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 161 (5805 MHz)",
+              "centre_hz": 5805000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 165 (5825 MHz)",
+              "centre_hz": 5825000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 6 GHz (Australia (ACMA))",
+          "service": "short_range",
+          "start_hz": 5925000000,
+          "end_hz": 7125000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (5955 MHz)",
+              "centre_hz": 5955000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (5935 MHz)",
+              "centre_hz": 5935000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (5975 MHz)",
+              "centre_hz": 5975000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (5995 MHz)",
+              "centre_hz": 5995000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (6015 MHz)",
+              "centre_hz": 6015000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 17 (6035 MHz)",
+              "centre_hz": 6035000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 21 (6055 MHz)",
+              "centre_hz": 6055000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 25 (6075 MHz)",
+              "centre_hz": 6075000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 29 (6095 MHz)",
+              "centre_hz": 6095000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 33 (6115 MHz)",
+              "centre_hz": 6115000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 37 (6135 MHz)",
+              "centre_hz": 6135000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 41 (6155 MHz)",
+              "centre_hz": 6155000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 45 (6175 MHz)",
+              "centre_hz": 6175000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 49 (6195 MHz)",
+              "centre_hz": 6195000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 53 (6215 MHz)",
+              "centre_hz": 6215000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 57 (6235 MHz)",
+              "centre_hz": 6235000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 61 (6255 MHz)",
+              "centre_hz": 6255000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 65 (6275 MHz)",
+              "centre_hz": 6275000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 69 (6295 MHz)",
+              "centre_hz": 6295000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 73 (6315 MHz)",
+              "centre_hz": 6315000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 77 (6335 MHz)",
+              "centre_hz": 6335000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 81 (6355 MHz)",
+              "centre_hz": 6355000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 85 (6375 MHz)",
+              "centre_hz": 6375000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 89 (6395 MHz)",
+              "centre_hz": 6395000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 93 (6415 MHz)",
+              "centre_hz": 6415000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 97 (6435 MHz)",
+              "centre_hz": 6435000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 101 (6455 MHz)",
+              "centre_hz": 6455000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 105 (6475 MHz)",
+              "centre_hz": 6475000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 109 (6495 MHz)",
+              "centre_hz": 6495000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 113 (6515 MHz)",
+              "centre_hz": 6515000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 117 (6535 MHz)",
+              "centre_hz": 6535000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 121 (6555 MHz)",
+              "centre_hz": 6555000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 125 (6575 MHz)",
+              "centre_hz": 6575000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ],
+      "also": [
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Low Interference Potential Devices) Class Licence 2025",
+          "number": "F2025L01047",
+          "date": "2025-09-05",
+          "clause": "Schedule 1, Table 8, items 7 to 14",
+          "url": "https://www.legislation.gov.au/F2025L01047"
+        }
+      ]
+    },
+    {
+      "id": "espnow_au",
+      "name": "ESP-NOW channels, Australia (ACMA)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "verified": false,
+      "unverified_reason": "the channels are the rows of the domain au in wlan/wifi_domains.csv, from the bands of the class licence; the DFS channels were not compared with its clauses 46 and 47",
+      "note": "Made from the 2.4 GHz hop list of the domain in wlan/wifi_domains.csv. The first channel is the start of the stack espnow: channel 1 (2412 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (Australia (ACMA))",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "espnow"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ],
+      "also": [
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Low Interference Potential Devices) Class Licence 2025",
+          "number": "F2025L01047",
+          "date": "2025-09-05",
+          "clause": "Schedule 1, Table 8, items 7 to 14",
+          "url": "https://www.legislation.gov.au/F2025L01047"
+        }
+      ]
+    },
+    {
+      "id": "wifi_common",
+      "name": "Wi-Fi channels common to the domains",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels that every domain of wlan/wifi_domains.csv permits (2.4 and 5 GHz; 6 GHz is not open in every country); not compared with the rules of the country",
+      "note": "For a country without a domain in wlan/wifi_domains.csv. The first channel is the start of the stack wifi: 2.4 GHz channel 6 (2437 MHz).",
+      "bands": [
+        {
+          "name": "Wi-Fi 2.4 GHz (common)",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "Wi-Fi 5 GHz (common)",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5895000000,
+          "modes": [
+            "wifi"
+          ],
+          "channels": [
+            {
+              "name": "Channel 36 (5180 MHz)",
+              "centre_hz": 5180000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 40 (5200 MHz)",
+              "centre_hz": 5200000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 44 (5220 MHz)",
+              "centre_hz": 5220000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 48 (5240 MHz)",
+              "centre_hz": 5240000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 52 (5260 MHz)",
+              "centre_hz": 5260000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 56 (5280 MHz)",
+              "centre_hz": 5280000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 60 (5300 MHz)",
+              "centre_hz": 5300000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            },
+            {
+              "name": "Channel 64 (5320 MHz)",
+              "centre_hz": 5320000000,
+              "width_hz": 20000000,
+              "note": "DFS (radar detection)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "espnow_common",
+      "name": "ESP-NOW channels common to the domains",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Information Technology, Part 11: Wireless LAN MAC and PHY Specifications",
+        "number": "IEEE Std 802.11-2020 and IEEE Std 802.11ax-2021",
+        "date": "2021",
+        "clause": "Annex E (channel starting frequencies and channel numbers), 802.11ax Annex E.4 (6 GHz)"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels that every domain of wlan/wifi_domains.csv permits (2.4 and 5 GHz; 6 GHz is not open in every country); not compared with the rules of the country",
+      "note": "For a country without a domain in wlan/wifi_domains.csv. The first channel is the start of the stack espnow: channel 1 (2412 MHz).",
+      "bands": [
+        {
+          "name": "ESP-NOW 2.4 GHz (common)",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2495000000,
+          "modes": [
+            "espnow"
+          ],
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "wifi_eu",
+        "espnow_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom take the ETSI domain; not compared with the national rules; Ofcom also permits 5725-5850 MHz indoors (IR 2030), which the domain eu does not have"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "wifi_us",
+        "espnow_us"
+      ],
+      "unverified_reason": "the domain of the country is the row of its code in wlan/wifi_domains.csv"
+    },
+    {
+      "code": "JP",
+      "groups": [
+        "wifi_jp",
+        "espnow_jp"
+      ],
+      "unverified_reason": "the domain of the country is the row of its code in wlan/wifi_domains.csv"
+    },
+    {
+      "code": "CN",
+      "groups": [
+        "wifi_cn",
+        "espnow_cn"
+      ],
+      "unverified_reason": "the domain of the country is the row of its code in wlan/wifi_domains.csv"
+    },
+    {
+      "code": "AU",
+      "groups": [
+        "wifi_au",
+        "espnow_au"
+      ],
+      "unverified_reason": "the domain au is that of the ACMA class licence"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "wifi_common",
+        "espnow_common"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "wifi_common",
+        "espnow_common"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "wifi_common",
+        "espnow_common"
+      ]
+    }
+  ]
+}

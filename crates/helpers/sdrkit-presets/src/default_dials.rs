@@ -143,7 +143,7 @@ mod tests {
             let p = d.preset(stack, &region, &crate::Options::default()).unwrap();
             (p.plan, p.frequency_hz)
         };
-        assert_eq!(start("zigbee", "AU"), (String::new(), 2405e6));
+        assert_eq!(start("zigbee", "AU"), ("zigbee".into(), 2405e6));
         assert_eq!(start("dsrc_toll", "AU"), (String::new(), 5802.5e6));
         assert_eq!(start("dsrc_toll", "DE"), ("dsrc_toll_europe".into(), 5797.5e6));
         assert_eq!(start("ism", "AU"), ("ism_r3".into(), 433.92e6));

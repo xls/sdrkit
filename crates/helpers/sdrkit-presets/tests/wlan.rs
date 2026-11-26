@@ -30,8 +30,8 @@ fn text<'a>(settings: &'a [(String, Value)], key: &str) -> &'a str {
 #[test]
 fn every_wifi_domain_row_loads() {
     let rows = domains();
-    assert_eq!(rows.len(), 15);
-    for d in ["all", "eu", "us", "jp", "cn"] {
+    assert_eq!(rows.len(), 18);
+    for d in ["all", "eu", "us", "jp", "cn", "au"] {
         for b in ["2.4", "5", "6"] {
             assert_eq!(
                 rows.iter().filter(|r| r.domain == d && r.band == b).count(),
@@ -51,6 +51,9 @@ fn every_wifi_domain_row_loads() {
     assert_eq!(n("us", "6"), 60);
     assert_eq!(n("all", "2.4"), 14);
     assert_eq!(n("us", "2.4"), 11);
+    assert_eq!(n("jp", "2.4"), 14);
+    assert_eq!(n("au", "5"), 22);
+    assert_eq!(n("au", "6"), 33);
     for r in &rows {
         assert!(r.setting_key().is_some(), "{r:?}");
         assert!(r.channels.windows(2).all(|w| w[0] < w[1]), "{r:?}");

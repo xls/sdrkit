@@ -1,0 +1,270 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "zigbee",
+      "name": "Zigbee channels (IEEE 802.15.4, 2.4 GHz)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Low-Rate Wireless Networks",
+        "number": "IEEE Std 802.15.4-2020",
+        "date": "2020",
+        "clause": "10.1.3 (channel numbering of the 2450 MHz O-QPSK PHY: 2405 + 5 (k - 11) MHz, k = 11 to 26)"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels follow the formula of the clause; not compared with national rules",
+      "note": "The first channel is the start of the stack zigbee: channel 11, the lowest channel, which a coordinator scans first. The same dial is in ism/default_dials.csv.",
+      "bands": [
+        {
+          "name": "IEEE 802.15.4 2.4 GHz channels",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "zigbee"
+          ],
+          "channels": [
+            {
+              "name": "Channel 11 (2405 MHz)",
+              "centre_hz": 2405000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 12 (2410 MHz)",
+              "centre_hz": 2410000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 13 (2415 MHz)",
+              "centre_hz": 2415000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 14 (2420 MHz)",
+              "centre_hz": 2420000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 15 (2425 MHz)",
+              "centre_hz": 2425000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 16 (2430 MHz)",
+              "centre_hz": 2430000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 17 (2435 MHz)",
+              "centre_hz": 2435000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 18 (2440 MHz)",
+              "centre_hz": 2440000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 19 (2445 MHz)",
+              "centre_hz": 2445000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 20 (2450 MHz)",
+              "centre_hz": 2450000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 21 (2455 MHz)",
+              "centre_hz": 2455000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 22 (2460 MHz)",
+              "centre_hz": 2460000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 23 (2465 MHz)",
+              "centre_hz": 2465000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 24 (2470 MHz)",
+              "centre_hz": 2470000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 25 (2475 MHz)",
+              "centre_hz": 2475000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 26 (2480 MHz)",
+              "centre_hz": 2480000000,
+              "width_hz": 2000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "thread",
+      "name": "Thread channels (IEEE 802.15.4, 2.4 GHz)",
+      "kind": "ism",
+      "source": {
+        "publisher": "IEEE",
+        "title": "IEEE Standard for Low-Rate Wireless Networks",
+        "number": "IEEE Std 802.15.4-2020",
+        "date": "2020",
+        "clause": "10.1.3 (channel numbering of the 2450 MHz O-QPSK PHY: 2405 + 5 (k - 11) MHz, k = 11 to 26)"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+          "number": "Edition of 2024",
+          "date": "2024"
+        },
+        {
+          "publisher": "OpenThread",
+          "title": "OpenThread CLI, Operational Datasets (dataset init new)",
+          "date": "not recorded",
+          "url": "https://openthread.io/reference/cli/concepts/dataset"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels follow the formula of the clause; the start channel 15 is a convention: the leader of a Thread network picks its channel, and the OpenThread examples show channel 15 or 13",
+      "note": "The first channel is the start of the stack thread: channel 15.",
+      "bands": [
+        {
+          "name": "IEEE 802.15.4 2.4 GHz channels",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "thread"
+          ],
+          "channels": [
+            {
+              "name": "Channel 15 (2425 MHz)",
+              "centre_hz": 2425000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 11 (2405 MHz)",
+              "centre_hz": 2405000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 12 (2410 MHz)",
+              "centre_hz": 2410000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 13 (2415 MHz)",
+              "centre_hz": 2415000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 14 (2420 MHz)",
+              "centre_hz": 2420000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 16 (2430 MHz)",
+              "centre_hz": 2430000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 17 (2435 MHz)",
+              "centre_hz": 2435000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 18 (2440 MHz)",
+              "centre_hz": 2440000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 19 (2445 MHz)",
+              "centre_hz": 2445000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 20 (2450 MHz)",
+              "centre_hz": 2450000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 21 (2455 MHz)",
+              "centre_hz": 2455000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 22 (2460 MHz)",
+              "centre_hz": 2460000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 23 (2465 MHz)",
+              "centre_hz": 2465000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 24 (2470 MHz)",
+              "centre_hz": 2470000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 25 (2475 MHz)",
+              "centre_hz": 2475000000,
+              "width_hz": 2000000
+            },
+            {
+              "name": "Channel 26 (2480 MHz)",
+              "centre_hz": 2480000000,
+              "width_hz": 2000000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "zigbee",
+        "thread"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "zigbee",
+        "thread"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "zigbee",
+        "thread"
+      ]
+    }
+  ]
+}
