@@ -2,13 +2,14 @@
 //! the log are kept in the saved state.
 
 use super::adv::{kind_of, parse_ad, AdvInfo, DeviceKind};
+use super::broadcast::{self, Broadcast};
 use super::conn::{self, AttLine, ConnRecord};
 use super::follow::{Follower, Role};
 use super::{AdvChannel, AdvStats, Advert};
 use crate::report::{hex, push_history, remove_older_rows, wall, BLE_PRIVACY_NOTE};
 use crate::typed::{
     BleDeviceEvent, BleDeviceLevelRow, BleDeviceRow, BleFields, BlePacketRow, BlePduTypeRow,
-    BLE_ATT, BLE_CONNECTIONS, BLE_DEVICE, BLE_DEVICES, BLE_DEVICE_LEVELS, BLE_DEVICE_ROW, BLE_PACKETS, BLE_PDU_TYPES,
+    BLE_ATT, BLE_BROADCASTS, BLE_CONNECTIONS, BLE_DEVICE, BLE_DEVICES, BLE_DEVICE_LEVELS, BLE_DEVICE_ROW, BLE_PACKETS, BLE_PDU_TYPES,
     BLE_REMOVE,
 };
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
@@ -343,6 +344,8 @@ pub struct Store {
     pub conns: ObjectTable<String, ConnRecord>,
     /// The ATT log.
     pub att: LogRing<AttLine>,
+    /// The LE Audio broadcast sources, by address.
+    pub broadcasts: ObjectTable<String, Broadcast>,
 }
 
 impl Default for Store {
@@ -352,6 +355,7 @@ impl Default for Store {
             log: LogRing::new(LOG_CAP),
             conns: ObjectTable::new(conn::CONN_CAP),
             att: LogRing::new(conn::ATT_CAP),
+            broadcasts: ObjectTable::new(super::broadcast::BROADCAST_CAP),
         }
     }
 }
@@ -362,12 +366,14 @@ impl Shift for Store {
         self.log.shift_times(by_s);
         self.conns.shift_times(by_s);
         self.att.shift_times(by_s);
+        self.broadcasts.shift_times(by_s);
     }
 }
 
 impl objcmd::Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 5);
+    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 6);
     fn clear(&mut self) {
+        self.broadcasts.clear();
         self.devices.clear();
         self.log.clear();
         self.conns.clear();
@@ -375,6 +381,7 @@ impl objcmd::Tables for Store {
     }
     fn adopt(&mut self, saved: Self) {
         self.conns.adopt(saved.conns);
+        self.broadcasts.adopt(saved.broadcasts);
         self.att.adopt(saved.att);
         self.devices.adopt(saved.devices);
         self.log.adopt(saved.log);
@@ -460,6 +467,7 @@ impl Default for DeviceTable {
                 BLE_DEVICE_LEVELS.def(),
                 BLE_CONNECTIONS.def(),
                 BLE_ATT.def(),
+                BLE_BROADCASTS.def(),
             ]),
             store: Store::default(),
             counters: Counters::default(),
@@ -630,6 +638,14 @@ impl DeviceTable {
             info,
             phy: phy_text(a.phy, a.coding),
         });
+        if let (Some(s), Body::Extended { acad, .. }) = (sender, p.body) {
+            let data = f
+                .as_ref()
+                .and_then(|f| f.complete.as_deref())
+                .or(p.data())
+                .unwrap_or(&[]);
+            broadcast::take(&mut self.store.broadcasts, &s, acad, data, at);
+        }
         if let Body::ScanReq { adv_a, .. } = p.body {
             // The advertiser that the request addresses is marked, but this packet is not its own: a known row is not
             // heard again.
@@ -817,6 +833,7 @@ impl DeviceTable {
         shaped::log_rows(&self.store.log, &BLE_PACKETS, now, p);
         shaped::rows(&self.store.conns, &BLE_CONNECTIONS, now, p);
         shaped::log_rows(&self.store.att, &BLE_ATT, now, p);
+        shaped::rows(&self.store.broadcasts, &BLE_BROADCASTS, now, p);
         self.publish_levels();
     }
 
@@ -1049,6 +1066,9 @@ impl Component for DeviceTable {
         }
         if !kept.table(BLE_ATT.key) {
             self.store.att.clear();
+        }
+        if !kept.table(BLE_BROADCASTS.key) {
+            self.store.broadcasts.clear();
         }
         if !kept.table(BLE_DEVICE_LEVELS.key) {
             for (_, d) in self.store.devices.records_mut() {

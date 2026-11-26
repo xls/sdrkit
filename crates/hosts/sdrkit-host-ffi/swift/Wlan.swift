@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.3. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields of `ble`.
@@ -364,6 +364,76 @@ public struct BleAttRow {
         service = c.has_service ? sdrkitText(c.service) : nil
         value = sdrkitText(c.value)
         length = c.length
+    }
+}
+
+/// A row of the LE Audio broadcast sources of `ble`: what the source's extended and periodic advertising say about its stream. The row key is the source's address.
+public struct BleBroadcastRow {
+    /// The row key.
+    public var key: String
+    /// The source's address.
+    public var source: String
+    /// The Broadcast_ID, six hex digits. No value before the Broadcast Audio Announcement is heard.
+    public var broadcastId: String?
+    /// The Broadcast_Name.
+    public var name: String?
+    /// The BIG is encrypted (from its BIGInfo, else from the public announcement). No value before either is heard.
+    public var encrypted: Bool?
+    /// The BIS of the BIG.
+    public var bis: Int64?
+    /// The subgroups of the BASE.
+    public var subgroups: Int64
+    /// The codec ("LC3", or the coding format of another codec).
+    public var codec: String?
+    /// The sampling frequency of the first BIS.
+    public var samplingHz: Double?
+    /// The frame duration.
+    public var frameMs: Double?
+    /// The octets of a codec frame.
+    public var octetsPerFrame: Int64?
+    /// The bit rate of one BIS, from the octets and the frame duration.
+    public var bitrateKbps: Double?
+    /// The audio channels: the locations of the BIS, or the number of BIS when they name none.
+    public var channels: Int64?
+    /// The presentation delay.
+    public var presentationDelayMs: Double?
+    /// The language of the first subgroup (ISO 639-3).
+    public var language: String?
+    /// The program information.
+    public var program: String?
+    /// The audio quality that the public broadcast announcement names ("standard", "high").
+    public var quality: String?
+    /// The ISO interval of the BIG.
+    public var isoIntervalMs: Double?
+    /// The PHY of the BIS.
+    public var phy: String?
+    /// The UTC of the first packet.
+    public var firstHeard: Double?
+    /// The UTC of the last packet.
+    public var lastHeard: Double?
+
+    init(_ c: sdrkit_ble_broadcast_row) {
+        key = sdrkitText(c.key)
+        source = sdrkitText(c.source)
+        broadcastId = c.has_broadcast_id ? sdrkitText(c.broadcast_id) : nil
+        name = c.has_name ? sdrkitText(c.name) : nil
+        encrypted = c.has_encrypted ? c.encrypted : nil
+        bis = c.has_bis ? c.bis : nil
+        subgroups = c.subgroups
+        codec = c.has_codec ? sdrkitText(c.codec) : nil
+        samplingHz = c.has_sampling_hz ? c.sampling_hz : nil
+        frameMs = c.has_frame_ms ? c.frame_ms : nil
+        octetsPerFrame = c.has_octets_per_frame ? c.octets_per_frame : nil
+        bitrateKbps = c.has_bitrate_kbps ? c.bitrate_kbps : nil
+        channels = c.has_channels ? c.channels : nil
+        presentationDelayMs = c.has_presentation_delay_ms ? c.presentation_delay_ms : nil
+        language = c.has_language ? sdrkitText(c.language) : nil
+        program = c.has_program ? sdrkitText(c.program) : nil
+        quality = c.has_quality ? sdrkitText(c.quality) : nil
+        isoIntervalMs = c.has_iso_interval_ms ? c.iso_interval_ms : nil
+        phy = c.has_phy ? sdrkitText(c.phy) : nil
+        firstHeard = c.has_first_heard ? c.first_heard : nil
+        lastHeard = c.has_last_heard ? c.last_heard : nil
     }
 }
 
@@ -2345,6 +2415,17 @@ public enum WlanTables {
         let code = sdrkit_ble_att_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleAttRow.init))
+    }
+    /// The changed rows of the table "broadcasts" of the stack "ble", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
+    public static func bleBroadcasts(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[BleBroadcastRow], SDRKitCode> {
+        var rows = [sdrkit_ble_broadcast_row](repeating: sdrkit_ble_broadcast_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_ble_broadcasts_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleBroadcastRow.init))
     }
     /// The changed rows of the table "trackers" of the stack "bletracker", newest first, at most `capacity` rows.
     /// The rows are the stations or nodes of the stack.

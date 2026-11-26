@@ -7,6 +7,7 @@
 pub mod adv;
 pub mod bank;
 pub mod bench;
+pub mod broadcast;
 pub mod conn;
 pub mod follow;
 pub mod gen;

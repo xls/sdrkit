@@ -832,3 +832,41 @@ fn without_att_values_the_log_keeps_handles_types_and_lengths() {
     assert_eq!((cnum(ntf, &A::HANDLE), cnum(ntf, &A::LENGTH)), (8.0, 1.0));
 }
 
+
+#[test]
+fn a_broadcast_source_shows_its_name_codec_and_encryption() {
+    use sdrkit_stack_wlan::typed::BleBroadcastRow as B;
+    for encrypted in [false, true] {
+        let rate = ble::PREFERRED_RATE_HZ;
+        let p = BleGenParams {
+            rate_hz: rate,
+            looped: false,
+            whitening: Whitening::Fixed(37),
+            packets: ble::gen::broadcast_schedule(encrypted),
+        };
+        let x = shifted(&signal(p, &snr(30.0), 4, 0.06), -1e6, rate);
+        let mut r = rx(&[]);
+        r.configure(&InputInfo::new(rate, 2403e6, 2402e6).recording())
+            .unwrap();
+        feed(&mut r, &x, 65536);
+        let res = Owner::results(&r);
+        let b = rows(res, "broadcasts");
+        assert_eq!(b.len(), 1, "encrypted {encrypted}");
+        let b = b[0];
+        assert_eq!(text(b, &B::SOURCE), "D5:01:02:03:04:05");
+        assert_eq!(text(b, &B::BROADCAST_ID), "123456");
+        assert_eq!(text(b, &B::NAME), "Gate 7");
+        assert_eq!(b.at(&B::ENCRYPTED), Some(encrypted));
+        assert_eq!(text(b, &B::CODEC), "LC3");
+        assert_eq!(cnum(b, &B::SAMPLING_HZ), 48_000.0);
+        assert_eq!(cnum(b, &B::FRAME_MS), 10.0);
+        assert_eq!(cnum(b, &B::BITRATE_KBPS), 80.0);
+        assert_eq!((cnum(b, &B::BIS), cnum(b, &B::CHANNELS)), (2.0, 2.0));
+        assert_eq!(cnum(b, &B::PRESENTATION_DELAY_MS), 40.0);
+        assert_eq!(text(b, &B::LANGUAGE), "eng");
+        assert_eq!(text(b, &B::PROGRAM), "Boarding");
+        assert_eq!(text(b, &B::QUALITY), "high");
+        assert_eq!(text(b, &B::PHY), "LE 2M");
+        assert_eq!(cnum(b, &B::ISO_INTERVAL_MS), 10.0);
+    }
+}

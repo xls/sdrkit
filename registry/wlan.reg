@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=4.3
+family wlan version=4.4
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -92,6 +92,27 @@ shape.BleAttRow.handle type=i64 unit= optional=yes since=4.2
 shape.BleAttRow.service type=text unit= optional=yes since=4.2
 shape.BleAttRow.value type=text unit= optional=no since=4.2
 shape.BleAttRow.length type=i64 unit=B optional=no since=4.3
+shape.BleBroadcastRow since=4.4
+shape.BleBroadcastRow.source type=text unit= optional=no refers_to=devices since=4.4
+shape.BleBroadcastRow.broadcast_id type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.name type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.encrypted type=bool unit= optional=yes since=4.4
+shape.BleBroadcastRow.bis type=i64 unit= optional=yes since=4.4
+shape.BleBroadcastRow.subgroups type=i64 unit= optional=no since=4.4
+shape.BleBroadcastRow.codec type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.sampling_hz type=hz unit=Hz optional=yes since=4.4
+shape.BleBroadcastRow.frame_ms type=f64 unit=ms optional=yes since=4.4
+shape.BleBroadcastRow.octets_per_frame type=i64 unit= optional=yes since=4.4
+shape.BleBroadcastRow.bitrate_kbps type=f64 unit=kbit/s optional=yes since=4.4
+shape.BleBroadcastRow.channels type=i64 unit= optional=yes since=4.4
+shape.BleBroadcastRow.presentation_delay_ms type=f64 unit=ms optional=yes since=4.4
+shape.BleBroadcastRow.language type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.program type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.quality type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.iso_interval_ms type=f64 unit=ms optional=yes since=4.4
+shape.BleBroadcastRow.phy type=text unit= optional=yes since=4.4
+shape.BleBroadcastRow.first_heard type=time unit= optional=yes since=4.4
+shape.BleBroadcastRow.last_heard type=time unit= optional=yes since=4.4
 shape.BleDeviceEvent since=1.0
 shape.BleDeviceEvent.source type=text unit= optional=no since=1.0
 shape.BleDeviceEvent.text type=text unit= optional=yes since=1.0
@@ -516,6 +537,7 @@ ble.kept.packets since=1.0
 ble.kept.device_levels since=1.0
 ble.kept.connections since=4.2
 ble.kept.att since=4.2
+ble.kept.broadcasts since=4.4
 ble.kept.BleFields.devices since=1.0
 ble.table.devices row=BleDeviceRow cap=400 label=name sort=level_dbfs:descending role=nodes time=last_heard since=1.0
 ble.table.packets row=BlePacketRow cap=400 label=address role=log time=signal_s since=1.0
@@ -523,6 +545,7 @@ ble.table.pdu_types row=BlePduTypeRow cap=16 since=1.0
 ble.table.device_levels row=BleDeviceLevelRow cap=9600 label=device since=1.0
 ble.table.connections row=BleConnectionRow cap=64 label=access_address sort=last_heard:descending time=last_heard since=4.2
 ble.table.att row=BleAttRow cap=400 label=opcode role=log time=signal_s since=4.2
+ble.table.broadcasts row=BleBroadcastRow cap=64 label=name sort=last_heard:descending time=last_heard since=4.4
 ble.event.ble.device fields=BleDeviceEvent since=1.0
 ble.event.ble.tx fields=BleTxEvent since=1.0
 ble.setting.channel type=choice(37,38,39) unit= since=1.0

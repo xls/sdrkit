@@ -19,6 +19,7 @@
 //! ```
 
 pub mod ad;
+pub mod audio;
 mod coded_rx;
 pub mod csa;
 pub mod ext;

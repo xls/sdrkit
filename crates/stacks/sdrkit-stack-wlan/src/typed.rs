@@ -418,6 +418,72 @@ pub struct BleAttRow<'a> {
     pub length: i64,
 }
 
+/// A row of the LE Audio broadcast sources of `ble`: what the source's extended and periodic advertising say about its
+/// stream. The row key is the source's address.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BleBroadcastRow<'a> {
+    /// The source's address.
+    #[field(label = "Source", refers_to = "devices")]
+    pub source: &'a str,
+    /// The Broadcast_ID, six hex digits. No value before the Broadcast Audio Announcement is heard.
+    #[field(label = "Broadcast ID")]
+    pub broadcast_id: Option<&'a str>,
+    /// The Broadcast_Name.
+    #[field(label = "Name")]
+    pub name: Option<&'a str>,
+    /// The BIG is encrypted (from its BIGInfo, else from the public announcement). No value before either is heard.
+    #[field(label = "Encrypted")]
+    pub encrypted: Option<bool>,
+    /// The BIS of the BIG.
+    #[field(label = "BIS")]
+    pub bis: Option<i64>,
+    /// The subgroups of the BASE.
+    #[field(label = "Subgroups")]
+    pub subgroups: i64,
+    /// The codec ("LC3", or the coding format of another codec).
+    #[field(label = "Codec")]
+    pub codec: Option<&'a str>,
+    /// The sampling frequency of the first BIS.
+    #[field(label = "Sampling", unit = "Hz")]
+    pub sampling_hz: Option<Hertz>,
+    /// The frame duration.
+    #[field(label = "Frame", unit = "ms")]
+    pub frame_ms: Option<f64>,
+    /// The octets of a codec frame.
+    #[field(label = "Octets per frame")]
+    pub octets_per_frame: Option<i64>,
+    /// The bit rate of one BIS, from the octets and the frame duration.
+    #[field(label = "Bit rate", unit = "kbit/s")]
+    pub bitrate_kbps: Option<f64>,
+    /// The audio channels: the locations of the BIS, or the number of BIS when they name none.
+    #[field(label = "Channels")]
+    pub channels: Option<i64>,
+    /// The presentation delay.
+    #[field(label = "Presentation delay", unit = "ms")]
+    pub presentation_delay_ms: Option<f64>,
+    /// The language of the first subgroup (ISO 639-3).
+    #[field(label = "Language")]
+    pub language: Option<&'a str>,
+    /// The program information.
+    #[field(label = "Program")]
+    pub program: Option<&'a str>,
+    /// The audio quality that the public broadcast announcement names ("standard", "high").
+    #[field(label = "Quality")]
+    pub quality: Option<&'a str>,
+    /// The ISO interval of the BIG.
+    #[field(label = "ISO interval", unit = "ms")]
+    pub iso_interval_ms: Option<f64>,
+    /// The PHY of the BIS.
+    #[field(label = "PHY")]
+    pub phy: Option<&'a str>,
+    /// The UTC of the first packet.
+    #[field(shared = columns::FIRST_HEARD)]
+    pub first_heard: Option<Time>,
+    /// The UTC of the last packet.
+    #[field(shared = columns::LAST_HEARD, role = Time)]
+    pub last_heard: Option<Time>,
+}
+
 /// The fields of a good packet with an address.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BleDeviceEvent<'a> {
@@ -465,6 +531,11 @@ pub static BLE_ATT: Table<BleAttRow<'static>> =
     Table::new("att", "ATT", crate::ble::conn::ATT_CAP)
         .label(&BleAttRow::OPCODE)
         .role(sdrkit_core::TableRole::Log);
+/// The LE Audio broadcast sources of `ble`, most recently heard first.
+pub static BLE_BROADCASTS: Table<BleBroadcastRow<'static>> =
+    Table::new("broadcasts", "Broadcasts", crate::ble::broadcast::BROADCAST_CAP)
+        .label(&BleBroadcastRow::NAME)
+        .sorted(&BleBroadcastRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// A good packet with an address.
 pub static BLE_DEVICE: EventKind<BleDeviceEvent<'static>> =
     EventKind::new("ble.device", "Bluetooth LE device");
@@ -2153,13 +2224,40 @@ const ADDED_4_2: &[&str] = &[
 /// What version 4.3 added: the length of an ATT value and the setting that keeps the values out of the log.
 const ADDED_4_3: &[&str] = &["shape.BleAttRow.length", "ble.setting.att_values"];
 
+/// What version 4.4 added: the LE Audio broadcast sources of `ble`.
+const ADDED_4_4: &[&str] = &[
+    "ble.table.broadcasts",
+    "ble.kept.broadcasts",
+    "shape.BleBroadcastRow",
+    "shape.BleBroadcastRow.source",
+    "shape.BleBroadcastRow.broadcast_id",
+    "shape.BleBroadcastRow.name",
+    "shape.BleBroadcastRow.encrypted",
+    "shape.BleBroadcastRow.bis",
+    "shape.BleBroadcastRow.subgroups",
+    "shape.BleBroadcastRow.codec",
+    "shape.BleBroadcastRow.sampling_hz",
+    "shape.BleBroadcastRow.frame_ms",
+    "shape.BleBroadcastRow.octets_per_frame",
+    "shape.BleBroadcastRow.bitrate_kbps",
+    "shape.BleBroadcastRow.channels",
+    "shape.BleBroadcastRow.presentation_delay_ms",
+    "shape.BleBroadcastRow.language",
+    "shape.BleBroadcastRow.program",
+    "shape.BleBroadcastRow.quality",
+    "shape.BleBroadcastRow.iso_interval_ms",
+    "shape.BleBroadcastRow.phy",
+    "shape.BleBroadcastRow.first_heard",
+    "shape.BleBroadcastRow.last_heard",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 3)
+        Described::new("wlan", 4, 4)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2183,6 +2281,7 @@ pub fn family() -> &'static Described {
                     .table(&BLE_DEVICE_LEVELS)
                     .table(&BLE_CONNECTIONS)
                     .table(&BLE_ATT)
+                    .table(&BLE_BROADCASTS)
                     .event(&BLE_DEVICE)
                     .settings(BleSetting::SETTINGS)
                     .command(CLEAR)
@@ -2197,11 +2296,13 @@ pub fn family() -> &'static Described {
                         "device_levels",
                         "connections",
                         "att",
+                        "broadcasts",
                         "BleFields.devices",
                     ]),
             )
             .added(4, 2, ADDED_4_2)
             .added(4, 3, ADDED_4_3)
+            .added(4, 4, ADDED_4_4)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()

@@ -104,6 +104,28 @@ table "att" "ATT" cap 400
   column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "value", label: "Value", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "length", label: "Length", unit: "B", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+table "broadcasts" "Broadcasts" cap 64
+  marks TableMarks { label: Some(2), sort: Some((19, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: Some(19), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "devices", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "broadcast_id", label: "Broadcast ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "encrypted", label: "Encrypted", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bis", label: "BIS", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "subgroups", label: "Subgroups", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "codec", label: "Codec", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sampling_hz", label: "Sampling", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frame_ms", label: "Frame", unit: "ms", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "octets_per_frame", label: "Octets per frame", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bitrate_kbps", label: "Bit rate", unit: "kbit/s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channels", label: "Channels", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "presentation_delay_ms", label: "Presentation delay", unit: "ms", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "language", label: "Language", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "program", label: "Program", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "quality", label: "Quality", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "iso_interval_ms", label: "ISO interval", unit: "ms", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "phy", label: "PHY", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "ble.device" "Bluetooth LE device"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

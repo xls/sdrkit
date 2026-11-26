@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 3
+#define SDRKIT_WLAN_VERSION_MINOR 4
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -506,6 +506,90 @@ typedef struct sdrkit_ble_att_row {
   // The number of bytes after the opcode and the handle. Unit: B.
   int64_t length;
 } sdrkit_ble_att_row;
+
+// A row of the LE Audio broadcast sources of `ble`: what the source's extended and periodic advertising say about its stream. The row key is the source's address.
+typedef struct sdrkit_ble_broadcast_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The source's address.
+  sdrkit_string source;
+  // True if `broadcast_id` holds a value.
+  bool has_broadcast_id;
+  // The Broadcast_ID, six hex digits. No value before the Broadcast Audio Announcement is heard.
+  sdrkit_string broadcast_id;
+  // True if `name` holds a value.
+  bool has_name;
+  // The Broadcast_Name.
+  sdrkit_string name;
+  // True if `encrypted` holds a value.
+  bool has_encrypted;
+  // The BIG is encrypted (from its BIGInfo, else from the public announcement). No value before either is heard.
+  bool encrypted;
+  // True if `bis` holds a value.
+  bool has_bis;
+  // The BIS of the BIG.
+  int64_t bis;
+  // The subgroups of the BASE.
+  int64_t subgroups;
+  // True if `codec` holds a value.
+  bool has_codec;
+  // The codec ("LC3", or the coding format of another codec).
+  sdrkit_string codec;
+  // True if `sampling_hz` holds a value.
+  bool has_sampling_hz;
+  // The sampling frequency of the first BIS. A frequency in Hz.
+  double sampling_hz;
+  // True if `frame_ms` holds a value.
+  bool has_frame_ms;
+  // The frame duration. Unit: ms.
+  double frame_ms;
+  // True if `octets_per_frame` holds a value.
+  bool has_octets_per_frame;
+  // The octets of a codec frame.
+  int64_t octets_per_frame;
+  // True if `bitrate_kbps` holds a value.
+  bool has_bitrate_kbps;
+  // The bit rate of one BIS, from the octets and the frame duration. Unit: kbit/s.
+  double bitrate_kbps;
+  // True if `channels` holds a value.
+  bool has_channels;
+  // The audio channels: the locations of the BIS, or the number of BIS when they name none.
+  int64_t channels;
+  // True if `presentation_delay_ms` holds a value.
+  bool has_presentation_delay_ms;
+  // The presentation delay. Unit: ms.
+  double presentation_delay_ms;
+  // True if `language` holds a value.
+  bool has_language;
+  // The language of the first subgroup (ISO 639-3).
+  sdrkit_string language;
+  // True if `program` holds a value.
+  bool has_program;
+  // The program information.
+  sdrkit_string program;
+  // True if `quality` holds a value.
+  bool has_quality;
+  // The audio quality that the public broadcast announcement names ("standard", "high").
+  sdrkit_string quality;
+  // True if `iso_interval_ms` holds a value.
+  bool has_iso_interval_ms;
+  // The ISO interval of the BIG. Unit: ms.
+  double iso_interval_ms;
+  // True if `phy` holds a value.
+  bool has_phy;
+  // The PHY of the BIS.
+  sdrkit_string phy;
+  // True if `first_heard` holds a value.
+  bool has_first_heard;
+  // The UTC of the first packet. Seconds since 1970 (UTC).
+  double first_heard;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the last packet. Seconds since 1970 (UTC).
+  double last_heard;
+} sdrkit_ble_broadcast_row;
 
 // The result fields of `bletracker`.
 typedef struct sdrkit_bletracker_fields {
@@ -2479,6 +2563,18 @@ static inline int32_t sdrkit_ble_att_rows(SDRKIT_HANDLE handle,
                                          uint32_t capacity,
                                          sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "wlan.BleAttRow", "att", rows, sizeof(sdrkit_ble_att_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "broadcasts" of the stack "ble" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_ble_broadcasts_rows(SDRKIT_HANDLE handle,
+                                                sdrkit_ble_broadcast_row *rows,
+                                                uint32_t capacity,
+                                                sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wlan.BleBroadcastRow", "broadcasts", rows, sizeof(sdrkit_ble_broadcast_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "ble.device"

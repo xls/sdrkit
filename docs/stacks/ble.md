@@ -83,6 +83,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `device_levels` | Device levels | `device` (text), `sample` (whole number), `level_dbfs` (number (dBFS)) |
 | `connections` | Connections | `access_address` (text), `central` (text), `peripheral` (text), `interval_ms` (number (ms)), `latency` (whole number), `timeout_ms` (number (ms)), `phy` (text), `csa` (whole number), `channels_used` (whole number), `packets` (whole number), `encrypted` (yes or no), `procedures` (text), `att` (whole number), `ended` (yes or no), `first_heard` (time), `last_heard` (time) |
 | `att` | ATT | `signal_s` (number (s)), `connection` (text), `from_central` (yes or no), `opcode` (text), `handle` (whole number), `service` (text), `value` (text), `length` (whole number (B)) |
+| `broadcasts` | Broadcasts | `source` (text), `broadcast_id` (text), `name` (text), `encrypted` (yes or no), `bis` (whole number), `subgroups` (whole number), `codec` (text), `sampling_hz` (frequency), `frame_ms` (number (ms)), `octets_per_frame` (whole number), `bitrate_kbps` (number (kbit/s)), `channels` (whole number), `presentation_delay_ms` (number (ms)), `language` (text), `program` (text), `quality` (text), `iso_interval_ms` (number (ms)), `phy` (text), `first_heard` (time), `last_heard` (time) |
 
 ## Events
 
@@ -102,7 +103,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.3. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.4. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -257,6 +258,35 @@ Struct `BleAttRow`. A row of the Attribute Protocol log of `ble`: an ATT PDU sen
 | `length` | whole number (B) | always | 4.3 | The number of bytes after the opcode and the handle. |
 
 The rows are a log: they arrive over time. The column `opcode` names a row. Time: `signal_s`.
+
+### Table `broadcasts`
+
+Struct `BleBroadcastRow`. A row of the LE Audio broadcast sources of `ble`: what the source's extended and periodic advertising say about its stream. The row key is the source's address.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `source` | text | always | 4.4 | The source's address. |
+| `broadcast_id` | text | optional | 4.4 | The Broadcast_ID, six hex digits. No value before the Broadcast Audio Announcement is heard. |
+| `name` | text | optional | 4.4 | The Broadcast_Name. |
+| `encrypted` | yes or no | optional | 4.4 | The BIG is encrypted (from its BIGInfo, else from the public announcement). No value before either is heard. |
+| `bis` | whole number | optional | 4.4 | The BIS of the BIG. |
+| `subgroups` | whole number | always | 4.4 | The subgroups of the BASE. |
+| `codec` | text | optional | 4.4 | The codec ("LC3", or the coding format of another codec). |
+| `sampling_hz` | frequency | optional | 4.4 | The sampling frequency of the first BIS. |
+| `frame_ms` | number (ms) | optional | 4.4 | The frame duration. |
+| `octets_per_frame` | whole number | optional | 4.4 | The octets of a codec frame. |
+| `bitrate_kbps` | number (kbit/s) | optional | 4.4 | The bit rate of one BIS, from the octets and the frame duration. |
+| `channels` | whole number | optional | 4.4 | The audio channels: the locations of the BIS, or the number of BIS when they name none. |
+| `presentation_delay_ms` | number (ms) | optional | 4.4 | The presentation delay. |
+| `language` | text | optional | 4.4 | The language of the first subgroup (ISO 639-3). |
+| `program` | text | optional | 4.4 | The program information. |
+| `quality` | text | optional | 4.4 | The audio quality that the public broadcast announcement names ("standard", "high"). |
+| `iso_interval_ms` | number (ms) | optional | 4.4 | The ISO interval of the BIG. |
+| `phy` | text | optional | 4.4 | The PHY of the BIS. |
+| `first_heard` | time | optional | 4.4 | The UTC of the first packet. |
+| `last_heard` | time | optional | 4.4 | The UTC of the last packet. |
+
+The column `name` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Event `ble.device`
 

@@ -631,6 +631,94 @@ pub fn kinds_schedule() -> Vec<GenPacket> {
     v
 }
 
+/// The access address of the periodic train of [`broadcast_schedule`].
+pub const BROADCAST_AA: u32 = 0x4A1B_2C3D;
+
+/// An LE Audio broadcast source on channel 37 and the secondary channel 0: an ADV_EXT_IND points to an AUX_ADV_IND with the
+/// Broadcast Audio Announcement (Broadcast_ID 123456), the Broadcast_Name "Gate 7", a Public Broadcast Announcement (high
+/// quality, program "Boarding") and the SyncInfo of a train on channel 0. The train's AUX_SYNC_IND holds the BIGInfo (two BIS,
+/// 10 ms, LE 2M, encrypted when `encrypted`) in its ACAD and the BASE (40 ms, LC3 at 48 kHz, 10 ms frames of 100 octets,
+/// English, left and right) in its AdvData. The source is D5:01:02:03:04:05.
+pub fn broadcast_schedule(encrypted: bool) -> Vec<GenPacket> {
+    use sdrkit_proto_wlan_phy::ble::audio::{BigInfo, BASIC_AUDIO, BIGINFO, BROADCAST_AUDIO, BROADCAST_NAME, PUBLIC_BROADCAST};
+    let a = addr("D5:01:02:03:04:05", true);
+    let p = aux(0, 50, 0);
+    let mut v = vec![GenPacket::new(
+        ext(
+            PduType::AdvExtInd,
+            &ExtHeader {
+                adi: Some((0x0B0, 3)),
+                aux_ptr: Some(p),
+                ..Default::default()
+            },
+            &[],
+            &[],
+        ),
+        0.0,
+    )
+    .next_after(after(&p))];
+    let sync = SyncInfo {
+        offset_base: 300,
+        units_300us: false,
+        offset_adjust: false,
+        interval: 16,
+        channel_map: [0x01, 0, 0, 0, 0],
+        sca: 5,
+        access_address: BROADCAST_AA,
+        crc_init: 0x00_5A5A,
+        event_counter: 0,
+    };
+    let mut d = Vec::new();
+    service(&mut d, BROADCAST_AUDIO, &[0x56, 0x34, 0x12]);
+    push(&mut d, BROADCAST_NAME, b"Gate 7");
+    let mut pba = vec![if encrypted { 0x05 } else { 0x04 }, 10, 9, 0x03];
+    pba.extend(b"Boarding");
+    service(&mut d, PUBLIC_BROADCAST, &pba);
+    v.push(
+        GenPacket::new(
+            ext(
+                PduType::AdvExtInd,
+                &ExtHeader {
+                    adv_a: Some(a),
+                    adi: Some((0x0B0, 3)),
+                    sync_info: Some(sync),
+                    ..Default::default()
+                },
+                &[],
+                &d,
+            ),
+            0.0,
+        )
+        .on(0)
+        .next_after(sync.offset_s() + 10e-6),
+    );
+    let big = BigInfo {
+        iso_interval: 8,
+        num_bis: 2,
+        sdu_interval_us: 10_000,
+        max_sdu: 100,
+        max_pdu: 100,
+        phy: 1,
+        framed: false,
+        encrypted,
+    }
+    .build();
+    let mut acad = vec![big.len() as u8 + 1, BIGINFO];
+    acad.extend(&big);
+    let base: [u8; 43] = [
+        0x40, 0x9C, 0x00, 1, 2, 0x06, 0, 0, 0, 0, 10, 2, 0x01, 0x08, 2, 0x02, 0x01, 3, 0x04, 100, 0, 5, 4, 0x04, b'e', b'n',
+        b'g', 1, 6, 5, 0x03, 1, 0, 0, 0, 2, 6, 5, 0x03, 2, 0, 0, 0,
+    ];
+    let mut d = Vec::new();
+    service(&mut d, BASIC_AUDIO, &base);
+    v.push(
+        GenPacket::new(ext(PduType::AdvExtInd, &ExtHeader::default(), &acad, &d), 20e-3)
+            .link(Link::new(BROADCAST_AA, 0x00_5A5A, LinkKind::Periodic))
+            .hopping(sync.channel_map),
+    );
+    v
+}
+
 /// The access address of the connection of [`connection_schedule`].
 pub const CONN_AA: u32 = 0x5A3C_9617;
 /// The CRC preset of that connection.
