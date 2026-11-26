@@ -11,10 +11,8 @@ use crate::sound_gen::{
     A2_SPACING, A2_STEREO_ID, PROGRAMME_STEP,
 };
 use crate::systems::{Colour, System, SystemId};
-use sdrkit_algo_dsp::fir::Fir;
 use sdrkit_algo_dsp::iir::PreEmphasis;
-use sdrkit_algo_dsp::nco::Nco;
-use sdrkit_algo_dsp::resample::FractionalResampler;
+use sdrkit_algo_dsp::resample::FilterShiftResampler;
 use sdrkit_core::{Complex32, Generator, Hz, SignalInfo};
 use std::f64::consts::TAU;
 
@@ -107,14 +105,9 @@ pub struct AtvGenerator {
     sys: System,
     ok: bool,
     video: VideoGen,
-    vsb_re: Fir<f32>,
-    vsb_im: Fir<f32>,
-    shift: Nco,
-    res: FractionalResampler<Complex32>,
+    /// The vestigial-sideband filter, the move of the vision carrier to its place and the change to the output rate.
+    vsb: FilterShiftResampler,
     vbuf: Vec<f32>,
-    /// The two parts of the vestigial-sideband filter's output.
-    vsb_out: [Vec<f32>; 2],
-    cbuf: Vec<Complex32>,
     pending: Vec<Complex32>,
     pos: usize,
     // Output-rate sound.
@@ -195,8 +188,6 @@ impl AtvGenerator {
             |f| num_complex::Complex64::new(resp(f), 0.0),
         )
         .expect("the generator's IF rate is positive");
-        let re: Vec<f32> = taps.iter().map(|c| c.re).collect();
-        let im: Vec<f32> = taps.iter().map(|c| c.im).collect();
         let vision_hz = sys.vision_from_centre_mhz() * 1e6 + p.centre_offset_hz;
         // The content reaches from the vestige to the video top around the carrier.
         let lo = vision_hz - if turned { top + 0.5e6 } else { vest + 0.5e6 };
@@ -204,8 +195,12 @@ impl AtvGenerator {
         let extent = lo.abs().max(hi.abs());
         let pass = extent.min(0.47 * p.rate_hz).min(0.45 * fi);
         let stop = (p.rate_hz - pass).min(0.5 * fi).max(pass + 0.3e6);
-        let res = FractionalResampler::new(fi, p.rate_hz, pass, stop, 55.0)
-            .unwrap_or_else(|_| FractionalResampler::with_rates(fi, p.rate_hz).expect("rates"));
+        let low = fi.min(p.rate_hz);
+        let vsb = FilterShiftResampler::new(&taps, vision_hz, fi, p.rate_hz, pass, stop, 55.0)
+            .or_else(|_| {
+                FilterShiftResampler::new(&taps, vision_hz, fi, p.rate_hz, 0.42 * low, 0.5 * low, 80.0)
+            })
+            .expect("rates");
         let rate_true = p.rate_hz;
         let deemph = if sys.am_sound {
             0.0
@@ -223,13 +218,8 @@ impl AtvGenerator {
             sys,
             ok,
             video,
-            vsb_re: Fir::new(&re),
-            vsb_im: Fir::new(&im),
-            shift: Nco::new(fi, vision_hz),
-            res,
+            vsb,
             vbuf: vec![0.0; 4096],
-            vsb_out: [vec![0.0; 4096], vec![0.0; 4096]],
-            cbuf: vec![Complex32::default(); 4096],
             pending: Vec::new(),
             pos: 0,
             k: 0,
@@ -294,7 +284,6 @@ impl AtvGenerator {
 
     /// Makes another piece of vision signal at the output rate.
     fn vision_block(&mut self) {
-        let n = self.vbuf.len();
         self.video.fill(&mut self.vbuf);
         let sys = self.sys;
         let s = sys.raster.sync_level;
@@ -317,18 +306,11 @@ impl AtvGenerator {
                 *x = (level * (1.0 - m * (limit(*x) - s) / (1.0 - s))) as f32;
             }
         }
-        let [re, im] = &mut self.vsb_out;
-        self.vsb_re.process(&self.vbuf, re);
-        self.vsb_im.process(&self.vbuf, im);
-        for i in 0..n {
-            self.cbuf[i] = Complex32::new(re[i], im[i]);
-        }
-        self.shift.mix_in_place(&mut self.cbuf);
         if self.pos > 0 {
             self.pending.drain(..self.pos);
             self.pos = 0;
         }
-        self.res.process(&self.cbuf, &mut self.pending);
+        self.vsb.process(&self.vbuf, &mut self.pending);
     }
 
     fn programme_at(&mut self, t: f64) -> [f64; 3] {

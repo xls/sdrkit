@@ -569,6 +569,37 @@ fn step_q64(num: f64, den: f64) -> u128 {
     }
 }
 
+/// The bank of [`FractionalResampler::new`] for these settings: the taps per phase `k` and the `PHASES + 1` phases of `k` taps,
+/// each oldest-sample first. Errors for a pass edge that is not positive, a stop edge not above it, edges whose middle is
+/// above half the input rate, or too many taps.
+fn fractional_bank(
+    in_rate: f64,
+    pass_hz: f64,
+    stop_hz: f64,
+    atten_db: f64,
+) -> Result<(usize, Vec<f32>), DspError> {
+    if pass_hz <= 0.0 || pass_hz.is_nan() {
+        return Param::Pass.positive(pass_hz);
+    }
+    if stop_hz <= pass_hz || stop_hz.is_nan() || pass_hz.is_nan() {
+        return Param::Pass.conflict(Param::Stop);
+    }
+    if (pass_hz + stop_hz) / 2.0 > in_rate / 2.0 + 1e-9 {
+        return Param::Stop.conflict(Param::InputRate);
+    }
+    let k = kaiser_len(atten_db, ((stop_hz - pass_hz) / in_rate).min(0.49))?;
+    let n = k * PHASES + 1;
+    let cutoff = (pass_hz + stop_hz) / 2.0 / in_rate / PHASES as f64;
+    let h = windowed_sinc(n, cutoff, design_beta(atten_db))?;
+    let mut bank = vec![0.0f32; (PHASES + 1) * k];
+    for p in 0..=PHASES {
+        for j in 0..k {
+            bank[p * k + (k - 1 - j)] = (h[p + j * PHASES] * PHASES as f64) as f32;
+        }
+    }
+    Ok((k, bank))
+}
+
 /// Arbitrary-ratio resampling with a 128-phase polyphase bank and linear interpolation between neighbouring phases. The ratio can be
 /// changed at any time (clock-drift correction) without a glitch. Best for ratios between about 0.25 and 4; [`Resampler`] puts a
 /// decimator in front for larger reductions.
@@ -628,25 +659,7 @@ impl<T: Sample> FractionalResampler<T> {
         if out_rate <= 0.0 || out_rate.is_nan() {
             return Param::OutputRate.positive(out_rate);
         }
-        if pass_hz <= 0.0 || pass_hz.is_nan() {
-            return Param::Pass.positive(pass_hz);
-        }
-        if stop_hz <= pass_hz || stop_hz.is_nan() || pass_hz.is_nan() {
-            return Param::Pass.conflict(Param::Stop);
-        }
-        if (pass_hz + stop_hz) / 2.0 > in_rate / 2.0 + 1e-9 {
-            return Param::Stop.conflict(Param::InputRate);
-        }
-        let k = kaiser_len(atten_db, ((stop_hz - pass_hz) / in_rate).min(0.49))?;
-        let n = k * PHASES + 1;
-        let cutoff = (pass_hz + stop_hz) / 2.0 / in_rate / PHASES as f64;
-        let h = windowed_sinc(n, cutoff, design_beta(atten_db))?;
-        let mut bank = vec![0.0f32; (PHASES + 1) * k];
-        for p in 0..=PHASES {
-            for j in 0..k {
-                bank[p * k + (k - 1 - j)] = (h[p + j * PHASES] * PHASES as f64) as f32;
-            }
-        }
+        let (k, bank) = fractional_bank(in_rate, pass_hz, stop_hz, atten_db)?;
         let base = step_q64(in_rate, out_rate);
         Ok(FractionalResampler {
             k,
@@ -848,6 +861,255 @@ impl FractionalResampler<Complex32> {
             (None, false) => self.nco = Some(Nco::new(self.in_rate, -shift_hz)),
         }
         Ok(())
+    }
+}
+
+/// The most output times of one period for which [`FilterShiftResampler`] keeps a phase of its own.
+pub const EXACT_PHASES: usize = 256;
+
+/// `(L, M)` in lowest terms with `out_rate / in_rate = L / M`, when both rates are whole numbers and `L` is at most
+/// [`EXACT_PHASES`].
+fn exact_ratio(in_rate: f64, out_rate: f64) -> Option<(usize, usize)> {
+    let whole = |v: f64| v.fract() == 0.0 && (1.0..9.0e15).contains(&v);
+    if !(whole(in_rate) && whole(out_rate)) {
+        return None;
+    }
+    let (i, o) = (in_rate as usize, out_rate as usize);
+    let g = gcd(i, o);
+    (o / g <= EXACT_PHASES).then_some((o / g, i / g))
+}
+
+/// A real signal through a FIR filter with complex taps, a frequency shift and a [`FractionalResampler`], as one polyphase
+/// stage. Each output is one dot product of the real input with the combined taps of its time, turned by the shift at the
+/// newest input of its window: the stage costs about one filter at the output rate. The output is that of the three stages
+/// in a row ([`crate::fir::Fir`] on the real and on the imaginary taps, an [`Nco`] at the input rate from phase 0, and the
+/// resampler) to rounding.
+///
+/// When both rates are whole numbers and the output rate over the input rate is `L / M` in lowest terms with `L` at most
+/// [`EXACT_PHASES`], the stage keeps one phase for each of the `L` output times of a period, with the resampler's taps at
+/// that time; otherwise it blends neighbouring phases as the resampler does.
+///
+/// ```
+/// use sdrkit_algo_dsp::resample::FilterShiftResampler;
+/// use sdrkit_algo_dsp::Complex32;
+/// // 12 MHz to 10 MHz, the band above 0 Hz kept and moved down by 2.75 MHz.
+/// let taps = [Complex32::new(0.5, 0.0), Complex32::new(0.0, 0.3), Complex32::new(0.5, 0.0)];
+/// let mut r = FilterShiftResampler::new(&taps, -2.75e6, 12e6, 10e6, 4e6, 6e6, 55.0).unwrap();
+/// assert_eq!(r.exact_ratio(), Some((5, 6)));
+/// let mut out = Vec::new();
+/// r.process(&[0.1; 1200], &mut out);
+/// assert_eq!(out.len(), 1000);
+/// ```
+#[derive(Clone, Debug)]
+pub struct FilterShiftResampler {
+    form: ShiftForm,
+    /// The last `taps - 1` inputs, then the new ones.
+    hist: Vec<f32>,
+    /// The shift, and its value at each new input.
+    nco: Nco,
+    turn: Vec<Complex32>,
+}
+
+/// Output `i` of `out_a` (of `out_b`) is the dot product of the taps `a` (`b`) with `x[i * stride..]`: the NEON loop on
+/// ARM64, which loads each window once for both, and the plain dot products elsewhere.
+fn fir_two(a: &[f32], b: &[f32], x: &[f32], stride: usize, out_a: &mut [f32], out_b: &mut [f32]) {
+    #[cfg(target_arch = "aarch64")]
+    crate::neon::fir_real_two(a, b, x, stride, out_a, out_b);
+    #[cfg(not(target_arch = "aarch64"))]
+    for (i, (p, q)) in out_a.iter_mut().zip(out_b.iter_mut()).enumerate() {
+        let w = &x[i * stride..i * stride + a.len()];
+        (*p, *q) = (f32::dot(a, w), f32::dot(b, w));
+    }
+}
+
+/// The two forms of [`FilterShiftResampler`].
+#[derive(Clone, Debug)]
+enum ShiftForm {
+    /// `L` phases, one for each output time of a period; output `j` of a call is at time `phase + j M` (in `1 / L` inputs).
+    /// The outputs of one phase are one strided filter run of its real and imaginary taps ([`fir_two`]).
+    Exact {
+        l: usize,
+        m: usize,
+        /// The real and the imaginary taps of the phases, `q` a phase, each oldest-sample first.
+        q: usize,
+        re: Vec<f32>,
+        im: Vec<f32>,
+        phase: usize,
+        /// The real and imaginary outputs of one phase, and the outputs of a call in order.
+        a: Vec<f32>,
+        b: Vec<f32>,
+        out: Vec<Complex32>,
+    },
+    /// `PHASES + 1` phases blended as [`FractionalResampler`] blends them, at the time `pos` and the step `step` (Q64.64).
+    Blended {
+        re: PolyKernel<f32>,
+        im: PolyKernel<f32>,
+        pos: u128,
+        step: u128,
+    },
+}
+
+impl FilterShiftResampler {
+    /// `taps` (`taps[0]` multiplies the newest sample, as in [`crate::fir::Fir`]), then a shift by `shift_hz`, then the
+    /// resampler `FractionalResampler::new(in_rate, out_rate, pass_hz, stop_hz, atten_db)`. Errors as that resampler, or for
+    /// no taps, a tap that is not finite or a shift that is not finite.
+    pub fn new(
+        taps: &[Complex32],
+        shift_hz: f64,
+        in_rate: f64,
+        out_rate: f64,
+        pass_hz: f64,
+        stop_hz: f64,
+        atten_db: f64,
+    ) -> Result<Self, DspError> {
+        use num_complex::Complex64;
+        if taps.is_empty() {
+            return Param::Taps.at_least(1.0, 0.0);
+        }
+        if taps.iter().any(|t| !(t.re.is_finite() && t.im.is_finite())) {
+            return Param::Taps.not_finite();
+        }
+        if !shift_hz.is_finite() {
+            return Param::Shift.not_finite();
+        }
+        // The checks of the resampler, then its bank.
+        FractionalResampler::<f32>::new(in_rate, out_rate, pass_hz, stop_hz, atten_db)?;
+        let (k, bank) = fractional_bank(in_rate, pass_hz, stop_hz, atten_db)?;
+        let q = k + taps.len() - 1;
+        // Output `y = sum_j r[j] e^{jw (i - j)} sum_t taps[t] x[i - j - t]` at the newest input `i` of its window, with the
+        // resampler's taps `r` (newest first) of its time: the combined tap `n` is `sum_{j + t = n} r[j] e^{-jwj} taps[t]`.
+        let w = std::f64::consts::TAU * shift_hz / in_rate;
+        let (mut re, mut im) = (Vec::new(), Vec::new());
+        let mut combine = |r: &[f32]| {
+            let mut c = vec![Complex64::default(); q];
+            for (j, &rj) in r.iter().enumerate() {
+                let a = Complex64::from_polar(f64::from(rj), -w * j as f64);
+                for (t, h) in taps.iter().enumerate() {
+                    c[j + t] += a * Complex64::new(f64::from(h.re), f64::from(h.im));
+                }
+            }
+            re.extend(c.iter().rev().map(|z| z.re as f32));
+            im.extend(c.iter().rev().map(|z| z.im as f32));
+        };
+        let grid = |g: usize, j: usize| bank[g * k + (k - 1 - j)];
+        let ratio = exact_ratio(in_rate, out_rate);
+        match ratio {
+            Some((l, _)) => {
+                // The resampler's taps at time p / L: its two phases around it blended as its loop blends them.
+                for p in 0..l {
+                    let frac = (((p as u128) << 64) / l as u128) as u64;
+                    let g = (frac >> (64 - PHASE_BITS)) as usize;
+                    let mu = ((frac << PHASE_BITS) >> 40) as f32 * (1.0 / (1u32 << 24) as f32);
+                    let r: Vec<f32> = (0..k)
+                        .map(|j| (grid(g + 1, j) - grid(g, j)).mul_add(mu, grid(g, j)))
+                        .collect();
+                    combine(&r);
+                }
+            }
+            None => {
+                for g in 0..=PHASES {
+                    let r: Vec<f32> = (0..k).map(|j| grid(g, j)).collect();
+                    combine(&r);
+                }
+            }
+        }
+        let form = match ratio {
+            Some((l, m)) => ShiftForm::Exact {
+                l,
+                m,
+                q,
+                re,
+                im,
+                phase: 0,
+                a: Vec::new(),
+                b: Vec::new(),
+                out: Vec::new(),
+            },
+            None => ShiftForm::Blended {
+                re: PolyKernel::new(&re, q),
+                im: PolyKernel::new(&im, q),
+                pos: 0,
+                step: step_q64(in_rate, out_rate),
+            },
+        };
+        Ok(FilterShiftResampler {
+            form,
+            hist: vec![0.0; q - 1],
+            nco: Nco::new(in_rate, shift_hz),
+            turn: Vec::new(),
+        })
+    }
+
+    /// `(L, M)` when the stage keeps a phase for each output time of a period, `None` when it blends phases.
+    pub fn exact_ratio(&self) -> Option<(usize, usize)> {
+        match self.form {
+            ShiftForm::Exact { l, m, .. } => Some((l, m)),
+            ShiftForm::Blended { .. } => None,
+        }
+    }
+
+    /// Appends the outputs for `input` to `out`: as many as the resampler gives for it, counted across calls.
+    pub fn process(&mut self, input: &[f32], out: &mut impl Append<Complex32>) {
+        let n = input.len();
+        if self.turn.len() < n {
+            self.turn.resize(n, Complex32::default());
+        }
+        self.nco.fill(&mut self.turn[..n]);
+        extend_with_room(&mut self.hist, input);
+        let turn = &self.turn[..n];
+        match &mut self.form {
+            ShiftForm::Exact {
+                l,
+                m,
+                q,
+                re,
+                im,
+                phase,
+                a,
+                b,
+                out: all,
+            } => {
+                let (l, m, q) = (*l, *m, *q);
+                // The outputs whose time is before the end of the input, at times `phase + j m`.
+                let w = (n * l).saturating_sub(*phase).div_ceil(m);
+                all.clear();
+                all.resize(w, Complex32::default());
+                for r in 0..w.min(l) {
+                    let t = *phase + r * m;
+                    let (i, p) = (t / l, t % l);
+                    let c = (w - r).div_ceil(l);
+                    a.resize(c, 0.0);
+                    b.resize(c, 0.0);
+                    let taps = p * q..(p + 1) * q;
+                    fir_two(&re[taps.clone()], &im[taps], &self.hist[i..], m, a, b);
+                    for (k, (&x, &y)) in a.iter().zip(b.iter()).enumerate() {
+                        all[r + k * l] = Complex32::new(x, y) * turn[i + k * m];
+                    }
+                }
+                *phase = *phase + w * m - n * l;
+                out.extend_from_slice(all);
+            }
+            ShiftForm::Blended { re, im, pos, step } => {
+                out.reserve((n as u128 * ONE / *step) as usize + 1);
+                let (mut a, mut b) = ([0.0f32; CHUNK], [0.0f32; CHUNK]);
+                let mut used = 0;
+                while used < n {
+                    let x = &self.hist[used..];
+                    // Output `j` of a call is made at input `(start + j * step) / 2^64` of the call.
+                    let start = *pos;
+                    let (w, u) = re.fractional(x, *step, pos, &mut a);
+                    let mut p = start;
+                    im.fractional(x, *step, &mut p, &mut b);
+                    let mut t = start;
+                    for (&x, &y) in a[..w].iter().zip(&b[..w]) {
+                        out.push(Complex32::new(x, y) * turn[used + (t >> 64) as usize]);
+                        t += *step;
+                    }
+                    used += u;
+                }
+            }
+        }
+        self.hist.drain(..n);
     }
 }
 
@@ -1178,6 +1440,60 @@ mod tests {
             "{in_rate}->{out_rate}: tone {}",
             db(a / 0.8)
         );
+    }
+
+    /// The three stages that [`FilterShiftResampler`] fuses, one after the other.
+    fn three_stages(taps: &[Complex32], shift: f64, rates: (f64, f64), edges: (f64, f64, f64), x: &[f32]) -> Vec<Complex32> {
+        let re: Vec<f32> = taps.iter().map(|t| t.re).collect();
+        let im: Vec<f32> = taps.iter().map(|t| t.im).collect();
+        let (mut a, mut b) = (crate::fir::Fir::<f32>::new(&re), crate::fir::Fir::<f32>::new(&im));
+        let (mut ya, mut yb) = (vec![0.0; x.len()], vec![0.0; x.len()]);
+        a.process(x, &mut ya);
+        b.process(x, &mut yb);
+        let mut z: Vec<Complex32> = ya.iter().zip(&yb).map(|(&r, &i)| Complex32::new(r, i)).collect();
+        Nco::new(rates.0, shift).mix_in_place(&mut z);
+        let mut r = FractionalResampler::new(rates.0, rates.1, edges.0, edges.1, edges.2).unwrap();
+        let mut out = Vec::new();
+        r.process(&z, &mut out);
+        out
+    }
+
+    #[test]
+    fn the_filter_shift_resampler_is_its_three_stages_to_rounding() {
+        let mut seed = 0x2545_f491_4f6c_dd1du64;
+        let mut u = move || {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed >> 40) as f32 / (1u64 << 23) as f32 - 1.0
+        };
+        let taps: Vec<Complex32> = (0..97).map(|_| Complex32::new(0.02 * u(), 0.02 * u())).collect();
+        let x: Vec<f32> = (0..30_000).map(|_| u()).collect();
+        for (rates, edges, exact) in [
+            ((12e6, 10e6), (4e6, 6e6, 55.0), Some((5, 6))),
+            ((12e6, 10e6), (4.5e6, 5.5e6, 55.0), Some((5, 6))),
+            ((24e6, 10e6), (4.7e6, 5.3e6, 55.0), Some((5, 12))),
+            ((12e6, 8e6), (3e6, 4.5e6, 55.0), Some((2, 3))),
+            ((12e6, 9_876_543.0), (4e6, 5.5e6, 55.0), None),
+        ] {
+            let want = three_stages(&taps, -2.75e6, rates, edges, &x);
+            let mut f = FilterShiftResampler::new(&taps, -2.75e6, rates.0, rates.1, edges.0, edges.1, edges.2).unwrap();
+            assert_eq!(f.exact_ratio(), exact);
+            let mut got = Vec::new();
+            let mut i = 0;
+            for n in [1usize, 7, 4096, 333, 9999].iter().cycle() {
+                if i == x.len() {
+                    break;
+                }
+                let n = (*n).min(x.len() - i);
+                f.process(&x[i..i + n], &mut got);
+                i += n;
+            }
+            assert_eq!(got.len(), want.len(), "{rates:?}");
+            let peak = want.iter().map(|z| z.norm()).fold(0.0, f32::max);
+            let worst = got.iter().zip(&want).map(|(g, w)| (g - w).norm()).fold(0.0, f32::max);
+            assert!(worst < 2e-6 * peak, "{rates:?}: {worst} against a peak of {peak}");
+        }
     }
 
     #[test]

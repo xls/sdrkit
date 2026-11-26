@@ -96,45 +96,90 @@ fn the_output_is_the_same_with_a_thread_for_the_picture_stage() {
     }
 }
 
+/// The CPU time of the calling thread, seconds.
+fn thread_cpu_s() -> f64 {
+    let mut t = libc::timespec {
+        tv_sec: 0,
+        tv_nsec: 0,
+    };
+    // SAFETY: `t` is a valid timespec for the call to write.
+    unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &mut t) };
+    t.tv_sec as f64 + t.tv_nsec as f64 * 1e-9
+}
+
+/// The thread CPU time of 4 s of the `atv` sender at 10 Msps, one field at a time: the test card, or (`changing`) a new
+/// picture of the host every field (the card and the card mirrored, as BGRA fitted to the picture size).
+fn sender_cpu_s(changing: bool) -> f64 {
+    use sdrkit_core::Generator;
+    use sdrkit_stack_analogtv::transmit::{fit_frame, AtvTx, TvModulator};
+    use sdrkit_stack_analogtv::typed::TvPixels;
+    let rate = 10e6;
+    let mut g = sdrkit_stack_analogtv::AtvGenerator::new(AtvTx::default().params(rate));
+    let card = g.card().clone();
+    let (w, h) = (card.w, card.h);
+    let bgra = |mirror: bool| -> Vec<u8> {
+        let mut b = Vec::with_capacity(w * h * 4);
+        for r in 0..h {
+            for c in 0..w {
+                let [red, green, blue] = card.rgb(if mirror { w - 1 - c } else { c }, r);
+                let q = |x: f64| (x.clamp(0.0, 1.0) * 255.0).round() as u8;
+                b.extend_from_slice(&[q(blue), q(green), q(red), 255]);
+            }
+        }
+        b
+    };
+    let frames = [bgra(false), bgra(true)];
+    let field = (rate / 50.0) as usize;
+    let mut x = vec![Complex32::default(); field];
+    let audio = vec![0.1f32; g.programme_due(field) + 1];
+    // On a machine with fast and slow cores, the fast ones.
+    #[cfg(target_os = "macos")]
+    // SAFETY: the call sets the class of the calling thread only.
+    unsafe {
+        libc::pthread_set_qos_class_self_np(libc::qos_class_t::QOS_CLASS_USER_INTERACTIVE, 0);
+    }
+    let t = thread_cpu_s();
+    for f in 0..200 {
+        if changing {
+            let p = fit_frame(&frames[f % 2], w as u32, h as u32, TvPixels::Bgra, w, h).unwrap();
+            TvModulator::show(&mut g, Some(p));
+        }
+        let due = g.programme_due(field);
+        g.push_programme(&audio[..due]);
+        g.generate(&mut x);
+    }
+    thread_cpu_s() - t
+}
+
 #[test]
 #[ignore = "a measurement: run it alone"]
 fn the_speed_of_the_tv_sender_against_real_time() {
-    use sdrkit_core::Generator;
-    use sdrkit_stack_analogtv::transmit::AtvTx;
-    let rate = 10e6;
-    let mut g = sdrkit_stack_analogtv::AtvGenerator::new(AtvTx::default().params(rate));
-    let mut x = vec![Complex32::default(); 16_384];
-    let audio = vec![0.1f32; g.programme_due(x.len()) + 1];
-    // 2 s of signal as 100 pieces of one field each; the fastest and the median piece (other work on the machine slows some).
-    let piece = (0.02 * rate) as usize;
-    let mut took: Vec<f64> = (0..100)
-        .map(|_| {
-            let t = std::time::Instant::now();
-            for _ in 0..piece / x.len() {
-                let due = g.programme_due(x.len());
-                g.push_programme(&audio[..due]);
-                g.generate(&mut x);
-            }
-            t.elapsed().as_secs_f64()
-        })
-        .collect();
-    took.sort_by(f64::total_cmp);
-    let signal_s = (piece / x.len() * x.len()) as f64 / rate;
-    eprintln!(
-        "atv sender: {:.2} times real time (fastest piece), {:.2} (median)",
-        signal_s / took[0],
-        signal_s / took[50]
-    );
-    // The benchmark of the sender: a new picture of the host every field.
-    let b = sdrkit_stack_analogtv::benchmarks()
-        .into_iter()
-        .find(|b| b.name == "analogtv.atv_tx_10m")
-        .unwrap();
-    let r = (b.run)(2.0);
-    eprintln!(
-        "atv sender, a new picture every field: {:.2} times real time",
-        1.0 / r.cpu_fraction_of_realtime
-    );
+    // The first millisecond of signal of a new sender.
+    {
+        use sdrkit_core::Generator;
+        let mut g = sdrkit_stack_analogtv::AtvGenerator::new(
+            sdrkit_stack_analogtv::transmit::AtvTx::default().params(10e6),
+        );
+        let mut x = vec![Complex32::default(); 10_000];
+        let audio = vec![0.0f32; g.programme_due(x.len()) + 1];
+        let t = thread_cpu_s();
+        let due = g.programme_due(x.len());
+        g.push_programme(&audio[..due]);
+        g.generate(&mut x);
+        eprintln!(
+            "atv sender: the first 1 ms of signal in {:.2} ms of CPU",
+            (thread_cpu_s() - t) * 1e3
+        );
+    }
+    for (changing, name) in [(false, "the test card"), (true, "a new picture every field")] {
+        let best = (0..3)
+            .map(|_| sender_cpu_s(changing))
+            .fold(f64::INFINITY, f64::min);
+        eprintln!(
+            "atv sender, {name}: 4 s of signal in {best:.3} s of CPU, {:.2} times real time",
+            4.0 / best
+        );
+    }
 }
 
 #[test]

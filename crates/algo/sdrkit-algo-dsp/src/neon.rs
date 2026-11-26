@@ -210,6 +210,73 @@ fn fir_real_neon(taps: &[f32], x: &[f32], stride: usize, out: &mut [f32]) {
     }
 }
 
+/// The dot products of the taps `a` and of the taps `b` (`n` of each) with two slices of real samples, as
+/// `[[a x0, b x0], [a x1, b x1]]`: each load of taps and of samples serves two products. Four partial sums of four values
+/// per product, added in a fixed order. Each slice and each set of taps holds at least `n` values.
+#[target_feature(enable = "neon")]
+#[inline]
+#[allow(clippy::needless_range_loop)]
+fn real_two_taps(n: usize, a: &[f32], b: &[f32], x: [&[f32]; 2]) -> [[f32; 2]; 2] {
+    assert!(a.len() >= n && b.len() >= n && x[0].len() >= n && x[1].len() >= n);
+    let mut acc = [[[vdupq_n_f32(0.0); 4]; 2]; 2];
+    let quads = n / 4;
+    let blocks = quads / 4;
+    macro_rules! step {
+        ($q:expr, $j:expr) => {{
+            // SAFETY: `$q < n / 4`, so `4 * $q + 4 <= n`, and `n` is at most each length (asserted above).
+            let (ta, tb) = unsafe { (load(a, 4 * $q), load(b, 4 * $q)) };
+            for o in 0..2 {
+                // SAFETY: as above.
+                let v = unsafe { load(x[o], 4 * $q) };
+                acc[o][0][$j] = vfmaq_f32(acc[o][0][$j], ta, v);
+                acc[o][1][$j] = vfmaq_f32(acc[o][1][$j], tb, v);
+            }
+        }};
+    }
+    for bl in 0..blocks {
+        for j in 0..4 {
+            step!(4 * bl + j, j);
+        }
+    }
+    for j in 0..4 {
+        if 4 * blocks + j < quads {
+            step!(4 * blocks + j, j);
+        }
+    }
+    let mut y = [[0.0f32; 2]; 2];
+    for o in 0..2 {
+        for (t, taps) in [a, b].into_iter().enumerate() {
+            let p = &acc[o][t];
+            let mut s = vaddvq_f32(vaddq_f32(vaddq_f32(p[0], p[2]), vaddq_f32(p[1], p[3])));
+            for k in 4 * quads..n {
+                s = taps[k].mul_add(x[o][k], s);
+            }
+            y[o][t] = s;
+        }
+    }
+    y
+}
+
+#[target_feature(enable = "neon")]
+#[inline]
+fn fir_real_two_neon(a: &[f32], b: &[f32], x: &[f32], stride: usize, out_a: &mut [f32], out_b: &mut [f32]) {
+    let n = a.len().min(b.len());
+    let outputs = out_a.len().min(out_b.len());
+    let mut i = 0;
+    while i + 1 < outputs {
+        let at = i * stride;
+        let [p, q] = real_two_taps(n, a, b, [&x[at..at + n], &x[at + stride..at + stride + n]]);
+        (out_a[i], out_b[i], out_a[i + 1], out_b[i + 1]) = (p[0], p[1], q[0], q[1]);
+        i += 2;
+    }
+    if i < outputs {
+        let at = i * stride;
+        let w = &x[at..at + n];
+        let [p, _] = real_two_taps(n, a, b, [w, w]);
+        (out_a[i], out_b[i]) = (p[0], p[1]);
+    }
+}
+
 #[target_feature(enable = "neon")]
 #[inline]
 fn fir_pairs_neon(taps: &[f32], x: &[f32], stride: usize, out: &mut [f32]) {
@@ -442,6 +509,17 @@ pub(crate) fn fir_pairs(taps: &[f32], x: &[f32], stride: usize, out: &mut [f32])
     unsafe { fir_pairs_neon(taps, x, stride, out) }
 }
 
+/// Output `i` of `out_a` (of `out_b`) is the dot product of `a` (of `b`) with `x[i * stride..]`, over the shorter set of
+/// taps, for the shorter of the two outputs.
+///
+/// # Panics
+/// When `x` holds less than `(outputs - 1) * stride + taps` values.
+#[inline]
+pub(crate) fn fir_real_two(a: &[f32], b: &[f32], x: &[f32], stride: usize, out_a: &mut [f32], out_b: &mut [f32]) {
+    // SAFETY: NEON is always present (see above).
+    unsafe { fir_real_two_neon(a, b, x, stride, out_a, out_b) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -476,6 +554,27 @@ mod tests {
             .zip(x.chunks_exact(lanes))
             .map(|(t, x)| x.iter().map(|x| (t * x).abs()).sum::<f32>())
             .sum()
+    }
+
+    #[test]
+    fn two_tap_filter_loops_give_both_dots_of_each_window() {
+        let mut seed = 0x0bad_cafe_1234_5678u64;
+        for n in LENGTHS.into_iter().filter(|&n| n > 0) {
+            for (stride, outputs) in [(1usize, 1usize), (1, 6), (6, 5), (12, 9)] {
+                let a = noise(&mut seed, n);
+                let b = noise(&mut seed, n);
+                let x = noise(&mut seed, (outputs - 1) * stride + n);
+                let (mut oa, mut ob) = (vec![f32::NAN; outputs], vec![f32::NAN; outputs]);
+                fir_real_two(&a, &b, &x, stride, &mut oa, &mut ob);
+                for i in 0..outputs {
+                    let w = &x[i * stride..i * stride + n];
+                    for (t, got) in [(&a, oa[i]), (&b, ob[i])] {
+                        let want = f32::dot(t, w);
+                        assert!(close(got, want, scale(t, w, 1)), "{n} taps, output {i}: {got} for {want}");
+                    }
+                }
+            }
+        }
     }
 
     #[test]

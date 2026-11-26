@@ -7,7 +7,9 @@
 use crate::card::{Card, Pattern, Planes, MULTIBURST};
 use crate::systems::{secam, Colour, ColourParams, Pulse, Raster, System, SystemId};
 use crate::util::rc_step;
-use sdrkit_algo_dsp::fir::lowpass;
+use sdrkit_algo_dsp::fir::{lowpass, Convolver};
+use sdrkit_algo_dsp::nco::Nco;
+use sdrkit_core::Complex32;
 use sdrkit_codec_image::colour::{KU, KV};
 use std::f64::consts::TAU;
 
@@ -90,23 +92,31 @@ pub struct VideoGen {
     v: Vec<f32>,
     dr: Vec<f32>,
     db: Vec<f32>,
-    ylp: Vec<f32>,
-    clp: Vec<f32>,
+    /// The luma and the chroma low-passes, on a line with its held ends ([`filter_line`]).
+    ylp: Convolver<f32>,
+    clp: Convolver<f32>,
     /// The pixel-held Y, U and V of one line, reused for each line.
     line_raw: [Vec<f32>; 3],
     /// The band-limited Y, U and V of one line, reused for each line.
     line_filtered: [Vec<f32>; 3],
     /// The line with its held ends that [`filter_line`] reads, reused for each line.
     line_held: Vec<f32>,
+    /// The filter's output over the held line, reused for each line.
+    line_full: Vec<f32>,
     /// The shapes of the kinds of line drawn so far.
     shapes: Vec<LineShape>,
     /// For each picture row: the row changed since the last frame. Reused for each frame.
     changed: Vec<bool>,
+    /// For each line (line `l` at `l - 1`): `None` when it is drawn, or `Some(card)` when it waits to be drawn from
+    /// [`VideoGen::shown`], with `card` true when the test card was on the air as it was marked.
+    dirty: Vec<Option<bool>>,
     setup: f64,
     gd: usize,
     secam_ident: SecamIdent,
     secam_phase: f64,
-    fsc_cycles: f64,
+    /// The colour subcarrier at the next sample, and its values over the line being sent.
+    subcarrier: Nco,
+    sub_line: Vec<Complex32>,
     frame: u64,
     built: bool,
     pattern: Pattern,
@@ -137,25 +147,39 @@ struct LineShape {
 /// The most line shapes a generator keeps.
 const MAX_SHAPES: usize = 32;
 
-/// Filters one line `x` with the FIR `taps` into `y`, holding the end samples beyond each end of the line: `y[i] = sum_j
-/// taps[j] x[i + j - len / 2]`. `held` is scratch for the line with its held ends. Each output sums its products in the
-/// order of the taps, so the result does not depend on how the loop is vectorised.
-fn filter_line(x: &[f32], taps: &[f32], held: &mut Vec<f32>, y: &mut Vec<f32>) {
+/// Filters one line `x` into `y` with `taps`, a [`line_filter`], holding the end samples beyond each end of the line:
+/// `y[i] = sum_j h[j] x[i + j - len / 2]` for the design `h`. `held` (the line with its held ends) and `full` (the output
+/// over it) are scratch.
+fn filter_line(
+    x: &[f32],
+    taps: &Convolver<f32>,
+    held: &mut Vec<f32>,
+    full: &mut Vec<f32>,
+    y: &mut Vec<f32>,
+) {
     let n = x.len();
     y.clear();
     let (Some(&first), Some(&last)) = (x.first(), x.last()) else {
         return;
     };
+    let len = taps.len();
     held.clear();
-    held.resize(taps.len() / 2, first);
+    held.resize(len / 2, first);
     held.extend_from_slice(x);
-    held.resize(n + taps.len() - 1, last);
-    y.resize(n, 0.0);
-    for (j, &t) in taps.iter().enumerate() {
-        for (o, &v) in y.iter_mut().zip(&held[j..j + n]) {
-            *o += t * v;
-        }
-    }
+    held.resize(n + len - 1, last);
+    full.clear();
+    full.resize(held.len(), 0.0);
+    taps.centred(held, full)
+        .expect("the output is as long as the input");
+    // Output `m` of the convolver with the reversed design is `sum_j h[j] held[m - (len - 1 - centre) + j]`.
+    let o = len - 1 - taps.centre();
+    y.extend_from_slice(&full[o..o + n]);
+}
+
+/// The convolver of [`filter_line`] for the design `h`: its taps reversed.
+fn line_filter(h: &[f32]) -> Convolver<f32> {
+    let rev: Vec<f32> = h.iter().rev().copied().collect();
+    Convolver::new(&rev).expect("a design has finite taps")
 }
 
 /// The picture on the air: the host's, or the test card.
@@ -244,13 +268,15 @@ impl VideoGen {
             } else {
                 Vec::new()
             },
-            ylp,
-            clp,
+            ylp: line_filter(&ylp),
+            clp: line_filter(&clp),
             line_raw: Default::default(),
             line_filtered: Default::default(),
             line_held: Vec::new(),
+            line_full: Vec::new(),
             shapes: Vec::new(),
             changed: Vec::new(),
+            dirty: vec![None; r.lines as usize],
             setup: if r.lines == 525 && o.setup {
                 r.setup
             } else {
@@ -263,7 +289,13 @@ impl VideoGen {
             },
             secam_ident: o.secam_ident,
             secam_phase: 0.0,
-            fsc_cycles: cp.map_or(0.0, |c| c.fsc / rate),
+            subcarrier: {
+                let fsc = cp.map_or(0.0, |c| c.fsc);
+                let mut nco = Nco::new(rate, fsc);
+                nco.set_phase_cycles((n as f64 * fsc / rate).fract());
+                nco
+            },
+            sub_line: Vec::new(),
             frame: u64::MAX,
             built: false,
             pattern: o.pattern,
@@ -410,7 +442,21 @@ impl VideoGen {
         at
     }
 
-    fn render_line(&mut self, l: u64) {
+    /// Marks line `l` to be drawn from the picture now shown.
+    fn mark(&mut self, l: u64) {
+        self.dirty[(l - 1) as usize] = Some(self.host.is_none());
+    }
+
+    /// Draws line `l` if it waits to be drawn.
+    fn draw(&mut self, l: u64) {
+        if let Some(card) = self.dirty[(l - 1) as usize].take() {
+            self.render_line(l, card);
+        }
+    }
+
+    /// Draws line `l` from the rows of [`VideoGen::shown`]; `card` is true when the test card was on the air as the line
+    /// was marked.
+    fn render_line(&mut self, l: u64, card: bool) {
         let r = self.r;
         let (s0, s1) = self.line_range(l);
         let row = r.row_of(l as u32);
@@ -425,7 +471,10 @@ impl VideoGen {
             c.resize(len, 0.0);
         }
         if let Some((row, _)) = row {
-            let pl = source(&self.host, &self.card);
+            let pl = self
+                .shown
+                .as_ref()
+                .expect("a picture line is marked after the picture is shown");
             let base = row as usize * pl.w;
             for (i, &x) in sh.pixel.iter().enumerate() {
                 raw[0][i] = pl.y[base + x];
@@ -435,9 +484,10 @@ impl VideoGen {
         }
         let mut filtered = std::mem::take(&mut self.line_filtered);
         let (yf, uf, vf) = if row.is_some() {
-            filter_line(&raw[0], &self.ylp, &mut self.line_held, &mut filtered[0]);
-            filter_line(&raw[1], &self.clp, &mut self.line_held, &mut filtered[1]);
-            filter_line(&raw[2], &self.clp, &mut self.line_held, &mut filtered[2]);
+            let (held, full) = (&mut self.line_held, &mut self.line_full);
+            filter_line(&raw[0], &self.ylp, held, full, &mut filtered[0]);
+            filter_line(&raw[1], &self.clp, held, full, &mut filtered[1]);
+            filter_line(&raw[2], &self.clp, held, full, &mut filtered[2]);
             (&filtered[0], &filtered[1], &filtered[2])
         } else {
             (&raw[0], &raw[1], &raw[2])
@@ -447,7 +497,7 @@ impl VideoGen {
             (rw as f64) >= (MULTIBURST[2] * h).round() && (rw as f64) < (MULTIBURST[3] * h).round()
         }) == Some(true)
             && self.pattern == Pattern::Card
-            && self.host.is_none();
+            && card;
         let packets: [f64; 6] = if self.sys.id == SystemId::A {
             [0.25, 0.5, 1.0, 1.5, 2.0, 2.75]
         } else if matches!(self.sys.id, SystemId::M | SystemId::N) {
@@ -550,17 +600,6 @@ impl VideoGen {
                 .extend((0..self.r.height as usize).map(|row| row_differs(prev, now, row))),
             _ => changed.resize(self.r.height as usize, true),
         }
-        for l in 1..=self.lines {
-            let render = match self.r.row_of(l as u32) {
-                Some((row, _)) => changed[row as usize],
-                None => !self.built,
-            };
-            if render {
-                self.render_line(l);
-            }
-        }
-        self.built = true;
-        let now = source(&self.host, &self.card);
         match &mut self.shown {
             Some(s) if (s.w, s.h) == (now.w, now.h) => {
                 for row in (0..now.h).filter(|&row| changed[row]) {
@@ -569,20 +608,33 @@ impl VideoGen {
             }
             _ => self.shown = Some(now.clone()),
         }
+        // The lines are drawn as the signal reaches them. A line stays marked until it is drawn, and draws the rows it
+        // was marked with, so the output does not depend on when it is drawn.
+        for l in 1..=self.lines {
+            let render = match self.r.row_of(l as u32) {
+                Some((row, _)) => changed[row as usize],
+                None => !self.built,
+            };
+            if render {
+                self.mark(l);
+            }
+        }
+        self.built = true;
         self.changed = changed;
         self.frame = frame;
         self.field2_done = false;
         if self.teletext.is_some() {
             for l in 1..=self.lines {
                 if crate::teletext::is_teletext_line(l as u32) && !self.secam_id_line(l) {
-                    self.render_line(l);
+                    self.mark(l);
+                    self.draw(l);
                     self.teletext_line(l, t);
                 }
             }
         }
     }
 
-    /// At the start of field 2: takes the change of the picture that waits and draws again the lines of field 2 whose rows
+    /// At the start of field 2: takes the change of the picture that waits and marks the lines of field 2 whose rows
     /// changed.
     fn new_field2(&mut self) {
         if !self.take_next() {
@@ -601,7 +653,7 @@ impl VideoGen {
                 continue;
             }
             copy_row(now, shown, row);
-            self.render_line(l);
+            self.mark(l);
         }
     }
 
@@ -668,6 +720,11 @@ impl VideoGen {
             } else {
                 l
             };
+            // The line, and the next, whose first chroma samples the end of this line reads.
+            self.draw(l);
+            if l < self.lines {
+                self.draw(l + 1);
+            }
             let (_, s1) = self.line_range(l);
             let n_line = ((s1 - fpos) as usize).min(out.len() - i);
             let global_line = (self.n / self.nf) * self.lines + (l - 1);
@@ -725,10 +782,10 @@ impl VideoGen {
                     } else {
                         (-1.0, 0.0)
                     };
-                    let subcarrier = |j: usize| {
-                        let ph = ((self.n + j as u64) as f64 * self.fsc_cycles).fract();
-                        sdrkit_algo_dsp::approx::sin_cos(TAU * ph)
-                    };
+                    let mut sub = std::mem::take(&mut self.sub_line);
+                    sub.resize(n_line, Complex32::default());
+                    self.subcarrier.fill(&mut sub);
+                    let subcarrier = |j: usize| (sub[j].im, sub[j].re);
                     let last = self.nf as usize - 1;
                     for (j, o) in out[i..i + n_line].iter_mut().enumerate() {
                         let k = fpos as usize + j;
@@ -759,6 +816,7 @@ impl VideoGen {
                             }
                         }
                     }
+                    self.sub_line = sub;
                 }
                 _ => {
                     out[i..i + n_line]

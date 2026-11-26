@@ -110,25 +110,25 @@ fn pictures_and_reports_are_pinned() {
         (
             "atv pal",
             Box::new(|| atv_pin(system(SystemId::G), &[], 1.5, f64::MAX)),
-            (34, 0xee0698546ec22cd4, 0x19da9211d9dbabab),
+            (34, 0xbe46da0deffd30c2, 0x084fa75e9c291bc5),
             "PAL true",
         ),
         (
             "atv ntsc",
             Box::new(|| atv_pin(system(SystemId::M), &[], 1.5, f64::MAX)),
-            (41, 0xbeeebf30e69b0d0e, 0x00d3b6c668fe5881),
+            (41, 0x68b8bc187ad17578, 0xd680f4074a300878),
             "NTSC true",
         ),
         (
             "atv secam",
             Box::new(|| atv_pin(system(SystemId::L), &[], 1.8, f64::MAX)),
-            (42, 0xe63e2488faec9cfd, 0xf33438ab17748900),
+            (42, 0xe3c04db534f512e4, 0xc76ab9743ca19a9d),
             "SECAM true",
         ),
         (
             "atv pal, signal lost",
             Box::new(|| atv_pin(system(SystemId::G), &[], 2.0, 1.2)),
-            (27, 0x87be2c092b262629, 0x95156ee748e953a4),
+            (27, 0x870f11f77fe2cd5a, 0xa7a2de9d932a34cb),
             "mono false",
         ),
         (
@@ -141,7 +141,7 @@ fn pictures_and_reports_are_pinned() {
                     f64::MAX,
                 )
             }),
-            (54, 0xa1b6480fbb88d087, 0xcd2472b2823d208f),
+            (54, 0xf4ef67225b483270, 0xcca89db0b7cb3444),
             "PAL true",
         ),
         (
@@ -156,13 +156,13 @@ fn pictures_and_reports_are_pinned() {
                     1.5,
                 )
             }),
-            (35, 0xc0b11861a63100d9, 0x3158cebe04970d75),
+            (35, 0x409a0b170e110654, 0xd38e3594152dee6b),
             "PAL true",
         ),
         (
             "fpv pal",
             Box::new(|| fpv_pin(FpvGenParams::default(), false, 1.2)),
-            (28, 0x6d35d4d4a2b22676, 0x1c656ca72ce343dc),
+            (28, 0x6bd34d74195dac60, 0xa85fc30aa3e43e75),
             "PAL false",
         ),
         (
@@ -177,7 +177,7 @@ fn pictures_and_reports_are_pinned() {
                     1.2,
                 )
             }),
-            (33, 0x58b84d5aa6343b6c, 0xa5172c244fe5343f),
+            (33, 0x9717d2e821ee06a7, 0xdbc66cab7669befd),
             "NTSC false",
         ),
     ];

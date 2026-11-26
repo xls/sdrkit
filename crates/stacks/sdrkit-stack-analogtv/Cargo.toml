@@ -25,6 +25,8 @@ serde_json.workspace = true
 num-complex.workspace = true
 
 [dev-dependencies]
+# The thread CPU time of the measurements.
+libc = "0.2"
 sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
 sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
 # The channel plans of the data folder, for the tests that set channels.
