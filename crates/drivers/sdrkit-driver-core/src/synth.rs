@@ -121,9 +121,9 @@ pub const GAIN_MODEL: Setting<field::Bool> = Setting::new("gainmodel", "Gain mod
     .section(crate::form::GAIN_SECTION)
     .help("Scales the level by the gains below (62 dB in all is the nominal level), to test gain control.");
 /// The gain of the low-noise amplifier of the model.
-pub const LNA: Setting<field::I64> = crate::form::lna_gain(24, 40.0).range(0.0, 40.0, 8.0);
+pub const LNA: Setting<field::I64> = crate::form::lna_gain(24, 40.0, 8.0);
 /// The gain of the variable amplifier of the model.
-pub const VGA: Setting<field::I64> = crate::form::vga_gain(24, 62.0).range(0.0, 62.0, 2.0);
+pub const VGA: Setting<field::I64> = crate::form::vga_gain(24, 62.0, 2.0);
 /// The amplifier of the model, 14 dB.
 pub const AMP: Setting<field::Bool> = crate::form::rf_amp(true).help("Adds 14 dB.");
 

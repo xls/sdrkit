@@ -310,6 +310,11 @@ impl RadioOwner {
         self.auto_rate.load(Ordering::Acquire)
     }
 
+    /// True if the centre of the samples of the radio carries no carrier of its converter.
+    pub(crate) fn centre_clean(&self) -> bool {
+        self.radio.centre_clean()
+    }
+
     /// The limits of the rates of the radio.
     pub(crate) fn rates(&self) -> &sdrkit_driver_core::RateLimits {
         &self.radio.capabilities().rates

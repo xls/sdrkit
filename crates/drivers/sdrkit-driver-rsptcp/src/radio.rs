@@ -8,6 +8,7 @@ use crate::{
 };
 use sdrkit_core::net::{is_local, timed_out, Conn, NetError, Transport};
 use sdrkit_core::{Hz, Results, SettingSet, Value, Values};
+use sdrkit_driver_core::form;
 use sdrkit_driver_core::net::{self, Abort};
 use sdrkit_driver_core::rtl_tcp::{nearest_gain, Greeting};
 use sdrkit_driver_core::runner::{Notices, Radio, RadioStream, Sink, StreamCtx};
@@ -70,6 +71,8 @@ pub struct RspRadio {
     rate: u32,
     centre: Hz,
     gmax: f64,
+    /// The stages sent last.
+    stages: Option<crate::model::Stages>,
     addr: Arc<AddrState>,
     open: Arc<OpenState>,
     timing: Timing,
@@ -140,6 +143,7 @@ impl RspRadio {
             rate: 0,
             centre: values.get(&CENTRE),
             gmax,
+            stages: None,
             addr,
             open,
             timing: at.timing,
@@ -389,6 +393,7 @@ impl Radio for RspRadio {
             if !agc {
                 self.send_changed(cmd::IFGR, st.ifgr)?;
             }
+            self.stages = Some(st);
             self.gmax = gmax;
             if hiz && f > 30e6 {
                 self.note(
@@ -512,6 +517,12 @@ impl Radio for RspRadio {
 
     fn readings(&mut self, results: &mut Results) {
         self.info.write(results);
+        let st = self.stages;
+        {
+            let mut f = results.fields_mut();
+            f.opt(&form::LNA_STATE_NOW, st.map(|s| i64::from(s.lna_state)));
+            f.opt(&form::IF_REDUCTION_NOW, st.map(|s| i64::from(s.ifgr)));
+        }
         if let Some(t) = *lock(&self.addr.last) {
             results.fields_mut().set(&THROUGHPUT, t.mbit_s);
         }

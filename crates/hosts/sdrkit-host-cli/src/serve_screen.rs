@@ -79,6 +79,8 @@ pub struct Screen {
     pub notes: Vec<Note>,
     /// Where clients connect: "192.168.10.20:55140 (SoapyRemote)".
     pub addresses: Vec<String>,
+    /// Why this computer falls behind, when it does: the sender found no free buffer, or the ring of the radio fills.
+    pub behind: Option<String>,
 }
 
 /// The requests that the screen shows.
@@ -133,7 +135,7 @@ pub fn lines(s: &Screen, width: usize) -> Vec<String> {
     let r = &s.radio;
     let mut out = Vec::new();
     out.push(format!(
-        "sdrkit serve, up {}. q or Ctrl-C stops.",
+        "sdrkit serve, up {}. Keys: f follow, r remote, s slice; q or Ctrl-C stops.",
         clock(s.uptime_s)
     ));
     out.push(String::new());
@@ -172,6 +174,9 @@ pub fn lines(s: &Screen, width: usize) -> Vec<String> {
         _ => "level: no samples yet".to_owned(),
     };
     out.push(format!("  {level}, {} samples lost at the radio", r.lost));
+    if let Some(b) = &s.behind {
+        out.push(format!("  THIS COMPUTER FALLS BEHIND: {b}"));
+    }
     out.push(String::new());
     let n = s.clients.len();
     out.push(format!(
@@ -275,6 +280,7 @@ mod tests {
                 text: "not carried out: bandwidth 5 MHz (follow mode)".into(),
             }],
             addresses: vec!["192.168.10.20:55140 (SoapyRemote)".into()],
+            behind: Some("12 blocks found no buffer".into()),
         }
     }
 
@@ -282,7 +288,14 @@ mod tests {
     fn a_screen_at_80_columns() {
         let l = lines(&screen(), 80);
         assert!(l.iter().all(|x| x.chars().count() <= 80), "{l:#?}");
-        assert_eq!(l[0], "sdrkit serve, up 1:02:05. q or Ctrl-C stops.");
+        assert_eq!(
+            l[0],
+            "sdrkit serve, up 1:02:05. Keys: f follow, r remote, s slice; q or Ctrl-C stops."
+        );
+        assert!(
+            l.contains(&"  THIS COMPUTER FALLS BEHIND: 12 blocks found no buffer".to_owned()),
+            "{l:#?}"
+        );
         assert!(
             l.contains(&"  centre 104.9 MHz, rate 2.4 Msps".to_owned()),
             "{l:#?}"

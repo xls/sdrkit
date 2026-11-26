@@ -85,7 +85,8 @@ pub const SAMPLE_RATE: Setting<field::Choice<RateSource>> =
          SDRconnect runs, and resamples.",
     );
 /// The LNA state. -1 leaves the state as it is.
-pub const LNA: Setting<field::I64> = form::lna_state(form::STAGE_FOLLOWS, 255.0)
+pub const LNA: Setting<field::I64> = form::lna_state(-1, 255.0)
+    .special(-1.0, "As SDRconnect has it")
     .help(
         "The API of SDRconnect has one gain control, the LNA state. The IF gain and the AGC stay as SDRconnect has them. A \
          state outside the range SDRconnect reports for the radio and its band is refused. -1 leaves the state as it is.",
@@ -145,7 +146,7 @@ pub const RADIO_STARTED: Field<field::Bool> = Field::new("radio_started", "Radio
 /// This client can control the radio.
 pub const CAN_CONTROL: Field<field::Bool> = Field::new("can_control", "Control", "");
 /// The LNA state SDRconnect has.
-pub const LNA_STATE: Field<field::I64> = Field::new("lna_state", "LNA state", "");
+pub const LNA_STATE: Field<field::I64> = form::LNA_STATE_NOW;
 /// The lowest LNA state SDRconnect reports for the radio and its band.
 pub const LNA_MIN: Field<field::I64> = Field::new("lna_min", "Lowest LNA state", "");
 /// The highest LNA state SDRconnect reports for the radio and its band.

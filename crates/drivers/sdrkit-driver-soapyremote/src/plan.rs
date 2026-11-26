@@ -4,6 +4,7 @@
 use crate::rpc::{ArgInfo, ArgType, Kwargs, Range, DRIVER};
 use sdrkit_core::net::host_port;
 use sdrkit_core::{ChoiceDecl, FieldDecl, Hz, SettingDecl, Value, ValueKind};
+use sdrkit_driver_core::form::STAGE_FOLLOWS;
 use sdrkit_driver_core::DriverError;
 use std::borrow::Cow;
 
@@ -422,12 +423,27 @@ pub(crate) enum Control {
     },
     /// The RF gain state of a gain-reduction radio: sent with the gain ([`gain_plan`]), -1 lets the gain set it.
     RfState,
-    /// One gain element (call 704), in dB.
+    /// One gain element (call 704): a whole number of dB, -1 following the gain ([`STAGE_FOLLOWS`]), or for an amplifier
+    /// that is on or off, its top or its bottom.
     Stage {
         /// The name of the element.
         element: String,
-        /// The gain of the element when the radio opened. At this value the element follows the gain setting.
-        at_open: f64,
+        /// The range of the element, dB.
+        range: Range,
+        /// The setting is on or off.
+        switch: bool,
+    },
+    /// The antenna of the receive side (call 501), from the list of the radio.
+    Antenna {
+        /// The names, in the order of the choices.
+        names: Vec<String>,
+    },
+    /// The clock source (call 1003) or the time source (call 1006), from the list of the radio.
+    Source {
+        /// The call that sets it.
+        call: u32,
+        /// The names, in the order of the choices.
+        names: Vec<String>,
     },
 }
 
@@ -568,30 +584,122 @@ pub(crate) fn stages(elements: &[Element]) -> impl Iterator<Item = &Element> {
     })
 }
 
-/// The setting of gain element `e`, whose gain was `at_open` dB when the radio opened.
+/// The setting of gain element `e`: the standard stage of its name (`lna_gain`, `mixer_gain`, `vga_gain`, `amp`), else
+/// `gain.<name>`, in the section Gain. A stage in dB runs from -1 ([`STAGE_FOLLOWS`]: the gain sets it) to the top of the
+/// element; an amplifier (`AMP`, an element of one step) is on or off and starts as it was at open (`at_open` dB).
 pub(crate) fn stage_setting(e: &Element, at_open: Option<f64>) -> RunTime {
+    use sdrkit_driver_core::form::{
+        GAIN_SECTION, LNA_GAIN_FORM, MIXER_GAIN_FORM, RF_AMP_FORM, VGA_GAIN_FORM,
+    };
     let r = e.range;
-    let at_open = at_open.unwrap_or(r.min).clamp(r.min, r.max);
-    let field = FieldDecl::new(
-        format!("gain.{}", e.name),
-        stage_label(&e.name),
-        "dB",
-        ValueKind::F64,
-    );
+    let upper = e.name.to_uppercase();
+    let switch = upper == "AMP" || (r.step > 0.0 && (r.max - r.min - r.step).abs() < 1e-9);
+    let standard = match upper.as_str() {
+        _ if switch => Some(RF_AMP_FORM),
+        "LNA" => Some(LNA_GAIN_FORM),
+        "MIX" | "MIXER" => Some(MIXER_GAIN_FORM),
+        "VGA" => Some(VGA_GAIN_FORM),
+        _ => None,
+    };
+    let (key, label) = match standard {
+        Some(f) => (Cow::Borrowed(f.key), Cow::Borrowed(f.label)),
+        None => (
+            Cow::Owned(format!("gain.{}", e.name)),
+            Cow::Owned(stage_label(&e.name)),
+        ),
+    };
+    let control = Control::Stage {
+        element: e.name.clone(),
+        range: r,
+        switch,
+    };
+    let decl = if switch {
+        let on = at_open.is_some_and(|x| x > r.min + (r.max - r.min) / 2.0);
+        SettingDecl::new(
+            FieldDecl::new(key, label, "", ValueKind::Bool),
+            Value::Bool(on),
+        )
+    } else {
+        SettingDecl::new(
+            FieldDecl::new(key, label, "dB", ValueKind::I64),
+            Value::I64(STAGE_FOLLOWS),
+        )
+        .with_range(STAGE_FOLLOWS as f64, r.max.max(0.0), r.step.max(1.0))
+    };
     RunTime {
-        control: Control::Stage {
-            element: e.name.clone(),
-            at_open,
-        },
-        decl: SettingDecl::new(field, Value::F64(at_open))
-            .with_range(r.min, r.max, r.step.max(0.0))
-            .with_section("Gain stages")
-            .with_help(format!(
-                "The gain of the element {} of the radio. A value other than the one at open overrides what the gain setting \
-                 gives this element.",
-                e.name
-            )),
+        control,
+        decl: decl.with_section(GAIN_SECTION).with_help(format!(
+            "The gain of the element {} of the radio. -1 lets the gain setting share the gain between the stages; another \
+             value sets this stage after the gain.",
+            e.name
+        )),
     }
+}
+
+/// The setting of the antenna of a radio that lists `names` and has `now` on, as the standard choice.
+pub(crate) fn antenna_setting(names: &[String], now: Option<&str>) -> RunTime {
+    use sdrkit_driver_core::form::{ANTENNA_FORM, ANTENNA_SECTION};
+    let decl = list_setting(ANTENNA_FORM.key, ANTENNA_FORM.label, names, now)
+        .with_section(ANTENNA_SECTION)
+        .with_help("The antenna input of the radio, from the list that the server gives.");
+    RunTime {
+        control: Control::Antenna {
+            names: names.to_vec(),
+        },
+        decl,
+    }
+}
+
+/// The setting of the clock source (`clock`) or the time source of a radio that lists `names` and has `now`.
+pub(crate) fn source_setting(clock: bool, names: &[String], now: Option<&str>) -> RunTime {
+    use sdrkit_driver_core::form::{ANTENNA_SECTION, CLOCK_SOURCE_FORM};
+    let (key, label, call, help) = if clock {
+        (
+            CLOCK_SOURCE_FORM.key,
+            CLOCK_SOURCE_FORM.label,
+            crate::rpc::call::SET_CLOCK_SOURCE,
+            "Where the radio takes its reference clock from, from the list that the server gives.",
+        )
+    } else {
+        (
+            "timesrc",
+            "Time source (PPS)",
+            crate::rpc::call::SET_TIME_SOURCE,
+            "Where the radio takes its one pulse per second from, from the list that the server gives.",
+        )
+    };
+    RunTime {
+        control: Control::Source {
+            call,
+            names: names.to_vec(),
+        },
+        decl: list_setting(key, label, names, now)
+            .with_section(ANTENNA_SECTION)
+            .with_help(help),
+    }
+}
+
+/// A choice of `names`, at `now` or the first.
+fn list_setting(
+    key: &'static str,
+    label: &'static str,
+    names: &[String],
+    now: Option<&str>,
+) -> SettingDecl {
+    let choices: Vec<ChoiceDecl> = names
+        .iter()
+        .map(|n| ChoiceDecl {
+            key: Cow::Owned(n.clone()),
+            label: Cow::Owned(n.clone()),
+        })
+        .collect();
+    let at = now
+        .and_then(|n| names.iter().position(|x| x == n))
+        .unwrap_or(0);
+    SettingDecl::new(
+        FieldDecl::with_choices(key, label, choices),
+        Value::Choice(at as u16),
+    )
 }
 
 /// The setting of the RF gain state of a radio whose RF stage spans `rf`: only a radio with gain reduction stages has it.

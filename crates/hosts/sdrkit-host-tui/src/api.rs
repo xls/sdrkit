@@ -481,8 +481,10 @@ pub struct Decl {
     pub advanced: bool,
     /// The default value of a setting or an argument.
     pub default: Value,
-    /// What the number 0 means when it is not a quantity ("Automatic"), or empty.
+    /// What the special number ([`Decl::special_value`]) means when it is not a quantity ("Automatic"), or empty.
     pub zero_means: String,
+    /// The number that `zero_means` names: 0, or another.
+    pub special_value: f64,
     /// The options of a value of type [`Type::Enum`].
     pub options: Vec<Opt>,
     /// For a value that holds a row key: the key of the object of the table, or empty for the same object.
@@ -513,6 +515,7 @@ impl Decl {
             advanced: d.flags & sys::SDRKIT_DECL_ADVANCED != 0,
             default,
             zero_means: owned(d.zero_means),
+            special_value: d.special_value,
             options: Vec::new(),
             refers_object: owned(d.refers_object),
             refers_table: owned(d.refers_table),

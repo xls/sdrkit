@@ -75,8 +75,9 @@ pub struct Decl {
     pub step: f64,
     /// The default value. Settings and arguments only.
     pub default_value: Variant,
-    /// What the number 0 means when it is not a quantity ("Automatic"), or empty. With a meaning, 0 is valid outside the
-    /// range, and a front end shows the meaning in place of the number. Settings and arguments only.
+    /// What the special number (`special_value`, 0 unless declared) means when it is not a quantity ("Automatic"), or
+    /// empty. With a meaning, the special number is valid outside the range, and a front end shows the meaning in place
+    /// of the number. Settings and arguments only.
     pub zero_means: Str,
     /// For `SDRKIT_TYPE_ENUM`: the number of options. For `SDRKIT_TYPE_FLAGS`: the number of flags; option n is the
     /// flag of bit n.
@@ -104,6 +105,9 @@ pub struct Decl {
     /// The place of the field among the key readings of its object, from 1: what a person looks at first. 0 for a
     /// field that is no key reading. Result fields only.
     pub reading: u32,
+    /// The number that `zero_means` names: 0, or another (-1 for a gain stage that follows the gain). Settings and
+    /// arguments only.
+    pub special_value: f64,
 }
 
 /// One option of a value of type `SDRKIT_TYPE_ENUM`, or one flag of a value of type `SDRKIT_TYPE_FLAGS`.
@@ -259,6 +263,7 @@ fn decl_of(f: &FieldDecl, s: Option<&SettingDecl>) -> Decl {
         },
         refers_column: Str::of(refers.map_or("", |r| &r.column)),
         reading: u32::from(f.reading),
+        special_value: s.map_or(0.0, |s| s.special_value),
     }
 }
 

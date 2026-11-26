@@ -70,9 +70,6 @@ fn print_the_settings() {
 const PENDING: &[(&str, &str)] = &[
     // The settings of the test signal come from the generator of the signal (sdrkit-algo-sim) without a step.
     ("synth", "gen_"),
-    // The antenna and the clock source of a SoapyRemote radio are lists that the server gives only once it is open.
-    ("soapyremote", "antenna"),
-    ("soapyremote", "clocksrc"),
 ];
 
 /// True if `problem` of driver `key` is a setting of [`PENDING`].

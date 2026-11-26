@@ -87,15 +87,13 @@ impl Default for Timing {
 use sdrkit_driver_core::form;
 
 /// The LNA gain by hand. -1 follows the gain.
-pub const LNA: Setting<field::I64> = form::lna_gain(form::STAGE_FOLLOWS, 40.0)
-    .common(&[0.0, 8.0, 16.0, 24.0, 32.0, 40.0])
+pub const LNA: Setting<field::I64> = form::follows_gain(form::lna_gain(form::STAGE_FOLLOWS, 40.0, 8.0))
     .help(
         "The receive IF gain, 0 to 40 dB in 8 dB steps; a value between steps is rounded down. -1 follows the gain. Start \
          at 16 dB and raise LNA and VGA by about the same amount.",
     );
 /// The VGA gain by hand. -1 follows the gain.
-pub const VGA: Setting<field::I64> = form::vga_gain(form::STAGE_FOLLOWS, 62.0)
-    .common(&[0.0, 8.0, 16.0, 24.0, 32.0, 40.0, 48.0, 56.0, 62.0])
+pub const VGA: Setting<field::I64> = form::follows_gain(form::vga_gain(form::STAGE_FOLLOWS, 62.0, 2.0))
     .help("The receive baseband gain, 0 to 62 dB in 2 dB steps; an odd value is rounded down. -1 follows the gain.");
 /// The RF amplifier while receiving.
 pub const AMP: Setting<field::Bool> = form::rf_amp(false).help(
@@ -177,14 +175,21 @@ pub const READINGS: &[&dyn Declare] = &[
     &SHORTFALLS,
     &MEASURED_RATE,
     &TX_OUTPUT_DBM,
+    &form::LNA_GAIN_NOW,
+    &form::VGA_GAIN_NOW,
 ];
 
 /// Writes the readings of `link` into `results`.
 pub(crate) fn write_readings(link: &Link, results: &mut Results) {
     let f = &link.facts;
-    let rate = lock(&link.rx).rate;
+    let (rate, lna, vga) = {
+        let rx = lock(&link.rx);
+        (rx.rate, rx.lna, rx.vga)
+    };
     let s = lock(&link.stats).clone();
     let mut r = results.fields_mut();
+    r.set(&form::LNA_GAIN_NOW, i64::from(lna));
+    r.set(&form::VGA_GAIN_NOW, i64::from(vga));
     r.set(&BOARD, &f.name());
     r.set(&BOARD_ID, i64::from(f.board_id));
     r.opt(

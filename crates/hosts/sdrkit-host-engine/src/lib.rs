@@ -1482,7 +1482,7 @@ impl Engine {
         }
         let hz = match input {
             Input::Radio(r) if sh.radio_tunes(r)? => {
-                sh.prepare_radio(r, &operator.demand(), desc.tuning.min_rate_hz, desc.name)?;
+                sh.prepare_radio(r, &operator.demand(), &desc.tuning, desc.name)?;
                 Some(operator.frequency())
             }
             Input::Radio(_) => centre_hz,

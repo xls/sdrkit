@@ -134,6 +134,8 @@ pub fn values(driver: &dyn SourceDriver, set: &[(&str, Value)]) -> Values {
         ("agc", Value::Bool(false)),
         ("gain", Value::F64(29.7)),
         ("serverlog", Value::Bool(false)),
+        // The tests compare the samples as they came: the removal of the DC offset is off.
+        ("dc_removal", Value::Bool(false)),
         // The fake server streams over UDP; the default transport is TCP.
         (
             "transport",

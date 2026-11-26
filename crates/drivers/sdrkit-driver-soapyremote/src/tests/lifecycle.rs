@@ -3,9 +3,9 @@
 use super::fake::{self, Fake, Script};
 use super::*;
 use crate::rpc::{self, call, ArgInfo, ArgType, Packer, Range, Unpacker};
-use crate::{SoapyRemoteSetting, SoapySource, ITEM_VALUE, OVERFLOWS, SENSORS};
+use crate::{SoapySource, ITEM_VALUE, OVERFLOWS, SENSORS};
 use sdrkit_core::{Schema, SettingId, SettingSet};
-use sdrkit_driver_core::{own_id, ring, DriverError, RadioSetting, Retuned, RingReader};
+use sdrkit_driver_core::{ring, DriverError, RadioSetting, Retuned, RingReader};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
@@ -310,24 +310,18 @@ fn gain_stages_set_by_hand() {
     let added = src.settings();
     let labels: Vec<_> = added
         .iter()
-        .filter(|d| d.field.key.starts_with("gain."))
+        .filter(|d| d.section == "Gain")
         .map(|d| (d.field.key.as_ref(), d.field.label.as_ref()))
         .collect();
-    assert_eq!(
-        labels,
-        [
-            ("gain.LNA", "Low-noise amplifier (LNA)"),
-            ("gain.VGA", "Variable-gain amplifier (VGA)")
-        ]
-    );
-    // A stage at its value at open follows the gain; a stage set by hand is sent after the gain.
+    assert_eq!(labels, [("lna_gain", "LNA gain"), ("vga_gain", "VGA gain")]);
+    // A stage at -1 follows the gain; a stage set by hand is sent after the gain.
     let n = f.control().len();
     let t = with_run_time(
         &src,
         &[
             remote("lime"),
             ("gain", Value::F64(30.0)),
-            ("gain.VGA", Value::F64(12.0)),
+            ("vga_gain", Value::I64(12)),
         ],
     );
     src.apply(&t).unwrap();
@@ -341,7 +335,7 @@ fn gain_stages_set_by_hand() {
         &[
             remote("lime"),
             ("gain", Value::F64(30.0)),
-            ("gain.VGA", Value::F64(14.0)),
+            ("vga_gain", Value::I64(14)),
         ],
     );
     assert_eq!(
@@ -350,7 +344,7 @@ fn gain_stages_set_by_hand() {
             id: DESCRIPTOR.run_time_id(
                 added
                     .iter()
-                    .position(|d| d.field.key == "gain.VGA")
+                    .position(|d| d.field.key == "vga_gain")
                     .unwrap()
             )
         }
@@ -419,52 +413,64 @@ fn clock_source_antenna_and_sensors_at_open() {
         .insert(call::LIST_SENSORS, fake::strings(&["temp"]));
     s.replies.insert(call::READ_SENSOR, fake::string("41.5"));
     let f = Fake::start(s);
-    let t = vals(&[
-        remote("usrp"),
-        ("clocksrc", Value::Text("external".into())),
-        ("antenna", Value::Text("B".into())),
-    ]);
-    let (mut src, _r) = start(&f, &t);
-    let c = f.control();
+    let (mut src, _r) = start(&f, &vals(&[remote("usrp")]));
+    // The antenna and the clock source are choices from the lists of the radio, at what it has now.
+    let choices = |key: &str| {
+        let d = src
+            .settings()
+            .into_iter()
+            .find(|d| d.field.key == key)
+            .unwrap();
+        let names: Vec<String> = d.field.choices.iter().map(|c| c.key.to_string()).collect();
+        (names, d.default, d.section.to_string())
+    };
+    assert_eq!(
+        choices("antenna"),
+        (
+            vec!["A".into(), "B".into()],
+            Value::Choice(0),
+            "Antenna and power".into()
+        )
+    );
+    assert_eq!(
+        choices("clocksrc"),
+        (
+            vec!["internal".into(), "external".into()],
+            Value::Choice(0),
+            "Antenna and power".into()
+        )
+    );
+    let n = f.control().len();
+    let t = with_run_time(
+        &src,
+        &[
+            remote("usrp"),
+            ("antenna", Value::Choice(1)),
+            ("clocksrc", Value::Choice(1)),
+        ],
+    );
+    src.apply(&t).unwrap();
     let ant = req(call::SET_ANTENNA, |p| {
         p.dir_ch(1, 0).string("B");
     });
     let clk = req(call::SET_CLOCK_SOURCE, |p| {
         p.string("external");
     });
-    let ia = c.iter().position(|r| r.bytes == ant).expect("antenna");
-    let ic = c.iter().position(|r| r.bytes == clk).expect("clock source");
-    let ir = c
-        .iter()
-        .position(|r| r.call == call::SET_SAMPLE_RATE)
-        .unwrap();
-    assert!(ia < ic && ic < ir);
+    let sent = bytes_since(&f, n);
+    assert!(sent.contains(&ant) && sent.contains(&clk), "{sent:?}");
     let mut res = results();
     src.poll(&mut res);
     let id = res.decl().table_id(SENSORS.key).unwrap();
     let table = res.table(id).unwrap();
     assert_eq!(table.row("temp").unwrap().get(&ITEM_VALUE), Some("41.5"));
-    src.stop();
-    // A refused clock source fails the open.
+    // A refused clock source is a refusal of its own setting.
     f.script.lock().unwrap().handler = Some(Arc::new(|n, _| {
         (n == call::SET_CLOCK_SOURCE).then(|| fake::exception("no 10 MHz"))
     }));
-    let err = drv(&f).open(&f.addr(), &t).err().unwrap();
-    assert_eq!(
-        err,
-        DriverError::Refused {
-            id: own_id(SoapyRemoteSetting::ClockSource)
-        }
-    );
-    // An antenna the radio does not list fails the open.
-    let t = vals(&[remote("usrp"), ("antenna", Value::Text("C".into()))]);
-    let err = drv(&f).open(&f.addr(), &t).err().unwrap();
-    assert_eq!(
-        err,
-        DriverError::Refused {
-            id: own_id(SoapyRemoteSetting::Antenna)
-        }
-    );
+    let t = with_run_time(&src, &[remote("usrp"), ("clocksrc", Value::Choice(0))]);
+    let id = t.schema().id("clocksrc").unwrap();
+    assert_eq!(src.apply(&t).unwrap_err(), DriverError::Refused { id });
+    src.stop();
 }
 
 #[test]

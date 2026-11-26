@@ -582,7 +582,7 @@
 
 // The minor version of the C interface of this library. It rises when the base header gets a function, a constant or
 // a member at the end of a struct that starts with `size`.
-#define SDRKIT_INTERFACE_VERSION_MINOR 4
+#define SDRKIT_INTERFACE_VERSION_MINOR 5
 
 // No value.
 #define SDRKIT_TYPE_NONE 0
@@ -731,8 +731,9 @@ typedef struct sdrkit_decl {
   double step;
   // The default value. Settings and arguments only.
   struct sdrkit_variant default_value;
-  // What the number 0 means when it is not a quantity ("Automatic"), or empty. With a meaning, 0 is valid outside the
-  // range, and a front end shows the meaning in place of the number. Settings and arguments only.
+  // What the special number (`special_value`, 0 unless declared) means when it is not a quantity ("Automatic"), or
+  // empty. With a meaning, the special number is valid outside the range, and a front end shows the meaning in place
+  // of the number. Settings and arguments only.
   struct sdrkit_string zero_means;
   // For `SDRKIT_TYPE_ENUM`: the number of options. For `SDRKIT_TYPE_FLAGS`: the number of flags; option n is the
   // flag of bit n.
@@ -760,6 +761,9 @@ typedef struct sdrkit_decl {
   // The place of the field among the key readings of its object, from 1: what a person looks at first. 0 for a
   // field that is no key reading. Result fields only.
   uint32_t reading;
+  // The number that `zero_means` names: 0, or another (-1 for a gain stage that follows the gain). Settings and
+  // arguments only.
+  double special_value;
 } sdrkit_decl;
 
 // One option of a value of type `SDRKIT_TYPE_ENUM`, or one flag of a value of type `SDRKIT_TYPE_FLAGS`.

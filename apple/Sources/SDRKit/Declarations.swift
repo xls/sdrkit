@@ -64,8 +64,11 @@ public struct Declaration: Equatable, Sendable {
     public var step: Double
     /// The default value. Settings and arguments only.
     public var defaultValue: Value
-    /// What the number 0 means when it is not a quantity ("Automatic"). With a meaning, 0 is valid outside the range.
+    /// What the special number (`specialValue`, 0 unless declared) means when it is not a quantity ("Automatic"). With a
+    /// meaning, the special number is valid outside the range.
     public var zeroMeans: String
+    /// The number that `zeroMeans` names: 0, or another (-1 for a gain stage that follows the gain).
+    public var specialValue: Double
     /// The options of a value of type `.option`, by index, or the flags of a value of type `.flags`, by bit.
     public var options: [Option]
     /// The values of a number setting that people normally use, for the present option of the setting that they depend
@@ -131,6 +134,7 @@ public struct Declaration: Equatable, Sendable {
         step = d.step
         defaultValue = Value(d.default_value)
         zeroMeans = copy(d.zero_means)
+        specialValue = d.special_value
         options = []
         refersObject = copy(d.refers_object)
         refersTable = copy(d.refers_table)

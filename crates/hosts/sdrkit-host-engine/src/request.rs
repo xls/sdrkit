@@ -529,7 +529,10 @@ impl Shared {
         let radio = self
             .radio(r)
             .ok_or(EngineError::NoSuchOwner(OwnerRef::Radio(r)))?;
-        let demand = lock(&s.control).operator.demand();
+        let (demand, tuning) = {
+            let c = lock(&s.control);
+            (c.operator.demand(), c.stack.map(|d| d.tuning.clone()))
+        };
         if let Some(tx) = demand.transmit {
             // A frequency that the transmitter does not have stays out of the radio's settings; a burst there is refused.
             let _ = radio.owner.lock().tx_tune(tx.centre_hz, None);
@@ -546,7 +549,11 @@ impl Shared {
         }
         let mut o = radio.owner.lock();
         let c = EngineError::id_of(o.schema(), sdrkit_driver_core::CENTRE.field.key)?;
-        let centre = sdrkit_core::Value::Hz(rx.tuned_hz + rx.tune_offset_hz);
+        let offset = match &tuning {
+            Some(t) if o.capabilities().realtime => radio_offset(t, o.centre_clean(), rate_hz),
+            _ => rx.tune_offset_hz,
+        };
+        let centre = sdrkit_core::Value::Hz(rx.tuned_hz + offset);
         EngineError::apply(&mut *o, c, &centre)?;
         Ok(())
     }
@@ -593,9 +600,10 @@ impl Shared {
         &self,
         r: crate::RadioId,
         demand: &sdrkit_core::Demand,
-        least_hz: f64,
+        tuning: &sdrkit_core::Tuning,
         stack: &'static str,
     ) -> Result<(), EngineError> {
+        let least_hz = tuning.min_rate_hz;
         let radio = self
             .radio(r)
             .ok_or(EngineError::NoSuchOwner(OwnerRef::Radio(r)))?;
@@ -618,7 +626,17 @@ impl Shared {
         if rx.tuned_hz <= 0.0 {
             return Ok(());
         }
-        let centre = rx.tuned_hz + rx.tune_offset_hz;
+        let rate_hz = match radio.feed.tuning().0 {
+            r if r > 0.0 => r,
+            _ => rx.rate_hz,
+        };
+        // A test signal or a recording has no converter: it keeps the offset that its station was made at.
+        let offset = if o.capabilities().realtime {
+            radio_offset(tuning, o.centre_clean(), rate_hz)
+        } else {
+            rx.tune_offset_hz
+        };
+        let centre = rx.tuned_hz + offset;
         let id = EngineError::id_of(o.schema(), sdrkit_driver_core::CENTRE.field.key)?;
         EngineError::apply(&mut *o, id, &sdrkit_core::Value::Hz(centre))?;
         Ok(())
@@ -1061,5 +1079,104 @@ mod tests {
             got: 2.56e6,
         };
         assert_eq!(automatic_rate(&ranges, 8e6, 5.6e6), Err(refused));
+    }
+}
+
+/// The part of the sample rate, either side of the centre, that a channel stays inside: the filters of the radio roll off
+/// beyond it.
+const CAPTURE_SHARE: f64 = 0.4;
+/// The distance from the centre of the radio to the centre of the channel, in half channel widths: a quarter of a half
+/// width beyond the edge of the channel.
+const OFFSET_MARGIN: f64 = 1.25;
+
+/// How far above the station the engine tunes a radio with a clean centre or not (`clean`, see
+/// [`sdrkit_driver_core::form::centre_is_clean`]) at `rate_hz`, for a stack of `tuning`. The offset keeps the carrier of
+/// the radio's converter out of the channel:
+///
+/// - 0 for a stack that must not be offset-tuned, and on a clean centre, unless the signal has a carrier at its centre
+///   that the DC removal of the radio would take;
+/// - else the larger of the stack's own offset and [`OFFSET_MARGIN`] half channel widths, rounded up to 1, 2 or 5 times
+///   a power of ten;
+/// - 0 when the channel would then reach beyond [`CAPTURE_SHARE`] of the rate from the centre.
+pub(crate) fn radio_offset(t: &sdrkit_core::Tuning, clean: bool, rate_hz: f64) -> f64 {
+    if t.no_offset_tuning || (clean && !t.carrier_at_centre) {
+        return 0.0;
+    }
+    let half = t.bandwidth_hz.max(0.0) / 2.0;
+    let offset = round_up(half * OFFSET_MARGIN).max(t.tune_offset_hz);
+    if rate_hz > 0.0 && offset + half > CAPTURE_SHARE * rate_hz {
+        return 0.0;
+    }
+    offset
+}
+
+/// `x` rounded up to 1, 2 or 5 times a power of ten. 0 for 0.
+fn round_up(x: f64) -> f64 {
+    if x <= 0.0 || !x.is_finite() {
+        return 0.0;
+    }
+    let p = 10f64.powf(x.log10().floor());
+    [1.0, 2.0, 5.0, 10.0]
+        .into_iter()
+        .map(|m| m * p)
+        .find(|v| *v >= x * (1.0 - 1e-12))
+        .unwrap_or(10.0 * p)
+}
+
+#[cfg(test)]
+mod offset_tests {
+    use super::*;
+
+    fn narrow() -> sdrkit_core::Tuning {
+        // 12.5 kHz voice, which asks for 20 kHz itself.
+        sdrkit_core::Tuning {
+            tune_offset_hz: 20e3,
+            ..sdrkit_core::Tuning::anywhere(446e6, 250e3, 48e3, 12.5e3)
+        }
+    }
+
+    #[test]
+    fn a_narrow_stack_on_a_clean_radio_is_tuned_onto_its_station() {
+        assert_eq!(radio_offset(&narrow(), true, 2e6), 0.0);
+    }
+
+    #[test]
+    fn a_narrow_stack_on_a_radio_without_correction_keeps_the_carrier_beyond_its_channel() {
+        let off = radio_offset(&narrow(), false, 2e6);
+        // Beyond the channel, and at least the 20 kHz the stack asks for.
+        assert_eq!(off, 20e3);
+        // An AM signal keeps its carrier off the centre even on a clean radio.
+        let am = sdrkit_core::Tuning {
+            carrier_at_centre: true,
+            ..sdrkit_core::Tuning::anywhere(1e6, 250e3, 48e3, 10e3)
+        };
+        assert_eq!(radio_offset(&am, true, 2e6), 10e3);
+    }
+
+    #[test]
+    fn a_wide_stack_is_on_its_centre_or_beyond_its_channel() {
+        let fm = sdrkit_core::Tuning::anywhere(104.9e6, 2.4e6, 1e6, 200e3);
+        assert_eq!(radio_offset(&fm, true, 2.4e6), 0.0);
+        let off = radio_offset(&fm, false, 2.4e6);
+        assert_eq!(off, 200e3);
+        assert!(off - 100e3 > 0.0);
+    }
+
+    #[test]
+    fn a_capture_too_narrow_for_the_offset_leaves_the_centre_on_the_station() {
+        let fm = sdrkit_core::Tuning::anywhere(104.9e6, 2.4e6, 1e6, 200e3);
+        assert_eq!(radio_offset(&fm, false, 0.5e6), 0.0);
+        let held = sdrkit_core::Tuning {
+            no_offset_tuning: true,
+            ..narrow()
+        };
+        assert_eq!(radio_offset(&held, false, 2e6), 0.0);
+    }
+
+    #[test]
+    fn offsets_are_round() {
+        assert_eq!(round_up(7812.5), 10e3);
+        assert_eq!(round_up(125e3), 200e3);
+        assert_eq!(round_up(20e3), 20e3);
     }
 }

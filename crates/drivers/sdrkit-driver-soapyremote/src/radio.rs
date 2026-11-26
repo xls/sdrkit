@@ -12,8 +12,8 @@ use crate::rpc::{
 use crate::stream::{Flow, RxShared, RxSockets, RxStream, StreamStats};
 use crate::wire::{self, Wire, PROT_KEY};
 use crate::{
-    lock, Mtu, SoapyError, SoapyRemoteSetting, StreamProt, Timing, ANTENNA, CLOCK_SOURCE, FORMAT,
-    MTU, PPM, REMOTE, SERVER_LOG, TIME_SOURCE, TRANSPORT, WINDOW,
+    lock, Mtu, SoapyError, SoapyRemoteSetting, StreamProt, Timing, FORMAT, MTU, PPM, REMOTE,
+    SERVER_LOG, TRANSPORT, WINDOW,
 };
 use crate::{
     write_items, ARRIVING, DATAGRAM, DRIVER, HARDWARE, HARDWARE_INFO, LATE, LOG_DROPPED,
@@ -101,8 +101,11 @@ pub(crate) struct Facts {
     pub sensors: Vec<(String, String)>,
     /// The serial, from the hardware info or the arguments.
     pub serial: String,
-    /// The settings of the radio's driver (calls 1402, 1401), then the gain elements as settings of their own.
+    /// The settings that the open radio adds: its gain stages, its antenna and its sources, then the settings of its
+    /// driver (calls 1402, 1401).
     pub run_time: Vec<RunTime>,
+    /// The radio removes its own DC offset (call 600).
+    pub has_dc_mode: bool,
 }
 
 impl Facts {
@@ -163,22 +166,10 @@ impl Facts {
     ///
     /// [`DriverError::Refused`] with the setting the radio cannot take.
     pub fn check(&self, values: &Values) -> Result<(), DriverError> {
-        let refused = |s: SoapyRemoteSetting| Err(DriverError::Refused { id: own_id(s) });
         if let Some((id, rf)) = self.rf_state(values) {
             if rf >= 0 && !self.rf_stage().is_some_and(|(r, _)| in_range(r, rf as f64)) {
                 return Err(DriverError::Refused { id });
             }
-        }
-        let listed =
-            |want: &str, list: &[String]| want.is_empty() || list.iter().any(|a| a == want);
-        if !listed(values.get(&ANTENNA), &self.antennas) {
-            return refused(SoapyRemoteSetting::Antenna);
-        }
-        if !listed(values.get(&CLOCK_SOURCE), &self.clocks) {
-            return refused(SoapyRemoteSetting::ClockSource);
-        }
-        if !listed(values.get(&TIME_SOURCE), &self.times) {
-            return refused(SoapyRemoteSetting::TimeSource);
         }
         if values.get(&BIAS_TEE) && self.bias.is_none() {
             return Err(DriverError::Refused {
@@ -223,12 +214,6 @@ pub(crate) struct Options {
     pub transport: StreamProt,
     /// Forward the server's log.
     pub serverlog: bool,
-    /// The antenna ("": the radio's default).
-    pub antenna: String,
-    /// The clock source ("": as the radio is).
-    pub clock: String,
-    /// The time source ("": as the radio is).
-    pub time: String,
 }
 
 impl Options {
@@ -248,9 +233,6 @@ impl Options {
             window: (values.get(&WINDOW) * 1_048_576.0).round() as usize,
             transport: values.get(&TRANSPORT),
             serverlog: values.get(&SERVER_LOG),
-            antenna: values.get(&ANTENNA).to_owned(),
-            clock: values.get(&CLOCK_SOURCE).to_owned(),
-            time: values.get(&TIME_SOURCE).to_owned(),
         }
     }
 }
@@ -420,6 +402,14 @@ fn dir_ch(n: u32, dir: i8) -> Packer {
     p
 }
 
+/// The name of choice `v` of `names`.
+fn choice_name<'a>(v: &Value, names: &'a [String]) -> Option<&'a str> {
+    match v {
+        Value::Choice(i) => names.get(usize::from(*i)).map(String::as_str),
+        _ => None,
+    }
+}
+
 /// A frequency that the server reads back this far from the one sent is held by the server, Hz. A tuner's own steps
 /// are smaller.
 const HELD_TOLERANCE_HZ: f64 = 1e3;
@@ -448,6 +438,8 @@ struct Sent {
     gain: Option<GainPlan>,
     bias: bool,
     bias_on: bool,
+    /// The DC offset mode last sent.
+    dc_mode: Option<bool>,
     /// The centre that the server read back after the last frequency, and whether it holds the radio elsewhere.
     held: Option<(Hz, bool)>,
     /// The value last sent of each run-time setting, by its index in [`Facts::run_time`]. It starts with the values at open.
@@ -712,7 +704,8 @@ impl SoapyRadio {
                     .extend(plan::module_setting(info, value.as_deref()));
             }
         }
-        f.run_time.extend(stages);
+        // In the order of the sections: the gain stages, the antenna and the sources, then the driver's own settings.
+        let own = std::mem::replace(&mut f.run_time, stages);
         if let Some((rf, _)) = plan::rf_stage(&f.elements) {
             f.run_time.push(plan::rf_state_setting(rf.range));
         }
@@ -736,6 +729,29 @@ impl SoapyRadio {
                 u.string()
             })?;
         }
+        if f.antennas.len() > 1 {
+            let now = self.opt(call::GET_ANTENNA, &dir_ch(call::GET_ANTENNA, RX), |u| {
+                u.string()
+            })?;
+            f.run_time
+                .push(plan::antenna_setting(&f.antennas, now.as_deref()));
+        }
+        if f.clocks.len() > 1 {
+            f.run_time
+                .push(plan::source_setting(true, &f.clocks, f.clock.as_deref()));
+        }
+        if f.times.len() > 1 {
+            f.run_time
+                .push(plan::source_setting(false, &f.times, f.time.as_deref()));
+        }
+        f.run_time.extend(own);
+        f.has_dc_mode = self
+            .opt(
+                call::HAS_DC_OFFSET_MODE,
+                &dir_ch(call::HAS_DC_OFFSET_MODE, RX),
+                |u| u.bool(),
+            )?
+            .unwrap_or(false);
         f.bandwidths = match self.opt(
             call::BANDWIDTH_RANGE,
             &dir_ch(call::BANDWIDTH_RANGE, RX),
@@ -800,17 +816,6 @@ impl SoapyRadio {
         self.sent.bias = f.bias.as_ref().is_some_and(|b| b.1);
         self.sent.radio_corrects = true;
         self.facts = f;
-        // The antenna takes effect at open.
-        if !self.opts.antenna.is_empty() {
-            if !self.facts.antennas.contains(&self.opts.antenna) {
-                return Err(DriverError::Refused {
-                    id: own_id(SoapyRemoteSetting::Antenna),
-                });
-            }
-            let mut p = dir_ch(call::SET_ANTENNA, RX);
-            p.string(&self.opts.antenna);
-            self.set(call::SET_ANTENNA, &p, own_id(SoapyRemoteSetting::Antenna))?;
-        }
         Ok(())
     }
 
@@ -876,37 +881,6 @@ impl SoapyRadio {
             Ok(code) => Err(DriverError::Device { code }),
             Err(e) => Err(e.driver_error(call::ACTIVATE_STREAM)),
         }
-    }
-
-    /// The clock and time sources, at open only.
-    fn sources(&mut self) -> Result<(), DriverError> {
-        for (want, cur, n, id) in [
-            (
-                self.opts.clock.clone(),
-                self.facts.clock.clone(),
-                call::SET_CLOCK_SOURCE,
-                SoapyRemoteSetting::ClockSource,
-            ),
-            (
-                self.opts.time.clone(),
-                self.facts.time.clone(),
-                call::SET_TIME_SOURCE,
-                SoapyRemoteSetting::TimeSource,
-            ),
-        ] {
-            if want.is_empty() || cur.as_deref() == Some(want.as_str()) {
-                continue;
-            }
-            let mut p = Packer::call(n);
-            p.string(&want);
-            self.set(n, &p, own_id(id))?;
-            if n == call::SET_CLOCK_SOURCE {
-                self.facts.clock = Some(want);
-            } else {
-                self.facts.time = Some(want);
-            }
-        }
-        Ok(())
     }
 
     /// The rate and the filter.
@@ -1022,6 +996,18 @@ impl SoapyRadio {
             }
             _ => centre,
         };
+        // A radio that removes its own DC offset does so; the reader of the ring removes what is left (`dc::follow`).
+        let dc = values.get(&crate::DC_REMOVAL);
+        if self.facts.has_dc_mode && self.sent.dc_mode != Some(dc) {
+            let mut p = dir_ch(call::SET_DC_OFFSET_MODE, RX);
+            p.bool(dc);
+            self.set(
+                call::SET_DC_OFFSET_MODE,
+                &p,
+                own_id(SoapyRemoteSetting::DcRemoval),
+            )?;
+            self.sent.dc_mode = Some(dc);
+        }
         let agc = values.get(&AGC);
         if self.facts.has_gain_mode && self.sent.gain_mode != Some(agc) {
             let mut p = dir_ch(call::SET_GAIN_MODE, RX);
@@ -1098,14 +1084,42 @@ impl SoapyRadio {
                 }
                 // Sent with the gain.
                 Control::RfState => continue,
-                Control::Stage { element, at_open } => {
-                    let Value::F64(x) = v else { continue };
-                    if !(changed || gain_sent && (x - at_open).abs() > 1e-9) {
+                Control::Stage { element, range, .. } => {
+                    // A stage that follows the gain is not sent; one set by hand is sent again after the gain.
+                    let db = match v {
+                        Value::I64(n) if *n == sdrkit_driver_core::form::STAGE_FOLLOWS => continue,
+                        Value::I64(n) => (*n as f64).clamp(range.min, range.max),
+                        Value::Bool(on) => {
+                            if *on {
+                                range.max
+                            } else {
+                                range.min
+                            }
+                        }
+                        _ => continue,
+                    };
+                    if !(changed || gain_sent) {
                         continue;
                     }
                     let mut p = dir_ch(call::SET_GAIN_ELEMENT, RX);
-                    p.string(element).f64(*x);
+                    p.string(element).f64(db);
                     (call::SET_GAIN_ELEMENT, p)
+                }
+                Control::Antenna { names } => {
+                    let Some(name) = choice_name(v, names).filter(|_| changed) else {
+                        continue;
+                    };
+                    let mut p = dir_ch(call::SET_ANTENNA, RX);
+                    p.string(name);
+                    (call::SET_ANTENNA, p)
+                }
+                Control::Source { call: n, names } => {
+                    let Some(name) = choice_name(v, names).filter(|_| changed) else {
+                        continue;
+                    };
+                    let mut p = Packer::call(*n);
+                    p.string(name);
+                    (*n, p)
                 }
             };
             let v = v.clone();
@@ -1270,9 +1284,6 @@ impl Radio for SoapyRadio {
         let mut notes = Vec::new();
         let asked = asked_rate(values);
         let rate_change = self.sent.asked_rate.is_none_or(|a| (a - asked).abs() > 1.0);
-        if !live {
-            self.sources()?;
-        }
         let around = match (live && rate_change, self.stream_id) {
             (true, Some(id)) => {
                 match self.deactivate(id, self.timing().call) {

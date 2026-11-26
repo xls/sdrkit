@@ -493,8 +493,23 @@ impl Rpc {
             }
             call::GET_GAIN_ELEMENT => {
                 let name = u.string().map_err(bad)?;
-                let v = element(&side, &self.read_back(dir, cx), &name)
-                    .ok_or_else(|| format!("no gain element {name}"))?;
+                // A stage that the radio has set reads back as it is; one that follows the gain has its part of it.
+                let i = side.elements.iter().position(|e| e.0 == name);
+                let set = match (dir, i, side.elements.len() > 1) {
+                    (RX, Some(i), true) => match cx.in_force(Request::Other {
+                        name: "gain_element",
+                        args: [i as i64, 0],
+                    }) {
+                        Some(Request::Other { args: [_, mdb], .. }) => Some(mdb as f64 / 1000.0),
+                        _ => None,
+                    },
+                    _ => None,
+                };
+                let v = match set {
+                    Some(v) => v,
+                    None => element(&side, &self.read_back(dir, cx), &name)
+                        .ok_or_else(|| format!("no gain element {name}"))?,
+                };
                 one(|p| {
                     p.f64(v);
                 })

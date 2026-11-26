@@ -416,7 +416,7 @@ fn radio_settings(engine: &Engine, radio: RadioId) -> Vec<(String, String)> {
                 return Vec::new();
             };
             let mut out = Vec::new();
-            let shown = ["bandwidth", "antenna", "bias_tee", "ppm"];
+            let shown = ["bandwidth", "dc_removal", "antenna", "bias_tee", "ppm"];
             for gain in [true, false] {
                 for (i, d) in v.schema().settings().iter().enumerate() {
                     let key = d.field.key.as_ref();
@@ -429,7 +429,12 @@ fn radio_settings(engine: &Engine, radio: RadioId) -> Vec<(String, String)> {
                     else {
                         continue;
                     };
-                    let label = d.field.label.to_lowercase();
+                    // The bandwidth of a radio is the width of its analogue filter.
+                    let label = if key == "bandwidth" {
+                        "filter".to_owned()
+                    } else {
+                        d.field.label.to_lowercase()
+                    };
                     let text = match val {
                         Value::I64(n) if *n == STAGE_FOLLOWS && d.section == GAIN_SECTION => {
                             "follows the gain".to_owned()
@@ -469,6 +474,7 @@ fn screen(
     uptime_s: f64,
     dt: f64,
     seen: &mut std::collections::HashMap<u64, Seen>,
+    misses: &mut u64,
 ) -> Result<Screen, CliError> {
     let v = engine.share_view(id)?;
     let r = OwnerRef::Radio(radio);
@@ -564,7 +570,21 @@ fn screen(
             text: request_text(n),
         })
         .collect();
+    // The sender of this computer falls behind when a block of the radio finds no free buffer, or the ring between the
+    // radio and the share fills.
+    let missed = v.snapshot.pool_misses.saturating_sub(*misses);
+    *misses = v.snapshot.pool_misses;
+    let ring = num(sdrkit_driver_core::BUFFER_PCT.key);
+    let behind = match (missed, ring >= 50.0) {
+        (0, false) => None,
+        (0, true) => Some(format!("the ring of the radio is {ring:.0} % full")),
+        (m, false) => Some(format!("{m} blocks found no buffer")),
+        (m, true) => Some(format!(
+            "{m} blocks found no buffer, the ring of the radio is {ring:.0} % full"
+        )),
+    };
     Ok(Screen {
+        behind,
         radio: serve_screen::Radio {
             name: v.radio_name.clone(),
             driver: v.driver.clone(),
@@ -642,6 +662,7 @@ fn live_screen(
     use std::io::Write;
     let t0 = Instant::now();
     let mut seen = std::collections::HashMap::new();
+    let mut misses = 0u64;
     let mut last = Instant::now();
     let mut shown = Vec::new();
     let term = Terminal::start()?;
@@ -657,6 +678,7 @@ fn live_screen(
             t0.elapsed().as_secs_f64(),
             dt,
             &mut seen,
+            &mut misses,
         )?;
         let (w, h) = terminal::size().unwrap_or((80, 24));
         shown = serve_screen::lines(&sc, usize::from(w).max(20));
@@ -680,6 +702,16 @@ fn live_screen(
                         k.code == KeyCode::Char('c') && k.modifiers.contains(KeyModifiers::CONTROL);
                     if k.code == KeyCode::Char('q') || ctrl_c {
                         quit = true;
+                        break;
+                    }
+                    let mode = match k.code {
+                        KeyCode::Char('f') => Some(ShareControl::Follow),
+                        KeyCode::Char('r') => Some(ShareControl::Remote),
+                        KeyCode::Char('s') => Some(ShareControl::Slice),
+                        _ => None,
+                    };
+                    if let Some(m) = mode {
+                        engine.set_text(OwnerRef::Share(id), "control", m.key())?;
                         break;
                     }
                 }

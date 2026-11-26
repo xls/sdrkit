@@ -175,6 +175,9 @@ fn the_open_transcript_of_an_rtl_sdr() {
     let started = src.start(w).unwrap();
     assert_eq!(started.rate_hz, 2_400_000.0);
     assert_eq!(started.centre_hz, 100e6);
+    // The tuning and rate ranges are those that the server reports, not placeholders.
+    let placeholders = sdrkit_driver_core::form::check_capabilities(src.capabilities());
+    assert!(placeholders.is_empty(), "{placeholders:?}");
     let reqs = f.control();
     let bytes: Vec<Vec<u8>> = reqs.iter().map(|r| r.bytes.clone()).collect();
     // The reading phase, in order.

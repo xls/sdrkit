@@ -1553,3 +1553,60 @@ fn an_rtl_tcp_client_gets_a_filter_that_fits_its_rate() {
         );
     }
 }
+
+/// A served HackRF shows its stages to our SoapyRemote client as the standard stage settings; a stage that the client
+/// sets reaches the stage setting of the radio and reads back as set.
+#[test]
+fn a_served_hackrf_shows_its_gain_stages_and_takes_each_one() {
+    use sdrkit_driver_core::DriverKind;
+    use sdrkit_driver_soapyremote::SoapyRemoteDriver;
+    let net = FakeTransport::new();
+    let e = engine_with(Arc::new(net.clone()), Arc::new(hackrf_bus()));
+    assert!(e.settle(Duration::from_secs(5)));
+    let kind = e.find("driver.hackrf").unwrap();
+    let radio = e.open_radio("hackrf", "", &defaults(&e, kind)).unwrap();
+    let (_, sh) = share(&e, radio);
+    let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
+    let mut src = soapy_client(&net, port, 100e6, 2.4e6, false).unwrap();
+    let added = src.settings();
+    let keys: Vec<&str> = added
+        .iter()
+        .filter(|d| d.section == "Gain")
+        .map(|d| d.field.key.as_ref())
+        .collect();
+    assert_eq!(keys, ["lna_gain", "vga_gain", "amp"]);
+    // The values of the driver with those of the open radio: the VGA at 20 dB.
+    let driver = SoapyRemoteDriver::new(Arc::new(net.clone()));
+    let kind_schema = DriverKind::new(Box::new(driver)).schema().clone();
+    let mut decls = kind_schema.settings().to_vec();
+    decls.extend(added);
+    let schema = Arc::new(sdrkit_core::Schema::new(decls).unwrap());
+    let mut v = Values::defaults(&schema);
+    for (key, value) in [
+        ("serverlog", Value::Bool(false)),
+        ("centre_hz", Value::Hz(100e6)),
+        ("rate", Value::Hz(2.4e6)),
+        ("agc", Value::Bool(false)),
+        ("vga_gain", Value::I64(20)),
+    ] {
+        v.set(schema.id(key).unwrap(), &value).unwrap();
+    }
+    let (w, _r) = sdrkit_driver_core::ring(1 << 20, src.sample_type());
+    src.start(w).unwrap();
+    src.apply(&v).unwrap();
+    let vga = wait_for(5.0, || {
+        let x = e
+            .owner(OwnerRef::Radio(radio), |o| {
+                o.values().and_then(|v| {
+                    v.schema()
+                        .id("vga_gain")
+                        .ok()
+                        .and_then(|id| v.value(id).cloned())
+                })
+            })
+            .unwrap();
+        (x == Some(Value::I64(20))).then_some(())
+    });
+    assert!(vga.is_some(), "the VGA of the radio did not take 20 dB");
+    src.stop();
+}

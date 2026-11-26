@@ -32,7 +32,7 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `lna_state` | LNA state | whole number | -1 | -1 to 255 | The API of SDRconnect has one gain control, the LNA state. The IF gain and the AGC stay as SDRconnect has them. A state outside the range SDRconnect reports for the radio and its band is refused. -1 leaves the state as it is. |
+| `lna_state` | LNA state | whole number | -1 | 0 to 255 | The API of SDRconnect has one gain control, the LNA state. The IF gain and the AGC stay as SDRconnect has them. A state outside the range SDRconnect reports for the radio and its band is refused. -1 leaves the state as it is. |
 | `rate_source` | Rate set by | choice | `stack` | `stack` (As the stack asks), `server` (Keep the rate of SDRconnect) | As the stack asks: sdrkit sets the sample rate of SDRconnect (SDRconnect 1.0.7 and later). Keep: sdrkit uses the rate SDRconnect runs, and resamples. |
 | `tuner` | Tuner | choice | `primary` | `primary` (Primary (tuner 1)), `secondary` (Secondary (tuner 2)) | For an RSPduo in dual-tuner mode in SDRconnect: the tuner whose IQ to take. Other radios have the primary tuner only. The secondary tuner needs SDRconnect 1.0.8 or later. |
 | `wss` | Secure WebSocket (wss) | yes or no | false |  | A WebSocket over TLS. SDRconnect Headless 1.0.10 and later offers it. SDRconnect with its window serves plain WebSockets only. |

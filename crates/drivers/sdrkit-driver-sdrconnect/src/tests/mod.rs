@@ -241,7 +241,9 @@ fn the_upgrade_request_and_the_frames_follow_rfc_6455() {
 fn the_settings_and_what_the_server_reports() {
     let schema = DESCRIPTOR.decl().schema().clone();
     let lna = schema.setting(own_id(SdrconnectSetting::Lna)).unwrap();
-    assert_eq!(lna.range.map(|r| (r.min, r.max)), Some((-1.0, 255.0)));
+    assert_eq!(lna.range.map(|r| (r.min, r.max)), Some((0.0, 255.0)));
+    // -1 keeps the state SDRconnect has: the special value of the setting.
+    assert_eq!((lna.special_value, lna.zero_means.as_ref()), (-1.0, "As SDRconnect has it"));
     let f = Fake::start(Cfg::default());
     let mut src = drv(&f)
         .open(&f.addr(), &tune(100_000.0, 100e6, &[]))

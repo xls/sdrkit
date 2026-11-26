@@ -34,8 +34,8 @@ Only this driver has these.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `lna_gain` | LNA gain | whole number (dB) | -1 | -1 to 40 | The receive IF gain, 0 to 40 dB in 8 dB steps; a value between steps is rounded down. -1 follows the gain. Start at 16 dB and raise LNA and VGA by about the same amount. |
-| `vga_gain` | VGA gain | whole number (dB) | -1 | -1 to 62 | The receive baseband gain, 0 to 62 dB in 2 dB steps; an odd value is rounded down. -1 follows the gain. |
+| `lna_gain` | LNA gain | whole number (dB) | -1 | 0 to 40 | The receive IF gain, 0 to 40 dB in 8 dB steps; a value between steps is rounded down. -1 follows the gain. Start at 16 dB and raise LNA and VGA by about the same amount. |
+| `vga_gain` | VGA gain | whole number (dB) | -1 | 0 to 62 | The receive baseband gain, 0 to 62 dB in 2 dB steps; an odd value is rounded down. -1 follows the gain. |
 | `amp` | RF amplifier | yes or no | false |  | The front-end amplifier, about 11 dB, less at high frequencies. The antenna port takes at most -5 dBm: more can damage the device. Use an attenuator for strong signals. |
 | `dc_removal` | DC removal | yes or no | true |  | Removes the steady offset of the converter, which shows as a carrier at the centre frequency. A signal exactly at the centre loses its carrier. |
 | `clock_out` | Clock output | yes or no | false |  | A 10 MHz, 3.3 V square wave on CLKOUT for a high-impedance load, to lock another device. |
@@ -77,6 +77,8 @@ The radio can add settings when it opens, such as the gain of each stage. `show 
 | `shortfalls` | Device shortfalls | whole number |
 | `measured_rate_hz` | Measured sample rate | frequency |
 | `tx_output_dbm` | Output (estimate, not measured) | number (dBm) |
+| `lna_gain` | LNA gain | whole number (dB) |
+| `vga_gain` | VGA gain | whole number (dB) |
 
 ## Events
 

@@ -33,8 +33,8 @@ Only this driver has these.
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `gainsplit` | Gain split | choice | `sensitivity` | `sensitivity` (Sensitivity), `linearity` (Linearity) | How one gain number is shared between the LNA and the IF stage. Sensitivity keeps the LNA gain (best noise figure). Linearity gives up LNA gain first (better with strong neighbouring signals). The samples on the link are 8-bit, so set the gain so that the signal neither clips nor sinks into the noise. |
-| `lna_state` | LNA state | whole number | -1 | -1 to 27 | Set the LNA state by hand. -1 follows the gain number. The LNA steps depend on the model and the band. A state the band does not have is refused. |
-| `if_reduction` | IF gain reduction | whole number (dB) | -1 | -1 to 59 | Set the IF gain reduction by hand (20 to 59 dB). -1 follows the gain number. |
+| `lna_state` | LNA state | whole number | -1 | 0 to 27 | Set the LNA state by hand. -1 follows the gain number. The LNA steps depend on the model and the band. A state the band does not have is refused. |
+| `if_reduction` | IF gain reduction | whole number (dB) | -1 | 20 to 59 | Set the IF gain reduction by hand (20 to 59 dB). -1 follows the gain number. |
 | `agcsetpoint` | AGC set point | whole number (dBFS) | -30 | -60 to -20 | The level the AGC of the radio holds the signal at. The AGC runs when automatic gain is on. |
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error of the radio in ppm, positive when the clock runs fast. |
 | `antenna` | Antenna | choice | `first` | `first` (First input), `a` (Antenna A), `b` (Antenna B), `c` (Antenna C), `hiz` (Hi-Z), `t1` (Tuner 1 (50 ohm)), `t2` (Tuner 2 (50 ohm)), `t1hiz` (Tuner 1 Hi-Z) | The input the antenna is on. Hi-Z inputs are for 1 kHz to 30 MHz. On the RSPduo, the tuner choice of the server can limit this. A model that lacks the input refuses it. |
@@ -76,6 +76,8 @@ The radio can add settings when it opens, such as the gain of each stage. `show 
 | `tuner` | Tuner type | whole number |
 | `gains` | Gain count | whole number |
 | `throughput` | Link | number (Mbit/s) |
+| `lna_state` | LNA state | whole number |
+| `if_reduction` | IF gain reduction | whole number (dB) |
 
 ## Events
 

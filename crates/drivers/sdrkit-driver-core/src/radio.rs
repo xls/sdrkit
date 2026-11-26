@@ -171,9 +171,9 @@ pub fn tx_schema(own: &[&dyn DeclareSetting], limits: &TxLimits) -> Arc<Schema> 
 /// meaning stays 0.
 fn limit(decl: &mut SettingDecl, min: f64, max: f64, step: f64) {
     decl.range = Some(Range { min, max, step });
-    let meant_zero = !decl.zero_means.is_empty();
+    let (meant, special) = (!decl.zero_means.is_empty(), decl.special_value);
     if let Value::Hz(x) | Value::F64(x) = &mut decl.default {
-        if !(meant_zero && *x == 0.0) {
+        if !(meant && *x == special) {
             *x = x.clamp(min, max);
         }
     }
@@ -677,6 +677,11 @@ impl OpenRadio {
         radio.results.set(&STATE, Link::Idle);
         radio.publish_tx_output();
         Ok(radio)
+    }
+
+    /// True if the centre of the samples carries no carrier of the radio's own converter ([`form::centre_is_clean`]).
+    pub fn centre_clean(&self) -> bool {
+        form::centre_is_clean(&self.values)
     }
 
     /// The descriptor of the kind.

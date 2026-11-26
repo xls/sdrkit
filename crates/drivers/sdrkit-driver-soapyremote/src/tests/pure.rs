@@ -8,9 +8,8 @@ use crate::plan::*;
 use crate::radio::Facts;
 use crate::rpc::{self, ArgInfo, ArgType, Range};
 use crate::stream::{ack, ack_trigger, seq_event, DgHeader, SeqEvent};
-use crate::SoapyRemoteSetting;
 use sdrkit_core::{SettingSet, Value, ValueKind};
-use sdrkit_driver_core::{own_id, DriverError, RadioSetting};
+use sdrkit_driver_core::{DriverError, RadioSetting};
 use sdrkit_graph::stream::SampleType;
 use std::time::Instant;
 
@@ -303,28 +302,9 @@ fn the_settings_the_radio_reveals_are_checked() {
     };
     assert_eq!(f.capabilities("h:1").gain_db, Some((0.0, 48.0, 0.0)));
     let d = drv(&Fake::start(Script::rtl()));
-    let ok = values(
-        &d,
-        &[
-            ("antenna", Value::Text("B".into())),
-            ("clocksrc", Value::Text("gpsdo".into())),
-        ],
-    );
+    let ok = values(&d, &[]);
     assert_eq!(f.check(&ok), Ok(()));
     let refused = |key: &str, v: Value| f.check(&values(&d, &[(key, v)])).unwrap_err();
-    let own = |s: SoapyRemoteSetting| DriverError::Refused { id: own_id(s) };
-    assert_eq!(
-        refused("antenna", Value::Text("C".into())),
-        own(SoapyRemoteSetting::Antenna)
-    );
-    assert_eq!(
-        refused("clocksrc", Value::Text("pps".into())),
-        own(SoapyRemoteSetting::ClockSource)
-    );
-    assert_eq!(
-        refused("timesrc", Value::Text("gps".into())),
-        own(SoapyRemoteSetting::TimeSource)
-    );
     assert_eq!(
         refused("bias_tee", Value::Bool(true)),
         DriverError::Refused {
@@ -494,14 +474,27 @@ fn gain_stages_and_their_labels() {
         .map(|(e, g)| stage_setting(e, g))
         .collect();
     let labels: Vec<_> = v.iter().map(|s| s.decl.field.label.as_ref()).collect();
+    assert_eq!(labels, ["LNA gain", "VGA gain"]);
+    let keys: Vec<_> = v.iter().map(|s| s.decl.field.key.as_ref()).collect();
+    assert_eq!(keys, ["lna_gain", "vga_gain"]);
+    // Each starts following the gain.
+    assert!(v.iter().all(|s| s.decl.default == Value::I64(-1)));
+    assert_eq!(v[0].wire(&Value::I64(8)), None);
+    // A stage with another name keeps it; an amplifier of one step is on or off, as it was at open.
+    let other = Element {
+        name: "TIA".into(),
+        range: r(0.0, 12.0, 3.0),
+    };
+    assert_eq!(stage_setting(&other, None).decl.field.key, "gain.TIA");
+    let amp = Element {
+        name: "AMP".into(),
+        range: r(0.0, 14.0, 14.0),
+    };
+    let a = stage_setting(&amp, Some(14.0));
     assert_eq!(
-        labels,
-        ["Low-noise amplifier (LNA)", "Variable-gain amplifier (VGA)"]
+        (a.decl.field.key.as_ref(), a.decl.default.clone()),
+        ("amp", Value::Bool(true))
     );
-    assert_eq!(v[0].decl.field.key, "gain.LNA");
-    assert_eq!(v[0].decl.default, Value::F64(16.0));
-    assert_eq!(v[1].decl.default, Value::F64(0.0));
-    assert_eq!(v[0].wire(&Value::F64(8.0)), None);
     // One element: the gain setting drives it, no stage settings.
     assert_eq!(stages(&lna_vga[..1]).count(), 0);
 }

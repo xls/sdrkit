@@ -25,7 +25,7 @@ use sdrkit_core::net::Transport;
 use sdrkit_core::publish::field;
 use sdrkit_core::Hz;
 use sdrkit_core::{Declare, Field, Results, Setting, SettingDecl, SettingSet, TableDef, Values};
-use sdrkit_driver_core::form::{ANTENNA_SECTION, LINK_SECTION, OTHER_SECTION};
+use sdrkit_driver_core::form::{LINK_SECTION, OTHER_SECTION};
 use sdrkit_driver_core::runner::{Opener, RunnerConfig, StreamRunner, NETWORK_ADVICE};
 use sdrkit_driver_core::{
     Capabilities, Doing, DriverDescriptor, DriverError, Link, LossReport, Polled, Retuned,
@@ -195,39 +195,17 @@ pub const SERVER_LOG: Setting<field::Bool> =
         .section(OTHER_SECTION)
         .restart()
         .help("The messages of the server appear in the log, marked server:.");
-/// The antenna input. Empty: the radio's default.
-pub const ANTENNA: Setting<field::Text> = Setting::new("antenna", "Antenna", "", "")
-    .section(ANTENNA_SECTION)
-    .restart()
-    .help("The antenna input of the radio. Empty keeps the radio's default. A name the radio does not list is refused.");
-/// The clock source. Empty: as the radio is.
-pub const CLOCK_SOURCE: Setting<field::Text> = Setting::new("clocksrc", "Clock source", "", "")
-    .section(ANTENNA_SECTION)
-    .restart()
-    .help(
-        "Where the radio takes its clock from (internal, external, gpsdo). Empty keeps it as it is. A source the radio does \
-         not list is refused.",
-    );
-/// The time source. Empty: as the radio is.
-pub const TIME_SOURCE: Setting<field::Text> = Setting::new("timesrc", "Time source (PPS)", "", "")
-    .section(ANTENNA_SECTION)
-    .restart()
-    .help(
-        "Where the radio takes its one pulse per second from. Empty keeps it as it is. A source the radio does not list is \
-         refused.",
-    );
+/// DC removal, the standard setting: the radio's own when the server reports one (call 600), and the reader of the
+/// samples removes what is left.
+pub const DC_REMOVAL: Setting<field::Bool> = sdrkit_driver_core::form::DC_REMOVAL;
 
 sdrkit_core::settings! {
     /// The own settings of the SoapyRemote driver.
     pub enum SoapyRemoteSetting {
         /// [`PPM`].
         Ppm = PPM,
-        /// [`ANTENNA`].
-        Antenna = ANTENNA,
-        /// [`CLOCK_SOURCE`].
-        ClockSource = CLOCK_SOURCE,
-        /// [`TIME_SOURCE`].
-        TimeSource = TIME_SOURCE,
+        /// [`DC_REMOVAL`].
+        DcRemoval = DC_REMOVAL,
         /// [`FORMAT`].
         Format = FORMAT,
         /// [`TRANSPORT`].
@@ -345,8 +323,10 @@ const fn iq(sample: SampleType) -> StreamFormat {
     StreamFormat {
         kind: Kind::Iq,
         sample,
+        // The rates of the radio behind the server come from the server once it is open; before that, any rate that a
+        // radio of SoapySDR runs at.
         min_rate_hz: 0.0,
-        max_rate_hz: f64::MAX,
+        max_rate_hz: 500e6,
         channels: 1,
     }
 }

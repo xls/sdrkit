@@ -123,11 +123,11 @@ fn utc(out: &mut String, secs: f64) {
     );
 }
 
-/// Returns true if `v` is the number 0 and `decl` declares what 0 means.
+/// Returns true if `v` is the special number of `decl` and `decl` declares what it means.
 fn meant_zero(v: &Value, decl: &Decl) -> bool {
     let zero = match v {
-        Value::I64(i) => *i == 0,
-        Value::F64(x) | Value::Hz(x) | Value::Time(x) | Value::Duration(x) => *x == 0.0,
+        Value::I64(i) => *i as f64 == decl.special_value,
+        Value::F64(x) | Value::Hz(x) | Value::Time(x) | Value::Duration(x) => *x == decl.special_value,
         _ => false,
     };
     zero && !decl.zero_means.is_empty()
@@ -300,7 +300,7 @@ fn parse_hz(text: &str, decl: &Decl) -> Result<f64, ParseError> {
         return Ok(x * scale);
     }
     let inside = |v: f64| decl.range.is_some_and(|(min, max, _)| v >= min && v <= max);
-    let meant = x == 0.0 && !decl.zero_means.is_empty();
+    let meant = x == decl.special_value && !decl.zero_means.is_empty();
     if !meant && !inside(x) && inside(x * 1e6) {
         Ok(x * 1e6)
     } else {

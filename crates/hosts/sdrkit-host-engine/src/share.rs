@@ -654,6 +654,9 @@ fn unix(t: SystemTime) -> f64 {
 
 /// What the radio of a share can do, as it said when the share opened.
 struct Limits {
+    /// The gain stages of the radio that a client can set one by one: the key of each stage setting, and whether it
+    /// is on or off.
+    stages: Vec<(String, bool)>,
     min_hz: f64,
     max_hz: f64,
     min_rate_hz: f64,
@@ -675,6 +678,7 @@ impl Limits {
             bandwidth: caps.bandwidth_hz.is_some(),
             agc: caps.has_agc,
             transmit: caps.transmit.is_some(),
+            stages: Vec::new(),
         }
     }
 }
@@ -716,6 +720,9 @@ pub(crate) struct ShareState {
     tx_taken: AtomicU64,
     tx_refused: AtomicU64,
     tx_samples: Arc<AtomicU64>,
+    /// The value of each stage of [`Limits::stages`] on the radio, thousandths of a dB (1000 for an amplifier on), or
+    /// [`STAGE_FOLLOWS_MDB`] while the stage follows the gain.
+    stage_mdb: Vec<std::sync::atomic::AtomicI64>,
     /// The mean and the peak power of the last block of the radio, dBFS, as f32 bits.
     level_bits: AtomicU32,
     peak_bits: AtomicU32,
@@ -791,6 +798,10 @@ impl ShareState {
             Request::Bandwidth { hz } => l.bandwidth && hz.is_finite() && hz >= 0.0,
             Request::Gain { db } => gain && l.gain_db.is_some_and(|(lo, hi)| within(db, lo, hi)),
             Request::Agc { .. } => gain && l.agc,
+            Request::Other {
+                name: STAGE_REQUEST,
+                args: [i, _],
+            } => gain && usize::try_from(i).is_ok_and(|i| i < l.stages.len()),
             Request::BiasTee { .. } | Request::Correction { .. } | Request::Other { .. } => false,
         };
         // A value that the share does not let the client set (the host fixed the rate, the gain stays with the host, the
@@ -882,6 +893,21 @@ impl ShareState {
             Request::Bandwidth { .. } if l.bandwidth => Answer::Adjusted(Request::Bandwidth {
                 hz: bits(&self.bandwidth_bits),
             }),
+            // A stage set on the radio reads back as set; one that follows the gain is the server's to tell.
+            Request::Other {
+                name: STAGE_REQUEST,
+                args: [i, _],
+            } => match usize::try_from(i)
+                .ok()
+                .and_then(|i| self.stage_mdb.get(i))
+                .map(|a| a.load(Ordering::Relaxed))
+            {
+                Some(mdb) if mdb != STAGE_FOLLOWS_MDB => Answer::Adjusted(Request::Other {
+                    name: STAGE_REQUEST,
+                    args: [i, mdb],
+                }),
+                _ => Answer::Refused,
+            },
             _ => Answer::Refused,
         }
     }
@@ -1790,6 +1816,21 @@ impl Share {
     }
 }
 
+/// Sets stage `i` of `stages` on the radio `o` to `mdb` thousandths of a dB, or an amplifier on for a value above 0.
+fn set_stage(o: &mut dyn Owner, stages: &[(String, bool)], i: i64, mdb: i64) {
+    let Some((key, switch)) = usize::try_from(i).ok().and_then(|i| stages.get(i)) else {
+        return;
+    };
+    let v = if *switch {
+        Value::Bool(mdb > 0)
+    } else {
+        Value::I64((mdb as f64 / 1000.0).round() as i64)
+    };
+    if let Ok(id) = o.schema().id(key) {
+        let _ = sdrkit_core::owner::apply(o, id, &v);
+    }
+}
+
 /// The part of the rate that the analogue filter of a radio passes after a change of rate that no bandwidth request
 /// follows: the whole channel of a stack that fills the rate (DVB-T at 64/7 Msps needs 7.6 MHz), with the filter step
 /// at or above it.
@@ -1840,9 +1881,62 @@ fn model(name: &str) -> &str {
 /// over its stages.
 const GAIN_ELEMENT: &str = "GAIN";
 
+/// The request of a client for one gain stage: the index of the stage and its gain in thousandths of a dB.
+const STAGE_REQUEST: &str = "gain_element";
+/// A stage that follows the gain, in [`ShareState::stage_mdb`].
+const STAGE_FOLLOWS_MDB: i64 = i64::MIN;
+
+/// A gain stage of a radio that a client can set by itself.
+struct Stage {
+    /// The name of the element: LNA, MIX, VGA, AMP.
+    name: String,
+    /// The key of the stage setting of the radio.
+    key: String,
+    /// Its range, dB; an amplifier that is on or off has one step.
+    range: Range,
+    /// The setting is on or off.
+    switch: bool,
+}
+
+/// The gain stages of a radio with the schema `schema`: its standard stage settings, the amplifier last.
+fn stages_of(schema: &Schema) -> Vec<Stage> {
+    use sdrkit_driver_core::form::{LNA_GAIN_FORM, MIXER_GAIN_FORM, RF_AMP_FORM, VGA_GAIN_FORM};
+    [
+        (LNA_GAIN_FORM.key, "LNA"),
+        (MIXER_GAIN_FORM.key, "MIX"),
+        (VGA_GAIN_FORM.key, "VGA"),
+        (RF_AMP_FORM.key, "AMP"),
+    ]
+    .into_iter()
+    .filter_map(|(key, name)| {
+        let d = schema.setting(schema.id(key).ok()?)?;
+        let switch = d.field.kind == sdrkit_core::ValueKind::Bool;
+        let range = match (switch, d.range) {
+            (true, _) => Range {
+                min: 0.0,
+                max: 1.0,
+                step: 1.0,
+            },
+            (false, Some(r)) => Range {
+                min: r.min.max(0.0),
+                max: r.max,
+                step: r.step,
+            },
+            (false, None) => return None,
+        };
+        Some(Stage {
+            name: name.to_owned(),
+            key: key.to_owned(),
+            range,
+            switch,
+        })
+    })
+    .collect()
+}
+
 /// The radio as a SoapyRemote server announces it: what its capabilities declare and nothing more. A gain that can be
 /// set is one element; a radio without automatic gain has no gain mode; the share never sets a frequency correction.
-fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
+fn soapy_device(driver: &str, name: &str, caps: &Capabilities, stages: &[Stage]) -> Device {
     let range = |lo: f64, hi: f64| Range {
         min: lo,
         max: hi,
@@ -1882,7 +1976,11 @@ fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
         freqs: vec![range(caps.min_freq_hz, caps.max_freq_hz)],
         rates: rx_rates(&caps.rates),
         gain,
-        elements: elements(gain),
+        elements: if stages.is_empty() {
+            elements(gain)
+        } else {
+            stages.iter().map(|s| (s.name.clone(), s.range)).collect()
+        },
         agc: caps.has_agc,
         correction: false,
         bandwidths: caps
@@ -1952,13 +2050,14 @@ impl Shared {
                 key: share_key(open),
             });
         }
-        let (caps, native, tuning, set) = {
+        let (caps, native, tuning, set, stages) = {
             let o = r.owner.lock();
             (
                 o.capabilities().clone(),
                 o.sample_type(),
                 o.tuning(),
                 o.gain_settings(),
+                stages_of(sdrkit_core::Owner::schema(&*o)),
             )
         };
         // The transmit stream of the session takes the samples of a client that transmits.
@@ -1973,7 +2072,10 @@ impl Shared {
             rate_fixed: AtomicBool::new(!r.rate_is_automatic()),
             steerer: AtomicU64::new(0),
             first: AtomicU64::new(0),
-            limits: Limits::of(&caps),
+            limits: Limits {
+                stages: stages.iter().map(|s| (s.key.clone(), s.switch)).collect(),
+                ..Limits::of(&caps)
+            },
             centre_bits: AtomicU64::new(tuning.1.to_bits()),
             rate_bits: AtomicU64::new(tuning.0.to_bits()),
             gain_bits: AtomicU64::new(set.0.to_bits()),
@@ -1989,6 +2091,10 @@ impl Shared {
             tx_taken: AtomicU64::new(0),
             tx_refused: AtomicU64::new(0),
             tx_samples: Arc::default(),
+            stage_mdb: stages
+                .iter()
+                .map(|_| std::sync::atomic::AtomicI64::new(STAGE_FOLLOWS_MDB))
+                .collect(),
             level_bits: AtomicU32::new(f32::NAN.to_bits()),
             peak_bits: AtomicU32::new(f32::NAN.to_bits()),
             log: Mutex::new(VecDeque::with_capacity(REQUEST_LOG)),
@@ -2040,7 +2146,7 @@ impl Shared {
             centre_hz: tuning.1,
             listeners: Vec::new(),
             next_listener: 0,
-            device: soapy_device(r.driver, &caps.name, &caps),
+            device: soapy_device(r.driver, &caps.name, &caps, &stages),
             uuid: format!("sdrkit-{:016x}", u64::from_le_bytes(seed)),
             ssdp: None,
             radio: radio_key(radio),
@@ -2176,8 +2282,28 @@ impl Shared {
                 if !host_reads {
                     for r in with_filters(&asked, share.state.limits.bandwidth) {
                         // A value that the radio refuses stays as it was; the client reads the result back.
-                        let _ = o.remote(&r);
+                        match r {
+                            Request::Other {
+                                name: STAGE_REQUEST,
+                                args: [i, mdb],
+                            } => set_stage(&mut *o, &share.state.limits.stages, i, mdb),
+                            _ => {
+                                let _ = o.remote(&r);
+                            }
+                        }
                     }
+                }
+                let v = sdrkit_core::Owner::values(&*o);
+                for ((key, switch), at) in
+                    share.state.limits.stages.iter().zip(&share.state.stage_mdb)
+                {
+                    let mdb =
+                        match v.and_then(|v| v.schema().id(key).ok().and_then(|id| v.value(id))) {
+                            Some(Value::Bool(on)) if *switch => i64::from(*on) * 1000,
+                            Some(Value::I64(db)) if *db >= 0 => db * 1000,
+                            _ => STAGE_FOLLOWS_MDB,
+                        };
+                    at.store(mdb, Ordering::Relaxed);
                 }
                 (o.tuning(), o.gain_settings())
             };

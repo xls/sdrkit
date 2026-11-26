@@ -33,9 +33,7 @@ Only this driver has these.
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error in ppm, positive if the clock runs fast (signals show up a little low). |
-| `antenna` | Antenna | text | empty |  | The antenna input of the radio. Empty keeps the radio's default. A name the radio does not list is refused. |
-| `clocksrc` | Clock source | text | empty |  | Where the radio takes its clock from (internal, external, gpsdo). Empty keeps it as it is. A source the radio does not list is refused. |
-| `timesrc` | Time source (PPS) | text | empty |  | Where the radio takes its one pulse per second from. Empty keeps it as it is. A source the radio does not list is refused. |
+| `dc_removal` | DC removal | yes or no | true |  | Removes the steady offset of the converter, which shows as a carrier at the centre frequency. A signal exactly at the centre loses its carrier. |
 | `format` | Sample format | choice | `auto` | `auto` (Auto (the radio's own)), `cs16` (CS16 (16-bit)), `cs8` (CS8 (8-bit, half the data)), `cf32` (CF32 (float, twice the data)) | What the server sends. Auto is the radio's own format (no conversion on the server). CS8 halves the data rate, with less dynamic range. CF32 doubles it and gains nothing for most radios. 2.4 Msps of CS16 is about 79 Mbit/s with headers, CS8 about 40 Mbit/s. |
 | `transport` | Stream transport | choice | `tcp` | `udp` (UDP), `tcp` (TCP) | TCP loses nothing: a packet that the network lost is sent again, which delays the stream for a moment. UDP, the protocol's own default, loses each packet that the network loses, and each loss is a hole in the signal: on Wi-Fi, crackle in the sound. Received TCP messages are at least 4096 bytes. |
 | `mtu` | Datagram size | choice | `1500` | `1500` (Standard (1500)), `9000` (Jumbo frames (9000)) | 1500 works on every network. Use jumbo frames only when every switch and both computers are set for them. If not, no samples arrive. |
@@ -49,10 +47,10 @@ The radio can add settings when it opens, such as the gain of each stage. `show 
 
 | Kind | Sample | Rates | Channels |
 |---|---|---|---|
-| Iq | Cs16 | 0 Hz to 179769313486231564793826746329356487460061771816610493194377291867566634083253736182911671780280864445928163680987122391750825462330354250895282439122322875506826024599142533926918074193061745122574500020189880363468340637347674643851875759782894318316386198487970256787451014597457079993094755057664 GHz | 1 |
-| Iq | Cs8 | 0 Hz to 179769313486231564793826746329356487460061771816610493194377291867566634083253736182911671780280864445928163680987122391750825462330354250895282439122322875506826024599142533926918074193061745122574500020189880363468340637347674643851875759782894318316386198487970256787451014597457079993094755057664 GHz | 1 |
-| Iq | Cu8 | 0 Hz to 179769313486231564793826746329356487460061771816610493194377291867566634083253736182911671780280864445928163680987122391750825462330354250895282439122322875506826024599142533926918074193061745122574500020189880363468340637347674643851875759782894318316386198487970256787451014597457079993094755057664 GHz | 1 |
-| Iq | Cf32 | 0 Hz to 179769313486231564793826746329356487460061771816610493194377291867566634083253736182911671780280864445928163680987122391750825462330354250895282439122322875506826024599142533926918074193061745122574500020189880363468340637347674643851875759782894318316386198487970256787451014597457079993094755057664 GHz | 1 |
+| Iq | Cs16 | 0 Hz to 500 MHz | 1 |
+| Iq | Cs8 | 0 Hz to 500 MHz | 1 |
+| Iq | Cu8 | 0 Hz to 500 MHz | 1 |
+| Iq | Cf32 | 0 Hz to 500 MHz | 1 |
 
 ## Readings
 
@@ -139,7 +137,7 @@ Streams it accepts:
 
 | Kind | Sample | Rates | Channels |
 |---|---|---|---|
-| Iq | Cf32 | 0 Hz to 179769313486231564793826746329356487460061771816610493194377291867566634083253736182911671780280864445928163680987122391750825462330354250895282439122322875506826024599142533926918074193061745122574500020189880363468340637347674643851875759782894318316386198487970256787451014597457079993094755057664 GHz | 1 |
+| Iq | Cf32 | 0 Hz to 500 MHz | 1 |
 
 ## Try it
 

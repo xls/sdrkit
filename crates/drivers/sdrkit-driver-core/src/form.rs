@@ -8,7 +8,7 @@
 use sdrkit_core::publish::field;
 use sdrkit_core::settings::{Schema, SettingDecl, SettingKind, SettingSet};
 use sdrkit_core::value::{Choice, ValueKind};
-use sdrkit_core::{Hz, Setting};
+use sdrkit_core::{Field, Hz, Setting};
 
 /// The section of the gain settings.
 pub const GAIN_SECTION: &str = "Gain";
@@ -215,26 +215,43 @@ pub const SERVER_RATE: Setting<field::Hz> = number::<field::Hz>(SERVER_RATE_FORM
     .advanced()
     .help("The rate the server sends whatever it is asked. The driver finds it. 0 means none was found.");
 
-/// The gain of the LNA stage in dB, from -1 ([`STAGE_FOLLOWS`]) to `max` in steps of 1. `default` is the value before
-/// one is set.
-pub const fn lna_gain(default: i64, max: f64) -> Setting<field::I64> {
-    number::<field::I64>(LNA_GAIN_FORM, default).range(-1.0, max, 1.0)
+/// The gain of the LNA stage in dB, from 0 to `max` in steps of `step`. `default` is the value before one is set. A stage
+/// that can follow the gain adds [`follows_gain`].
+pub const fn lna_gain(default: i64, max: f64, step: f64) -> Setting<field::I64> {
+    number::<field::I64>(LNA_GAIN_FORM, default).range(0.0, max, step)
 }
-/// The gain of the mixer stage in dB, from -1 ([`STAGE_FOLLOWS`]) to `max`.
-pub const fn mixer_gain(default: i64, max: f64) -> Setting<field::I64> {
-    number::<field::I64>(MIXER_GAIN_FORM, default).range(-1.0, max, 1.0)
+/// The gain of the mixer stage in dB, from 0 to `max` in steps of `step`.
+pub const fn mixer_gain(default: i64, max: f64, step: f64) -> Setting<field::I64> {
+    number::<field::I64>(MIXER_GAIN_FORM, default).range(0.0, max, step)
 }
-/// The gain of the VGA stage in dB, from -1 ([`STAGE_FOLLOWS`]) to `max`.
-pub const fn vga_gain(default: i64, max: f64) -> Setting<field::I64> {
-    number::<field::I64>(VGA_GAIN_FORM, default).range(-1.0, max, 1.0)
+/// The gain of the VGA stage in dB, from 0 to `max` in steps of `step`.
+pub const fn vga_gain(default: i64, max: f64, step: f64) -> Setting<field::I64> {
+    number::<field::I64>(VGA_GAIN_FORM, default).range(0.0, max, step)
 }
-/// The state of an LNA set in states, from -1 ([`STAGE_FOLLOWS`]) to `max`.
+/// The state of an LNA set in states, from 0 to `max`.
 pub const fn lna_state(default: i64, max: f64) -> Setting<field::I64> {
-    number::<field::I64>(LNA_STATE_FORM, default).range(-1.0, max, 1.0)
+    number::<field::I64>(LNA_STATE_FORM, default).range(0.0, max, 1.0)
 }
-/// The gain reduction of the IF stage in dB, from -1 ([`STAGE_FOLLOWS`]) to `max`.
-pub const fn if_reduction(default: i64, max: f64) -> Setting<field::I64> {
-    number::<field::I64>(IF_REDUCTION_FORM, default).range(-1.0, max, 1.0)
+/// The gain reduction of the IF stage in dB, from `min` to `max`.
+pub const fn if_reduction(default: i64, min: f64, max: f64) -> Setting<field::I64> {
+    number::<field::I64>(IF_REDUCTION_FORM, default).range(min, max, 1.0)
+}
+/// The gain the LNA stage has now, in dB: the stage set by hand, or the share of the gain while it follows the gain.
+pub const LNA_GAIN_NOW: Field<field::I64> = Field::new(LNA_GAIN_FORM.key, LNA_GAIN_FORM.label, "dB");
+/// The gain the VGA stage has now, in dB.
+pub const VGA_GAIN_NOW: Field<field::I64> = Field::new(VGA_GAIN_FORM.key, VGA_GAIN_FORM.label, "dB");
+/// The state the LNA has now.
+pub const LNA_STATE_NOW: Field<field::I64> = Field::new(LNA_STATE_FORM.key, LNA_STATE_FORM.label, "");
+/// The gain reduction the IF stage has now, in dB.
+pub const IF_REDUCTION_NOW: Field<field::I64> =
+    Field::new(IF_REDUCTION_FORM.key, IF_REDUCTION_FORM.label, "dB");
+
+/// What [`STAGE_FOLLOWS`] means to a person.
+pub const FOLLOWS_LABEL: &str = "Automatic";
+/// `stage`, which takes [`STAGE_FOLLOWS`] to follow the gain: the special value of the setting
+/// ([`SettingDecl::special_value`]), shown as [`FOLLOWS_LABEL`].
+pub const fn follows_gain(stage: Setting<field::I64>) -> Setting<field::I64> {
+    stage.special(STAGE_FOLLOWS as f64, FOLLOWS_LABEL)
 }
 /// The RF amplifier, on (`default` true) or off before one is set.
 pub const fn rf_amp(default: bool) -> Setting<field::Bool> {
@@ -271,6 +288,20 @@ pub const fn buffer_size<E: Choice + Send + Sync>(default: E) -> Setting<field::
 /// The sample buffers in flight, from `min` to `max`.
 pub const fn buffers(default: i64, min: f64, max: f64) -> Setting<field::I64> {
     number::<field::I64>(BUFFERS_FORM, default).range(min, max, 1.0)
+}
+
+/// True if the radio with `values` has a clean centre: no carrier of its own converter there, because it removes the DC
+/// offset in software ([`DC_REMOVAL`]) or tracks it in hardware (the baseband DC tracking of an AD936x board).
+pub fn centre_is_clean(values: &sdrkit_core::Values) -> bool {
+    let on = |key: &str| {
+        values
+            .schema()
+            .id(key)
+            .ok()
+            .and_then(|id| values.value(id))
+            .is_some_and(|v| *v == sdrkit_core::Value::Bool(true))
+    };
+    on(DC_REMOVAL_FORM.key) || on(crate::iiod::BB_DC_TRACK.key())
 }
 
 /// The highest tuning range a radio declares: a wider one is a placeholder.

@@ -78,14 +78,14 @@ pub const GAIN_SPLIT: Setting<field::Choice<GainSplit>> =
          the gain so that the signal neither clips nor sinks into the noise.",
     );
 /// The LNA state by hand. -1 follows the gain number.
-pub const LNA_STATE: Setting<field::I64> = form::lna_state(form::STAGE_FOLLOWS, model::MAX_LNA_STATE as f64)
+pub const LNA_STATE: Setting<field::I64> = form::follows_gain(form::lna_state(form::STAGE_FOLLOWS, model::MAX_LNA_STATE as f64))
     .help(
         "Set the LNA state by hand. -1 follows the gain number. The LNA steps depend on the model and the band. A state the band \
          does not have is refused.",
     );
 /// The IF gain reduction by hand. -1 follows the gain number.
 pub const IFGR: Setting<field::I64> =
-    form::if_reduction(form::STAGE_FOLLOWS, model::IFGR_MAX as f64)
+    form::follows_gain(form::if_reduction(form::STAGE_FOLLOWS, model::IFGR_MIN as f64, model::IFGR_MAX as f64))
         .help("Set the IF gain reduction by hand (20 to 59 dB). -1 follows the gain number.");
 /// The level the AGC of the radio holds.
 pub const AGC_SETPOINT: Setting<field::I64> = Setting::new(
@@ -180,6 +180,8 @@ pub const READINGS: &[&dyn Declare] = &[
     &TUNER,
     &GAINS,
     &THROUGHPUT,
+    &form::LNA_STATE_NOW,
+    &form::IF_REDUCTION_NOW,
 ];
 
 static DESCRIPTOR: DriverDescriptor = DriverDescriptor {

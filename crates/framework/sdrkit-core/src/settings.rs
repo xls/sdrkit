@@ -66,10 +66,14 @@ pub struct SettingDecl {
     pub advanced: bool,
     /// One or two plain sentences for people. Empty for none.
     pub help: Cow<'static, str>,
-    /// What the number 0 means when it is not a quantity: "Automatic". Empty when 0 is a number like any other. With
-    /// a meaning, 0 is a valid value outside the limits, and a front end shows the meaning in place of the number.
+    /// What the special number ([`SettingDecl::special_value`], 0 unless declared) means when it is not a quantity:
+    /// "Automatic". Empty when no number has a meaning. With a meaning, the special number is a valid value outside the
+    /// limits, and a front end shows the meaning in place of the number.
     #[serde(skip_serializing_if = "str::is_empty")]
     pub zero_means: Cow<'static, str>,
+    /// The number that [`SettingDecl::zero_means`] names: 0, or another (-1 for a gain stage that follows the gain).
+    #[serde(skip_serializing_if = "is_zero_f64")]
+    pub special_value: f64,
     /// The values of a number setting that people normally use. A front end offers them next to the range.
     #[serde(skip_serializing_if = "Common::is_empty")]
     pub common: Common,
@@ -77,6 +81,10 @@ pub struct SettingDecl {
     /// without a role.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role: Option<SettingRole>,
+}
+
+fn is_zero_f64(x: &f64) -> bool {
+    *x == 0.0
 }
 
 /// The values of a number setting that people normally use: one list, or one list for each option of a choice setting of
@@ -118,6 +126,7 @@ impl SettingDecl {
             section: Cow::Borrowed(""),
             help: Cow::Borrowed(""),
             zero_means: Cow::Borrowed(""),
+            special_value: 0.0,
             common: Common::default(),
             role: None,
         }
@@ -195,9 +204,16 @@ impl SettingDecl {
         self.common.sets = sets;
         self
     }
-    /// Whether `x` is the number 0 with a declared meaning.
+    /// The same setting, where the number `value` has this meaning ([`SettingDecl::special_value`]).
+    #[must_use]
+    pub fn with_special(mut self, value: f64, meaning: impl Into<Cow<'static, str>>) -> Self {
+        self.special_value = value;
+        self.zero_means = meaning.into();
+        self
+    }
+    /// Whether `x` is the special number with a declared meaning.
     fn is_meant_zero(&self, x: f64) -> bool {
-        x == 0.0 && !self.zero_means.is_empty()
+        x == self.special_value && !self.zero_means.is_empty()
     }
 }
 
@@ -274,8 +290,10 @@ pub struct Setting<K: SettingKind> {
     pub advanced: bool,
     /// One or two plain sentences for people.
     pub help: &'static str,
-    /// What the number 0 means when it is not a quantity, or empty (see [`SettingDecl::zero_means`]).
+    /// What the special number means when it is not a quantity, or empty (see [`SettingDecl::zero_means`]).
     pub zero_means: &'static str,
+    /// The special number ([`SettingDecl::special_value`]).
+    pub special_value: f64,
     /// The sample rate that the owner would like for a value of the setting ([`Setting::sets_rate`]).
     pub rate_of: Option<RateOf>,
     /// The values that people normally use ([`Setting::common`]).
@@ -323,6 +341,7 @@ impl<K: SettingKind> Setting<K> {
             advanced: false,
             help: "",
             zero_means: "",
+            special_value: 0.0,
             rate_of: None,
             common: &[],
             common_for: ("", &[]),
@@ -409,6 +428,13 @@ impl<K: SettingKind> Setting<K> {
         self.zero_means = meaning;
         self
     }
+    /// The same setting, where the number `value` has this meaning: `LNA.special(-1.0, "Automatic")`.
+    #[must_use]
+    pub const fn special(mut self, value: f64, meaning: &'static str) -> Self {
+        self.special_value = value;
+        self.zero_means = meaning;
+        self
+    }
     /// The key.
     pub const fn key(&self) -> &'static str {
         self.field.key
@@ -459,6 +485,7 @@ impl<K: SettingKind> DeclareSetting for Setting<K> {
             section: Cow::Borrowed(self.section),
             help: Cow::Borrowed(self.help),
             zero_means: Cow::Borrowed(self.zero_means),
+            special_value: self.special_value,
             common: Common {
                 values: self.common.to_vec(),
                 by: Cow::Borrowed(self.common_for.0),
@@ -1010,7 +1037,7 @@ impl Schema {
                 }
                 in_range(*x, min, max)
             }
-            Value::I64(0) if s.is_meant_zero(0.0) => Ok(()),
+            Value::I64(x) if s.is_meant_zero(*x as f64) => Ok(()),
             Value::I64(x) => in_range(*x as f64, min, max),
             Value::Position { lat, lon } => {
                 in_range(*lat, -90.0, 90.0)?;
