@@ -618,14 +618,15 @@ fn the_level_counts_the_channel_only_and_stays_at_or_below_full_scale() {
     let clean = signal(BleGenParams::default(), &[], 1, 0.2);
     let noisy = signal(BleGenParams::default(), &snr(25.0), 1, 0.2);
     // A tone at 1.8 MHz, outside the channel, 10 dB below the signal.
-    let mut ph = 0.0f64;
-    let toned: Vec<Complex32> = noisy
-        .iter()
-        .map(|&s| {
-            ph += std::f64::consts::TAU * 1.8e6 / RATE;
-            s + Complex32::new(ph.cos() as f32, ph.sin() as f32) * 0.316
-        })
-        .collect();
+    let tone = |x: &[Complex32], a: f32| -> Vec<Complex32> {
+        let mut ph = 0.0f64;
+        x.iter()
+            .map(|&s| {
+                ph += std::f64::consts::TAU * 1.8e6 / RATE;
+                s + Complex32::new(ph.cos() as f32, ph.sin() as f32) * a
+            })
+            .collect()
+    };
     let levels = |x: &[Complex32]| {
         let mut r = rx(&[]);
         r.configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
@@ -642,10 +643,21 @@ fn the_level_counts_the_channel_only_and_stays_at_or_below_full_scale() {
     assert_eq!(a.len(), 15);
     assert!(a.iter().all(|(_, l)| *l <= 0.0), "{a:?}");
     assert!(a.iter().filter(|(_, l)| *l > -0.5).count() == 2, "{a:?}");
-    let (b, c) = (levels(&noisy), levels(&toned));
-    assert_eq!(b.len(), c.len());
-    for ((_, x), (_, y)) in b.iter().zip(&c) {
-        assert!((x - y).abs() < 0.1, "the tone outside the channel moved the level: {x} {y}");
+    // The devices of `y` (at least `least` of them) have the levels of the clean signal.
+    let close = |y: &[(String, f64)], least: usize, tol: f64, what: &str| {
+        assert!(y.len() >= least, "{what}: {y:?}");
+        for (k, q) in y {
+            let p = a.iter().find(|(c, _)| c == k).map(|c| c.1).unwrap();
+            assert!((p - q).abs() < tol, "{what}: {p} {q}");
+        }
+    };
+    // The noise inside the channel is taken out: the level is the signal's, within the scatter of one packet. At 25 dB the
+    // weakest devices are lost.
+    close(&levels(&noisy), 11, 0.3, "noise");
+    close(&levels(&tone(&noisy, 0.316)), 11, 0.3, "noise and a tone");
+    // Without noise the faint residue of the tone that the channel filter lets through is all there is between packets.
+    for amp in [0.0003, 0.003, 0.01, 0.316] {
+        close(&levels(&tone(&clean, amp)), 15, 0.1, "a tone and no noise");
     }
 }
 

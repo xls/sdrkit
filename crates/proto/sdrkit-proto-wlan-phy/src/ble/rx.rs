@@ -35,6 +35,10 @@ pub(super) const MAX_PENDING: usize = 64;
 const CLIP: f32 = 1.5;
 /// Symbols of the slow average that sets the slicing level.
 pub(super) const LEVEL_BITS: usize = 40;
+/// The 40-symbol windows that give the noise of the channel (about 10 ms at 1 Msym/s).
+const FLOOR_WINDOWS: usize = 256;
+/// How far the last symbol rises above the 40-symbol mean to start a burst.
+const BURST_RISE: f64 = 8.0;
 /// The most links a receiver holds.
 pub const MAX_LINKS: usize = 16;
 
@@ -162,6 +166,12 @@ pub(super) struct Front {
     level_sum: f64,
     pow: Vec<f32>,
     pow_sum: f64,
+    /// The power of the last symbol (the newest `sps` entries of `pow`).
+    pow1_sum: f64,
+    /// A burst started: the last symbol is far above the 40-symbol mean. Set at the rising edge, cleared when it falls.
+    burst: bool,
+    /// The mean powers of the last [`FLOOR_WINDOWS`] windows of 40 symbols, from which [`Front::power`] takes the noise.
+    floors: [f64; FLOOR_WINDOWS],
     pub(super) hist: Vec<f32>,
     pub(super) hbase: u64,
 }
@@ -189,6 +199,9 @@ impl Front {
             level_sum: 0.0,
             pow: vec![0.0; KNOWN * sps],
             pow_sum: 0.0,
+            pow1_sum: 0.0,
+            burst: false,
+            floors: [f64::INFINITY; FLOOR_WINDOWS],
             hist: Vec::with_capacity(1 << 17),
             hbase: 0,
         })
@@ -203,6 +216,9 @@ impl Front {
         self.level_sum = 0.0;
         self.pow.fill(0.0);
         self.pow_sum = 0.0;
+        self.pow1_sum = 0.0;
+        self.burst = false;
+        self.floors = [f64::INFINITY; FLOOR_WINDOWS];
     }
 
     /// Takes one sample: returns the hard symbol decision of the symbol that ends at it and the phase `n mod sps`.
@@ -212,10 +228,32 @@ impl Front {
         let s = finite(s);
         // The level counts the channel filter's output only: noise and other signals outside the channel do not add to it.
         let y = self.filter.process_sample(s);
-        let pi = (self.n % self.pow.len() as u64) as usize;
+        let len = self.pow.len();
+        let pi = (self.n % len as u64) as usize;
         let pw = y.norm_sqr();
-        self.pow_sum += (pw - self.pow[pi]) as f64;
+        // The differences in f64: after a strong packet an f32 difference loses a faint input below its rounding.
+        self.pow1_sum += f64::from(pw) - f64::from(self.pow[(pi + len - sps) % len]);
+        self.pow_sum += f64::from(pw) - f64::from(self.pow[pi]);
         self.pow[pi] = pw;
+        // The first windows hold the filter's start.
+        if pi == 0 && self.n >= 4 * len as u64 {
+            let w = (self.n / len as u64) as usize % FLOOR_WINDOWS;
+            self.floors[w] = self.pow_sum.max(0.0) / len as f64;
+        }
+        // A burst far above what the channel held: the slicing level forgets that history. Without noise, a faint residue
+        // of a signal outside the channel would otherwise hold the level at its own frequency and every bit of the
+        // preamble would slice to one value.
+        let (p1, p40) = (
+            self.pow1_sum.max(0.0) / sps as f64,
+            self.pow_sum.max(0.0) / len as f64,
+        );
+        if !self.burst && p1 > BURST_RISE * p40 && p1 > 0.0 {
+            self.burst = true;
+            self.level.fill(0.0);
+            self.level_sum = 0.0;
+        } else if self.burst && p1 < 2.0 * p40 {
+            self.burst = false;
+        }
         // Noise between packets makes discriminator spikes many times the deviation. Clipping them keeps the averages near the
         // signal.
         let f = self.disc.process_sample(y).clamp(-CLIP, CLIP);
@@ -240,12 +278,28 @@ impl Front {
             self.avg_sum = self.avg.iter().sum();
             self.level_sum = self.level.iter().map(|&v| v as f64).sum();
             self.pow_sum = self.pow.iter().map(|&v| v as f64).sum();
+            let (len, sps) = (self.pow.len(), self.sps);
+            let end = (self.n % len as u64) as usize;
+            self.pow1_sum = (1..=sps).map(|i| self.pow[(end + len - i) % len] as f64).sum();
         }
     }
 
-    /// The mean power after the channel filter over the last 40 symbols.
+    /// The power of the signal after the channel filter over the last 40 symbols: the mean power less the noise of the
+    /// channel. The noise is the lower quartile of the mean powers of the recent 40-symbol windows: on a channel that is
+    /// quiet most of the time those windows hold noise only, and the quartile is less biased than the least of them.
     pub(super) fn power(&self) -> f64 {
-        self.pow_sum.max(0.0) / self.pow.len() as f64
+        let p = self.pow_sum.max(0.0) / self.pow.len() as f64;
+        let mut w = [0.0f64; FLOOR_WINDOWS];
+        let mut n = 0;
+        for &v in self.floors.iter().filter(|v| v.is_finite()) {
+            w[n] = v;
+            n += 1;
+        }
+        if n < 8 {
+            return p;
+        }
+        let (_, floor, _) = w[..n].select_nth_unstable_by(n / 4, f64::total_cmp);
+        (p - *floor).max(p * 1e-3)
     }
 
     /// The averaged discriminator at sample `pos` (which the history must hold).
