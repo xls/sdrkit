@@ -430,6 +430,13 @@ pub fn auto_filter(rate: f64) -> u32 {
         .unwrap_or(FILTERS_HZ[0])
 }
 
+/// The automatic receive filter for `rate`: the narrowest bandwidth of at least 0.85 times the rate, so that a signal
+/// that fills most of the capture (a 7 MHz television channel at 9.14 Msps) is not cut at its edges. Transmit keeps
+/// [`auto_filter`], which stays inside the rate.
+pub fn rx_filter(rate: f64) -> u32 {
+    filter_at_least(0.85 * rate)
+}
+
 /// The filter for a requested width `hz`: the narrowest bandwidth equal to or more than it, at most 28 MHz.
 pub fn filter_at_least(hz: f64) -> u32 {
     FILTERS_HZ
@@ -512,6 +519,10 @@ mod tests {
         for (rate, filter) in table {
             assert_eq!(auto_filter(rate), filter, "{rate}");
         }
+        assert_eq!(rx_filter(64e6 / 7.0), 8_000_000);
+        assert_eq!(rx_filter(10e6), 9_000_000);
+        assert_eq!(rx_filter(2e6), 1_750_000);
+        assert_eq!(rx_filter(20e6), 20_000_000);
         assert_eq!(auto_filter(1e6), 1_750_000);
         assert_eq!(auto_filter(40e6), 28_000_000);
         assert_eq!(filter_at_least(6e6), 6_000_000);

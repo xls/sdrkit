@@ -69,7 +69,7 @@ impl RxConfig {
         }
         let filter = match v.get(&BANDWIDTH) {
             w if w > 0.0 => proto::filter_at_least(w),
-            _ => proto::auto_filter(rate),
+            _ => proto::rx_filter(rate),
         };
         let (mut lna, mut vga) = proto::split_gain(v.get(&GAIN));
         if let Ok(db) = u32::try_from(v.get(&LNA)) {

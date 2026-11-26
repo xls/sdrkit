@@ -85,7 +85,7 @@ pub fn rx_start_lines(dev: u64, api: u16) -> String {
     let _ = write!(
         s,
         "out {dev} 40 06 0000 0000 00127a0001000000\n\
-         out {dev} 40 07 8d80 005b -\n\
+         out {dev} 40 07 cfc0 006a -\n\
          out {dev} 40 10 0000 0000 b1010000c0090e00\n\
          out {dev} 40 11 0000 0000 -\n\
          in {dev} c0 13 0000 0010 1 -> 01\n\
