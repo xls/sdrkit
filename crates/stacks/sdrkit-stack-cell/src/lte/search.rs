@@ -214,7 +214,21 @@ pub struct LteSearcher {
     chan: ChanEstimator,
     /// The strongest PSS correlation over its mean since the search of the capture started, dB.
     best_db: f64,
+    /// Whether a capture searches the carriers of the cells found and probes only a share of the other carrier positions,
+    /// in turn.
+    pub bounded: bool,
+    /// The carriers where cells were found: radio frequency of the candidate, Hz, and the signal time of the newest find.
+    found_at: Vec<(f64, f64)>,
+    /// The share of the carrier positions probed next while cells are followed.
+    turn: usize,
+    /// The radio centre of the newest capture, Hz.
+    centre_hz: f64,
 }
+
+/// A carrier stays followed for this many seconds of signal after its newest cell.
+const FOLLOW_S: f64 = 1.0;
+/// While cells are followed, a capture probes one carrier position in this many, in turn.
+const PROBE_SHARES: usize = 8;
 
 const SYNC_RATE: f64 = 1.92e6;
 const HALF: usize = 9600;
@@ -247,6 +261,10 @@ impl Default for LteSearcher {
             turbo: TurboRx::default(),
             chan: ChanEstimator::default(),
             best_db: f64::NEG_INFINITY,
+            bounded: false,
+            found_at: Vec::new(),
+            turn: 0,
+            centre_hz: f64::NAN,
         }
     }
 }
@@ -1848,6 +1866,7 @@ fn line(p: &[(f64, f64)]) -> (f64, f64) {
 
 /// The candidates of a capture.
 pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Cand> {
+    let share = s.following(cap);
     let mut out: Vec<Cand> = Vec::new();
     let push = |out: &mut Vec<Cand>, c: Cand| {
         if !out.iter().any(|x| (x.offset_hz - c.offset_hz).abs() < 50e3) {
@@ -1869,15 +1888,30 @@ pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Can
         let lim = 0.46 * cap.rate - 0.7e6;
         let lo = ((cap.centre_hz - lim) / 100e3).ceil() as i64;
         let hi = ((cap.centre_hz + lim) / 100e3).floor() as i64;
+        for &(hz, _) in share.map_or(&[][..], |_| &s.found_at[..]) {
+            push(
+                &mut out,
+                Cand {
+                    offset_hz: hz - cap.centre_hz,
+                    range_hz: s.max_cfo_hz,
+                    snapped: true,
+                    raw_hz: hz - cap.centre_hz,
+                },
+            );
+        }
         let mut probes: Vec<(f64, f64)> = Vec::new();
+        // While cells are followed, a probe beside a followed carrier is that carrier.
+        let mut kept: Vec<f64> = if share.is_some() { out.iter().map(|c| c.offset_hz).collect() } else { Vec::new() };
         for r in lo..=hi {
+            if share.is_some_and(|k| r.rem_euclid(PROBE_SHARES as i64) as usize != k) {
+                continue;
+            }
             let off = r as f64 * 100e3 - cap.centre_hz;
             if let Some(d) = s.probe(cap, off) {
                 probes.push((d, off));
             }
         }
         probes.sort_by(|a, b| b.0.total_cmp(&a.0));
-        let mut kept: Vec<f64> = Vec::new();
         for (_, off) in probes {
             if kept.iter().any(|&k| (k - off).abs() < 1.4e6) {
                 continue;
@@ -1893,8 +1927,8 @@ pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Can
                 },
             );
         }
-        for h in humps {
-            if kept.iter().any(|&k| (k - h.offset_hz).abs() < 1.4e6) {
+        for (i, h) in humps.iter().enumerate() {
+            if kept.iter().any(|&k| (k - h.offset_hz).abs() < 1.4e6) || share.is_some_and(|k| i % PROBE_SHARES != k) {
                 continue;
             }
             push(
@@ -1933,7 +1967,23 @@ pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Can
 }
 
 impl LteSearcher {
-    /// Searches the whole capture for every cell it holds.
+    /// While the search is bounded and cells were found at this centre within [`FOLLOW_S`], the share of the carrier
+    /// positions that the capture probes, from 0 to [`PROBE_SHARES`] - 1, in turn; else None: the capture is searched whole.
+    fn following(&mut self, cap: &Capture) -> Option<usize> {
+        if (cap.centre_hz - self.centre_hz).abs() > 1.0 || !self.bounded {
+            self.found_at.clear();
+        }
+        self.centre_hz = cap.centre_hz;
+        let now = cap.end_time;
+        self.found_at.retain(|f| now >= f.1 && now - f.1 <= FOLLOW_S);
+        if self.found_at.is_empty() {
+            return None;
+        }
+        self.turn = (self.turn + 1) % PROBE_SHARES;
+        Some(self.turn)
+    }
+
+    /// Searches the capture for every cell it holds (see [`LteSearcher::bounded`]).
     pub fn search(&mut self, cap: &Capture) -> LteSearchOut {
         self.borrow_tries = 0;
         self.best_db = f64::NEG_INFINITY;
@@ -1964,6 +2014,13 @@ impl LteSearcher {
                 {
                     out.cells.push(f);
                 }
+            }
+        }
+        if cap.centre_known() {
+            for f in &out.cells {
+                let hz = cap.centre_hz + f.cand.offset_hz;
+                self.found_at.retain(|x| (x.0 - hz).abs() >= 50e3);
+                self.found_at.push((hz, cap.end_time));
             }
         }
         out.best_pss_db = self.best_db;

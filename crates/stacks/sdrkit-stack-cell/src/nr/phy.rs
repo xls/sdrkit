@@ -20,24 +20,28 @@ fn mseq(reg: Lfsr) -> [u8; 127] {
 
 /// The PSS of N_ID2 (127 values, +-1). Standard: 3GPP TS 38.211 clause 7.4.2.2.1.
 pub fn pss(nid2: u16) -> [f32; 127] {
-    let x = mseq(NR_PSS);
+    static X: std::sync::OnceLock<[f32; 127]> = std::sync::OnceLock::new();
+    let x = X.get_or_init(|| mseq(NR_PSS).map(|b| 1.0 - 2.0 * b as f32));
     let mut d = [0f32; 127];
     for (n, v) in d.iter_mut().enumerate() {
-        let m = (n + 43 * nid2 as usize) % 127;
-        *v = 1.0 - 2.0 * x[m] as f32;
+        *v = x[(n + 43 * nid2 as usize) % 127];
     }
     d
 }
 
 /// The SSS of (N_ID1, N_ID2) (127 values, +-1). Standard: 3GPP TS 38.211 clause 7.4.2.3.1.
 pub fn sss(nid1: u16, nid2: u16) -> [f32; 127] {
-    let x0 = mseq(NR_SSS_X0);
-    let x1 = mseq(NR_SSS_X1);
+    // The two m-sequences as +-1, made once: a cell search scores all 336 N_ID1.
+    static X: std::sync::OnceLock<([f32; 127], [f32; 127])> = std::sync::OnceLock::new();
+    let (x0, x1) = X.get_or_init(|| {
+        let pm = |x: [u8; 127]| x.map(|b| 1.0 - 2.0 * b as f32);
+        (pm(mseq(NR_SSS_X0)), pm(mseq(NR_SSS_X1)))
+    });
     let m0 = 15 * (nid1 as usize / 112) + 5 * nid2 as usize;
     let m1 = nid1 as usize % 112;
     let mut d = [0f32; 127];
     for (n, v) in d.iter_mut().enumerate() {
-        *v = (1.0 - 2.0 * x0[(n + m0) % 127] as f32) * (1.0 - 2.0 * x1[(n + m1) % 127] as f32);
+        *v = x0[(n + m0) % 127] * x1[(n + m1) % 127];
     }
     d
 }

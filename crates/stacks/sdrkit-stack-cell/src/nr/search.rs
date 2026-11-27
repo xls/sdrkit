@@ -105,7 +105,22 @@ pub struct NrSearcher {
     best_db: f64,
     /// The clock error of the radio learned from a decoded cell, ppm, and the signal time it was learned.
     clock: Option<(f64, f64)>,
+    /// Whether a capture searches the raster points of the cells found and only [`OTHERS_PER_CAPTURE`] others, in turn.
+    pub bounded: bool,
+    /// The raster points where cells were found: radio frequency, Hz, SSB spacing, kHz, and the signal time of the newest find.
+    found_at: Vec<(f64, u32, f64)>,
+    /// The next of the other raster points searched while cells are followed.
+    turn: usize,
+    /// The radio centre of the newest capture, Hz.
+    centre_hz: f64,
 }
+
+/// A raster point stays followed for this many seconds of signal after its newest cell.
+const FOLLOW_S: f64 = 1.0;
+/// The other raster points searched in one capture while cells are followed.
+pub const OTHERS_PER_CAPTURE: usize = 1;
+/// The most raster points of found cells searched in one capture; more are searched in turn.
+pub const FOLLOWED_PER_CAPTURE: usize = 2;
 
 /// A learned clock error is used for this many seconds of signal.
 const CLOCK_KEPT_S: f64 = 600.0;
@@ -129,6 +144,10 @@ impl Default for NrSearcher {
             sib1_tried: Vec::new(),
             best_db: f64::NEG_INFINITY,
             clock: None,
+            bounded: false,
+            found_at: Vec::new(),
+            turn: 0,
+            centre_hz: f64::NAN,
         }
     }
 }
@@ -918,13 +937,42 @@ fn channel(
 }
 
 impl NrSearcher {
-    /// Searches the whole capture for every cell it holds.
+    /// The candidates of `cands` that a capture ending at `now` searches: all of them, or, when the search is bounded and
+    /// cells were found at this centre within [`FOLLOW_S`], [`FOLLOWED_PER_CAPTURE`] raster points of those cells and
+    /// [`OTHERS_PER_CAPTURE`] others, in turn.
+    fn searched(&mut self, cap: &Capture, cands: &[Cand]) -> Vec<usize> {
+        if (cap.centre_hz - self.centre_hz).abs() > 1.0 || !self.bounded {
+            self.found_at.clear();
+        }
+        self.centre_hz = cap.centre_hz;
+        let now = cap.end_time;
+        self.found_at.retain(|f| now >= f.2 && now - f.2 <= FOLLOW_S);
+        if self.found_at.is_empty() {
+            return (0..cands.len()).collect();
+        }
+        let at = |c: &Cand| cap.centre_hz + c.offset_hz;
+        let followed = |c: &Cand| self.found_at.iter().any(|f| f.1 == c.scs && (f.0 - at(c)).abs() < 5e3);
+        let (mine, others): (Vec<usize>, Vec<usize>) = (0..cands.len()).partition(|&i| followed(&cands[i]));
+        let mut pick: Vec<usize> = Vec::new();
+        for k in 0..FOLLOWED_PER_CAPTURE.min(mine.len()) {
+            pick.push(mine[(self.turn + k) % mine.len()]);
+        }
+        for k in 0..OTHERS_PER_CAPTURE.min(others.len()) {
+            pick.push(others[(self.turn + k) % others.len()]);
+        }
+        self.turn = self.turn.wrapping_add(OTHERS_PER_CAPTURE);
+        pick.sort_unstable();
+        pick
+    }
+
+    /// Searches the capture for every cell it holds (see [`NrSearcher::bounded`]).
     pub fn search(&mut self, cap: &Capture) -> NrSearchOut {
         self.best_db = f64::NEG_INFINITY;
-        let (cands, range) = candidates(cap, &self.band_order);
+        let (all, range) = candidates(cap, &self.band_order);
+        let cands: Vec<Cand> = self.searched(cap, &all).into_iter().map(|i| all[i]).collect();
         let mut out = NrSearchOut {
             gscn_range: range,
-            candidates: cands.len(),
+            candidates: all.len(),
             ..Default::default()
         };
         // A clock error learned from a decoded cell moves each raster point by its error and narrows the carrier offset
@@ -953,6 +1001,11 @@ impl NrSearcher {
         }
         for f in out.cells.iter_mut() {
             self.read_sib1(cap, f);
+        }
+        for f in &out.cells {
+            let hz = cap.centre_hz + f.cand.offset_hz;
+            self.found_at.retain(|x| !(x.1 == f.cand.scs && (x.0 - hz).abs() < 5e3));
+            self.found_at.push((hz, f.cand.scs, cap.end_time));
         }
         // The clock error of the radio, from the strongest decoded cell on a known raster point.
         if cap.centre_known() {

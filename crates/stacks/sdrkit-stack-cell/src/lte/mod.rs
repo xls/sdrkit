@@ -13,7 +13,7 @@ pub mod search;
 use crate::bands::{apply_mfbi, band_choice, earfcn_to_mhz, lte_band, nearest_earfcn, BandChoice};
 use crate::decoder::{
     build_search, capture_setting, look_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, RangeList,
-    RowSync, SearchConfig, FrequencyList, MoveGuard, SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS,
+    RowSync, SearchConfig, FrequencyList, SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS,
     SEARCH_DWELL, SEARCH_FIRST, SEARCH_RANGES,
 };
 use crate::typed::{
@@ -971,8 +971,6 @@ pub struct LteSearch {
     quiet: Option<String>,
     /// The cells seen by their synchronisation signals only, not yet listed.
     sightings: Sightings<LteKey>,
-    /// The cells of samples of the old centre after a move of the radio.
-    moves: MoveGuard,
     /// Why the cells of the newest capture are read only in part (the operator needs a wider capture).
     partial: Option<String>,
     /// The carrier centre and the sample rate that would read the system information of the newest such cell, Hz.
@@ -991,7 +989,6 @@ impl Default for LteSearch {
             scan: SearchConfig::new(LOOK_DEFAULT_S),
             quiet: None,
             sightings: Sightings::default(),
-            moves: MoveGuard::default(),
             partial: None,
             wanted: None,
         }
@@ -1079,9 +1076,6 @@ impl LteSearch {
         log: &mut Log<Self>,
     ) {
         let time = cap.end_time;
-        if self.moves.late(cap, u64::from(f.pci), f.cand.offset_hz + f.cfo_hz) {
-            return;
-        }
         let known = cap.centre_known();
         let actual = cap.centre_hz + f.cand.offset_hz + f.cfo_hz;
         let (earfcn, nominal) = if known {
@@ -1274,6 +1268,9 @@ impl SearchStack for LteSearch {
     fn search(&mut self, cap: &Capture) -> LteSearchOut {
         self.searcher.search(cap)
     }
+    fn bound_search(&mut self, on: bool) {
+        self.searcher.bounded = on;
+    }
     fn merge(
         &mut self,
         t: &mut LteTables,
@@ -1299,7 +1296,6 @@ impl SearchStack for LteSearch {
         let partial = partial_reason(&found, cap.rate, base);
         self.wanted = partial.as_ref().filter(|_| cap.centre_known()).map(|p| (p.1, p.2));
         self.partial = partial.map(|p| p.0);
-        self.moves.begin(cap);
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }

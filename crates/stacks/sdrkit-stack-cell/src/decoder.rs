@@ -50,8 +50,12 @@ const LOOK_TIMES: usize = 3;
 /// A step time this far from the one of the hop that runs starts the hop again with the new time.
 const DWELL_CHANGE: f64 = 0.25;
 
-/// The most samples of a live input that wait while the helper thread searches.
-const HELPER_BACKLOG: usize = 262_144;
+/// The most input, seconds, that waits while the helper thread searches: more than a bounded search of a capture takes.
+const HELPER_BACKLOG_S: f64 = 0.12;
+
+/// While a band search steps, the most samples that waited during a search that are taken: older ones belong to a look
+/// that is over, and are left out by design.
+const PASS_BACKLOG: usize = 262_144;
 
 /// The lock state is written again after this many seconds of signal at the latest, so it follows the signal.
 const REPORT_S: f64 = 0.5;
@@ -77,7 +81,8 @@ sdrkit_core::choice_enum! {
     /// When `cell` and `nr` search their bands.
     #[derive(Default)]
     pub enum SearchMode {
-        /// When the tuned frequency shows no cell for a second: one pass over the bands, then the strongest cell found.
+        /// When the tuned frequency shows no cell: after one look without a sync signal, or after search_dwell_s with one, one
+        /// pass over the bands, then the strongest cell found.
         #[default]
         Auto = ("auto", "When nothing is found"),
         /// Without end, staying on no cell: a survey of the bands.
@@ -197,52 +202,6 @@ impl<K: PartialEq + Copy> Sightings<K> {
         }
         self.seen.push((key, t));
         before
-    }
-}
-
-/// The samples of the old centre that a radio still sends for a short time after it moved (a network radio has them in its
-/// buffers). A cell in them shows at the new centre at the offset it had from the old one. A cell of the first captures after
-/// a move with the identity and the offset of a cell of the old centre is such a cell, and is left out.
-#[derive(Clone, Debug, Default)]
-pub struct MoveGuard {
-    centre_hz: f64,
-    /// Signal time of the first sample at the present centre, seconds.
-    since_s: f64,
-    /// The cells of the old centre and of the present one: identity and offset from the centre, Hz.
-    old: Vec<(u64, f64)>,
-    now: Vec<(u64, f64)>,
-}
-
-impl MoveGuard {
-    /// Captures that start within this many seconds of signal after a move can hold samples of the old centre.
-    pub const LATE_S: f64 = 0.5;
-    /// The most that the offset of one cell moves between captures, Hz.
-    const SAME_HZ: f64 = 20e3;
-    /// The most cells kept for each centre.
-    const CAP: usize = 64;
-
-    /// Starts the merge of `cap`: a capture at a new centre makes the cells of the present centre the old ones. A move too
-    /// small to tell a cell of the old centre from one of the new keeps the cells as they are.
-    pub fn begin(&mut self, cap: &Capture) {
-        let moved = (cap.centre_hz - self.centre_hz).abs();
-        if moved > 2.0 * Self::SAME_HZ {
-            self.old = std::mem::take(&mut self.now);
-            self.since_s = cap.start_time();
-        }
-        self.centre_hz = cap.centre_hz;
-    }
-
-    /// Whether cell `id` at `offset_hz` from the centre of `cap` comes from samples of the old centre. A cell that does not
-    /// is noted as a cell of the present centre.
-    pub fn late(&mut self, cap: &Capture, id: u64, offset_hz: f64) -> bool {
-        let same = |c: &(u64, f64)| c.0 == id && (c.1 - offset_hz).abs() <= Self::SAME_HZ;
-        if cap.centre_known() && cap.start_time() < self.since_s + Self::LATE_S && self.old.iter().any(same) {
-            return true;
-        }
-        if !self.now.iter().any(same) && self.now.len() < Self::CAP {
-            self.now.push((id, offset_hz));
-        }
-        false
     }
 }
 
@@ -527,6 +486,12 @@ pub trait SearchStack: Send + 'static {
     }
     /// Searches the whole capture.
     fn search(&mut self, cap: &Capture) -> Self::Found;
+    /// Whether the next searches may follow the cells found with a bounded share of the capture's work, so that a live
+    /// input is searched as fast as it arrives. The decoder sets it for live input while no band search steps. The default
+    /// ignores it.
+    fn bound_search(&mut self, on: bool) {
+        let _ = on;
+    }
     /// Merges what a capture held into the tables.
     fn merge(
         &mut self,
@@ -730,6 +695,13 @@ pub struct SearchDecoder<M: SearchStack> {
     requests: Vec<HostRequest>,
     /// Captures in a row without a cell since the last change of frequency.
     quiet: u32,
+    /// Signal time of the start of the first capture without a listed cell since one was seen or the frequency changed,
+    /// seconds.
+    quiet_since: Option<f64>,
+    /// Signal time of the newest change of frequency, seconds.
+    tuned_s: f64,
+    /// What the stack says of the newest capture belongs to a frequency or a state that has changed since.
+    reason_stale: bool,
     /// The frequency where the stack listens, Hz.
     tuned_hz: f64,
     /// The frequency of a cell the stack asked to stay on, Hz.
@@ -788,6 +760,9 @@ impl<M: SearchStack> SearchDecoder<M> {
             pass: None,
             requests: Vec::new(),
             quiet: 0,
+            quiet_since: None,
+            tuned_s: 0.0,
+            reason_stale: false,
             tuned_hz: 0.0,
             staying_hz: None,
             search_times: Vec::with_capacity(SEARCH_TIMES),
@@ -811,6 +786,7 @@ impl<M: SearchStack> SearchDecoder<M> {
     }
     /// Searches a capture and merges what it held, as the decoder does for a full capture.
     pub fn search_capture(&mut self, cap: &Capture) {
+        self.stack.bound_search(self.live && self.pass.is_none());
         let t0 = std::time::Instant::now();
         let found = self.stack.search(cap);
         let took_s = t0.elapsed().as_secs_f64();
@@ -837,6 +813,7 @@ impl<M: SearchStack> SearchDecoder<M> {
             .merge(&mut self.held.tables, cap, found, &mut log);
         self.captures += 1;
         self.last_centre = cap.centre_hz;
+        self.reason_stale = false;
         self.changed = true;
         self.after_capture(cap, took_s, sync);
     }
@@ -881,14 +858,26 @@ impl<M: SearchStack> SearchDecoder<M> {
         if self.refused_s.is_some_and(|t| self.time_s - t < REFUSED_HOLD_S) {
             return;
         }
-        let quiet_for = (1.0 / self.stack.capture_s().max(0.01)).ceil().max(2.0) as u32;
-        let start = match mode {
-            SearchMode::Off => false,
-            SearchMode::Survey => true,
-            SearchMode::Auto => self.quiet >= quiet_for,
-        };
-        if start {
-            self.start_search(rate);
+        match mode {
+            SearchMode::Off => {}
+            SearchMode::Survey => {
+                self.start_search(rate, false);
+            }
+            SearchMode::Auto => {
+                // The tuned frequency is a step of its own: one look without a sync signal, or search_dwell_s with one
+                // while no cell is listed there.
+                if self.listed() {
+                    self.quiet_since = None;
+                    return;
+                }
+                let since = *self.quiet_since.get_or_insert(cap.start_time());
+                let longest_s = self.stack.band_search().map_or(0.0, |c| c.dwell_s);
+                // A frequency the stack moved to for a cell gets the longest time even without a sync signal.
+                let wait = !sync && self.staying_hz.is_none();
+                if wait || self.time_s - since >= longest_s {
+                    self.start_search(rate, true);
+                }
+            }
         }
     }
 
@@ -1034,8 +1023,9 @@ impl<M: SearchStack> SearchDecoder<M> {
     }
 
     /// Starts a band search at `rate`: the bands of the setting, else those of the band order, else the band of the tuned
-    /// frequency. A search whose bands fit in one capture tunes to its one centre. Returns false when no band holds a step.
-    fn start_search(&mut self, rate: f64) -> bool {
+    /// frequency. A search whose bands fit in one capture tunes to its one centre. When `looked`, the tuned frequency was
+    /// searched already and is no step. Returns false when no band holds a step.
+    fn start_search(&mut self, rate: f64, looked: bool) -> bool {
         let Some(cfg) = self.stack.band_search() else { return false };
         let bands: Vec<u16> = if !cfg.bands.bands.is_empty() {
             cfg.bands.bands.clone()
@@ -1065,10 +1055,14 @@ impl<M: SearchStack> SearchDecoder<M> {
         }
         base.retain(|(c, _)| !steps.iter().any(|(x, _)| (x - c).abs() < 1.0));
         steps.extend(base);
+        if looked {
+            steps.retain(|(c, _)| (c - self.tuned_hz).abs() > 1.0);
+        }
         let dwell_s = self.hop_dwell();
         self.staying_hz = None;
         self.stayed = None;
         self.quiet = 0;
+        self.quiet_since = None;
         self.refused_s = None;
         self.looked = false;
         self.changed = true;
@@ -1179,6 +1173,7 @@ impl<M: SearchStack> SearchDecoder<M> {
     fn search_retuned(&mut self, tuned: f64) {
         self.tuned_hz = tuned;
         self.quiet = 0;
+        self.quiet_since = None;
         self.looked = false;
         if self.staying_hz.is_some_and(|h| (h - tuned).abs() <= 1.0) {
             return;
@@ -1229,9 +1224,13 @@ impl<M: SearchStack> SearchDecoder<M> {
                 p.steps.len()
             );
         }
-        if recent {
+        if recent || self.listed() {
             let partial = self.stack.partial_reason().map_or(String::new(), |p| format!(": {p}"));
-            return match &self.stayed {
+            let auto = self.live && self.stack.band_search().is_some_and(|c| c.mode == SearchMode::Auto);
+            return match self.staying_on().filter(|_| auto || self.stayed.is_some()) {
+                Some(c) if auto => {
+                    format!("Staying on {c}, the cell found (band_search survey visits all bands); {summary}{partial}")
+                }
                 Some(c) => format!("Staying on {c}; {summary}{partial}"),
                 None => format!("{summary}{partial}"),
             };
@@ -1251,7 +1250,26 @@ impl<M: SearchStack> SearchDecoder<M> {
                     .to_owned(),
             );
         }
-        self.weak_text().or_else(|| self.stack.quiet_reason())
+        self.weak_text()
+            .or_else(|| self.stack.quiet_reason().filter(|_| !self.reason_stale))
+    }
+
+    /// Whether a cell is listed at this frequency: one seen since the newest change of frequency and within
+    /// [`SearchStack::RECENT_S`]. A reason why no cell shows does not hold then.
+    fn listed(&self) -> bool {
+        self.cells_seen(self.tuned_s.max(self.time_s - M::RECENT_S)).0
+    }
+
+    /// The cell the stack stays on, as the status names it: the one a band search stayed on, else the strongest cell
+    /// listed at this frequency.
+    fn staying_on(&self) -> Option<String> {
+        self.stayed.clone().or_else(|| {
+            M::carriers(&self.held.tables)
+                .into_iter()
+                .filter(|c| c.last_s >= self.tuned_s)
+                .max_by(|a, b| a.level_dbfs.total_cmp(&b.level_dbfs))
+                .map(|c| c.name)
+        })
     }
 
     /// The text of a signal too weak at the radio: samples in a few levels of the converter, or a level below
@@ -1356,9 +1374,12 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         // A new rate gives new search steps: a search that ran starts again.
         let ran = self.pass.take().is_some();
         self.tuned_hz = input.tuned_hz;
+        self.tuned_s = self.time_s;
         self.quiet = 0;
+        self.quiet_since = None;
+        self.reason_stale = true;
         if ran {
-            self.start_search(input.rate);
+            self.start_search(input.rate, false);
         }
         Ok(vec![
             Format::new(Kind::typed::<CellEvent<M>>(), 0.0),
@@ -1370,6 +1391,8 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         self.cap.samples.clear();
         if (input.centre_hz - self.cap.centre_hz).abs() > 1.0 {
             self.retunes += 1;
+            self.tuned_s = self.time_s;
+            self.reason_stale = true;
             self.changed = true;
         }
         self.cap.centre_hz = input.centre_hz;
@@ -1381,6 +1404,12 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         if x.is_empty() || self.cap.rate <= 0.0 {
             return;
         }
+        let skip = if self.live && self.pass.is_some() {
+            x.len().saturating_sub(PASS_BACKLOG)
+        } else {
+            0
+        };
+        let (x, first) = (&x[skip..], first + skip as u64);
         self.started = true;
         if !self.requests.is_empty() {
             let t = first as f64 / self.cap.rate;
@@ -1450,7 +1479,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         });
         let lock_state = self.lock_state();
         let recent = lock_state == LockState::Locked;
-        let quiet = if recent {
+        let quiet = if recent || self.listed() {
             self.stack.partial_reason()
         } else {
             self.quiet_text()
@@ -1525,7 +1554,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
                 if self.cap.rate <= 0.0 || self.tuned_hz <= 0.0 {
                     return Err(SearchError::NoInput.into());
                 }
-                if !self.start_search(self.cap.rate) {
+                if !self.start_search(self.cap.rate, false) {
                     return Err(SearchError::NoSteps.into());
                 }
                 Ok(None)
@@ -1568,15 +1597,15 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
             self.retunes = 0;
         }
         self.forgot_s = self.time_s;
+        self.reason_stale = true;
         self.changed = true;
     }
-    /// Batches of what has arrived: the decoder collects the capture itself, and while it searches only the newest
-    /// [`HELPER_BACKLOG`] samples wait, so the samples that a slow search leaves out cost little copying on the thread of
-    /// the input. A batch of what has arrived keeps up with input in pieces of any size.
+    /// Batches of what has arrived: the decoder collects the capture itself, and while it searches the newest
+    /// [`HELPER_BACKLOG_S`] of input wait. A batch of what has arrived keeps up with input in pieces of any size.
     fn helper(&self) -> Helper {
         Helper::WhenLive {
             batch: 0,
-            backlog: HELPER_BACKLOG,
+            backlog: ((self.cap.rate * HELPER_BACKLOG_S) as usize).max(1 << 16),
         }
     }
     fn attach(&mut self, ctx: &RunContext) {

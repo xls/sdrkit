@@ -546,6 +546,8 @@ pub struct NrSearch {
     scan: SearchConfig,
     /// Why the newest capture showed no cell.
     quiet: Option<String>,
+    /// Why the cells of the newest capture are read only in part (CORESET#0 wider than the capture).
+    partial: Option<String>,
     /// The cells seen by their synchronisation signals only, not yet listed.
     sightings: Sightings<NrKey>,
     /// The SSB frequencies of the decoded cells of the newest capture, Hz (absolute when the centre is known).
@@ -563,6 +565,7 @@ impl Default for NrSearch {
             filter: NrFilter::default(),
             scan: SearchConfig::new(LOOK_DEFAULT_S),
             quiet: None,
+            partial: None,
             sightings: Sightings::default(),
             decoded_hz: Vec::new(),
         }
@@ -604,6 +607,29 @@ fn quiet_reason(out: &NrSearchOut, rate: f64, threshold_db: f64) -> Option<Strin
              band search steps the raster{note30}"
         ),
     })
+}
+
+/// Why the cells of `t` seen at `now` are read only in part: a CORESET#0, which holds the SIB1 and the operator, wider
+/// than the capture at `rate`.
+fn partial_reason(t: &NrTables, now: f64, rate: f64) -> Option<String> {
+    let c = t
+        .cells
+        .iter()
+        .find(|r| r.seen.last_s >= now && r.record.sib1.is_none() && r.record.sib1_step == Sib1Step::TooNarrow)?
+        .record;
+    let khz = c.mib.as_ref().map_or(15, |m| m.scs_common_khz);
+    let width = f64::from(c.coreset0_rbs) * 12.0 * f64::from(khz) * 1e3;
+    Some(format!(
+        "PCI {} sends its SIB1 (the operator) in a CORESET#0 of {} resource blocks ({:.2} MHz): that needs about {:.2} Msps \
+         at this centre, at least {:.2} Msps at the centre of CORESET#0; the capture is {:.2} Msps, so only the cell \
+         identity, MIB and level are read",
+        c.pci,
+        c.coreset0_rbs,
+        width / 1e6,
+        c.sib1_rate_needed_hz / 1e6,
+        width / 1e6,
+        rate / 1e6
+    ))
 }
 
 impl NrSearch {
@@ -886,6 +912,9 @@ impl SearchStack for NrSearch {
     fn search(&mut self, cap: &Capture) -> NrSearchOut {
         self.searcher.search(cap)
     }
+    fn bound_search(&mut self, on: bool) {
+        self.searcher.bounded = on;
+    }
     fn merge(&mut self, t: &mut NrTables, cap: &Capture, found: NrSearchOut, log: &mut Log<Self>) {
         t.gscn_range = found.gscn_range;
         t.candidates = Some(found.candidates);
@@ -906,6 +935,7 @@ impl SearchStack for NrSearch {
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
+        self.partial = partial_reason(t, cap.end_time, cap.rate);
     }
     fn found_cells(found: &NrSearchOut) -> usize {
         found.cells.len()
@@ -915,6 +945,9 @@ impl SearchStack for NrSearch {
     }
     fn quiet_reason(&self) -> Option<String> {
         self.quiet.clone()
+    }
+    fn partial_reason(&self) -> Option<String> {
+        self.partial.clone()
     }
     fn band_search(&self) -> Option<&SearchConfig> {
         Some(&self.scan)

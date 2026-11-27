@@ -344,6 +344,25 @@ fn sib1_states_what_stops_it() {
     assert_eq!(cs[0]["sib1_step"], "not_scheduled");
 }
 
+/// A capture too narrow for CORESET#0 says so: the quiet reason and the status name the cell, the width of CORESET#0 and the
+/// rate that reads its SIB1.
+#[test]
+fn a_capture_too_narrow_for_sib1_says_so() {
+    use sdrkit_core::{Output, Owner, Receiver};
+    let (centre, cells) = scene(1);
+    let rate = 3.84e6;
+    let x = impaired(NrGenerator::new(rate, cells, NrGenOptions::default()), &keys(10.0, 0.0, 0.0), 0.3);
+    let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
+    rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
+    rx.feed(&x, &mut Output::default());
+    rx.refresh_results();
+    let r = Owner::results(&rx);
+    let q = text(r, "quiet_reason").unwrap_or_default();
+    assert!(q.starts_with("PCI 222 sends its SIB1 (the operator) in a CORESET#0 of 24 resource blocks (4.32 MHz)"), "{q}");
+    assert!(q.contains("4.86 Msps at this centre"), "{q}");
+    assert!(r.status().summary.contains(&q), "{}", r.status().summary);
+}
+
 /// The SNR in the SSB band at which SIB1 is read: prints the decodes of 4 seeds per level. Run with `--ignored --nocapture`.
 #[test]
 #[ignore = "a measurement"]

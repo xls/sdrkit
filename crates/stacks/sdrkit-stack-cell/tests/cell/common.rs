@@ -115,6 +115,15 @@ pub fn value(r: &Results, key: &str) -> Option<f64> {
     }
 }
 
+/// The text of the published field `key`.
+pub fn text(r: &Results, key: &str) -> Option<String> {
+    let id = r.decl().field_id(key)?;
+    match r.fields().value(id)? {
+        Value::Text(t) => Some(t.to_string()),
+        _ => None,
+    }
+}
+
 /// The rows of table `key` of `r`.
 pub fn table_len(r: &Results, key: &str) -> usize {
     r.decl()

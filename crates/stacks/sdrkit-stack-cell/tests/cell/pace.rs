@@ -184,6 +184,41 @@ fn lte_keeps_up_with_a_live_carrier_at_12_msps() {
     assert!(cells(&state(&rx))[0]["sib1"].is_object(), "{}", cells(&state(&rx))[0]);
 }
 
+/// One n28 cell, and three cells on three raster points, at 12 Msps fed live with the default settings: once they are
+/// listed, every sample is searched (none dropped) for 20 s, and the SIB1 of the first cell is read.
+#[test]
+#[ignore]
+fn nr_follows_a_live_cell_at_12_msps_in_real_time() {
+    use sdrkit_stack_cell::nr::gen::{scene, NrGenOptions, NrGenerator};
+    let rate = 12e6;
+    for n in [1u16, 3] {
+        let (hz, mut scene_cells) = scene(1);
+        // The others on the raster points 2.4 MHz below and above.
+        for (k, off) in [(1u16, -2.4e6), (2, 2.4e6)].into_iter().take(usize::from(n) - 1) {
+            let mut c = scene_cells[0].clone();
+            c.pci += 50 * k;
+            c.offset_hz = off;
+            c.ssb_hz += off;
+            c.sib1 = None;
+            scene_cells.push(c);
+        }
+        let x = impaired(NrGenerator::new(rate, scene_cells, NrGenOptions::default()), &snr(15.0), 1.0);
+        let mut rx = stack_graph(&NR, &[]);
+        rx.configure(&InputInfo::new(rate, hz, hz)).unwrap();
+        let mut gen = cycle(x);
+        let first = paced(&mut rx, rate, hz, 3.0, true, &mut gen);
+        assert_eq!(value(Owner::results(&rx), "cell_count"), Some(f64::from(n)), "{first:?} {:?}", Owner::results(&rx).status().summary);
+        let p = paced(&mut rx, rate, hz, 20.0, true, &mut gen);
+        report(&format!("on {n} cells"), &NR, &p);
+        assert_eq!(p.lost, 0.0, "{p:?}");
+        assert_eq!(p.dropped, first.dropped, "{n} cells: {p:?}");
+        rx.finish(&mut Output::default());
+        let cs = cells(&state(&rx));
+        assert_eq!(cs.len(), usize::from(n), "{cs:#?}");
+        assert!(cs.iter().any(|c| c["sib1"].is_object()), "{cs:#?}");
+    }
+}
+
 /// One pass of the band search over the Australian bands at 12 Msps, live on noise, with 0.1 s for each move of the radio:
 /// under two minutes for `nr` and under 40 s for `cell`, and every step searched.
 #[test]
