@@ -1130,6 +1130,8 @@ pub struct Results {
     points: BTreeMap<String, MapPoint>,
     log: VecDeque<String>,
     log_cap: usize,
+    /// The summary that [`Results::lost_signal`] writes; empty for none.
+    searching: String,
     /// The counter of the last change.
     clock: u64,
     fields_changed: u64,
@@ -1177,6 +1179,7 @@ impl Results {
             points: BTreeMap::new(),
             log: VecDeque::new(),
             log_cap: 200,
+            searching: String::new(),
             clock: 0,
             fields_changed: 0,
         }
@@ -1414,6 +1417,7 @@ impl Results {
         r.points = self.points;
         r.log = self.log;
         r.log_cap = self.log_cap;
+        r.searching = self.searching;
         r.clock = self.clock + 1;
         r.fields_changed = self.fields_changed;
         r
@@ -1459,10 +1463,29 @@ impl Results {
         }
         self.tick(c);
     }
-    /// Keeps what was decoded, and forgets that anything is being received. Use it after a retune.
+    /// Keeps what was decoded, and forgets that anything is being received. Use it after a retune. The summary becomes the
+    /// text of [`Results::set_searching_summary`], empty when none was set. Nothing is allocated once the summary has its size.
     pub fn lost_signal(&mut self) {
-        let lost = Status::new(LockState::Searching);
-        self.set_status(&lost);
+        let Results { status, searching, .. } = self;
+        let lost = status.lock_state == LockState::Searching
+            && status.snr_db.is_none()
+            && status.level_dbfs.is_none()
+            && status.offset_hz.is_none()
+            && status.summary == *searching;
+        if !lost {
+            status.lock_state = LockState::Searching;
+            (status.snr_db, status.level_dbfs, status.offset_hz) = (None, None, None);
+            status.summary.clone_from(searching);
+        }
+        self.tick(!lost);
+    }
+    /// Sets the summary that [`Results::lost_signal`] writes: what the decoder does from the next retune on, until its
+    /// next report. It is no result: it changes no counter, and equality and serialization leave it out.
+    pub fn set_searching_summary(&mut self, text: &str) {
+        if self.searching != text {
+            self.searching.clear();
+            self.searching.push_str(text);
+        }
     }
 }
 
@@ -1479,6 +1502,7 @@ impl Clone for Results {
             points: self.points.clone(),
             log: self.log.clone(),
             log_cap: self.log_cap,
+            searching: self.searching.clone(),
             clock: self.clock,
             fields_changed: self.fields_changed,
             series_changed: self.series_changed.clone(),
@@ -1497,6 +1521,7 @@ impl Clone for Results {
         map_clone_from(&mut self.points, &s.points);
         clone_lines(&mut self.log, &s.log);
         self.log_cap = s.log_cap;
+        self.searching.clone_from(&s.searching);
         self.clock = s.clock;
         self.fields_changed = s.fields_changed;
         self.series_changed.clone_from(&s.series_changed);

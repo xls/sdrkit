@@ -2924,7 +2924,7 @@ static inline int32_t sdrkit_cell_set_band_order(SDRKIT_HANDLE handle, sdrkit_st
   return sdrkit_typed_setting_set_string(handle, "band_order", value);
 }
 
-// The setting "band_search" (Band search) of the stack "cell". A value of `sdrkit_cell_band_search`. When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never.
+// The setting "band_search" (Band search) of the stack "cell". A value of `sdrkit_cell_band_search`. When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell whose operator can be read at this rate (until it finds one, else one pass and then the strongest cell found), always (a survey), or never.
 static inline int32_t sdrkit_cell_get_band_search(SDRKIT_HANDLE handle, sdrkit_cell_band_search *value) {
   int32_t index = 0;
   int32_t code = sdrkit_typed_setting_get_enum(handle, "band_search", &index);
@@ -2943,7 +2943,7 @@ static inline int32_t sdrkit_cell_set_search_bands(SDRKIT_HANDLE handle, sdrkit_
   return sdrkit_typed_setting_set_string(handle, "search_bands", value);
 }
 
-// The setting "search_first" (Searched first) of the stack "cell". Unit: MHz. Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none.
+// The setting "search_first" (Searched first) of the stack "cell". Unit: MHz. Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds whose operator can be read at this rate. Empty: none.
 static inline int32_t sdrkit_cell_get_search_first(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "search_first", value);
 }
@@ -3160,7 +3160,7 @@ static inline int32_t sdrkit_nr_set_symbol_phase(SDRKIT_HANDLE handle, bool valu
   return sdrkit_typed_setting_set_bool(handle, "symbol_phase", value);
 }
 
-// The setting "band_search" (Band search) of the stack "nr". A value of `sdrkit_nr_band_search`. When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never.
+// The setting "band_search" (Band search) of the stack "nr". A value of `sdrkit_nr_band_search`. When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell whose operator can be read at this rate (until it finds one, else one pass and then the strongest cell found), always (a survey), or never.
 static inline int32_t sdrkit_nr_get_band_search(SDRKIT_HANDLE handle, sdrkit_nr_band_search *value) {
   int32_t index = 0;
   int32_t code = sdrkit_typed_setting_get_enum(handle, "band_search", &index);
@@ -3179,7 +3179,7 @@ static inline int32_t sdrkit_nr_set_search_bands(SDRKIT_HANDLE handle, sdrkit_st
   return sdrkit_typed_setting_set_string(handle, "search_bands", value);
 }
 
-// The setting "search_first" (Searched first) of the stack "nr". Unit: MHz. Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none.
+// The setting "search_first" (Searched first) of the stack "nr". Unit: MHz. Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds whose operator can be read at this rate. Empty: none.
 static inline int32_t sdrkit_nr_get_search_first(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "search_first", value);
 }

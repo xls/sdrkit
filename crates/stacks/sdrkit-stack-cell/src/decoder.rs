@@ -79,8 +79,8 @@ sdrkit_core::choice_enum! {
     /// When `cell` and `nr` search their bands.
     #[derive(Default)]
     pub enum SearchMode {
-        /// When the tuned frequency shows no cell: after one look without a sync signal, or after search_dwell_s with one, one
-        /// pass over the bands, then the strongest cell found.
+        /// When the tuned frequency shows no cell whose operator can be read at this rate: after one look without a sync
+        /// signal, or after search_dwell_s with one, until such a cell is found, else one pass and the strongest cell found.
         #[default]
         Auto = ("auto", "When nothing is found"),
         /// Without end, staying on no cell: a survey of the bands.
@@ -93,8 +93,9 @@ sdrkit_core::choice_enum! {
 /// When the stack searches its bands.
 pub const BAND_SEARCH: sdrkit_core::Setting<field::Choice<SearchMode>> =
     sdrkit_core::Setting::choice("band_search", "Band search", SearchMode::Auto).help(
-        "When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then \
-         the strongest cell found), always (a survey), or never.",
+        "When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell whose operator \
+         can be read at this rate (until it finds one, else one pass and then the strongest cell found), always (a survey), \
+         or never.",
     );
 /// The bands a band search covers.
 pub const SEARCH_BANDS: sdrkit_core::Setting<field::Text> = sdrkit_core::Setting::new("search_bands", "Bands searched", "", "")
@@ -106,7 +107,8 @@ pub const SEARCH_BANDS: sdrkit_core::Setting<field::Text> = sdrkit_core::Setting
 pub const SEARCH_FIRST: sdrkit_core::Setting<field::Text> =
     sdrkit_core::Setting::new("search_first", "Searched first", "MHz", "").help(
         "Frequencies of known carriers, MHz, that a band search visits first, each at its own centre (\"884.45 763\"); a \
-         frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none.",
+         frequency outside the bands searched is left out. In auto the search stays on the first cell it finds whose operator \
+         can be read at this rate. Empty: none.",
     );
 /// The frequency ranges that a band search keeps to.
 pub const SEARCH_RANGES: sdrkit_core::Setting<field::Text> =
@@ -256,6 +258,16 @@ pub struct FoundCarrier {
     pub settled: bool,
     /// Nothing more of the cell can be read at this rate at any centre: a visit at its own centre reads nothing more.
     pub out_of_reach: bool,
+    /// The sample rate that reads the operator of the cell with the radio on it, Hz, when the rate of the newest capture
+    /// does not. None when that rate does, or when it is not known.
+    pub rate_needed_hz: Option<f64>,
+}
+
+impl FoundCarrier {
+    /// Whether the operator of the cell is read, or is not out of reach of this rate with the radio on the cell.
+    pub fn readable(&self) -> bool {
+        self.identified || self.rate_needed_hz.is_none()
+    }
 }
 
 /// One capture of input samples passed to a search.
@@ -588,6 +600,8 @@ struct Pass {
     longer: Option<(usize, f64)>,
     /// The steps that visit a carrier found in the pass before at its own centre, before the steps of the bands.
     added: usize,
+    /// A hop was asked for since the radio last moved: the next move goes to step `from`.
+    fresh: bool,
 }
 
 impl Pass {
@@ -606,6 +620,7 @@ impl Pass {
             from: 0,
             longer: None,
             added: 0,
+            fresh: true,
         }
     }
     /// The step of the pass, counted from 1: the steps searched in this pass and the one that waits. It grows within a pass
@@ -641,6 +656,28 @@ impl Pass {
 const STUCK_DWELLS: f64 = 4.0;
 /// After a refused search, a search does not start by itself for this many seconds of signal.
 const REFUSED_HOLD_S: f64 = 30.0;
+/// The seconds of signal that the host has to give a rate that the stack asked for, before the stack takes it as refused.
+const RATE_WAIT_S: f64 = 1.0;
+
+/// What the tuned frequency is to a band search that starts.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Tuned {
+    /// No step: it was searched already.
+    Skip,
+    /// The first step: its cells are seen again in the pass.
+    First,
+    /// A step only where the bands have one.
+    Bands,
+}
+
+/// Why the stack stays on cells whose operator this rate cannot read, instead of searching on.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Hold {
+    /// The command `stay` chose the cell.
+    Chosen,
+    /// A pass in auto found no cell whose operator can be read: the strongest cell found.
+    NoneReadable,
+}
 
 /// Whether the samples `x` use so few levels of the radio's converter that a weak signal is lost in its steps: fewer than 16
 /// different values of the real part in up to 4096 samples.
@@ -740,8 +777,10 @@ pub struct SearchDecoder<M: SearchStack> {
     refused_s: Option<f64>,
     /// The cell the band search stayed on, as the status names it.
     stayed: Option<String>,
-    /// The carrier centre and the rate the stack asked the host for, Hz.
-    asked_rate: Option<(f64, f64)>,
+    /// Why the stack stays where no cell can be read at this rate. None: in auto such a cell does not end the search.
+    hold: Option<Hold>,
+    /// The carrier centre and the rate the stack asked the host for, Hz, and the signal time of the request, seconds.
+    asked_rate: Option<(f64, f64, f64)>,
 }
 
 impl<M: SearchStack> SearchDecoder<M> {
@@ -791,6 +830,7 @@ impl<M: SearchStack> SearchDecoder<M> {
             live: false,
             refused_s: None,
             stayed: None,
+            hold: None,
             asked_rate: None,
         }
     }
@@ -841,30 +881,35 @@ impl<M: SearchStack> SearchDecoder<M> {
     fn after_capture(&mut self, cap: &Capture, took_s: f64, sync: bool) {
         let rate = cap.rate;
         let Some(mode) = self.stack.band_search().map(|c| c.mode) else { return };
-        // A carrier wider than the capture: in auto, on a live radio, the stack asks once for the rate and the centre
-        // that read its system information.
-        if let Some((hz, want)) = self.stack.rate_wanted().filter(|(_, r)| *r > rate) {
-            let asked = self.asked_rate.is_some_and(|(h, r)| (h - hz).abs() < 50e3 && r >= want);
-            if mode == SearchMode::Auto && self.live && !asked {
-                self.asked_rate = Some((hz, want));
-                self.pass = None;
-                self.staying_hz = Some(hz);
-                self.requests.push(HostRequest::Tune {
-                    session: String::new(),
-                    freq_hz: Some(hz),
-                    target: sdrkit_core::TuneTarget::Running,
-                    submode: String::new(),
-                    rate_hz: Some(want),
-                    bandwidth_hz: None,
-                    settings: Vec::new(),
-                });
-                self.changed = true;
-                return;
+        // A carrier wider than the capture where no cell can be read, outside a band search: in auto, on a live radio, the
+        // stack asks once for the rate and the centre that read its system information, and gives the host time for it.
+        let wide = self.stack.rate_wanted().filter(|(_, r)| *r > rate);
+        if let Some((hz, want)) = wide.filter(|_| mode == SearchMode::Auto && self.live && self.pass.is_none()) {
+            if !self.readable_listed() {
+                match self.asked_rate.filter(|(h, r, _)| (h - hz).abs() < 50e3 && *r >= want) {
+                    None => {
+                        self.asked_rate = Some((hz, want, self.time_s));
+                        self.staying_hz = Some(hz);
+                        self.requests.push(HostRequest::Tune {
+                            session: String::new(),
+                            freq_hz: Some(hz),
+                            target: sdrkit_core::TuneTarget::Running,
+                            submode: String::new(),
+                            rate_hz: Some(want),
+                            bandwidth_hz: None,
+                            settings: Vec::new(),
+                        });
+                        self.changed = true;
+                        return;
+                    }
+                    Some((_, _, t)) if self.time_s - t < RATE_WAIT_S => return,
+                    Some(_) => {}
+                }
             }
         }
         if let Some(since) = self.pass.as_ref().map(|p| p.started_s) {
-            // A cell found in auto: the search ends on the strongest cell of this pass.
-            if mode == SearchMode::Auto && self.quiet == 0 && self.stay("", since) {
+            // A cell found in auto whose operator can be read: the search ends on the strongest such cell of this pass.
+            if mode == SearchMode::Auto && self.quiet == 0 && self.stay_readable(since) {
                 return;
             }
             self.step_searched(cap, took_s, sync);
@@ -879,13 +924,17 @@ impl<M: SearchStack> SearchDecoder<M> {
         match mode {
             SearchMode::Off => {}
             SearchMode::Survey => {
-                self.start_search(rate, false);
+                self.start_search(rate, Tuned::Bands);
             }
             SearchMode::Auto => {
                 // The tuned frequency is a step of its own: one look without a sync signal, or search_dwell_s with one
-                // while no cell is listed there.
+                // while no cell is listed there. A cell whose operator this rate cannot read does not end the search.
                 if self.listed() {
                     self.quiet_since = None;
+                    if self.hold.is_none() && !self.readable_listed() && !self.start_search(rate, Tuned::First) {
+                        // No step to search: the cells here are all there is.
+                        self.hold = Some(Hold::NoneReadable);
+                    }
                     return;
                 }
                 let since = *self.quiet_since.get_or_insert(cap.start_time());
@@ -893,7 +942,7 @@ impl<M: SearchStack> SearchDecoder<M> {
                 // A frequency the stack moved to for a cell gets the longest time even without a sync signal.
                 let wait = !sync && self.staying_hz.is_none();
                 if wait || self.time_s - since >= longest_s {
-                    self.start_search(rate, true);
+                    self.start_search(rate, Tuned::Skip);
                 }
             }
         }
@@ -970,8 +1019,15 @@ impl<M: SearchStack> SearchDecoder<M> {
             p.from = (i + 1) % p.steps.len();
             let mode = self.stack.band_search().map(|c| c.mode);
             // Only a cell seen in this pass: an older row of the tables tells nothing of where the radio can hear one now.
-            if mode == Some(SearchMode::Auto) && self.stay("", since) {
-                return;
+            // A cell whose operator can be read first, else the strongest cell, which then holds the search.
+            if mode == Some(SearchMode::Auto) {
+                if self.stay_readable(since) {
+                    return;
+                }
+                if self.stay("", since) {
+                    self.hold = Some(Hold::NoneReadable);
+                    return;
+                }
             }
             if mode == Some(SearchMode::Survey) && self.visit_found(since) {
                 return;
@@ -989,6 +1045,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         p.from = j;
         p.dwell_s = dwell_s;
         p.moved_s = self.time_s;
+        p.fresh = true;
         let channels = p.steps[j..].iter().chain(&p.steps[..j]).map(|s| s.0).collect();
         self.requests.push(HostRequest::Hop {
             channels,
@@ -1042,9 +1099,9 @@ impl<M: SearchStack> SearchDecoder<M> {
     }
 
     /// Starts a band search at `rate`: the bands of the setting, else those of the band order, else the band of the tuned
-    /// frequency. A search whose bands fit in one capture tunes to its one centre. When `looked`, the tuned frequency was
-    /// searched already and is no step. Returns false when no band holds a step.
-    fn start_search(&mut self, rate: f64, looked: bool) -> bool {
+    /// frequency. A search whose bands fit in one capture tunes to its one centre. `tuned` says what the tuned frequency
+    /// is to the search. Returns false when no band holds a step.
+    fn start_search(&mut self, rate: f64, tuned: Tuned) -> bool {
         let Some(cfg) = self.stack.band_search() else { return false };
         let bands: Vec<u16> = if !cfg.bands.bands.is_empty() {
             cfg.bands.bands.clone()
@@ -1074,12 +1131,23 @@ impl<M: SearchStack> SearchDecoder<M> {
         }
         base.retain(|(c, _)| !steps.iter().any(|(x, _)| (x - c).abs() < 1.0));
         steps.extend(base);
-        if looked {
-            steps.retain(|(c, _)| (c - self.tuned_hz).abs() > 1.0);
+        match tuned {
+            Tuned::Skip => steps.retain(|(c, _)| (c - self.tuned_hz).abs() > 1.0),
+            Tuned::First if !steps.is_empty() => {
+                let hz = self.tuned_hz;
+                let band = steps
+                    .iter()
+                    .min_by(|a, b| (a.0 - hz).abs().total_cmp(&(b.0 - hz).abs()))
+                    .map_or(0, |s| s.1);
+                steps.retain(|(c, _)| (c - hz).abs() > 1.0);
+                steps.insert(0, (hz, band));
+            }
+            _ => {}
         }
         let dwell_s = self.hop_dwell();
         self.staying_hz = None;
         self.stayed = None;
+        self.hold = None;
         self.quiet = 0;
         self.quiet_since = None;
         self.refused_s = None;
@@ -1093,6 +1161,9 @@ impl<M: SearchStack> SearchDecoder<M> {
             1 => {
                 // One capture covers the band: listen there.
                 self.pass = None;
+                if tuned == Tuned::First {
+                    self.hold = Some(Hold::NoneReadable);
+                }
                 if (steps[0].0 - self.tuned_hz).abs() > 1.0 {
                     self.staying_hz = Some(steps[0].0);
                     self.requests
@@ -1137,7 +1208,27 @@ impl<M: SearchStack> SearchDecoder<M> {
             cells.iter().find(|c| c.row == row)
         };
         let Some(c) = pick else { return false };
+        self.stay_on(c);
+        true
+    }
+
+    /// Ends the band search on the strongest cell seen since signal time `since_s` whose operator can be read at this
+    /// rate. Returns false when none is known.
+    fn stay_readable(&mut self, since_s: f64) -> bool {
+        let cells = M::carriers(&self.held.tables);
+        let pick = cells
+            .iter()
+            .filter(|c| c.last_s >= since_s && c.readable())
+            .max_by(|a, b| a.level_dbfs.total_cmp(&b.level_dbfs));
+        let Some(c) = pick else { return false };
+        self.stay_on(c);
+        true
+    }
+
+    /// Ends the band search on cell `c`: the radio moves to it.
+    fn stay_on(&mut self, c: &FoundCarrier) {
         self.pass = None;
+        self.hold = None;
         self.quiet = 0;
         self.staying_hz = Some(c.frequency_hz);
         self.stayed = Some(c.name.clone());
@@ -1146,7 +1237,6 @@ impl<M: SearchStack> SearchDecoder<M> {
             &format!("band search: stays on {}", c.name),
         ));
         self.changed = true;
-        true
     }
 
     /// A survey after a pass: the next pass visits first each carrier of this pass whose operator is not read, at its own
@@ -1205,6 +1295,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         }
         self.staying_hz = None;
         self.stayed = None;
+        self.hold = None;
         let want = self.hop_dwell();
         let Some(pass) = self.pass.as_mut() else { return };
         let Some(i) = pass.steps.iter().position(|(c, _)| (c - tuned).abs() <= 1.0) else {
@@ -1219,38 +1310,94 @@ impl<M: SearchStack> SearchDecoder<M> {
         let skipped = pass.longer.is_none() && pass.at.is_some() && pass.skipped_before(i);
         pass.at = Some(i);
         pass.moved_s = self.time_s;
+        pass.fresh = false;
         if skipped {
             let dwell_s = want.max((1.0 + DWELL_CHANGE) * pass.dwell_s);
             self.hop_again(dwell_s);
         }
     }
 
+    /// The status line of band search `p` on step `at` (None: before the radio moves for the first time).
+    fn step_text(&self, p: &Pass, at: Option<usize>, summary: &str) -> String {
+        let pass = if p.passes > 0 {
+            format!(", pass {}", p.passes + 1)
+        } else {
+            String::new()
+        };
+        let (step, steps, added) = (p.step(), p.steps.len(), p.steps_text());
+        let coarse = self.coarse_text().filter(|_| !self.shown()).map_or(String::new(), |w| format!("; {w}"));
+        let unread = self.unread_listed(p).map_or(String::new(), |c| {
+            format!(
+                "; {} listed; its operator needs about {:.0} Msps: searching on for a cell that can be read",
+                c.name,
+                c.rate_needed_hz.unwrap_or(0.0) / 1e6
+            )
+        });
+        let Some(i) = at else {
+            return format!(
+                "Searching {}: step {step} of {steps}, waiting for the radio to move{pass}{added}{unread}; {summary}{coarse}",
+                M::band_name(p.steps[0].1),
+            );
+        };
+        let mhz = format!(" at {:.1} MHz", p.steps[i].0 / 1e6);
+        format!(
+            "Searching {}: step {step} of {steps}{mhz}{pass}{added}{unread}; {summary}{coarse}",
+            M::band_name(p.steps[i].1),
+        )
+    }
+
+    /// In auto, the strongest cell of band search `p` (of this pass, the pass before, or within [`SearchStack::RECENT_S`])
+    /// whose operator this rate cannot read.
+    fn unread_listed(&self, p: &Pass) -> Option<FoundCarrier> {
+        if self.stack.band_search().is_none_or(|c| c.mode != SearchMode::Auto) {
+            return None;
+        }
+        let since = p.before_s.min(self.time_s - M::RECENT_S);
+        M::carriers(&self.held.tables)
+            .into_iter()
+            .filter(|c| c.last_s >= since && !c.readable())
+            .max_by(|a, b| a.level_dbfs.total_cmp(&b.level_dbfs))
+    }
+
+    /// Whether a cell is listed at this frequency whose operator can be read at this rate.
+    fn readable_listed(&self) -> bool {
+        let since = self.tuned_s.max(self.time_s - M::RECENT_S);
+        M::carriers(&self.held.tables).iter().any(|c| c.last_s >= since && c.readable())
+    }
+
+    /// The status line for the time from the next move of the radio to the next report: the step that the hop or the
+    /// stack's retune goes to, the cell that the stack moves to, or else the stack's summary.
+    fn moving_text(&self, summary: &str) -> String {
+        if let Some(p) = &self.pass {
+            let n = p.steps.len();
+            let to = match (p.longer, p.at) {
+                (Some((e, _)), _) => e,
+                (None, Some(i)) if !p.fresh => (i + 1) % n,
+                (None, _) => p.from % n,
+            };
+            return self.step_text(p, Some(to), summary);
+        }
+        match (self.staying_hz, &self.stayed) {
+            (Some(_), Some(_)) => self.status_text(summary, true),
+            (Some(h), None) if (h - self.tuned_hz).abs() > 1.0 => format!("Tuning to {:.1} MHz; {summary}", h / 1e6),
+            _ if summary.is_empty() => "Looking for cells".to_owned(),
+            _ => summary.to_owned(),
+        }
+    }
+
     /// The status line: where the band search is, or why nothing shows, before the stack's own summary.
     fn status_text(&self, summary: &str, recent: bool) -> String {
         if let Some(p) = &self.pass {
-            let pass = if p.passes > 0 {
-                format!(", pass {}", p.passes + 1)
-            } else {
-                String::new()
-            };
-            let (step, steps, added) = (p.step(), p.steps.len(), p.steps_text());
-            let coarse = self.coarse_text().filter(|_| !self.shown()).map_or(String::new(), |w| format!("; {w}"));
-            let Some(i) = p.at else {
-                return format!(
-                    "Searching {}: step {step} of {steps}, waiting for the radio to move{pass}{added}; {summary}{coarse}",
-                    M::band_name(p.steps[0].1),
-                );
-            };
-            let mhz = format!(" at {:.1} MHz", p.steps[i].0 / 1e6);
-            return format!(
-                "Searching {}: step {step} of {steps}{mhz}{pass}{added}; {summary}{coarse}",
-                M::band_name(p.steps[i].1),
-            );
+            return self.step_text(p, p.at, summary);
         }
         if recent || self.listed() {
             let partial = self.stack.partial_reason().map_or(String::new(), |p| format!(": {p}"));
             let auto = self.live && self.stack.band_search().is_some_and(|c| c.mode == SearchMode::Auto);
             return match self.staying_on().filter(|_| auto || self.stayed.is_some()) {
+                Some(c) if self.hold == Some(Hold::NoneReadable) => format!(
+                    "Staying on {c}, the strongest cell found: no cell of the pass can be read at {:.2} Msps; {summary}{partial}",
+                    self.cap.rate / 1e6
+                ),
                 Some(c) if auto => {
                     format!("Staying on {c}, the cell found (band_search survey visits all bands); {summary}{partial}")
                 }
@@ -1389,6 +1536,10 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
     }
     fn configure(&mut self, input: &Format) -> Result<Vec<Format>, ConfigError> {
         self.stack.configure(input.rate)?;
+        // At a new rate a cell may be read that could not be before.
+        if (input.rate - self.cap.rate).abs() > 0.5 {
+            self.hold = None;
+        }
         self.cap.rate = input.rate;
         self.cap.centre_hz = input.centre_hz;
         self.cap.dial_offset_hz = input.tuned_hz - input.centre_hz;
@@ -1404,7 +1555,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         self.quiet_since = None;
         self.reason_stale = true;
         if ran {
-            self.start_search(input.rate, false);
+            self.start_search(input.rate, Tuned::Bands);
         }
         Ok(vec![
             Format::new(Kind::typed::<CellEvent<M>>(), 0.0),
@@ -1418,8 +1569,9 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
             self.retunes += 1;
             self.tuned_s = self.time_s;
             self.reason_stale = true;
-            self.changed = true;
         }
+        // The framework rewrote the status: the next report writes it again.
+        self.changed = true;
         self.cap.centre_hz = input.centre_hz;
         self.cap.dial_offset_hz = input.tuned_hz - input.centre_hz;
         self.search_retuned(input.tuned_hz);
@@ -1493,6 +1645,9 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
                 self.headline.snr_db = None;
                 self.headline.offset_hz = None;
             }
+            // The framework writes this status at the next move, before the stack reports again.
+            let moving = self.moving_text(&self.headline.summary);
+            p.results_mut().set_searching_summary(&moving);
         }
         p.put(&SearchFields {
             captures: self.captures as i64,
@@ -1579,7 +1734,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
                 if self.cap.rate <= 0.0 || self.tuned_hz <= 0.0 {
                     return Err(SearchError::NoInput.into());
                 }
-                if !self.start_search(self.cap.rate, false) {
+                if !self.start_search(self.cap.rate, Tuned::Bands) {
                     return Err(SearchError::NoSteps.into());
                 }
                 Ok(None)
@@ -1593,6 +1748,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
                         self.results().no_such_row(M::CELLS, &row)
                     });
                 }
+                self.hold = Some(Hold::Chosen);
                 Ok(None)
             }
         }

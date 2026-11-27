@@ -603,6 +603,11 @@ fn too_wide(n_rb: usize, rate: f64) -> bool {
     n_rb as f64 * 90e3 + 30e3 >= rate / 2.0
 }
 
+/// The sample rate below which a carrier of `n_rb` resource blocks is [`too_wide`], Hz.
+fn rate_needed(n_rb: usize) -> f64 {
+    2.0 * (n_rb as f64 * 90e3 + 30e3)
+}
+
 impl Shift for LteCell {
     fn shift_times(&mut self, _by_s: f64) {}
 }
@@ -1019,8 +1024,8 @@ fn partial_reason(out: &LteSearchOut, rate: f64, centre_hz: f64) -> Option<(Stri
     })?;
     let (m, _, _) = f.mib.as_ref()?;
     let n_rb = phy::N_RB[m.bw_index as usize];
-    let need = 2.0 * (n_rb as f64 * 90e3 + 30e3);
-    let ask = WIDER_RATES.iter().copied().find(|r| *r >= need).unwrap_or(need);
+    let need = rate_needed(n_rb);
+    let ask = WIDER_RATES.iter().copied().find(|r| *r > need).unwrap_or(need);
     let bw = n_rb as f64 * 0.2;
     let at = centre_hz + f.cand.offset_hz;
     let off = if f.cand.offset_hz.abs() > 50e3 {
@@ -1030,8 +1035,10 @@ fn partial_reason(out: &LteSearchOut, rate: f64, centre_hz: f64) -> Option<(Stri
     };
     Some((
         format!(
-            "PCI {} is a {bw} MHz carrier: its operator and system information need about {:.0} Msps{off}; the capture is \
-             {:.2} Msps, so only the cell identity, bandwidth and level are read",
+            "raise the rate to {} Msps to read this cell's operator: PCI {} is a {bw} MHz carrier, its operator and system \
+             information need about {:.0} Msps{off}; the capture is {:.2} Msps, so only the cell identity, bandwidth and \
+             level are read",
+            ask / 1e6,
             f.pci,
             need / 1e6,
             rate / 1e6
@@ -1380,6 +1387,7 @@ impl SearchStack for LteSearch {
                 identified: r.record.sib1.is_some(),
                 settled: r.record.sib1.is_some() || r.record.mib.as_ref().is_some_and(|m| too_wide(m.n_rb, t.rate_hz)),
                 out_of_reach: r.record.mib.as_ref().is_some_and(|m| too_wide(m.n_rb, t.rate_hz)),
+                rate_needed_hz: r.record.mib.as_ref().filter(|m| too_wide(m.n_rb, t.rate_hz)).map(|m| rate_needed(m.n_rb)),
             })
             .collect()
     }

@@ -341,6 +341,9 @@ pub struct NrTables {
     pub gscn_range: Option<(u32, u32)>,
     /// The candidates the newest capture searched.
     pub candidates: Option<usize>,
+    /// The sample rate of the newest capture, Hz.
+    #[serde(skip)]
+    pub rate_hz: f64,
 }
 
 impl Default for NrTables {
@@ -349,6 +352,7 @@ impl Default for NrTables {
             cells: ObjectTable::new(CELL_CAP),
             gscn_range: None,
             candidates: None,
+            rate_hz: 0.0,
         }
     }
 }
@@ -619,8 +623,13 @@ fn partial_reason(t: &NrTables, now: f64, rate: f64) -> Option<String> {
         .record;
     let khz = c.mib.as_ref().map_or(15, |m| m.scs_common_khz);
     let width = f64::from(c.coreset0_rbs) * 12.0 * f64::from(khz) * 1e3;
+    // With the radio on the cell, as the band search stays: a rate that holds CORESET#0 there is the remedy.
+    let remedy = match t.cells.iter().find(|r| r.record.pci == c.pci).and_then(|r| stay_rate_needed(r.key, r.record)) {
+        Some(n) if n > rate => format!("raise the rate to {:.0} Msps to read this cell's operator: ", (n / 1e6).ceil()),
+        _ => String::new(),
+    };
     Some(format!(
-        "PCI {} sends its SIB1 (the operator) in a CORESET#0 of {} resource blocks ({:.2} MHz): that needs about {:.2} Msps \
+        "{remedy}PCI {} sends its SIB1 (the operator) in a CORESET#0 of {} resource blocks ({:.2} MHz): that needs about {:.2} Msps \
          at this centre, at least {:.2} Msps at the centre of CORESET#0; the capture is {:.2} Msps, so only the cell \
          identity, MIB and level are read",
         c.pci,
@@ -630,6 +639,22 @@ fn partial_reason(t: &NrTables, now: f64, rate: f64) -> Option<String> {
         width / 1e6,
         rate / 1e6
     ))
+}
+
+/// The sample rate that holds CORESET#0 of cell `c` with the radio centre on its SS/PBCH block, Hz. None when the MIB schedules
+/// no SIB1 or is not known.
+fn stay_rate_needed(key: &NrKey, c: &NrCell) -> Option<f64> {
+    let m = c.mib.as_ref()?;
+    if !c.sib1_scheduled || c.coreset0_rbs == 0 {
+        return None;
+    }
+    let c0 = crate::nr::dlsch::Coreset0 {
+        scs_khz: m.scs_common_khz,
+        n_rb: c.coreset0_rbs as usize,
+        n_symb: c.coreset0_symbols as usize,
+        offset_rb: c.coreset0_offset_rb as usize,
+    };
+    Some(2.0 * (c0.centre_from_ssb(key.scs_khz, m.k_ssb).abs() + c0.width_hz() / 2.0))
 }
 
 impl NrSearch {
@@ -918,6 +943,7 @@ impl SearchStack for NrSearch {
     fn merge(&mut self, t: &mut NrTables, cap: &Capture, found: NrSearchOut, log: &mut Log<Self>) {
         t.gscn_range = found.gscn_range;
         t.candidates = Some(found.candidates);
+        t.rate_hz = cap.rate;
         self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db);
         let base = if cap.centre_known() { cap.centre_hz } else { 0.0 };
         self.decoded_hz = found
@@ -981,6 +1007,7 @@ impl SearchStack for NrSearch {
                         Sib1Step::NotScheduled | Sib1Step::TooNarrow | Sib1Step::NoFrequency
                     ),
                 out_of_reach: r.record.sib1_step == Sib1Step::NotScheduled,
+                rate_needed_hz: stay_rate_needed(r.key, r.record).filter(|n| r.record.sib1.is_none() && *n > t.rate_hz),
             })
             .collect()
     }

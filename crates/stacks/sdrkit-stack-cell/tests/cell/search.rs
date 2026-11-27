@@ -642,8 +642,24 @@ fn survey_over(
     settings: &[(&str, J)],
     passes: u32,
 ) -> (sdrkit_graph::StackGraph, Vec<f64>) {
+    host_over(desc, samples, rate, on, &[&[("band_search", J::from("survey"))], settings].concat(), false, |r| {
+        value(r, "search_passes").unwrap_or(0.0) >= f64::from(passes)
+    })
+}
+
+/// [`survey_over`] with the band search of `settings` (else auto), until `done` holds for the results. When `near`, a
+/// centre within a quarter of the rate of `on` hears the samples too, moved by the difference.
+fn host_over(
+    desc: &sdrkit_core::StackDescriptor,
+    samples: &[Complex32],
+    rate: f64,
+    on: f64,
+    settings: &[(&str, J)],
+    near: bool,
+    mut done: impl FnMut(&sdrkit_core::Results) -> bool,
+) -> (sdrkit_graph::StackGraph, Vec<f64>) {
     let first = format!("{}", on / 1e6);
-    let mut keys: Vec<(&str, J)> = vec![("band_search", J::from("survey")), ("search_first", J::from(first.as_str()))];
+    let mut keys: Vec<(&str, J)> = vec![("search_first", J::from(first.as_str()))];
     keys.extend(settings.iter().cloned());
     let mut rx = stack_graph(desc, &keys);
     let mut centre = on;
@@ -654,10 +670,12 @@ fn survey_over(
     let mut r = sdrkit_algo_sim::rng::Rng::new(13);
     let (mut out, mut at, mut step) = (Output::default(), 0usize, 0.0);
     let mut hop: Option<(Vec<f64>, f64, usize)> = None;
-    while value(Owner::results(&rx), "search_passes").unwrap_or(0.0) < f64::from(passes) {
-        let x: Vec<Complex32> = if (centre - on).abs() < 1.0 && at + piece <= samples.len() {
+    while !done(Owner::results(&rx)) {
+        let heard = (centre - on).abs() < 1.0 || (near && (centre - on).abs() < rate / 4.0);
+        let x: Vec<Complex32> = if heard && at + piece <= samples.len() {
             at += piece;
-            samples[at - piece..at].to_vec()
+            let w = std::f64::consts::TAU * (on - centre) / rate;
+            (at - piece..at).map(|i| samples[i] * Complex32::from_polar(1.0, (w * i as f64) as f32)).collect()
         } else {
             (0..piece).map(|_| r.complex_normal(2.0 * 0.01 * 0.01)).collect()
         };
@@ -739,6 +757,33 @@ fn live_recordings_through_a_band_search_step() {
     }
 }
 
+/// The live n5 recording at 7.68 Msps, the known carrier of a search of n5 in auto: its CORESET#0 does not fit the capture, so
+/// the cell does not end the search; the pass finds no cell to read and ends on it, and the status says so. Skipped when
+/// the recording is not on this machine.
+#[test]
+#[ignore]
+fn live_n5_auto_searches_on_and_ends_on_the_cell() {
+    let Some(rec) = live_recording("sdrkit_nr_884.720MHz_7.68Msps_20261126-132757") else { return };
+    let mut seen = Vec::new();
+    let mut fed = 0;
+    let (rx, moves) = host_over(&NR, &rec.samples, rec.rate_hz, rec.centre_hz, &[("search_bands", J::from("5"))], true, |r| {
+        fed += 1;
+        let s = &r.status().summary;
+        if seen.last() != Some(s) {
+            seen.push(s.clone());
+        }
+        (s.contains("the strongest cell found") && text(r, "quiet_reason").is_some()) || fed > 6000
+    });
+    let r = Owner::results(&rx);
+    eprintln!("{} moves; {:#?}", moves.len(), seen);
+    assert_eq!(cells_of(&rx), [897]);
+    assert!(seen.iter().any(|s| s.contains("PCI 897") && s.contains("searching on for a cell that can be read")), "{seen:#?}");
+    let s = &r.status().summary;
+    assert!(s.starts_with("Staying on PCI 897") && s.contains("no cell of the pass can be read at 7.68 Msps"), "{s}");
+    let why = text(r, "quiet_reason").unwrap_or_default();
+    assert!(why.starts_with("raise the rate to "), "{why}");
+}
+
 /// Each first look of a band search step at ten places in the live recordings shows the cell's sync signal, so that the
 /// step is searched longer. Skipped when the recordings are not on this machine.
 #[test]
@@ -770,6 +815,204 @@ fn live_first_looks_show_the_cells() {
         }
         assert!(missed.is_empty(), "{name}: no sync in the looks at {missed:?}");
     }
+}
+
+/// A live survey pass over noise, the host following each hop and retune: from the stack's first report on, no status has
+/// an empty summary, also right after each move of the radio.
+#[test]
+fn a_live_survey_never_shows_an_empty_status() {
+    let rate = 7.68e6;
+    for (desc, band, range) in [(&CELL, "20", "791-821"), (&NR, "28", "758-783")] {
+        let mut rx = stack_graph(
+            desc,
+            &[("band_search", J::from("survey")), ("search_bands", J::from(band)), ("search_ranges", J::from(range))],
+        );
+        let mut centre = 700e6;
+        rx.configure(&InputInfo::new(rate, centre, centre)).unwrap();
+        let piece = (0.02 * rate) as usize;
+        let mut r = sdrkit_algo_sim::rng::Rng::new(17);
+        let mut buf = vec![Complex32::default(); piece];
+        let (mut out, mut hop, mut step, mut fed) = (Output::default(), None::<(Vec<f64>, f64, usize)>, 0.0, 0.0);
+        let (mut lines, mut empty, mut moves) = (0usize, Vec::new(), 0usize);
+        let start = std::time::Instant::now();
+        while value(Owner::results(&rx), "search_passes").unwrap_or(0.0) < 1.0 {
+            assert!(fed < 120.0, "{}: no pass after {fed} s", desc.id);
+            buf.iter_mut().for_each(|v| *v = r.complex_normal(2.0 * 0.02 * 0.02));
+            // At the pace of the signal, as a radio gives it.
+            if let Some(w) = (start + std::time::Duration::from_secs_f64(fed)).checked_duration_since(std::time::Instant::now()) {
+                std::thread::sleep(w);
+            }
+            rx.feed(&buf, &mut out);
+            fed += 0.02;
+            step += 0.02;
+            // Before the first report of the stack the status is the framework's own (off, no text).
+            let s = Owner::results(&rx).status();
+            lines += 1;
+            if s.summary.is_empty() && s.lock_state != sdrkit_core::LockState::Off {
+                empty.push((fed, moves));
+            }
+            let mut next = None;
+            for q in out.requests.drain(..) {
+                match q {
+                    HostRequest::Hop { channels, dwell_s, .. } => {
+                        next = Some(channels[0]);
+                        hop = Some((channels, dwell_s, 0));
+                    }
+                    HostRequest::Retune { tuned_hz, .. } => {
+                        hop = None;
+                        next = Some(tuned_hz);
+                    }
+                    _ => {}
+                }
+            }
+            out.clear();
+            if next.is_none() {
+                if let Some((ch, dwell, at)) = hop.as_mut() {
+                    if step >= *dwell {
+                        *at = (*at + 1) % ch.len();
+                        next = Some(ch[*at]);
+                    }
+                }
+            }
+            if let Some(n) = next {
+                centre = n;
+                step = 0.0;
+                moves += 1;
+                rx.retuned(&InputInfo::new(rate, centre, centre));
+            }
+        }
+        eprintln!("{}: {lines} status lines over {moves} moves in {fed:.1} s, {} empty", desc.id, empty.len());
+        assert!(empty.is_empty(), "{}: {} of {lines} status lines empty, at (s, move) {empty:?}", desc.id, empty.len());
+    }
+}
+
+/// What a live run in auto with a host that gives no other rate showed.
+struct AutoRun {
+    /// The radio centre at the end, Hz.
+    centre: f64,
+    /// The status texts seen, each once, in order.
+    statuses: Vec<String>,
+    /// The requests for another rate.
+    tunes: usize,
+}
+
+/// Plays a host in auto, live at `rate`, from `start` at the pace of the signal until `done` holds for the results and the
+/// radio centre, at most `seconds`: carrier `wide` (a 20 MHz LTE carrier) on its centre, `narrow` (a 5 MHz one) on its
+/// centre when given, noise elsewhere. The host follows hops and retunes and refuses every other rate.
+fn auto_run(
+    rx: &mut sdrkit_graph::StackGraph,
+    rate: f64,
+    start: f64,
+    seconds: f64,
+    wide: f64,
+    narrow: Option<f64>,
+    done: impl Fn(&sdrkit_core::Results, f64) -> bool,
+) -> AutoRun {
+    use sdrkit_stack_cell::lte::gen::{scene, LteGenerator};
+    let piece = (0.02 * rate) as usize;
+    let carrier = |n: u32| impaired(LteGenerator::new(rate, scene(n, None), Default::default()), &snr(25.0), 1.0);
+    let (a, b) = (carrier(3), carrier(1));
+    let mut r = sdrkit_algo_sim::rng::Rng::new(19);
+    let (mut out, mut hop, mut step, mut fed, mut at) = (Output::default(), None::<(Vec<f64>, f64, usize)>, 0.0, 0.0, 0usize);
+    let mut run = AutoRun { centre: start, statuses: Vec::new(), tunes: 0 };
+    rx.configure(&InputInfo::new(rate, start, start)).unwrap();
+    let t0 = std::time::Instant::now();
+    while fed < seconds && !done(Owner::results(&*rx), run.centre) {
+        let c = run.centre;
+        let x: Vec<Complex32> = (0..piece)
+            .map(|i| {
+                let k = (at + i) % a.len();
+                let s = if (c - wide).abs() < 1.0 {
+                    a[k]
+                } else if narrow.is_some_and(|n| (c - n).abs() < 1.0) {
+                    b[k]
+                } else {
+                    Complex32::default()
+                };
+                s + r.complex_normal(2.0 * 0.01 * 0.01)
+            })
+            .collect();
+        at += piece;
+        if let Some(w) = (t0 + std::time::Duration::from_secs_f64(fed)).checked_duration_since(std::time::Instant::now()) {
+            std::thread::sleep(w);
+        }
+        rx.feed(&x, &mut out);
+        fed += 0.02;
+        step += 0.02;
+        let s = &Owner::results(&*rx).status().summary;
+        if run.statuses.last() != Some(s) {
+            run.statuses.push(s.clone());
+        }
+        let mut next = None;
+        for q in out.requests.drain(..) {
+            match q {
+                HostRequest::Hop { channels, dwell_s, .. } => {
+                    next = Some(channels[0]);
+                    hop = Some((channels, dwell_s, 0));
+                }
+                HostRequest::Retune { tuned_hz, .. } => {
+                    hop = None;
+                    next = Some(tuned_hz);
+                }
+                HostRequest::Tune { .. } => run.tunes += 1,
+                _ => {}
+            }
+        }
+        out.clear();
+        if next.is_none() {
+            if let Some((ch, dwell, i)) = hop.as_mut() {
+                if step >= *dwell {
+                    *i = (*i + 1) % ch.len();
+                    next = Some(ch[*i]);
+                }
+            }
+        }
+        if let Some(n) = next {
+            run.centre = n;
+            step = 0.0;
+            rx.retuned(&InputInfo::new(rate, n, n));
+        }
+    }
+    run
+}
+
+/// In auto, live at 7.68 Msps, started on a 20 MHz carrier whose operator needs about 18 Msps, with a host that gives no
+/// other rate: the stack asks for the rate once, lists the cell, searches on, and stays on the 5 MHz carrier of a later
+/// step, whose operator it reads. Without that carrier, the pass ends on the strongest cell found and the status says so.
+#[test]
+fn auto_searches_on_past_a_cell_it_cannot_read() {
+    let rate = 7.68e6;
+    let steps = sdrkit_stack_cell::scan::lte_steps(1, rate, &[(2110e6, 2140e6)], &[]);
+    assert!(steps.len() >= 3, "{steps:?}");
+    let (wide, narrow) = (steps[0], steps[steps.len() - 1]);
+    let settings = [("search_bands", J::from("1")), ("search_ranges", J::from("2110-2140"))];
+    let mut rx = stack_graph(&CELL, &settings);
+    let run = auto_run(&mut rx, rate, wide, 60.0, wide, Some(narrow), |r, c| {
+        c == narrow && value(r, "identified") == Some(1.0) && r.status().summary.starts_with("Staying on PCI 301")
+    });
+    let r = Owner::results(&rx);
+    assert_eq!(run.tunes, 1, "{:#?}", run.statuses);
+    assert_eq!(run.centre, narrow, "{:#?}", run.statuses);
+    assert_eq!(value(r, "cell_count"), Some(2.0), "{:#?}", run.statuses);
+    assert_eq!(value(r, "identified"), Some(1.0), "{:#?}", run.statuses);
+    let note = format!(
+        "PCI 450 at {:.1} MHz listed; its operator needs about 18 Msps: searching on for a cell that can be read",
+        wide / 1e6
+    );
+    assert!(run.statuses.iter().any(|s| s.starts_with("Searching band 1: ") && s.contains(&note)), "{:#?}", run.statuses);
+    assert!(r.status().summary.starts_with("Staying on PCI 301"), "{}", r.status().summary);
+    // The 20 MHz carrier alone: the pass ends on it.
+    let mut rx = stack_graph(&CELL, &settings);
+    let run = auto_run(&mut rx, rate, wide, 60.0, wide, None, |r, _| {
+        r.status().summary.contains("the strongest cell found") && text(r, "quiet_reason").is_some()
+    });
+    let r = Owner::results(&rx);
+    assert_eq!(run.centre, wide, "{:#?}", run.statuses);
+    assert_eq!(run.tunes, 1, "{:#?}", run.statuses);
+    let s = &r.status().summary;
+    assert!(s.starts_with("Staying on PCI 450") && s.contains("the strongest cell found: no cell of the pass can be read at 7.68 Msps"), "{s}");
+    let why = text(r, "quiet_reason").unwrap_or_default();
+    assert!(why.starts_with("raise the rate to 20 Msps to read this cell's operator"), "{why}");
 }
 
 /// The recording `<name>.sigmf-meta` in the folder that the variable `SDRKIT_LIVE_RECORDINGS` names, or None. The
