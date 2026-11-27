@@ -29,9 +29,6 @@ pub const LOG_LINES: usize = 300;
 /// Input level is measured over this many seconds of input.
 const LEVEL_S: f64 = 0.5;
 
-/// Below this input level, dBFS, the status says that the signal is too weak at the radio.
-const WEAK_DBFS: f32 = -35.0;
-
 /// The time on each step of a band search: a first look of `look_s` and its search, whose time is the median of the wall
 /// times `searches`, with a margin. A search that takes longer ends while the radio moves, or in the first look of the next
 /// step, which the newest samples of the helper thread hold.
@@ -50,9 +47,9 @@ const LOOK_TIMES: usize = 3;
 /// A step time this far from the one of the hop that runs starts the hop again with the new time.
 const DWELL_CHANGE: f64 = 0.25;
 
-/// The most input, seconds, that waits while the helper thread searches: more than a bounded search of a capture takes,
-/// also the one that reads the system information of a cell.
-const HELPER_BACKLOG_S: f64 = 0.3;
+/// The most input, seconds, that waits while the helper thread searches: twice what a bounded search of a capture takes
+/// at most (one that reads the system information of two cells), so that a busy machine does not drop input.
+const HELPER_BACKLOG_S: f64 = 0.5;
 
 /// While a band search steps, the most samples that waited during a search that are taken: older ones belong to a look
 /// that is over, and are left out by design.
@@ -257,6 +254,8 @@ pub struct FoundCarrier {
     /// Nothing more of the cell can be read at this centre and rate: its operator was read, or it sends none that this
     /// capture holds.
     pub settled: bool,
+    /// Nothing more of the cell can be read at this rate at any centre: a visit at its own centre reads nothing more.
+    pub out_of_reach: bool,
 }
 
 /// One capture of input samples passed to a search.
@@ -577,6 +576,8 @@ struct Pass {
     dwell_s: f64,
     /// Signal time of the start of the newest pass, seconds.
     started_s: f64,
+    /// Signal time of the start of the pass before the newest, seconds; the newest pass's start in the first pass.
+    before_s: f64,
     /// Signal time of the newest move of the radio (or of the newest hop asked for), seconds.
     moved_s: f64,
     /// The steps whose first look was searched in this pass.
@@ -585,6 +586,8 @@ struct Pass {
     from: usize,
     /// The step searched longer, and the signal time when its first look began, seconds.
     longer: Option<(usize, f64)>,
+    /// The steps that visit a carrier found in the pass before at its own centre, before the steps of the bands.
+    added: usize,
 }
 
 impl Pass {
@@ -598,9 +601,23 @@ impl Pass {
             passes: 0,
             dwell_s,
             started_s: now,
+            before_s: now,
             moved_s: now,
             from: 0,
             longer: None,
+            added: 0,
+        }
+    }
+    /// The step of the pass, counted from 1: the steps searched in this pass and the one that waits. It grows within a pass
+    /// whatever order the radio visits the steps in.
+    fn step(&self) -> usize {
+        (self.searched.iter().filter(|s| **s).count() + 1).min(self.steps.len())
+    }
+    /// What the status says of the steps: their count and, when the pass visits carriers found before, how many.
+    fn steps_text(&self) -> String {
+        match self.added {
+            0 => String::new(),
+            n => format!(" ({} steps: {n} carrier{} added)", self.steps.len(), plural(n)),
         }
     }
     /// The steps in the order the hop visits them: from `from` on, in turn.
@@ -947,6 +964,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         if p.searched.iter().all(|s| *s) {
             let since = p.started_s;
             p.passes += 1;
+            p.before_s = since;
             p.started_s = self.time_s;
             p.searched.fill(false);
             p.from = (i + 1) % p.steps.len();
@@ -1145,11 +1163,15 @@ impl<M: SearchStack> SearchDecoder<M> {
         };
         let mut visits: Vec<(f64, u16)> = Vec::new();
         for c in M::carriers(&self.held.tables) {
-            if c.identified || c.last_s < since_s || visits.iter().any(|v| (v.0 - c.frequency_hz).abs() < 50e3) {
+            // A carrier read as far as the rate allows, or one that a step of the bands holds at its centre already, is no
+            // visit.
+            let near = |v: &(f64, u16)| (v.0 - c.frequency_hz).abs() < 50e3;
+            if c.identified || c.out_of_reach || c.last_s < since_s || visits.iter().any(near) || pass.base.iter().any(near) {
                 continue;
             }
             visits.push((c.frequency_hz, band_near(c.frequency_hz)));
         }
+        let added = visits.len();
         let steps: Vec<(f64, u16)> = visits
             .into_iter()
             .chain(pass.base.iter().copied())
@@ -1157,9 +1179,11 @@ impl<M: SearchStack> SearchDecoder<M> {
         if steps == pass.steps {
             return false;
         }
-        let (passes, started_s) = (pass.passes, pass.started_s);
+        let (passes, started_s, before_s) = (pass.passes, pass.started_s, pass.before_s);
         *pass = Pass::new(steps, std::mem::take(&mut pass.base), dwell_s, started_s);
         pass.passes = passes;
+        pass.before_s = before_s;
+        pass.added = added;
         pass.moved_s = self.time_s;
         self.requests.push(HostRequest::Hop {
             channels: pass.steps.iter().map(|s| s.0).collect(),
@@ -1204,25 +1228,23 @@ impl<M: SearchStack> SearchDecoder<M> {
     /// The status line: where the band search is, or why nothing shows, before the stack's own summary.
     fn status_text(&self, summary: &str, recent: bool) -> String {
         if let Some(p) = &self.pass {
-            let Some(i) = p.at else {
-                return format!(
-                    "Searching {}: {} steps, waiting for the radio to move; {summary}",
-                    M::band_name(p.steps[0].1),
-                    p.steps.len()
-                );
-            };
-            let (at, band) = (i + 1, p.steps[i].1);
             let pass = if p.passes > 0 {
                 format!(", pass {}", p.passes + 1)
             } else {
                 String::new()
             };
+            let (step, steps, added) = (p.step(), p.steps.len(), p.steps_text());
+            let coarse = self.coarse_text().filter(|_| !self.shown()).map_or(String::new(), |w| format!("; {w}"));
+            let Some(i) = p.at else {
+                return format!(
+                    "Searching {}: step {step} of {steps}, waiting for the radio to move{pass}{added}; {summary}{coarse}",
+                    M::band_name(p.steps[0].1),
+                );
+            };
             let mhz = format!(" at {:.1} MHz", p.steps[i].0 / 1e6);
-            let weak = self.weak_text().map_or(String::new(), |w| format!("; {w}"));
             return format!(
-                "Searching {}: step {at} of {}{mhz}{pass}; {summary}{weak}",
-                M::band_name(band),
-                p.steps.len()
+                "Searching {}: step {step} of {steps}{mhz}{pass}{added}; {summary}{coarse}",
+                M::band_name(p.steps[i].1),
             );
         }
         if recent || self.listed() {
@@ -1242,7 +1264,8 @@ impl<M: SearchStack> SearchDecoder<M> {
         }
     }
 
-    /// Why no cell shows: a signal too weak for the radio's converter first, then what the stack says of the newest capture.
+    /// Why no cell shows: a signal lost in the steps of the radio's converter first, then what the stack says of the newest
+    /// capture.
     fn quiet_text(&self) -> Option<String> {
         if self.refused_s.is_some_and(|t| self.time_s - t < REFUSED_HOLD_S) {
             return Some(
@@ -1251,7 +1274,7 @@ impl<M: SearchStack> SearchDecoder<M> {
                     .to_owned(),
             );
         }
-        self.weak_text()
+        self.coarse_text()
             .or_else(|| self.stack.quiet_reason().filter(|_| !self.reason_stale))
     }
 
@@ -1273,21 +1296,22 @@ impl<M: SearchStack> SearchDecoder<M> {
         })
     }
 
-    /// The text of a signal too weak at the radio: samples in a few levels of the converter, or a level below
-    /// [`WEAK_DBFS`].
-    fn weak_text(&self) -> Option<String> {
-        if self.coarse {
-            return Some(
-                "the signal is too weak at the radio: its samples use only a few levels of the converter; raise the gain, \
-                 or use a better antenna"
-                    .to_owned(),
-            );
+    /// Whether cells show: one listed at this frequency, or, while a band search runs, one seen in this pass, the pass
+    /// before or within [`SearchStack::RECENT_S`]. A reason why nothing shows does not hold then.
+    fn shown(&self) -> bool {
+        match &self.pass {
+            Some(p) => self.cells_seen(p.before_s.min(self.time_s - M::RECENT_S)).0,
+            None => self.listed(),
         }
-        self.level_dbfs.filter(|l| *l < WEAK_DBFS).map(|l| {
-            format!(
-                "the signal is weak at the radio ({l:.1} dBFS, below {WEAK_DBFS:.0} dBFS): raise the gain, or use a better \
-                 antenna"
-            )
+    }
+
+    /// The text of a signal too weak at the radio: its samples use a few levels of the converter. The input level alone
+    /// tells nothing: a radio at its automatic gain decodes cells far below full scale.
+    fn coarse_text(&self) -> Option<String> {
+        self.coarse.then(|| {
+            "the signal is too weak at the radio: its samples use only a few levels of the converter; raise the gain, or \
+             use a better antenna"
+                .to_owned()
         })
     }
 
@@ -1480,7 +1504,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         });
         let lock_state = self.lock_state();
         let recent = lock_state == LockState::Locked;
-        let quiet = if recent || self.listed() {
+        let quiet = if recent || self.shown() {
             self.stack.partial_reason()
         } else {
             self.quiet_text()
@@ -1489,7 +1513,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
             let band = self.pass.as_ref().map(|p| M::band_name(p.steps[p.at.unwrap_or(0)].1));
             p.put(&BandSearchFields {
                 search_band: band.as_deref(),
-                search_step: self.pass.as_ref().and_then(|p| p.at).map(|i| i as i64 + 1),
+                search_step: self.pass.as_ref().filter(|p| p.at.is_some()).map(|p| p.step() as i64),
                 search_steps: self.pass.as_ref().map(|p| p.steps.len() as i64),
                 search_passes: self.pass.as_ref().map_or(0, |p| i64::from(p.passes)),
                 quiet_reason: quiet.as_deref(),
@@ -1853,6 +1877,25 @@ pub fn build_search<M: SearchStack>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_step_of_a_pass_grows_whatever_order_the_radio_takes() {
+        let steps: Vec<(f64, u16)> = (0..4).map(|i| (700e6 + f64::from(i) * 10e6, 28)).collect();
+        let mut p = Pass::new(steps.clone(), steps, 0.2, 0.0);
+        assert_eq!(p.step(), 1);
+        p.searched[3] = true;
+        assert_eq!(p.step(), 2);
+        // The radio is back on the first step before the last look was searched: the step does not go back.
+        p.at = Some(0);
+        p.searched[1] = true;
+        p.searched[2] = true;
+        assert_eq!(p.step(), 4);
+        p.searched[0] = true;
+        assert_eq!(p.step(), 4);
+        assert_eq!(p.steps_text(), "");
+        p.added = 2;
+        assert_eq!(p.steps_text(), " (4 steps: 2 carriers added)");
+    }
 
     #[test]
     fn the_time_on_a_step_is_the_look_and_its_search() {

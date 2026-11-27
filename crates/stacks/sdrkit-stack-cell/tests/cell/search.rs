@@ -318,6 +318,29 @@ fn auto_stays_on_a_live_cell_and_says_so() {
     assert_eq!(text(r, "quiet_reason"), None);
 }
 
+/// A cell decoded far below full scale (-53 dBFS, as a 12-bit radio at its automatic gain gives): the level is no reason
+/// why nothing shows, so the status and the quiet reason say nothing of it.
+#[test]
+fn a_low_level_with_a_cell_decoded_gives_no_reason() {
+    let rate = 7.68e6;
+    let (cell_hz, scene_cells) = scene(1);
+    let mut x = impaired(NrGenerator::new(rate, scene_cells, NrGenOptions::default()), &snr(15.0), 0.6);
+    let p = x.iter().map(|v| v.norm_sqr() as f64).sum::<f64>() / x.len() as f64;
+    let k = (10f64.powf(-5.3) / p).sqrt() as f32;
+    x.iter_mut().for_each(|v| *v *= k);
+    for desc in [&NR, &CELL] {
+        let mut rx = stack_graph(desc, &[("band_search", J::from("off"))]);
+        run_graph(&mut rx, InputInfo::new(rate, cell_hz, cell_hz).recording(), &x, &[]);
+        let r = Owner::results(&rx);
+        let s = &r.status().summary;
+        assert!(!s.contains("weak at the radio") && !s.contains("dBFS"), "{s}");
+        if desc.id == "nr" {
+            assert_eq!(cells_of(&rx), [222]);
+            assert_eq!(text(r, "quiet_reason"), None);
+        }
+    }
+}
+
 /// A reason why no cell shows belongs to the frequency and the capture it was found on: a move clears it, and a cell listed
 /// after the move leaves none.
 #[test]
@@ -606,22 +629,35 @@ fn live_band28_recording_reads_the_operator() {
 /// noise. The host follows each hop and retune and plays the recording on from where it was while the radio is on its
 /// centre. Returns the stack after the first pass.
 fn search_over(desc: &sdrkit_core::StackDescriptor, rec: &sdrkit_dev_test::sigmf::Recording, settings: &[(&str, J)]) -> sdrkit_graph::StackGraph {
-    let rate = rec.rate_hz;
-    let first = format!("{}", rec.centre_hz / 1e6);
+    survey_over(desc, &rec.samples, rec.rate_hz, rec.centre_hz, settings, 1).0
+}
+
+/// [`search_over`] of `samples` at `rate` on `centre` for `passes` passes. Returns the stack and the radio centres of the
+/// moves, in order.
+fn survey_over(
+    desc: &sdrkit_core::StackDescriptor,
+    samples: &[Complex32],
+    rate: f64,
+    on: f64,
+    settings: &[(&str, J)],
+    passes: u32,
+) -> (sdrkit_graph::StackGraph, Vec<f64>) {
+    let first = format!("{}", on / 1e6);
     let mut keys: Vec<(&str, J)> = vec![("band_search", J::from("survey")), ("search_first", J::from(first.as_str()))];
     keys.extend(settings.iter().cloned());
     let mut rx = stack_graph(desc, &keys);
-    let mut centre = rec.centre_hz;
+    let mut centre = on;
+    let mut moves = Vec::new();
     rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
     command(&mut rx, "search");
     let piece = (0.01 * rate) as usize;
     let mut r = sdrkit_algo_sim::rng::Rng::new(13);
     let (mut out, mut at, mut step) = (Output::default(), 0usize, 0.0);
     let mut hop: Option<(Vec<f64>, f64, usize)> = None;
-    while value(Owner::results(&rx), "search_passes").unwrap_or(0.0) < 1.0 {
-        let x: Vec<Complex32> = if (centre - rec.centre_hz).abs() < 1.0 && at + piece <= rec.samples.len() {
+    while value(Owner::results(&rx), "search_passes").unwrap_or(0.0) < f64::from(passes) {
+        let x: Vec<Complex32> = if (centre - on).abs() < 1.0 && at + piece <= samples.len() {
             at += piece;
-            rec.samples[at - piece..at].to_vec()
+            samples[at - piece..at].to_vec()
         } else {
             (0..piece).map(|_| r.complex_normal(2.0 * 0.01 * 0.01)).collect()
         };
@@ -653,10 +689,32 @@ fn search_over(desc: &sdrkit_core::StackDescriptor, rec: &sdrkit_dev_test::sigmf
         if let Some(n) = next {
             centre = n;
             step = 0.0;
+            moves.push(n);
             rx.retuned(&InputInfo::new(rate, centre, centre).recording());
         }
     }
-    rx
+    (rx, moves)
+}
+
+/// A 20 MHz LTE carrier at 12 Msps, the known carrier of a survey of its band: its operator is out of reach at that rate,
+/// so the step is not searched longer, and the second pass visits no carrier more than the first.
+#[test]
+fn a_carrier_wider_than_the_capture_is_not_held_or_visited_again() {
+    let rate = 12e6;
+    let c = sdrkit_stack_cell::lte::gen::scene(3, None);
+    let hz = sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
+    let x = impaired(sdrkit_stack_cell::lte::gen::LteGenerator::new(rate, c, Default::default()), &snr(25.0), 1.0);
+    let (rx, moves) = survey_over(&CELL, &x, rate, hz, &[("search_bands", J::from("1"))], 2);
+    let steps = sdrkit_stack_cell::scan::lte_steps(1, rate, &[], &[]).len();
+    assert_eq!(cells_of(&rx).len(), 1);
+    // Each step once a pass, the known carrier and the steps of band 1, and no move back for a longer search.
+    let visits = moves.iter().filter(|m| (**m - hz).abs() < 1.0).count();
+    assert!(visits <= 2, "{visits} visits of the carrier in {} moves", moves.len());
+    assert!(moves.len() <= 2 * (steps + 1) + 1, "{} moves for {steps} steps", moves.len());
+    let r = Owner::results(&rx);
+    assert!(!r.status().summary.contains("carriers added"), "{}", r.status().summary);
+    // A step of noise in the second pass while the cell is listed: nothing to explain.
+    assert!(text(r, "quiet_reason").is_none_or(|q| q.contains("20 MHz carrier")), "{:?}", text(r, "quiet_reason"));
 }
 
 /// The live recordings searched as the first step of a band search, a first look and a longer stay: the same cells and

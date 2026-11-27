@@ -980,6 +980,7 @@ impl SearchStack for NrSearch {
                         r.record.sib1_step,
                         Sib1Step::NotScheduled | Sib1Step::TooNarrow | Sib1Step::NoFrequency
                     ),
+                out_of_reach: r.record.sib1_step == Sib1Step::NotScheduled,
             })
             .collect()
     }

@@ -247,7 +247,7 @@ pub struct BandSearchFields<'a> {
     /// The band searched now ("band 28", "n78"). None when no search runs.
     #[field(label = "Band searched")]
     pub search_band: Option<&'a str>,
-    /// The radio centre of the search step, counted from 1.
+    /// The step of the pass, counted from 1: the steps searched in this pass and the one that waits.
     #[field(label = "Search step")]
     pub search_step: Option<i64>,
     /// The radio centres of the search.

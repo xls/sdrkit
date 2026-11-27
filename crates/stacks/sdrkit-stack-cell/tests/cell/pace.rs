@@ -84,6 +84,8 @@ struct Paced {
     searched: Vec<f64>,
     /// Seconds of signal at the end of the first pass of a band search.
     pass_s: Option<f64>,
+    /// The radio centre at the end, Hz.
+    centre: f64,
 }
 
 /// Feeds `rx` the pieces that `next(centre)` gives (a block each) at the pace of the signal for `seconds`, as a
@@ -92,10 +94,23 @@ struct Paced {
 fn paced(
     rx: &mut sdrkit_graph::StackGraph,
     rate: f64,
+    centre: f64,
+    seconds: f64,
+    follow: bool,
+    next: impl FnMut(f64) -> Vec<Complex32>,
+) -> Paced {
+    paced_until(rx, rate, centre, seconds, follow, next, |_| false)
+}
+
+/// [`paced`], ending also when `done` holds for the results of the stack.
+fn paced_until(
+    rx: &mut sdrkit_graph::StackGraph,
+    rate: f64,
     mut centre: f64,
     seconds: f64,
     follow: bool,
     mut next: impl FnMut(f64) -> Vec<Complex32>,
+    mut done: impl FnMut(&sdrkit_core::Results) -> bool,
 ) -> Paced {
     let mut p = Paced::default();
     let mut out = Output::default();
@@ -136,6 +151,10 @@ fn paced(
             break;
         }
         p.fed_s += piece_s;
+        if done(r) {
+            total += x.len();
+            break;
+        }
         step_s += piece_s;
         total += x.len();
         let mut to = None;
@@ -177,6 +196,7 @@ fn paced(
             p.longest_s = p.longest_s.max(t0.elapsed().as_secs_f64());
         }
     }
+    p.centre = centre;
     p.lost = lost as f64 / total.max(1) as f64;
     p.dropped = value(Owner::results(&*rx), "dropped").unwrap_or(0.0);
     p.skipped = value(Owner::results(&*rx), "skipped").unwrap_or(0.0);
@@ -279,6 +299,119 @@ fn lte_keeps_up_with_a_live_carrier_at_12_msps() {
     assert!(cells(&state(&rx))[0]["sib1"].is_object(), "{}", cells(&state(&rx))[0]);
 }
 
+/// The settings that a host gives `desc` in Australia.
+fn australia(desc: &StackDescriptor) -> (Vec<(String, J)>, f64) {
+    let data = sdrkit_presets::Data::open(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data")).unwrap();
+    let au = sdrkit_presets::Region::new("AU").unwrap();
+    let p = data.preset(desc.id, &au, &sdrkit_presets::Options::default()).unwrap();
+    let keys = p
+        .settings
+        .iter()
+        .map(|(k, v)| match v {
+            sdrkit_core::Value::Text(t) => (k.clone(), J::from(t.as_str())),
+            other => panic!("{k}: {other:?}"),
+        })
+        .collect();
+    (keys, p.frequency_hz)
+}
+
+/// Feeds `rx` at the pace of the signal with the Australian settings from `start` until a cell is listed, then until
+/// `operators` cells show their operator, then 15 s more. Asserts that the operators show within 5 s of the first cell and
+/// that from 2 s after the first cell nothing is dropped. Returns the radio centre at the end.
+fn reads_operators_live(
+    rx: &mut sdrkit_graph::StackGraph,
+    rate: f64,
+    start: f64,
+    operators: f64,
+    mut next: impl FnMut(f64) -> Vec<Complex32>,
+) -> f64 {
+    let found = paced_until(rx, rate, start, 60.0, true, &mut next, |r| value(r, "cell_count").unwrap_or(0.0) >= 1.0);
+    report("until the first cell", &CELL, &found);
+    assert!(value(Owner::results(&*rx), "cell_count").unwrap_or(0.0) >= 1.0, "{found:?}");
+    let read = paced_until(rx, rate, found.centre, 5.0, true, &mut next, |r| {
+        value(r, "identified").unwrap_or(0.0) >= operators
+    });
+    report("until the operators", &CELL, &read);
+    let r = Owner::results(&*rx);
+    assert_eq!(value(r, "identified"), Some(operators), "{:?} {read:?}", r.status().summary);
+    eprintln!("operators read {:.1} s after the first cell", read.fed_s);
+    let settle = paced(rx, rate, read.centre, (2.0 - read.fed_s).max(0.0), true, &mut next);
+    let (p, kept_up) = follows(rx, rate, settle.centre, 15.0, &mut next);
+    report("on the carrier", &CELL, &p);
+    assert!(kept_up, "{p:?}");
+    let r = Owner::results(&*rx);
+    assert_eq!(text(r, "quiet_reason"), None, "{:?}", r.status().summary);
+    p.centre
+}
+
+/// The system information messages read of every cell listed, by row key.
+fn si_messages(r: &sdrkit_core::Results) -> Vec<(String, i64)> {
+    use sdrkit_stack_cell::typed::{CellDetailRow, CELL_DETAILS};
+    CELL_DETAILS.rows::<CellDetailRow>(r).map(|(key, row)| (key.to_owned(), row.si_messages)).collect()
+}
+
+/// LTE live at 12 Msps with the Australian settings, started on a frequency without a cell: the band search finds two
+/// cells of one 10 MHz carrier on the known carrier at 763 MHz and stays there. The operators of both cells show within
+/// 5 s of the first cell, and from 2 s after it nothing is dropped. Once their system information is read, a cell is
+/// read again only after 30 s: 15 s more add no message.
+#[test]
+#[ignore]
+fn lte_auto_stays_on_a_carrier_and_reads_its_operators_without_drops() {
+    use sdrkit_stack_cell::lte::gen::{scene, LteGenOptions, LteGenerator};
+    let rate = 12e6;
+    let cell_hz = 763e6;
+    let mut parts = Vec::new();
+    for (k, gain) in [(0u16, 0.0), (1, -6.0)] {
+        let mut c = scene(0, None);
+        c.pci += 3 * k + 1;
+        c.gain_db = gain;
+        parts.push(impaired(LteGenerator::new(rate, c, LteGenOptions { seed: 1 + u64::from(k), ..Default::default() }), &[], 1.0));
+    }
+    let carrier: Vec<Complex32> = (0..parts[0].len()).map(|i| parts[0][i] + parts[1][i]).collect();
+    let mut r = sdrkit_algo_sim::rng::Rng::new(4);
+    let mut at = 0;
+    let next = move |centre: f64| {
+        let mut x: Vec<Complex32> = (0..BLOCK).map(|_| r.complex_normal(2.0 * 0.02 * 0.02)).collect();
+        if (centre - cell_hz).abs() < 1.0 {
+            for v in x.iter_mut() {
+                *v += carrier[at];
+                at = (at + 1) % carrier.len();
+            }
+        }
+        x
+    };
+    let (keys, start) = australia(&CELL);
+    let keys: Vec<(&str, J)> = keys.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
+    let mut rx = stack_graph(&CELL, &keys);
+    rx.configure(&InputInfo::new(rate, start, start)).unwrap();
+    let mut next = next;
+    assert_eq!(reads_operators_live(&mut rx, rate, start, 2.0, &mut next), cell_hz);
+    let before = si_messages(Owner::results(&rx));
+    paced(&mut rx, rate, cell_hz, 15.0, true, &mut next);
+    let after = si_messages(Owner::results(&rx));
+    eprintln!("system information messages {before:?}, 15 s later {after:?}");
+    assert_eq!(before.len(), 2, "{before:?}");
+    assert_eq!(before, after);
+}
+
+/// The recording of a live 10 MHz band 28 carrier fed live, again and again, with the Australian settings on its centre:
+/// its operator 505-02 shows within 5 s of the cell, and from 2 s after the cell nothing is dropped. Skipped when the
+/// recording is not on this machine.
+#[test]
+#[ignore]
+fn lte_auto_reads_the_operator_of_a_live_recording() {
+    let Some(rec) = crate::search::live_recording("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305") else { return };
+    let (rate, hz) = (rec.rate_hz, rec.centre_hz);
+    let (keys, _) = australia(&CELL);
+    let keys: Vec<(&str, J)> = keys.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
+    let mut rx = stack_graph(&CELL, &keys);
+    rx.configure(&InputInfo::new(rate, hz, hz)).unwrap();
+    reads_operators_live(&mut rx, rate, hz, 1.0, cycle(rec.samples));
+    rx.finish(&mut Output::default());
+    let cs = cells(&state(&rx));
+    assert_eq!(cs[0]["sib1"]["plmns"][0], "505-02", "{}", cs[0]);
+}
+
 /// The recording of a real LTE cell fed live, again and again for 20 s: the cell shows SIB1 to SIB3 and no SIB that it does
 /// not show when the recording waits for the search, and once the cell is followed nothing is dropped. Skipped when the
 /// recordings are not on this machine.
@@ -352,7 +485,7 @@ fn nr_follows_a_live_cell_at_12_msps_in_real_time() {
 
 /// One pass of the band search over the Australian bands at 12 Msps, live on noise, with 0.1 s for each move of the radio:
 /// under two minutes for `nr` and under 40 s for `cell`, and every step searched. What the search leaves out between
-/// looks counts as skipped, and nothing as dropped once the search runs.
+/// looks is no drop: nothing counts as dropped once the search runs.
 #[test]
 #[ignore]
 fn an_australian_pass_at_12_msps_searches_every_step() {
@@ -388,7 +521,6 @@ fn an_australian_pass_at_12_msps_searches_every_step() {
         );
         assert_eq!(p.lost, 0.0, "{}: {p:?}", desc.id);
         assert!(missed.is_empty(), "{}: {missed:?}", desc.id);
-        assert!(p.skipped > 0.0, "{}: {p:?}", desc.id);
         assert_eq!(Some(p.dropped), p.dropped_before_pass, "{}: {p:?}", desc.id);
         let most_s = if desc.id == "nr" { 120.0 } else { 40.0 };
         assert!(p.pass_s.is_some_and(|t| t < most_s), "{p:?}");

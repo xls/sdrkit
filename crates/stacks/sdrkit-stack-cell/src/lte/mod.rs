@@ -582,6 +582,9 @@ pub struct LteTables {
     pub cells: ObjectTable<LteKey, LteCell>,
     /// The humps of the newest capture, strongest first.
     pub carriers: Vec<search::Hump>,
+    /// The sample rate of the newest capture, Hz.
+    #[serde(skip)]
+    pub rate_hz: f64,
 }
 
 impl Default for LteTables {
@@ -589,8 +592,15 @@ impl Default for LteTables {
         LteTables {
             cells: ObjectTable::new(CELL_CAP),
             carriers: Vec::new(),
+            rate_hz: 0.0,
         }
     }
+}
+
+/// Whether a carrier of `n_rb` resource blocks is wider than a capture at `rate` centred on it: its system information is
+/// out of reach at that rate.
+fn too_wide(n_rb: usize, rate: f64) -> bool {
+    n_rb as f64 * 90e3 + 30e3 >= rate / 2.0
 }
 
 impl Shift for LteCell {
@@ -1031,6 +1041,27 @@ fn partial_reason(out: &LteSearchOut, rate: f64, centre_hz: f64) -> Option<(Stri
     ))
 }
 
+/// Reads of SIB1 that this many reads in a row did not give make a reason why the operator does not show.
+const UNREAD_TRIES: u32 = 3;
+
+/// Why the operator of a cell that is followed does not show: its SIB1 failed in [`UNREAD_TRIES`] reads or more, or the
+/// cell lies under more stronger cells than a capture reads with it.
+fn unread_reason(unread: &[search::Unread]) -> Option<String> {
+    let u = unread.iter().find(|u| u.under || u.tries >= UNREAD_TRIES)?;
+    Some(if u.under {
+        format!(
+            "PCI {}: its operator is not read live, as it lies under two or more stronger cells of its carrier; a recording, or \
+             band_search survey, reads it",
+            u.pci
+        )
+    } else {
+        format!(
+            "PCI {}: no SIB1 in {} reads (SINR {:.1} dB): the cell is too weak for its operator to be read here",
+            u.pci, u.tries, u.sinr_db
+        )
+    })
+}
+
 /// Why a capture of LTE `out` at `rate` showed no cell, for people; None when it showed one.
 fn quiet_reason(out: &LteSearchOut, rate: f64, threshold_db: f64, max_cfo_hz: f64, centre_hz: f64) -> Option<String> {
     if !out.cells.is_empty() {
@@ -1283,6 +1314,7 @@ impl SearchStack for LteSearch {
         } else {
             0.0
         };
+        t.rate_hz = cap.rate;
         t.carriers = found
             .humps
             .iter()
@@ -1295,7 +1327,15 @@ impl SearchStack for LteSearch {
         self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db, self.searcher.max_cfo_hz, base);
         let partial = partial_reason(&found, cap.rate, base);
         self.wanted = partial.as_ref().filter(|_| cap.centre_known()).map(|p| (p.1, p.2));
-        self.partial = partial.map(|p| p.0);
+        // A cell whose operator a capture before read is no cell without one.
+        let mut unread = self.searcher.unread();
+        let read = |u: &search::Unread| {
+            t.cells
+                .iter()
+                .any(|r| r.key.pci == u.pci && (r.key.raster - u.raster).abs() <= 1 && r.record.sib1.is_some())
+        };
+        unread.retain(|u| !read(u));
+        self.partial = partial.map(|p| p.0).or_else(|| unread_reason(&unread));
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
@@ -1338,7 +1378,8 @@ impl SearchStack for LteSearch {
                 name: format!("PCI {} at {:.1} MHz", r.record.pci, r.record.frequency_hz / 1e6),
                 last_s: r.seen.last_s,
                 identified: r.record.sib1.is_some(),
-                settled: r.record.sib1.is_some(),
+                settled: r.record.sib1.is_some() || r.record.mib.as_ref().is_some_and(|m| too_wide(m.n_rb, t.rate_hz)),
+                out_of_reach: r.record.mib.as_ref().is_some_and(|m| too_wide(m.n_rb, t.rate_hz)),
             })
             .collect()
     }
