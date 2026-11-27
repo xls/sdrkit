@@ -15,6 +15,8 @@ sdrkit_core::choice_enum! {
         NoDecoder = ("no_decoder", "Decoded by the host"),
         /// The audio is decoded.
         Decoding = ("decoding", "Decoding"),
+        /// The audio coding of the service (xHE-AAC) is not decoded, here or by the host.
+        NotDecoded = ("not_decoded", "Audio coding not decoded"),
     }
 }
 

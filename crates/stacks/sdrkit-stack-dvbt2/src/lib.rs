@@ -120,7 +120,7 @@ fn builder(set: RxSettings) -> GraphBuilder {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if a component refuses a value of `cfg`, or another [`GraphError`] if the graph does not build.
+/// [`GraphError::NamedSetting`] if a component refuses a value of `cfg`, or another [`GraphError`] if the graph does not build.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     build(cfg, true)
 }

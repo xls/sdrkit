@@ -57,6 +57,8 @@ pub struct StreamEntry {
     pub kbps: f64,
     /// Scrambled (from its packets).
     pub scrambled: bool,
+    /// Enough of its packets have been seen to know whether it is scrambled.
+    pub examined: bool,
     /// What the stream itself says (size, rates, profile ...).
     pub props: EsProps,
 }
@@ -129,7 +131,8 @@ pub struct Service {
     pub ca_flag: bool,
     /// free_CA_mode of the SDT.
     pub free_ca: bool,
-    /// Scrambled, from its packets.
+    /// Scrambled: from the packets of its streams, or by free_CA_mode of the SDT while none of its audio or video streams has
+    /// been seen clear.
     pub scrambled: bool,
     /// Whether it is scrambled.
     pub ca_state: CaState,
@@ -1038,14 +1041,18 @@ impl SiDb {
         for s in self.services.values_mut() {
             let mut touched = false;
             for e in s.streams.iter_mut().filter(|e| e.pid == pid) {
-                if examined && e.scrambled != scrambled {
+                if examined && (e.scrambled != scrambled || !e.examined) {
                     e.scrambled = scrambled;
+                    e.examined = true;
                     touched = true;
                 }
             }
             if touched {
+                // A stream seen for the first time changes the version only when the state of its service changes.
+                let before = (s.scrambled, s.ca_state);
                 update_ca_state(s);
-                changed = true;
+                changed |= (s.scrambled, s.ca_state) != before
+                    || s.streams.iter().any(|e| e.pid == pid && e.scrambled);
             }
         }
         if changed {
@@ -1097,19 +1104,20 @@ impl Epg {
     }
 }
 
-/// A service is scrambled when any video stream is, or when audio is and no audio stream is clear.
+/// A service is scrambled when any video stream is, when audio is and no audio stream is clear, or when the SDT sets
+/// free_CA_mode and no audio or video stream has been seen clear yet.
 fn update_ca_state(s: &mut Service) {
-    let video = s.streams.iter().filter(|e| e.kind == Some(EsKind::Video));
-    let audio: Vec<&StreamEntry> = s
+    let mut audio = s.streams.iter().filter(|e| e.kind == Some(EsKind::Audio));
+    let v_scr = s
         .streams
         .iter()
-        .filter(|e| e.kind == Some(EsKind::Audio))
-        .collect();
-    let v_scr = video.clone().any(|e| e.scrambled);
-    let a_scr = !audio.is_empty()
-        && audio.iter().any(|e| e.scrambled)
-        && !audio.iter().any(|e| !e.scrambled);
-    s.scrambled = v_scr || a_scr;
+        .any(|e| e.kind == Some(EsKind::Video) && e.scrambled);
+    // Audio is scrambled when there is audio and every audio stream is.
+    let a_scr = audio.next().is_some_and(|first| first.scrambled) && audio.all(|e| e.scrambled);
+    let seen_clear = s.streams.iter().any(|e| {
+        matches!(e.kind, Some(EsKind::Audio | EsKind::Video)) && e.examined && !e.scrambled
+    });
+    s.scrambled = v_scr || a_scr || s.free_ca && !seen_clear;
     s.ca_state = if s.scrambled {
         CaState::Scrambled
     } else if !s.have_pmt {
@@ -1159,7 +1167,7 @@ mod tests {
             ),
             0.0,
         );
-        let mut sdt = build_sdt(7, 0x2310, 0, 0, 0, &[(100, 0x01, "Provider", "News One")]);
+        let mut sdt = build_sdt(7, 0x2310, 0, 0, 0, &[(100, 0x01, "Provider", "News One", false)]);
         let _ = &mut sdt;
         db.push_section(0x11, &sdt, 0.0);
         let s = db.service(100).unwrap();
@@ -1207,7 +1215,7 @@ mod tests {
             0,
             0,
             0,
-            &[(1, 0x0C, "P", "Data"), (2, 0x02, "P", "Tunes")],
+            &[(1, 0x0C, "P", "Data", false), (2, 0x02, "P", "Tunes", false)],
         );
         db.push_section(0x11, &sdt, 0.0);
         assert_eq!(db.first_playable(), Some(2));
@@ -1237,12 +1245,12 @@ mod tests {
     fn old_names_until_the_new_version_is_complete() {
         let mut db = SiDb::new();
         db.push_section(0, &build_pat(7, 0, &[(1, 0x100), (2, 0x200)]), 0.0);
-        db.push_section(0x11, &build_sdt(7, 1, 0, 0, 1, &[(1, 1, "P", "One")]), 0.0);
-        db.push_section(0x11, &build_sdt(7, 1, 0, 1, 1, &[(2, 1, "P", "Two")]), 0.0);
+        db.push_section(0x11, &build_sdt(7, 1, 0, 0, 1, &[(1, 1, "P", "One", false)]), 0.0);
+        db.push_section(0x11, &build_sdt(7, 1, 0, 1, 1, &[(2, 1, "P", "Two", false)]), 0.0);
         assert_eq!(db.service(2).unwrap().name, "Two");
-        db.push_section(0x11, &build_sdt(7, 1, 1, 0, 1, &[(1, 1, "P", "Uno")]), 1.0);
+        db.push_section(0x11, &build_sdt(7, 1, 1, 0, 1, &[(1, 1, "P", "Uno", false)]), 1.0);
         assert_eq!(db.service(1).unwrap().name, "One");
-        db.push_section(0x11, &build_sdt(7, 1, 1, 1, 1, &[(2, 1, "P", "Due")]), 2.0);
+        db.push_section(0x11, &build_sdt(7, 1, 1, 1, 1, &[(2, 1, "P", "Due", false)]), 2.0);
         assert_eq!(
             (
                 db.service(1).unwrap().name.as_str(),

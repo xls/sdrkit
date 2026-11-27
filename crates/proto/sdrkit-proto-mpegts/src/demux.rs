@@ -1011,6 +1011,30 @@ impl Demultiplexer {
         self.ts.loss();
     }
 
+    /// The automatic choice: the first service that can play when nothing is selected, and the next one when the chosen
+    /// service turns out scrambled (by free_CA_mode of the SDT or the scrambling bits of its packets). A scrambled service
+    /// stays chosen while no other can play.
+    fn choose_automatically(&mut self) {
+        let scrambled = |sid: u16| self.si.service(sid).is_some_and(|s| s.scrambled);
+        match self.selection.service {
+            None => self.selection.service = self.si.first_playable(),
+            Some(sid) if scrambled(sid) => {
+                if let Some(next) = self.si.first_playable() {
+                    self.selection.service = Some(next);
+                    self.selection.video = None;
+                    self.selection.audio = None;
+                    self.selection.audio_override = None;
+                    self.selection.subtitle = None;
+                    self.selection.teletext = None;
+                    self.selection.status = PlayerStatus::Starting;
+                    self.teletext.clear();
+                    self.subtitles = None;
+                }
+            }
+            Some(_) => {}
+        }
+    }
+
     fn apply_selection(&mut self) {
         if self.applied_version == self.si.version {
             return;
@@ -1035,8 +1059,8 @@ impl Demultiplexer {
                 }
             }
         }
-        if self.selection.service.is_none() && self.auto_select {
-            self.selection.service = self.si.first_playable();
+        if self.auto_select {
+            self.choose_automatically();
         }
         let mut routes = BTreeMap::new();
         if self.probe_all {

@@ -1156,15 +1156,12 @@ impl Component for Files {
 ///
 /// [`GraphError`] if the graph does not build: a fault of this crate, never of the input.
 pub fn graph(loaded: &LoadedFormat, catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    let setting = |key: &str, error| GraphError::Setting {
-        key: key.into(),
-        error,
-    };
     // The upper sideband: the carriers from 150 Hz below carrier 0 (at DC_HZ above the dial) to 2700 Hz above it.
-    let front = crate::component::channel(3000.0, RATE)
-        .and_then(|c| c.with_offset(DC_HZ))
-        .map_err(|e| setting("front", e))?;
-    let band = FirFilter::bandpass(-150.0, 2700.0, 250.0).map_err(|e| setting("band", e))?;
+    let front = GraphError::checked(
+        "front",
+        crate::component::channel(3000.0, RATE).and_then(|c| c.with_offset(DC_HZ)),
+    )?;
+    let band = GraphError::checked("band", FirFilter::bandpass(-150.0, 2700.0, 250.0))?;
     GraphBuilder::new()
         .add("front", front)
         .add("band", band)
@@ -1186,7 +1183,7 @@ pub fn graph(loaded: &LoadedFormat, catalog: &Arc<Catalog>) -> Result<Graph, Gra
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
 /// build. A format file that does not load is not an error: the `format` field says why.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     let loaded = LoadedFormat::load(cfg.settings.get(&FORMAT_FILE), HamFormat::load);

@@ -4,7 +4,6 @@
 //! Standard: ICAO Annex 10 Volume I, 3.1.
 
 use crate::carrier::{AmCarrier, CarrierInfo};
-use crate::checked;
 use crate::fields::{carrier_fields, put_carrier_status, put_idents};
 use crate::ident::IdentEnvelope;
 use crate::keyer::ToneKeyer;
@@ -629,36 +628,36 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     GraphBuilder::new()
         .add(
             "chan",
-            checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
+            GraphError::checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
         )
         .set("chan.wide", Value::Hz(CHANNEL_WIDTH_HZ))
-        .add("carrier", checked("carrier", AmCarrier::new(2000.0))?)
+        .add("carrier", GraphError::checked("carrier", AmCarrier::new(2000.0))?)
         .add("ddm", IlsDdm::default())
         .add("marker", MarkerTones::default())
-        .add("keyer", checked("keyer", ToneKeyer::new(1020.0))?)
+        .add("keyer", GraphError::checked("keyer", ToneKeyer::new(1020.0))?)
         .add("morse", MorseDecoder::default())
         .add(
             "lowpass",
-            checked(
+            GraphError::checked(
                 "lowpass",
                 BiquadComponent::new(BiquadShape::Lowpass, 3000.0, 0.707),
             )?,
         )
         .add(
             "highpass",
-            checked(
+            GraphError::checked(
                 "highpass",
                 BiquadComponent::new(BiquadShape::Highpass, 300.0, 0.707),
             )?,
         )
         .add(
             "highpass2",
-            checked(
+            GraphError::checked(
                 "highpass2",
                 BiquadComponent::new(BiquadShape::Highpass, 300.0, 0.707),
             )?,
         )
-        .add("audio", checked("audio", AudioResampler::new(48e3))?)
+        .add("audio", GraphError::checked("audio", AudioResampler::new(48e3))?)
         .add("report", IlsReport::default())
         .input("chan")
         .connect("chan", "carrier")
@@ -785,9 +784,12 @@ fn stack_graph(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     if let Some(part) = cfg.submode.as_deref().and_then(PartChoice::of_submode) {
         values
             .set(IlsSetting::Part.id(), &Value::Choice(part.index()))
-            .map_err(|error| GraphError::Setting {
-                key: PART_SETTING.key().into(),
-                error,
+            .map_err(|error| {
+                GraphError::Setting {
+                    key: PART_SETTING.key().into(),
+                    error,
+                }
+                .named(values.schema())
             })?;
     }
     StackGraph::of(crate::typed::shape(ID), graph(&Catalog::of(cfg)?)?)

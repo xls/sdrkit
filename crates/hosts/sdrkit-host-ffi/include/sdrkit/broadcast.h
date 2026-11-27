@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "broadcast", version 2.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "broadcast", version 2.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_BROADCAST_VERSION_MAJOR 2
-#define SDRKIT_BROADCAST_VERSION_MINOR 1
+#define SDRKIT_BROADCAST_VERSION_MINOR 2
 
 // The stack "drm": its id, and the keys of its event types.
 #define SDRKIT_STACK_DRM "drm"
@@ -316,6 +316,8 @@ typedef enum sdrkit_drm_fields_audio_state {
   SDRKIT_DRM_FIELDS_AUDIO_STATE_NO_DECODER = 1,
   // Decoding
   SDRKIT_DRM_FIELDS_AUDIO_STATE_DECODING = 2,
+  // Audio coding not decoded
+  SDRKIT_DRM_FIELDS_AUDIO_STATE_NOT_DECODED = 3,
 } sdrkit_drm_fields_audio_state;
 
 // The results of the DRM stack. No FAC values before the first FAC, no protection before the multiplex description, no time before SDC type 8, no measurement before the first frame and no first audio before it came.

@@ -263,9 +263,12 @@ struct Targets {
 impl Targets {
     fn find(g: &Graph) -> Result<Self, GraphError> {
         let t = |key: &str| {
-            g.target(key).map_err(|error| GraphError::Setting {
-                key: key.into(),
-                error,
+            g.target(key).map_err(|error| {
+                GraphError::Setting {
+                    key: key.into(),
+                    error,
+                }
+                .named(Owner::schema(g))
             })
         };
         Ok(Targets {
@@ -338,7 +341,7 @@ impl TxTargets {
         let t = |key: &str| {
             let key = format!("transmit.{key}");
             g.target(&key)
-                .map_err(|error| GraphError::Setting { key, error })
+                .map_err(|error| GraphError::Setting { key, error }.named(Owner::schema(g)))
         };
         let c = |key: &str| {
             let key = format!("transmit.{key}");

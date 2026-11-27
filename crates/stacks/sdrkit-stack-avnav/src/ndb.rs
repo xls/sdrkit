@@ -5,7 +5,6 @@
 //! Standard: ICAO Annex 10 Volume I, 3.4.
 
 use crate::carrier::{AmCarrier, Bfo, BfoAudio, CarrierInfo};
-use crate::checked;
 use crate::fields::{carrier_fields, put_carrier_status, put_idents};
 use crate::fold::{IdentFold, IdentFolder};
 use crate::ident::IdentEnvelope;
@@ -785,11 +784,11 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     GraphBuilder::new()
         .add(
             "chan",
-            checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
+            GraphError::checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
         )
         .set("chan.wide", Value::Hz(CHANNEL_WIDTH_HZ))
-        .add("carrier", checked("carrier", AmCarrier::new(1000.0))?)
-        .add("keyer", checked("keyer", ToneKeyer::new(0.0))?)
+        .add("carrier", GraphError::checked("carrier", AmCarrier::new(1000.0))?)
+        .add("keyer", GraphError::checked("keyer", ToneKeyer::new(0.0))?)
         .set("keyer.period", Value::Duration(TONE_DECISION_S))
         .add("ckey", CarrierKeyer::default())
         .add("select", KeySelect::new(KeySource::Auto))
@@ -797,7 +796,7 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .add("guard", WordGuard::default())
         .add("fold", IdentFolder::default())
         .add("bfo", Bfo::new(BfoAudio::Am))
-        .add("audio", checked("audio", AudioResampler::new(48e3))?)
+        .add("audio", GraphError::checked("audio", AudioResampler::new(48e3))?)
         .add("scan", BeaconScan::default())
         .add("report", NdbReport::default())
         .input("chan")

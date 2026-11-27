@@ -1348,18 +1348,19 @@ pub fn build_pmt(
     build_long(0x02, program, version, 0, 0, &b)
 }
 
-/// An SDT actual section with service descriptors: (sid, service_type, provider, name, running, free_ca, eit flags).
+/// An SDT actual section with service descriptors: (sid, service_type, provider, name, free_CA_mode). Every service is
+/// running and has both EIT flags.
 pub fn build_sdt(
     tsid: u16,
     onid: u16,
     version: u8,
     number: u8,
     last: u8,
-    services: &[(u16, u8, &str, &str)],
+    services: &[(u16, u8, &str, &str, bool)],
 ) -> Vec<u8> {
     let mut b = onid.to_be_bytes().to_vec();
     b.push(0xFF);
-    for &(sid, st, prov, name) in services {
+    for &(sid, st, prov, name, free_ca) in services {
         b.extend_from_slice(&sid.to_be_bytes());
         b.push(0xFC | 0x03);
         let mut sd = vec![st, prov.len() as u8];
@@ -1368,7 +1369,7 @@ pub fn build_sdt(
         sd.extend_from_slice(name.as_bytes());
         let d = descriptor(0x48, &sd);
         let l = d.len();
-        b.push(0x80 | ((l >> 8) as u8 & 0x0F)); // running 4, free_CA 0
+        b.push(0x80 | u8::from(free_ca) << 4 | ((l >> 8) as u8 & 0x0F)); // running 4
         b.push(l as u8);
         b.extend_from_slice(&d);
     }

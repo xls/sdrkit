@@ -2309,12 +2309,10 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
     Ok(GraphBuilder::new()
         .add(
             "frontend",
-            FixedRateFrontEnd::new(0.0, 10e3, CHANNEL_RATE).map_err(|error| {
-                GraphError::Setting {
-                    key: "frontend.offset".into(),
-                    error,
-                }
-            })?,
+            GraphError::checked(
+                "frontend.offset",
+                FixedRateFrontEnd::new(0.0, 10e3, CHANNEL_RATE),
+            )?,
         )
         .add("fsk", FskComponent::default())
         .add("dsc_mf", DscMfComponent::default())
@@ -2374,6 +2372,15 @@ pub fn schema() -> Arc<Schema> {
         .clone()
 }
 
+/// A refused value of the `service` setting, named by its label in the schema of `values`.
+fn refused(error: SettingError, values: &Values) -> GraphError {
+    GraphError::Setting {
+        key: SERVICE.key().into(),
+        error,
+    }
+    .named(values.schema())
+}
+
 /// The marine HF stack graph. A submode fixes the service: it wins over the `service` setting, whose default is the automatic
 /// choice. The fax picture leaves on the port `fax.picture` on the picture stream.
 ///
@@ -2386,16 +2393,10 @@ pub fn stack_graph(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         let id = values
             .schema()
             .id(SERVICE.key())
-            .map_err(|error| GraphError::Setting {
-                key: SERVICE.key().into(),
-                error,
-            })?;
+            .map_err(|error| refused(error, &values))?;
         values
             .set(id, &Value::Choice(s.index()))
-            .map_err(|error| GraphError::Setting {
-                key: SERVICE.key().into(),
-                error,
-            })?;
+            .map_err(|error| refused(error, &values))?;
     }
     let mut rx = StackGraph::of(
         crate::typed::shape("marine"),

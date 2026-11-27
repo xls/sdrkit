@@ -102,7 +102,7 @@ pub fn builder_on(l: Arc<Link>) -> GraphBuilder {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, [`GraphError::Shape`] if the graph differs
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, [`GraphError::Shape`] if the graph differs
 /// from `shape`, or another [`GraphError`] if the graph does not build.
 pub fn receiver_with(shape: &StackShape, cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     receiver_on(Link::new(), shape, cfg)

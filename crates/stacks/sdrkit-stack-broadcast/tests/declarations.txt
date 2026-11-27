@@ -33,7 +33,7 @@ field FieldDecl { key: "audio_ok", label: "Audio frames good", unit: "", kind: I
 field FieldDecl { key: "audio_bad", label: "Audio frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "fades", label: "Fades held", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "resyncs", label: "Re-synchronisations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "audio_state", label: "Audio", unit: "", kind: Choice, choices: [ChoiceDecl { key: "no_audio_stream", label: "No audio stream" }, ChoiceDecl { key: "no_decoder", label: "Decoded by the host" }, ChoiceDecl { key: "decoding", label: "Decoding" }], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "audio_state", label: "Audio", unit: "", kind: Choice, choices: [ChoiceDecl { key: "no_audio_stream", label: "No audio stream" }, ChoiceDecl { key: "no_decoder", label: "Decoded by the host" }, ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "not_decoded", label: "Audio coding not decoded" }], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "audio_info", label: "Audio", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "text_ok", label: "Text segments good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "text_bad", label: "Text segments bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }

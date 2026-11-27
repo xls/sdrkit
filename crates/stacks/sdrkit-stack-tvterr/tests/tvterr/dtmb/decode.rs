@@ -927,6 +927,38 @@ fn a_gap_too_long_to_count_starts_the_decoder_again() {
 }
 
 #[test]
+fn the_lock_comes_back_after_a_stretch_of_noise() {
+    // PN945, 16QAM: 0.4 s in the middle replaced by noise of the power of the signal. The lock goes in the noise; after it the
+    // search finds the headers again and the transport stream decodes to the end.
+    let p = params(
+        Header::Pn945,
+        Mapping::Qam16,
+        CodeRate::R06,
+        Interleaver::Mode1,
+    );
+    let rate = p.rate_hz;
+    let mut x = signal(&p, 2.4, 300.0, 2.0, Some(28.0), &[]);
+    let power = x.iter().map(|v| f64::from(v.norm_sqr())).sum::<f64>() / x.len() as f64;
+    let (a, b) = ((0.8 * rate) as usize, (1.2 * rate) as usize);
+    x[a..b].copy_from_slice(&common::noise(b - a, power, 11));
+    let (r, c) = decode(&p, &x);
+    let what = format!("{c:?} {:?}", r.results.log_lines());
+    clean_run(&c, &what);
+    assert!(log_count(&r, "frame lock lost") >= 1, "{what}");
+    assert!(log_count(&r, "headers found") >= 2, "{what}");
+    assert!(r.b("tracking"), "{what}");
+    let after = r
+        .packets
+        .iter()
+        .filter(|(q, t)| *t > 1.25 && Numbered::TERRESTRIAL.number_of(q).is_some())
+        .count();
+    assert!(
+        after as f64 > 0.8 * packet_rate(&p) * (2.4 - 1.2 - 0.5),
+        "{after} packets after the noise; {what}"
+    );
+}
+
+#[test]
 fn a_frame_lost_under_a_fixed_header_moves_the_group_start() {
     // PN595 cannot show a lost frame. 32QAM and 4QAM-NR hold a whole number of code words in two frames, so a cut of one and
     // a half frames leaves the code words half a group off; the decoder finds the group start again.

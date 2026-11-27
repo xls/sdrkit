@@ -1721,10 +1721,7 @@ impl Component for CdrMux {
 pub fn graph(loaded: &LoadedTables, catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     let decoder = CdrDecoder::new(loaded.clone());
     let decoder_note = decoder.stats.tables.clone();
-    let front = crate::component::channel(300e3, RATE).map_err(|error| GraphError::Setting {
-        key: "front".into(),
-        error,
-    })?;
+    let front = GraphError::checked("front", crate::component::channel(300e3, RATE))?;
     GraphBuilder::new()
         .add("front", front)
         .add("ofdm", CdrOfdm::new(loaded.clone()))
@@ -1745,7 +1742,7 @@ pub fn graph(loaded: &LoadedTables, catalog: &Arc<Catalog>) -> Result<Graph, Gra
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
 /// build. A tables file that does not load is not an error: the `tables` field says why.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     let loaded = LoadedTables::load(cfg.settings.get(&TABLES_FILE), CdrTables::load);

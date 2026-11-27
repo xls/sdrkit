@@ -34,7 +34,7 @@ fn a_mark_without_a_precomposed_form_stays() {
 
 #[test]
 fn sdt_names_use_the_same_decoder() {
-    let s = build_sdt(1, 1, 0, 0, 0, &[(1, 1, "sdrkit", "TV\u{A6}")]);
+    let s = build_sdt(1, 1, 0, 0, 0, &[(1, 1, "sdrkit", "TV\u{A6}", false)]);
     let h = tables::check(&s).unwrap();
     // "TV" followed by U+00A6 written as UTF-8 without a selector: bytes 0xC2 0xA6 read as ISO 6937: 0xC2 is the acute accent,
     // 0xA6 is unassigned.

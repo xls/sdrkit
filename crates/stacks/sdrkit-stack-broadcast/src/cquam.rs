@@ -948,9 +948,10 @@ pub struct Front {
 }
 
 impl Front {
-    fn new() -> Result<Front, SettingError> {
+    /// The front end, or the refusal of its channel, named by its label.
+    fn new() -> Result<Front, GraphError> {
         Ok(Front {
-            channel: crate::component::channel(14_000.0, RATE)?,
+            channel: GraphError::checked("front", crate::component::channel(14_000.0, RATE))?,
             published: Published::new(CquamFrontFields::SHAPE.fields),
         })
     }
@@ -989,16 +990,14 @@ impl Component for Front {
 ///
 /// [`GraphError`] if the graph does not build: a fault of this crate, never of the input.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    let setting = |key: &str, error| GraphError::Setting {
-        key: key.into(),
-        error,
-    };
     GraphBuilder::new()
-        .add("front", Front::new().map_err(|e| setting("front", e))?)
+        .add("front", Front::new()?)
         .add(
             "channel",
-            FirFilter::lowpass(WIDTH.default, CHANNEL_TRANSITION_HZ)
-                .map_err(|e| setting("channel", e))?,
+            GraphError::checked(
+                "channel",
+                FirFilter::lowpass(WIDTH.default, CHANNEL_TRANSITION_HZ),
+            )?,
         )
         .add("demod", CarrierDemod::default())
         .add("noise", NoiseMeter::default())
@@ -1025,7 +1024,7 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
 /// build.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     StackGraph::of(crate::typed::shape(ID), graph(&Catalog::of(cfg)?)?)

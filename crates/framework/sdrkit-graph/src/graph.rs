@@ -380,7 +380,7 @@ pub enum GraphError {
     NamedSetting {
         /// The sentence that a host shows: the label of the setting and why its value was refused.
         text: String,
-        /// The refusal, a [`GraphError::Setting`].
+        /// The refusal: a [`GraphError::Setting`], a [`GraphError::SettingValue`] or a [`GraphError::Config`].
         error: Box<GraphError>,
     },
     /// A setting value of a description that does not fit the schema of its component.
@@ -527,17 +527,44 @@ impl GraphError {
     pub fn input_kind(input: usize, got: Kind) -> ConfigError {
         ConfigError::Stage(StageError::new(GraphError::InputKind { input, got }))
     }
-    /// A [`GraphError::Setting`] as a [`GraphError::NamedSetting`] that names its setting by its label in `schema`, the
-    /// schema of the setting ids that the refusal holds. Any other error is returned as it is.
+    /// A refused setting as a [`GraphError::NamedSetting`] that names the setting by its label in `schema`, the schema of
+    /// the setting ids that the refusal holds: a [`GraphError::Setting`], a [`GraphError::SettingValue`], or a
+    /// [`GraphError::Config`] of a refused setting or of a setting that cannot work at the rate. Any other error is returned
+    /// as it is.
     #[must_use]
     pub fn named(self, schema: &Schema) -> GraphError {
-        match self {
-            GraphError::Setting { ref error, .. } => GraphError::NamedSetting {
-                text: sdrkit_core::owner::setting_error_text(schema, "setting", error),
-                error: Box::new(self),
-            },
-            e => e,
+        use sdrkit_core::owner::{config_error_text, setting_error_text, values_error_text};
+        let text = match &self {
+            GraphError::Setting { error, .. } => setting_error_text(schema, "setting", error),
+            GraphError::SettingValue { error, .. } => values_error_text(schema, error),
+            GraphError::Config {
+                error: error @ (ConfigError::Setting(_) | ConfigError::SettingAtRate { .. }),
+                ..
+            } => config_error_text(schema, error),
+            _ => return self,
+        };
+        GraphError::NamedSetting {
+            text,
+            error: Box::new(self),
         }
+    }
+    /// The component that a checked constructor made, or its refusal as a [`GraphError::NamedSetting`] of `key` that
+    /// names the setting by its label in the schema of `C`.
+    ///
+    /// # Errors
+    ///
+    /// The refusal of `made`, named.
+    pub fn checked<C: Component + Default>(
+        key: &str,
+        made: Result<C, SettingError>,
+    ) -> Result<C, GraphError> {
+        made.map_err(|error| {
+            GraphError::Setting {
+                key: key.into(),
+                error,
+            }
+            .named(&C::default().info().settings)
+        })
     }
     pub(crate) fn at(self, at: DescPosition) -> GraphError {
         GraphError::Description {
@@ -2159,7 +2186,8 @@ impl Graph {
             error => GraphError::Config {
                 component: n.id.clone(),
                 error,
-            },
+            }
+            .named(&n.info.settings),
         })?;
         if outs.len() != n.outputs.len() {
             return Err(GraphError::OutputCount {

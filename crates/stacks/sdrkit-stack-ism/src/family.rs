@@ -4,8 +4,7 @@
 use sdrkit_algo_sim::scene::Scene;
 use sdrkit_core::publish::Published;
 use sdrkit_core::verify::CheckLine;
-use sdrkit_core::{Complex32, Generator, LockState, SettingError, SignalInfo};
-use sdrkit_graph::GraphError;
+use sdrkit_core::{Complex32, Generator, LockState, SignalInfo};
 
 /// The report period of every graph of the crate, seconds of signal.
 pub const REPORT_S: f64 = 0.25;
@@ -53,14 +52,6 @@ pub fn set_status(p: &mut Published, lock_state: LockState, summary: &str) {
         }
         changed
     });
-}
-
-/// The component that a checked constructor made, or its refusal as the build error of the graph at `component`.
-pub(crate) fn checked<C>(component: &str, made: Result<C, SettingError>) -> Result<C, GraphError> {
-    made.map_err(|error| GraphError::Setting {
-        key: component.into(),
-        error,
-    })
 }
 
 /// A check that the count `v` of the field `key` is at least `min`.

@@ -2,7 +2,7 @@
 //! 12 kHz, the echo detector on the shared spectrum of that stream, and the ping table.
 
 use crate::calendar;
-use crate::family::{lock_state_of, made, status, write_series, REPORT_S};
+use crate::family::{lock_state_of, status, write_series, REPORT_S};
 use sdrkit_algo_dsp::meter::power_to_db as db;
 use sdrkit_algo_dsp::spectrum::percentile;
 use sdrkit_algo_sim::rng::Rng;
@@ -1192,7 +1192,7 @@ pub const MIN_RATE: f64 = 24e3;
 ///
 /// The errors of [`GraphBuilder::build`] and [`StackGraphBuilder::build`](sdrkit_graph::StackGraphBuilder::build).
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
-    let resample = made("resample.rate", Resample::new(WORK))?;
+    let resample = GraphError::checked("resample.rate", Resample::new(WORK))?;
     let graph = GraphBuilder::new()
         .add("resample", resample)
         .add("detector", Detector::default())

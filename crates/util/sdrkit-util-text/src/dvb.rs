@@ -48,8 +48,9 @@ pub enum DefaultTable {
     Iso6937,
     /// GB 2312 (read with the GBK superset) for every unprefixed text, as some broadcasters in China send.
     Gbk,
-    /// Table 00, but unprefixed text whose bytes above 0x7F all stand in GBK pairs of two such bytes (at least one pair) is
-    /// read as GBK: networks in China send GB 2312 names with no selector, and table 00 text has no such pairs.
+    /// Table 00, but unprefixed text that reads as Chinese in GBK (its bytes above 0x7F all in GBK pairs that are Chinese
+    /// characters or signs, two of them side by side at least) is read as GBK: networks in China send GB 2312 names with no
+    /// selector, and table 00 text has no such pairs.
     GbkWhenValid,
 }
 
@@ -306,26 +307,57 @@ fn utf8(bytes: &[u8], c: &mut Cleaner) {
     }
 }
 
-/// Whether the bytes above 0x7F all stand in GBK pairs of two such bytes (lead 0x81 to 0xFE, trail 0x80 to 0xFE), with at
-/// least one pair. GB 2312 text is made of such pairs. Table 00 writes an accented letter as a mark and an ASCII letter and
-/// its other characters above 0x7F stand alone, so its text does not pass. A GBK pair with a trail byte below 0x80 does not
-/// pass either: the same two bytes are a table 00 character and an ASCII letter.
-fn all_gbk_pairs(b: &[u8]) -> bool {
-    let (mut i, mut pairs) = (0, 0);
+/// Whether text without a selector reads as GBK under [`DefaultTable::GbkWhenValid`]: every byte above 0x7F stands in a GBK
+/// pair of two such bytes (lead 0x81 to 0xFE, trail 0x80 to 0xFE), every pair is a Chinese character or a CJK or fullwidth
+/// sign, and at least two pairs stand together. GB 2312 names are made of such pairs, and their words have two characters or
+/// more. Table 00 writes an accented letter as a mark and an ASCII letter, so its text does not pass; a GBK pair with a trail
+/// byte below 0x80 does not pass either. Two accented letters of ISO/IEC 8859-1 side by side can form a GBK pair, but four
+/// in a row do not occur in a European name.
+fn reads_as_gbk(b: &[u8]) -> bool {
+    let (mut i, mut run, mut longest) = (0, 0, 0);
     while i < b.len() {
         if b[i] < 0x80 {
+            run = 0;
             i += 1;
             continue;
         }
-        let pair = (0x81..=0xFE).contains(&b[i])
-            && b.get(i + 1).is_some_and(|t| (0x80..=0xFE).contains(t));
-        if !pair {
+        let Some(pair) = b.get(i..i + 2) else {
+            return false;
+        };
+        if !(0x81..=0xFE).contains(&pair[0]) || !(0x80..=0xFE).contains(&pair[1]) {
             return false;
         }
-        pairs += 1;
+        let mut out = [0u8; 8];
+        let (res, _, n) = encoding_rs::GBK
+            .new_decoder_without_bom_handling()
+            .decode_to_utf8_without_replacement(pair, &mut out, true);
+        let text = std::str::from_utf8(&out[..n]).unwrap_or("");
+        if res != encoding_rs::DecoderResult::InputEmpty
+            || text.is_empty()
+            || !text.chars().all(is_cjk)
+        {
+            return false;
+        }
+        run += 1;
+        longest = longest.max(run);
         i += 2;
     }
-    pairs > 0
+    longest >= 2
+}
+
+/// A Chinese character, or a sign that Chinese text uses: CJK punctuation, fullwidth forms, general punctuation and the
+/// middle dot.
+fn is_cjk(c: char) -> bool {
+    matches!(
+        c,
+        '\u{3400}'..='\u{4DBF}'
+            | '\u{4E00}'..='\u{9FFF}'
+            | '\u{F900}'..='\u{FAFF}'
+            | '\u{3000}'..='\u{303F}'
+            | '\u{FF00}'..='\u{FFEF}'
+            | '\u{2010}'..='\u{206F}'
+            | '\u{00B7}'
+    )
 }
 
 impl DvbText {
@@ -375,7 +407,7 @@ impl DvbText {
             _ => match opt.default_table {
                 DefaultTable::Iso6937 => table00(bytes, &mut c),
                 DefaultTable::Gbk => multibyte(encoding_rs::GB18030, bytes, &mut c),
-                DefaultTable::GbkWhenValid if all_gbk_pairs(bytes) => {
+                DefaultTable::GbkWhenValid if reads_as_gbk(bytes) => {
                     multibyte(encoding_rs::GB18030, bytes, &mut c)
                 }
                 DefaultTable::GbkWhenValid => table00(bytes, &mut c),
@@ -470,6 +502,24 @@ mod tests {
                 },
             );
             assert_eq!(t.text, want);
+        }
+        // Accented European names: table 00 (a mark before each letter, two in a row) and ISO/IEC 8859-1 bytes without a
+        // selector, whose two accented letters side by side form one GBK pair of a Chinese character. None is read as GBK.
+        for raw in [
+            &b"Ren\xC2e\xC1e"[..],
+            &b"\xC2E\xC2e"[..],
+            &b"R\xE6\xF0"[..],
+            &b"M\xC4\xD6R"[..],
+            &b"Bj\xF6rk \xC9\xE8"[..],
+        ] {
+            t.decode(
+                raw,
+                Usage::Name,
+                &Options {
+                    default_table: DefaultTable::GbkWhenValid,
+                },
+            );
+            assert!(!t.text.chars().any(is_cjk), "{raw:?}: {}", t.text);
         }
         // A name of ASCII and GB 2312 pairs.
         t.decode(

@@ -704,10 +704,7 @@ impl Component for VoiceInversion {
 ///
 /// [`GraphError`] if the graph does not build.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    let audio = AudioResampler::new(48e3).map_err(|error| GraphError::Setting {
-        key: "audio.rate".into(),
-        error,
-    })?;
+    let audio = GraphError::checked("audio.rate", AudioResampler::new(48e3))?;
     common::add_front(GraphBuilder::new())
         .add("descrambler", VoiceInversion::default())
         .add("audio", audio)

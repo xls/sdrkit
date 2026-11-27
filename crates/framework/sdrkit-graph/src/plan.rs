@@ -204,9 +204,12 @@ impl GraphPlan {
         let mut one = serde_json::Map::new();
         one.insert(key.into(), json.clone());
         v.update_from_json(&serde_json::Value::Object(one))
-            .map_err(|error| GraphError::SettingValue {
-                key: full.into(),
-                error,
+            .map_err(|error| {
+                GraphError::SettingValue {
+                    key: full.into(),
+                    error,
+                }
+                .named(&self.comps[i].info.settings)
             })?;
         Ok(v.value(sid)
             .expect("the schema declares the setting")

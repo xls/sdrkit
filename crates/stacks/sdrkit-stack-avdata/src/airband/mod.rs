@@ -265,15 +265,12 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
 ///
 /// # Errors
 ///
-/// The errors of [`GraphBuilder::build`], and [`GraphError::Setting`] if the audio resampler refuses its rate.
+/// The errors of [`GraphBuilder::build`], and [`GraphError::NamedSetting`] if the audio resampler refuses its rate.
 pub fn graph_with_mic(
     catalog: &Arc<Catalog>,
     mic: Box<dyn Component>,
 ) -> Result<Graph, GraphError> {
-    let resample = AudioResampler::new(48e3).map_err(|error| GraphError::Setting {
-        key: "resample.rate".into(),
-        error,
-    })?;
+    let resample = GraphError::checked("resample.rate", AudioResampler::new(48e3))?;
     GraphBuilder::new()
         .add("bank", bank::Bank::default())
         .add("watch", watch::Watch::default())

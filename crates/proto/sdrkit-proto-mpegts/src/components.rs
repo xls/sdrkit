@@ -193,6 +193,8 @@ sdrkit_core::settings! {
         Downmix = DOWNMIX,
         /// MPEG-2 video decoded to frames of raw pixels.
         DecodeVideo = DECODE_VIDEO,
+        /// The table of text without a selector.
+        DefaultText = DEFAULT_TEXT,
     }
 }
 
@@ -325,6 +327,8 @@ pub struct TsDemuxComponent {
     stereo: Option<(Arc<MediaFormat>, Arc<MediaFormat>)>,
     /// MPEG-2 video leaves as frames of raw pixels.
     decode_video: bool,
+    /// The table of text without a selector, for the names of the services and the tracks.
+    default_text: DefaultText,
     /// The decoder of the video stream that plays, while `decode_video` is on.
     video: Option<crate::video::VideoDecoder>,
 }
@@ -406,6 +410,7 @@ impl Default for TsDemuxComponent {
             downmix: true,
             stereo: None,
             decode_video: false,
+            default_text: DEFAULT_TEXT.default,
             video: None,
         }
     }
@@ -470,6 +475,8 @@ impl TsDemuxComponent {
             _ => return Err(no_row()),
         };
         if self.demux.selection.service != Some(sid) {
+            // A track of another service is a choice of that service.
+            self.demux.auto_select = false;
             self.demux.select(Some(sid));
         }
         match subtitle {
@@ -713,6 +720,10 @@ impl Component for TsDemuxComponent {
                 self.decode_video = DECODE_VIDEO.read(id, v)?;
                 self.video = None;
             }
+            TsDemuxSetting::DefaultText => {
+                self.default_text = DEFAULT_TEXT.read(id, v)?;
+                d.si.text.default_table = self.default_text.table();
+            }
         }
         Ok(Applied::Live)
     }
@@ -744,6 +755,10 @@ impl Component for TsDemuxComponent {
             (
                 TsDemuxSetting::DecodeVideo,
                 Value::Bool(self.decode_video),
+            ),
+            (
+                TsDemuxSetting::DefaultText,
+                Value::Choice(self.default_text.index()),
             ),
         ])
     }
@@ -2170,5 +2185,44 @@ mod tests {
             ),
             (0, 0, 0)
         );
+    }
+}
+
+#[cfg(test)]
+mod default_text_tests {
+    use super::*;
+    use crate::packet::packetize_section;
+    use crate::tables::{build_long, build_pat, descriptor};
+
+    /// The demultiplexer after the PAT and an SDT that names service 1 with the GB 2312 bytes of "综合" and no selector,
+    /// with the table of text without a selector set to `table`.
+    fn named_with(table: DefaultText) -> String {
+        let mut c = TsDemuxComponent::default();
+        c.apply(TsDemuxSetting::DefaultText.id(), &Value::Choice(table.index()))
+            .unwrap();
+        let mut out = DemuxOutput::default();
+        let mut cc = 0;
+        let pat = build_pat(1, 0, &[(1, 0x100)]);
+        // An SDT of onid 1: service 1, running, a service descriptor of a TV service with provider "P" and the name bytes.
+        let mut sd = vec![0x01, 1, b'P', 4];
+        sd.extend_from_slice(b"\xD7\xDB\xBA\xCF");
+        let d = descriptor(0x48, &sd);
+        let mut body = vec![0, 1, 0xFF, 0, 1, 0xFF, 0x80, d.len() as u8];
+        body.extend_from_slice(&d);
+        let sdt = build_long(0x42, 1, 0, 0, 0, &body);
+        for (s, pid) in [(pat, 0), (sdt, 0x11)] {
+            for p in packetize_section(&s, pid, &mut cc) {
+                c.demux.push(&p, Some(0.0), false, &mut out);
+            }
+        }
+        c.demux.si.service(1).unwrap().name.clone()
+    }
+
+    /// The demultiplexer reads text without a selector with the table that its setting names.
+    #[test]
+    fn the_demultiplexer_honours_the_table_of_text_without_a_selector() {
+        assert_eq!(named_with(DefaultText::GbkWhenValid), "综合");
+        assert_eq!(named_with(DefaultText::Gbk), "综合");
+        assert_ne!(named_with(DefaultText::Iso6937), "综合");
     }
 }

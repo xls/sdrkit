@@ -2018,6 +2018,48 @@ mod tests {
         assert_eq!(decode_short_lc(&s), Some((1, 0x08_0000, 0)));
     }
 
+    /// A voice LC header of feature set `fid` whose BPTC is free of errors and whose last three bytes are no Reed-Solomon
+    /// parity, as a manufacturer's own check is not.
+    fn own_check_header(fid: u8) -> [u8; 264] {
+        let mut w = encode_full_lc(&[0x03, fid, 0, 0, 0, 91, 0x2F, 0x52, 0x32], dt::VOICE_LC_HEADER);
+        w[9] ^= 0xA5;
+        w[10] ^= 0x3C;
+        w[11] ^= 0x0F;
+        let mut rs = Codecs::default().rs;
+        assert!(decode_full_lc(&mut rs, &w, dt::VOICE_LC_HEADER).is_none());
+        burst_bits(&encode_bptc(&bits_of::<96>(&w)), 1, dt::VOICE_LC_HEADER, 1)
+    }
+
+    /// The good and bad blocks and the event log after `burst` on slot 1.
+    fn after(burst: &[u8; 264]) -> (u64, u64, Vec<String>) {
+        let mut dmr = Dmr::default();
+        let mut ctx = Ctx::new(crate::calls::Tracker::new("dmr", 8, 16));
+        dmr.data_burst(0, burst, &[0.0; 264], &mut ctx);
+        let log = ctx.tracker.lists.log.iter().map(|l| l.text.clone()).collect();
+        (ctx.blocks_ok, ctx.blocks_bad, log)
+    }
+
+    /// Link control of a manufacturer's feature set with an error-free BPTC counts as received, though the standard check
+    /// fails: it is noted once and its content is not read. The same bytes of the standard feature set do not count, and
+    /// neither does a manufacturer's block whose BPTC keeps errors.
+    #[test]
+    fn manufacturer_link_control_with_a_clean_bptc_counts_as_received() {
+        let (ok, bad, log) = after(&own_check_header(0x10));
+        assert_eq!((ok, bad), (2, 0), "the slot type and the link control");
+        assert_eq!(
+            log,
+            ["TS1 link control of manufacturer 10 with its own check: not read"]
+        );
+        let (ok, bad, log) = after(&own_check_header(0));
+        assert_eq!((ok, bad, log.len()), (1, 1, 0));
+        let mut damaged = own_check_header(0x10);
+        for b in damaged[..98].iter_mut().step_by(3) {
+            *b ^= 1;
+        }
+        let (ok, bad, log) = after(&damaged);
+        assert_eq!((ok, bad, log.len()), (1, 1, 0));
+    }
+
     #[test]
     fn text_formats() {
         assert_eq!(decode_text(3, b"Caf\xe9"), "Café");

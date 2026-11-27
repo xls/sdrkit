@@ -647,11 +647,11 @@ impl TestMuxBuilder {
         } else {
             let provider = dvb_name(&self.provider);
             let names: Vec<String> = self.services.iter().map(|s| dvb_name(&s.name)).collect();
-            let sdt: Vec<(u16, u8, &str, &str)> = self
+            let sdt: Vec<(u16, u8, &str, &str, bool)> = self
                 .services
                 .iter()
                 .zip(&names)
-                .map(|(s, n)| (s.service_id, s.service_type, provider.as_str(), n.as_str()))
+                .map(|(s, n)| (s.service_id, s.service_type, provider.as_str(), n.as_str(), false))
                 .collect();
             sections.push((build_sdt(self.tsid, onid, 0, 0, 0, &sdt), 0x0011));
         }

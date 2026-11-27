@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "broadcast", version 2.1. MIT licence.
+// sdrkit: the typed interface of the stack family "broadcast", version 2.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum BroadcastInterface {
     public static let major = 2
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The results of the DRM stack. No FAC values before the first FAC, no protection before the multiplex description, no time before SDC type 8, no measurement before the first frame and no first audio before it came.
@@ -22,6 +22,7 @@ public struct DrmFields {
         case noAudioStream = 0
         case noDecoder = 1
         case decoding = 2
+        case notDecoded = 3
     }
     /// The robustness mode, A to E.
     public var robustnessMode: RobustnessMode?

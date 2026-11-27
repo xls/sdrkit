@@ -1155,12 +1155,10 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
     let mut b = GraphBuilder::new()
         .add(
             "frontend",
-            FixedRateFrontEnd::new(0.0, 16e3, CHANNEL_RATE).map_err(|error| {
-                GraphError::Setting {
-                    key: "frontend.offset".into(),
-                    error,
-                }
-            })?,
+            GraphError::checked(
+                "frontend.offset",
+                FixedRateFrontEnd::new(0.0, 16e3, CHANNEL_RATE),
+            )?,
         )
         .add("voice", Voice::default())
         .add("level", LevelMeter::default())

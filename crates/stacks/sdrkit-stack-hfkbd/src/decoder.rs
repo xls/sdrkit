@@ -158,7 +158,7 @@ pub fn front_settings(opt: &RxOptions) -> &'static [&'static dyn DeclareSetting]
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] for a value of `cfg` that a component refuses.
+/// [`GraphError::NamedSetting`] for a value of `cfg` that a component refuses.
 pub fn graph<D>(dec: D, opt: RxOptions, cfg: &StackConfig) -> Result<StackGraph, GraphError>
 where
     D: sdrkit_graph::Decoder<Input = Complex32>,

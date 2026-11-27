@@ -30,7 +30,7 @@ fn modes_of(mode: Option<Mode>) -> Vec<Mode> {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if a component refuses a value of `cfg`.
+/// [`GraphError::NamedSetting`] if a component refuses a value of `cfg`.
 pub fn receiver(mode: Option<Mode>, cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     let modes = modes_of(mode);
     let mut b = GraphBuilder::new()

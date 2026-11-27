@@ -5,7 +5,7 @@
 
 pub mod send;
 
-use crate::family::{checked, hex, min_rate_message, CleanScene, REPORT_S};
+use crate::family::{hex, min_rate_message, CleanScene, REPORT_S};
 use crate::typed::{
     AntDemodFields, AntFields, AntFrameRow, AntSensorEvent, AntSensorRow, ANT_FRAMES, ANT_HISTORY,
     ANT_REMOVE, ANT_SENSOR, ANT_SENSORS, ANT_SENSOR_ROW,
@@ -1257,7 +1257,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .catalog(&Catalog::of(cfg)?)
         .add(
             "front",
-            checked(
+            GraphError::checked(
                 "front",
                 sdrkit_components::dsp::Channel::new(CHANNEL_WIDTH, DEMOD_RATE),
             )?,

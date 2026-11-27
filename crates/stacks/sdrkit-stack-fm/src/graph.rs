@@ -1839,7 +1839,7 @@ pub fn fm_graph() -> Result<Graph, GraphError> {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
 /// build.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     receiver_with_audio(cfg, Box::new(HostIn::stereo()))

@@ -158,7 +158,7 @@ pub fn dab_graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
 /// build.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     StackGraph::of(crate::typed::shape(), dab_graph(&Catalog::of(cfg)?)?)

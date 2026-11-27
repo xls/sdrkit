@@ -3,8 +3,7 @@
 
 use sdrkit_algo_dsp::fir::design_by_taps;
 use sdrkit_algo_dsp::window::Window;
-use sdrkit_core::{Clock, LockState, Results, SettingError, Status, Value};
-use sdrkit_graph::GraphError;
+use sdrkit_core::{Clock, LockState, Results, Status, Value};
 
 /// The report period of every graph of the crate, seconds of signal.
 pub const REPORT_S: f64 = 0.25;
@@ -59,18 +58,6 @@ pub fn status(
     summary(&mut s.summary);
 }
 
-/// A component made by a checked constructor, for a graph: a refused value is [`GraphError::Setting`] of `key`
-/// (`"<component>.<setting>"`).
-///
-/// # Errors
-///
-/// [`GraphError::Setting`] with `key` and the refusal.
-pub fn made<T>(key: &str, made: Result<T, SettingError>) -> Result<T, GraphError> {
-    made.map_err(|error| GraphError::Setting {
-        key: key.into(),
-        error,
-    })
-}
 
 /// The number in field `key` of `r`, or 0 when it is absent or not a number.
 pub fn field(r: &Results, key: &str) -> f64 {

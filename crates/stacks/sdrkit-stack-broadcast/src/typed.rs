@@ -110,7 +110,8 @@ pub const GUIDE: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("broadcast", 2, 1)
+        // 2.2 added the DRM audio state "not_decoded", a value of a choice and so no path of its own.
+        Described::new("broadcast", 2, 2)
             .content(
                 sdrkit_core::ContentKind::Broadcast,
                 &["drm", "hdradio", "cdr", "cquam"],

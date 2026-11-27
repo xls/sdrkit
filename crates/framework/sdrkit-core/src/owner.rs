@@ -5,7 +5,8 @@ use crate::command::{CommandError, CommandId, Commands};
 use crate::event::EventDecl;
 use crate::record::Record;
 use crate::results::{Results, ResultsDecl};
-use crate::settings::{Schema, SettingError, SettingId, Values};
+use crate::settings::{Schema, SettingError, SettingId, Values, ValuesError};
+use crate::stack::ConfigError;
 use crate::value::Value;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -273,6 +274,35 @@ pub fn setting_error_text(schema: &Schema, noun: &str, e: &SettingError) -> Stri
             format!("{noun} {}: {path}: {source}", n(id))
         }
         SettingError::Config { id, source } => format!("{noun} {}: {source}", n(id)),
+    }
+}
+
+/// `e` as one English sentence that names its setting by its label and key in `schema`, the schema of the setting ids
+/// that it holds. A host shows this text, never the `Display` of the error, which has only the number of the setting.
+pub fn values_error_text(schema: &Schema, e: &ValuesError) -> String {
+    match e {
+        ValuesError::NotAnObject => e.to_string(),
+        ValuesError::WrongJson { id, expected, got } => format!(
+            "setting {} takes {expected:?}, not a JSON {got:?}",
+            named(schema, *id)
+        ),
+        ValuesError::UnknownChoice { id, key } => {
+            format!("setting {} has no choice {key}", named(schema, *id))
+        }
+        ValuesError::Setting(e) => setting_error_text(schema, "setting", e),
+    }
+}
+
+/// `e` as one English sentence that names its setting by its label and key in `schema`, the schema of the setting ids
+/// that it holds, for the errors that refer to a setting. Any other error is its `Display`.
+pub fn config_error_text(schema: &Schema, e: &ConfigError) -> String {
+    match e {
+        ConfigError::Setting(e) => setting_error_text(schema, "setting", e),
+        ConfigError::SettingAtRate { id, rate_hz } => format!(
+            "setting {} cannot work at {rate_hz} samples a second",
+            named(schema, *id)
+        ),
+        e => e.to_string(),
     }
 }
 

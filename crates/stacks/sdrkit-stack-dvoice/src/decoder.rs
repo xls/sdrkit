@@ -132,7 +132,8 @@ pub struct Ctx {
 const HELD_FRAMES: usize = 200;
 
 impl Ctx {
-    fn new(tracker: Tracker) -> Ctx {
+    /// A context of no time, no counts and no outputs, around `tracker`.
+    pub(crate) fn new(tracker: Tracker) -> Ctx {
         Ctx {
             rate: crate::front::RATE,
             now: 0.0,

@@ -1,5 +1,5 @@
 # The interface of the stack family broadcast. The registry test of the family writes this file.
-family broadcast version=2.1
+family broadcast version=2.2
 uses.mpegts major=1 since=1.0
 uses.bcdata major=1 since=1.0
 uses.broadcast_scan major=1 since=1.0
@@ -30,7 +30,7 @@ shape.DrmFields.audio_ok type=i64 unit= optional=no since=1.0
 shape.DrmFields.audio_bad type=i64 unit= optional=no since=1.0
 shape.DrmFields.fades type=i64 unit= optional=no since=1.0
 shape.DrmFields.resyncs type=i64 unit= optional=no since=1.0
-shape.DrmFields.audio_state type=choice(no_audio_stream,no_decoder,decoding) unit= optional=no since=1.0
+shape.DrmFields.audio_state type=choice(no_audio_stream,no_decoder,decoding,not_decoded) unit= optional=no since=1.0
 shape.DrmFields.audio_info type=text unit= optional=no since=1.0
 shape.DrmFields.text_ok type=i64 unit= optional=no since=1.0
 shape.DrmFields.text_bad type=i64 unit= optional=no since=1.0

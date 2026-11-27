@@ -27,9 +27,8 @@ use sdrkit_core::bench::measure;
 use sdrkit_core::SignalType;
 use sdrkit_core::{
     AutoGain, BenchResult, Benchmark, Complex32, GenConfig, InputInfo, LockProfile, Output,
-    SettingError, SettingSet, StackConfig, StackDescriptor, SubMode, Tuning, Values,
+    SettingSet, StackConfig, StackDescriptor, SubMode, Tuning, Values,
 };
-use sdrkit_graph::GraphError;
 
 /// The heading in the stack list.
 pub const GROUP: &str = "Navigation";
@@ -250,15 +249,6 @@ pub fn registry() -> sdrkit_graph::Registry {
     let mut r = sdrkit_components::registry();
     register(&mut r);
     r
-}
-
-/// A component made by a constructor that checks its arguments against its schema, or the refusal as a [`GraphError`] that
-/// names the component.
-fn checked<C>(component: &str, made: Result<C, SettingError>) -> Result<C, GraphError> {
-    made.map_err(|error| GraphError::Setting {
-        key: component.into(),
-        error,
-    })
 }
 
 fn bench_stack(

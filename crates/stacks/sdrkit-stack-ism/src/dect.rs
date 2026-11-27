@@ -3,7 +3,7 @@
 //!
 //! Standard: ETSI EN 300 175-2 (physical layer), EN 300 175-3 clauses 6.2 and 7.2 (A-field, R-CRC, Qt), EN 300 175-6 (RFPI).
 
-use crate::family::{checked, hex, min_rate_message, CleanScene, REPORT_S};
+use crate::family::{hex, min_rate_message, CleanScene, REPORT_S};
 use crate::typed::{
     DectBaseEvent, DectBaseRow, DectBurstRow, DectDemodFields, DectFields, DECT_BASE, DECT_BASES,
     DECT_BASE_ROW, DECT_BURSTS, DECT_REMOVE,
@@ -1022,7 +1022,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .catalog(&Catalog::of(cfg)?)
         .add(
             "front",
-            checked(
+            GraphError::checked(
                 "front",
                 sdrkit_components::dsp::Channel::new(CHANNEL_WIDTH, DEMOD_RATE),
             )?,

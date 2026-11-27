@@ -61,7 +61,7 @@ fn eit_with_two_events() {
     db.push_section(0, &build_pat(7, 0, &[(100, 0x100)]), 0.0);
     db.push_section(
         0x11,
-        &build_sdt(7, 0x2310, 0, 0, 0, &[(100, 1, "P", "News One")]),
+        &build_sdt(7, 0x2310, 0, 0, 0, &[(100, 1, "P", "News One", false)]),
         0.0,
     );
     let mut d1 = short_event(b"eng", "Morning", "Text one");
@@ -332,7 +332,7 @@ fn fuzzed_sections_never_crash_and_caps_hold() {
                 (0x06, 0x102, descriptor(0x59, b"eng\x10\0\x01\0\x01")),
             ],
         ),
-        build_sdt(1, 1, 0, 0, 0, &[(1, 1, "P", "N")]),
+        build_sdt(1, 1, 0, 0, 0, &[(1, 1, "P", "N", false)]),
         eit(
             0x4E,
             1,
@@ -444,7 +444,7 @@ fn service_with(streams: &[(u8, u16, Vec<u8>)]) -> (Demultiplexer, DemuxOutput) 
         d.push(&p, Some(0.0), false, &mut out);
     }
     for p in packetize_section(
-        &build_sdt(1, 1, 0, 0, 0, &[(1, 1, "P", "TV")]),
+        &build_sdt(1, 1, 0, 0, 0, &[(1, 1, "P", "TV", false)]),
         0x11,
         &mut c0,
     ) {
@@ -515,4 +515,100 @@ fn ac3_and_eac3_signalling() {
 fn append_crc(s: &mut Vec<u8>) {
     let crc = CRC32_MPEG2.checksum(s);
     s.extend_from_slice(&crc.to_be_bytes());
+}
+
+/// A multiplex of two TV services, 1 first in list order and 2 after it: the PAT and both PMTs, then, if `sdt_free_ca`, an
+/// SDT that sets free_CA_mode on service 1 only. The demultiplexer chooses as the transport stream layer of a stack does.
+fn two_services(sdt_free_ca: bool) -> (Demultiplexer, DemuxOutput) {
+    let mut d = Demultiplexer::new();
+    d.auto_select = true;
+    d.probe_all = true;
+    let mut out = DemuxOutput::default();
+    let mut cc = [0u8; 4];
+    let mut sections = vec![
+        (build_pat(1, 0, &[(1, 0x100), (2, 0x200)]), 0),
+        (
+            build_pmt(1, 0, 0x101, &[], &[(0x02, 0x101, vec![]), (0x03, 0x102, vec![])]),
+            0x100,
+        ),
+        (
+            build_pmt(2, 0, 0x201, &[], &[(0x02, 0x201, vec![]), (0x03, 0x202, vec![])]),
+            0x200,
+        ),
+    ];
+    if sdt_free_ca {
+        let sdt = build_sdt(
+            1,
+            1,
+            0,
+            0,
+            0,
+            &[(1, 1, "P", "Pay", true), (2, 1, "P", "Free", false)],
+        );
+        sections.push((sdt, 0x11));
+    }
+    for (k, (s, pid)) in sections.iter().enumerate() {
+        for p in packetize_section(s, *pid, &mut cc[k.min(3)]) {
+            d.push(&p, Some(0.0), false, &mut out);
+            out.clear();
+        }
+    }
+    (d, out)
+}
+
+/// Three seconds of payload packets: those of service 2 clear, and, if `scrambled_one`, those of service 1 with the
+/// scrambling bits set.
+fn play(d: &mut Demultiplexer, out: &mut DemuxOutput, scrambled_one: bool) {
+    let mut cc = [0u8; 4];
+    let mut t = 0.0;
+    for _ in 0..300 {
+        for (k, pid) in [0x101u16, 0x102, 0x201, 0x202].into_iter().enumerate() {
+            let scrambled = pid < 0x200;
+            if scrambled && !scrambled_one {
+                continue;
+            }
+            let mut p = [0x5Au8; TS_SIZE];
+            write_header(
+                &mut p,
+                &Header {
+                    pid,
+                    afc: 1,
+                    cc: cc[k],
+                    scrambling: if scrambled { 2 } else { 0 },
+                    ..Default::default()
+                },
+            );
+            cc[k] = (cc[k] + 1) & 15;
+            t += 0.0025;
+            d.push(&p, Some(t), false, out);
+            out.clear();
+        }
+    }
+}
+
+/// The player plays the first service that is not scrambled: a service whose packets carry scrambling bits, or whose SDT
+/// entry sets free_CA_mode while none of its streams has been seen clear, is passed over and listed as scrambled. A service
+/// the user chose stays chosen.
+#[test]
+fn the_player_passes_over_a_scrambled_service() {
+    use sdrkit_proto_mpegts::si::CaState;
+    // By the scrambling bits of its packets.
+    let (mut d, mut out) = two_services(false);
+    assert_eq!(d.selection.service, Some(1), "before its packets, service 1 looks clear");
+    play(&mut d, &mut out, true);
+    assert_eq!(d.selection.service, Some(2));
+    assert_eq!(d.si.service(1).unwrap().ca_state, CaState::Scrambled);
+    assert_eq!(d.si.service(2).unwrap().ca_state, CaState::Clear);
+    // By free_CA_mode of the SDT, before any packet of service 1.
+    let (mut d, mut out) = two_services(true);
+    assert_eq!(d.selection.service, Some(2));
+    assert_eq!(d.si.service(1).unwrap().ca_state, CaState::Scrambled);
+    play(&mut d, &mut out, false);
+    assert_eq!(d.selection.service, Some(2));
+    // The choice of the user is kept.
+    let (mut d, mut out) = two_services(false);
+    d.auto_select = false;
+    d.select(Some(1));
+    play(&mut d, &mut out, true);
+    assert_eq!(d.selection.service, Some(1));
 }

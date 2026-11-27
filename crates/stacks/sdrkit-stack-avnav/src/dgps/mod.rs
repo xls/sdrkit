@@ -4,7 +4,6 @@
 
 pub mod rtcm;
 
-use crate::checked;
 use crate::fields::put_status;
 use crate::typed::{
     DgpsAlmanacRow, DgpsCorrectionRow, DgpsFields, DgpsMessageRow, DgpsStationRow, DGPS_ALMANAC,
@@ -564,7 +563,7 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     let mut b = GraphBuilder::new()
         .add(
             "chan",
-            checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
+            GraphError::checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
         )
         .set("chan.wide", Value::Hz(CHANNEL_WIDTH_HZ))
         .set("chan.exact", Value::Bool(true))

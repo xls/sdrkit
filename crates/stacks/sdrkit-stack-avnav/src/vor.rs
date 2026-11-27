@@ -3,7 +3,6 @@
 //! Standard: ICAO Annex 10 Volume I, 3.3.
 
 use crate::carrier::{AmCarrier, CarrierInfo};
-use crate::checked;
 use crate::fields::{carrier_fields, put_carrier_status, put_idents};
 use crate::ident::IdentEnvelope;
 use crate::keyer::ToneKeyer;
@@ -542,35 +541,35 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     GraphBuilder::new()
         .add(
             "chan",
-            checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
+            GraphError::checked("chan", Channel::new(CHANNEL_WIDTH_HZ, CHANNEL_RATE_HZ))?,
         )
         .set("chan.wide", Value::Hz(CHANNEL_WIDTH_HZ))
-        .add("carrier", checked("carrier", AmCarrier::new(2000.0))?)
+        .add("carrier", GraphError::checked("carrier", AmCarrier::new(2000.0))?)
         .add("bearing", VorBearing::default())
-        .add("keyer", checked("keyer", ToneKeyer::new(1020.0))?)
+        .add("keyer", GraphError::checked("keyer", ToneKeyer::new(1020.0))?)
         .add("morse", MorseDecoder::default())
         .add(
             "lowpass",
-            checked(
+            GraphError::checked(
                 "lowpass",
                 BiquadComponent::new(BiquadShape::Lowpass, 3000.0, 0.54),
             )?,
         )
         .add(
             "lowpass2",
-            checked(
+            GraphError::checked(
                 "lowpass2",
                 BiquadComponent::new(BiquadShape::Lowpass, 3000.0, 1.31),
             )?,
         )
         .add(
             "highpass",
-            checked(
+            GraphError::checked(
                 "highpass",
                 BiquadComponent::new(BiquadShape::Highpass, 250.0, 0.707),
             )?,
         )
-        .add("audio", checked("audio", AudioResampler::new(48e3))?)
+        .add("audio", GraphError::checked("audio", AudioResampler::new(48e3))?)
         .add("report", VorReport::default())
         .input("chan")
         .connect("chan", "carrier")

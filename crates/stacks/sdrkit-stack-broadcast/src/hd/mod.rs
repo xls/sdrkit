@@ -2594,18 +2594,12 @@ impl Component for HdSoundStage {
 ///
 /// [`GraphError`] if the graph does not build: a fault of this crate, never of the input.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    let setting = |key: &str, error| GraphError::Setting {
-        key: key.into(),
-        error,
-    };
-    let am_front =
-        crate::component::channel(20e3, l1::AM_RATE).map_err(|e| setting("am_front", e))?;
-    let fm_front = FmFront::new().map_err(|e| setting("fm_front", e))?;
-    let analog = crate::component::channel(100e3, 250e3).map_err(|e| setting("analog", e))?;
-    let analog_demod = FmDemod::new(75e3).map_err(|e| setting("analog_demod", e))?;
-    let analog_rate = Resample::new(48e3).map_err(|e| setting("analog_rate", e))?;
-    let analog_filter =
-        FirFilter::lowpass(15e3, 2e3).map_err(|e| setting("analog_filter", e))?;
+    let am_front = GraphError::checked("am_front", crate::component::channel(20e3, l1::AM_RATE))?;
+    let fm_front = FmFront::new()?;
+    let analog = GraphError::checked("analog", crate::component::channel(100e3, 250e3))?;
+    let analog_demod = GraphError::checked("analog_demod", FmDemod::new(75e3))?;
+    let analog_rate = GraphError::checked("analog_rate", Resample::new(48e3))?;
+    let analog_filter = GraphError::checked("analog_filter", FirFilter::lowpass(15e3, 2e3))?;
     GraphBuilder::new()
         .add("fm_front", fm_front)
         .add("am_front", am_front)
@@ -2654,9 +2648,10 @@ pub struct FmFront {
 }
 
 impl FmFront {
-    fn new() -> Result<FmFront, SettingError> {
+    /// The FM front end, or the refusal of its channel, named by its label.
+    fn new() -> Result<FmFront, GraphError> {
         Ok(FmFront {
-            inner: crate::component::channel(250e3, l1::FM_RATE)?,
+            inner: GraphError::checked("fm_front", crate::component::channel(250e3, l1::FM_RATE))?,
             on: false,
         })
     }

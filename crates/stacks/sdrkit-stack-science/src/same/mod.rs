@@ -5,7 +5,7 @@
 
 pub mod parse;
 
-use crate::family::{lock_state_of, lowpass, made, status, wall, REPORT_S};
+use crate::family::{lock_state_of, lowpass, status, wall, REPORT_S};
 use parse::{Counties, Country, EventKind, Message};
 use sdrkit_algo_dsp::fir::Fir;
 use sdrkit_algo_dsp::fm::Discriminator;
@@ -1677,8 +1677,8 @@ pub const MIN_RATE: f64 = 64e3;
 ///
 /// The errors of [`GraphBuilder::build`] and [`StackGraphBuilder::build`](sdrkit_graph::StackGraphBuilder::build).
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
-    let chan = made("chan.normal", Channel::new(CHANNEL_WIDTH, AUDIO_RATE))?;
-    let chan_search = made("chan.normal", Channel::new(SEARCH_WIDTH, AUDIO_RATE))?;
+    let chan = GraphError::checked("chan.normal", Channel::new(CHANNEL_WIDTH, AUDIO_RATE))?;
+    let chan_search = GraphError::checked("chan.normal", Channel::new(SEARCH_WIDTH, AUDIO_RATE))?;
     let graph = GraphBuilder::new()
         .add("chan", chan)
         .add("chan_search", chan_search)

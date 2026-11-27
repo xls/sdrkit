@@ -2322,7 +2322,9 @@ impl DrmReport {
             audio_bad: d.audio_bad as i64,
             fades: d.fades as i64,
             resyncs: d.resyncs as i64,
-            audio_state: if d.audio_good + d.audio_bad == 0 && !(d.xhe && d.state == 2) {
+            audio_state: if d.xhe && d.state == 2 {
+                res::AudioState::NotDecoded
+            } else if d.audio_good + d.audio_bad == 0 {
                 res::AudioState::NoAudioStream
             } else {
                 res::AudioState::NoDecoder

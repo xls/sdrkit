@@ -135,7 +135,7 @@ pub fn builder() -> GraphBuilder {
 ///
 /// # Errors
 ///
-/// [`GraphError::Setting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
+/// [`GraphError::NamedSetting`] if `cfg` holds a value that a component refuses, or another [`GraphError`] if the graph does not
 /// build.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     StackGraph::of(

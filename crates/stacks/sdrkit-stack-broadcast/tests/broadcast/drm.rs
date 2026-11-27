@@ -260,7 +260,7 @@ fn xhe_aac_audio_is_named_and_not_decoded() {
     assert!(int(&r.r, "mux_ok") > 5);
     assert_eq!(r.exact + r.bad_frames, 0);
     assert_eq!(int(&r.r, "audio_ok") + int(&r.r, "audio_bad"), 0);
-    assert_eq!(r.t("audio_state"), "no_decoder");
+    assert_eq!(r.t("audio_state"), "not_decoded");
     assert!(r.t("audio_info").starts_with("xHE-AAC, 24 kHz stereo"));
     assert!(r.r.status().summary.ends_with(drm::rx::XHE_NOT_DECODED));
     assert!(!r.service("0", "label").is_empty());

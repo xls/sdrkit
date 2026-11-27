@@ -244,7 +244,13 @@ fn a_description_error_names_its_position() {
                     key: "rate".into()
                 }
             );
-            assert!(matches!(*error, GraphError::SettingValue { .. }));
+            // The refusal names the setting by its label, not by its number.
+            let text = error.to_string();
+            assert!(
+                matches!(&*error, GraphError::NamedSetting { error, .. } if matches!(**error, GraphError::SettingValue { .. })),
+                "{error:?}"
+            );
+            assert!(text.contains("(rate)") && !text.contains("number"), "{text}");
         }
         other => panic!("{other:?}"),
     }
@@ -265,4 +271,69 @@ fn a_description_error_names_its_position() {
         Description::from_json(unknown_entry),
         Err(GraphError::Syntax { line: 3, .. })
     ));
+}
+
+/// A value that a checked constructor refuses is a build error that names the setting by its label.
+#[test]
+fn a_checked_constructor_names_the_refused_setting() {
+    let e = GraphError::checked(
+        "audio.rate",
+        sdrkit_graph::components::AudioResampler::new(1.0),
+    )
+    .err()
+    .expect("a refusal");
+    let text = e.to_string();
+    assert!(
+        matches!(&e, GraphError::NamedSetting { error, .. } if matches!(**error, GraphError::Setting { .. })),
+        "{e:?}"
+    );
+    assert!(
+        text.contains("\"Audio rate\" (rate)") && !text.contains("number"),
+        "{text}"
+    );
+}
+
+/// Refuses its gain at any rate under 10 kHz.
+struct SlowGain;
+
+impl Component for SlowGain {
+    fn values(&self) -> sdrkit_core::Values {
+        sdrkit_graph::values_of([(GainSetting::Gain, Value::F64(1.0))])
+    }
+    fn info(&self) -> ComponentInfo {
+        ComponentInfo::processor("slow_gain", vec![Port::iq("in")], vec![Port::iq("out")])
+            .with_settings(GainSetting::schema())
+    }
+    fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
+        if inputs[0].rate < 10e3 {
+            return Err(ConfigError::SettingAtRate {
+                id: GainSetting::Gain.id(),
+                rate_hz: inputs[0].rate,
+            });
+        }
+        Ok(vec![inputs[0].clone()])
+    }
+    fn process(&mut self, io: &mut Io) {
+        for _ in io.pass_through::<sdrkit_core::Complex32>(0, 0) {}
+    }
+}
+
+/// A setting that cannot work at the input rate is named by its label when the graph is configured.
+#[test]
+fn a_setting_that_cannot_work_at_the_rate_is_named() {
+    let mut g = GraphBuilder::new()
+        .add("a", SlowGain)
+        .input("a")
+        .build()
+        .unwrap();
+    let e = g.configure_input(Format::iq(8e3, 0.0, 0.0)).unwrap_err();
+    let text = e.to_string();
+    assert!(
+        matches!(&e, GraphError::NamedSetting { error, .. } if matches!(**error, GraphError::Config { .. })),
+        "{e:?}"
+    );
+    assert!(
+        text.contains("\"Gain\" (gain)") && !text.contains("number"),
+        "{text}"
+    );
 }

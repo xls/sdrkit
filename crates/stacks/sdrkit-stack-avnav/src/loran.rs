@@ -3,7 +3,6 @@
 //! data that the consumer passes (the rows of `data/navigation/loran_chains.csv`).
 //! Standard: ITU-R M.589, the Loran-C signal specification (Chayka uses the same pulse groups and phase codes).
 
-use crate::checked;
 use crate::fields::put_status;
 use crate::typed::{LoranFields, LoranStationRow, LORAN_STATIONS};
 use num_complex::Complex64;
@@ -767,7 +766,7 @@ impl Component for LoranReport {
 /// A [`GraphError`] if the graph cannot be built.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     GraphBuilder::new()
-        .add("chan", checked("chan", Channel::new(24e3, WORK_RATE_HZ))?)
+        .add("chan", GraphError::checked("chan", Channel::new(24e3, WORK_RATE_HZ))?)
         .set("chan.wide", Value::Hz(24e3))
         .set("chan.exact", Value::Bool(true))
         .add("tracker", LoranTracker::default())
