@@ -19,6 +19,34 @@ const TX: &str = "Transmit";
 const NBTV: &str = "NBTV";
 
 sdrkit_core::choice_enum! {
+    /// The modulation the `atv` receiver decodes: found from the signal, or a fixed one.
+    pub enum ModulationChoice {
+        /// AM broadcast (vestigial sideband).
+        Am = ("am", "AM (broadcast)"),
+        /// FM video (FPV and video links).
+        FmVideo = ("fm", "FM video (FPV)"),
+        /// NBTV or mechanical television on AM.
+        NbtvAm = ("nbtv_am", "NBTV / mechanical on AM"),
+        /// NBTV on narrow FM.
+        NbtvFm = ("nbtv_fm", "NBTV / mechanical on FM"),
+        /// AM broadcast or FM video, found from the signal.
+        Auto = ("auto", "Automatic (AM or FM video)"),
+    }
+}
+
+impl ModulationChoice {
+    /// The modulation of the graph that the receiver starts with: AM for [`ModulationChoice::Auto`].
+    pub fn first(self) -> Modulation {
+        match self {
+            ModulationChoice::Auto | ModulationChoice::Am => Modulation::Am,
+            ModulationChoice::FmVideo => Modulation::FmVideo,
+            ModulationChoice::NbtvAm => Modulation::NbtvAm,
+            ModulationChoice::NbtvFm => Modulation::NbtvFm,
+        }
+    }
+}
+
+sdrkit_core::choice_enum! {
     /// The system the `atv` receiver decodes: found from the signal, or one of ITU-R BT.470.
     pub enum SystemChoice {
         /// Found from the signal.
@@ -417,9 +445,9 @@ sdrkit_core::choice_enum! {
 // atv
 
 /// The modulation, which chooses the graph.
-pub const MODULATION: Setting<field::Choice<Modulation>> =
-    Setting::choice("modulation", "Modulation", Modulation::Am)
-        .help("Broadcast television is AM. FM video needs 20 Msps.")
+pub const MODULATION: Setting<field::Choice<ModulationChoice>> =
+    Setting::choice("modulation", "Modulation", ModulationChoice::Auto)
+        .help("Automatic finds AM broadcast or FM video from the signal. Broadcast television is AM. FM video needs 20 Msps.")
         .restart();
 /// The system.
 pub const SYSTEM: Setting<field::Choice<SystemChoice>> =

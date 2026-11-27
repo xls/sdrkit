@@ -366,9 +366,9 @@ fn band_search() {
     let mut visited = 0usize;
     let mut fed_s = 0.0;
     let mut step_s = 0.0;
-    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate).len()
-        + sdrkit_stack_cell::scan::lte_steps(8, rate).len()
-        + sdrkit_stack_cell::scan::lte_steps(3, rate).len();
+    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate, &[], &[]).len()
+        + sdrkit_stack_cell::scan::lte_steps(8, rate, &[], &[]).len()
+        + sdrkit_stack_cell::scan::lte_steps(3, rate, &[], &[]).len();
     while stayed.is_none() {
         assert!(fed_s < 60.0, "no stay after {fed_s} s, {visited} steps");
         // One pass of the survey (the first step, the others, and the move back to the first): then the stay.
@@ -407,13 +407,16 @@ fn band_search() {
             for r in out.requests.drain(..) {
                 match r {
                     HostRequest::Hop { channels, dwell_s, .. } => {
-                        assert!(dwell_s >= 0.3);
+                        assert!(dwell_s >= 0.05, "{dwell_s}");
                         next = Some(channels[0]);
                         hop = Some((channels, dwell_s, 0));
                     }
-                    HostRequest::Retune { tuned_hz, .. } => {
+                    // A step with a sync signal is searched longer: the radio stays there.
+                    HostRequest::Retune { tuned_hz, reason } => {
                         hop = None;
-                        stayed = Some(tuned_hz);
+                        if reason.contains("stays on") {
+                            stayed = Some(tuned_hz);
+                        }
                         next = Some(tuned_hz);
                     }
                     other => panic!("unexpected request {other:?}"),
@@ -429,9 +432,12 @@ fn band_search() {
                 }
             }
             if let Some(n) = next {
+                // A stay on the step that the radio is on is no move.
+                if n != centre {
+                    visited += 1;
+                }
                 centre = n;
                 step_s = 0.0;
-                visited += 1;
                 rx.retuned(&InputInfo::new(rate, centre, centre).recording());
                 break;
             }

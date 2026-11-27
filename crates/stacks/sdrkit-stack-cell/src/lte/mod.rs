@@ -12,9 +12,9 @@ pub mod search;
 
 use crate::bands::{apply_mfbi, band_choice, earfcn_to_mhz, lte_band, nearest_earfcn, BandChoice};
 use crate::decoder::{
-    build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, RowSync, SearchConfig,
-    FrequencyList, MoveGuard, SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
-    SEARCH_FIRST,
+    build_search, capture_setting, look_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, RangeList,
+    RowSync, SearchConfig, FrequencyList, MoveGuard, SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS,
+    SEARCH_DWELL, SEARCH_FIRST, SEARCH_RANGES,
 };
 use crate::typed::{
     CellBandRow, CellCarrierRow, CellDetailRow, CellFields, CellInterCarrierRow, CellNeighbourRow, CellOperatorRow,
@@ -896,13 +896,21 @@ sdrkit_core::settings! {
         SearchBands = SEARCH_BANDS,
         /// The known carriers that a band search visits first.
         SearchFirst = SEARCH_FIRST,
-        /// The least time on each radio centre of a band search.
+        /// The frequency ranges that a band search keeps to.
+        SearchRanges = SEARCH_RANGES,
+        /// The longest time on one radio centre of a band search.
         SearchDwell = SEARCH_DWELL,
+        /// The first look on each radio centre of a band search.
+        SearchLook = SEARCH_LOOK,
     }
 }
 
 /// The default capture: two whole frames and the SIB1 repetition within 20 ms.
 const CAPTURE_DEFAULT_S: f64 = 0.2;
+/// The default first look of a band search step: ten PSS and SSS periods of 5 ms and a MIB cycle of 40 ms.
+const LOOK_DEFAULT_S: f64 = 0.05;
+/// The first look on each radio centre of a band search.
+pub const SEARCH_LOOK: Setting<field::F64> = look_setting(LOOK_DEFAULT_S);
 /// Seconds of input searched at a time.
 pub const CAPTURE_S: Setting<field::F64> = capture_setting(CAPTURE_DEFAULT_S);
 /// Decode SIB1 to SIB8 and SIB24.
@@ -980,7 +988,7 @@ impl Default for LteSearch {
             only: BandList::default(),
             order: BandList::default(),
             filter: LteFilter::default(),
-            scan: SearchConfig::new(),
+            scan: SearchConfig::new(LOOK_DEFAULT_S),
             quiet: None,
             sightings: Sightings::default(),
             moves: MoveGuard::default(),
@@ -1225,7 +1233,9 @@ impl SearchStack for LteSearch {
             LteSetting::BandSearch => self.scan.mode = BAND_SEARCH.read(id, v)?,
             LteSetting::SearchBands => self.scan.bands = Self::band_list(id, v, &SEARCH_BANDS)?,
             LteSetting::SearchFirst => self.scan.first = FrequencyList::read(id, SEARCH_FIRST.read(id, v)?)?,
+            LteSetting::SearchRanges => self.scan.ranges = RangeList::read(id, SEARCH_RANGES.read(id, v)?)?,
             LteSetting::SearchDwell => self.scan.dwell_s = SEARCH_DWELL.read(id, v)?,
+            LteSetting::SearchLook => self.scan.look_s = SEARCH_LOOK.read(id, v)?,
         }
         Ok(())
     }
@@ -1253,7 +1263,9 @@ impl SearchStack for LteSearch {
             (LteSetting::BandSearch, self.scan.mode_value()),
             (LteSetting::SearchBands, Value::Text(self.scan.bands.text.clone())),
             (LteSetting::SearchFirst, Value::Text(self.scan.first.text.clone())),
+            (LteSetting::SearchRanges, Value::Text(self.scan.ranges.text.clone())),
             (LteSetting::SearchDwell, Value::F64(self.scan.dwell_s)),
+            (LteSetting::SearchLook, Value::F64(self.scan.look_s)),
         ])
     }
     fn capture_s(&self) -> f64 {
@@ -1295,6 +1307,9 @@ impl SearchStack for LteSearch {
     fn found_cells(found: &LteSearchOut) -> usize {
         found.cells.len()
     }
+    fn sync_seen(&self, found: &LteSearchOut) -> bool {
+        !found.cells.is_empty() || found.best_pss_db >= self.searcher.min_pss_db
+    }
     fn quiet_reason(&self) -> Option<String> {
         self.quiet.clone()
     }
@@ -1307,8 +1322,8 @@ impl SearchStack for LteSearch {
     fn band_search(&self) -> Option<&SearchConfig> {
         Some(&self.scan)
     }
-    fn search_steps(&self, band: u16, rate: f64) -> Vec<f64> {
-        crate::scan::lte_steps(band, rate)
+    fn search_steps(&self, band: u16, rate: f64, taken: &[f64]) -> Vec<f64> {
+        crate::scan::lte_steps(band, rate, &self.scan.ranges.hz, taken)
     }
     fn band_order(&self) -> &[u16] {
         &self.order.bands
@@ -1327,6 +1342,7 @@ impl SearchStack for LteSearch {
                 name: format!("PCI {} at {:.1} MHz", r.record.pci, r.record.frequency_hz / 1e6),
                 last_s: r.seen.last_s,
                 identified: r.record.sib1.is_some(),
+                settled: r.record.sib1.is_some(),
             })
             .collect()
     }

@@ -148,11 +148,29 @@ fn the_verdict_says_why_nothing_decodes() {
     feed(rx.as_mut(), &vec![Complex32::new(0.0, 0.0); 96_000]);
     assert_eq!(field(rx.results(), "verdict"), "no_input");
     assert_eq!(rx.results().status().summary, "No signal at the channel");
-    // Noise: power, no sync. And nothing logged.
+    // Noise only: no power above the noise, so no signal. And nothing logged.
     let mut rx = receiver("p25", &[]);
     rx.configure(&InputInfo::new(rate, 0.0, 0.0).recording())
         .unwrap();
     feed(rx.as_mut(), &noise(0.05, 9, 5 * 96_000));
+    assert_eq!(
+        field(rx.results(), "verdict"),
+        "no_input",
+        "{}",
+        rx.results().status().summary
+    );
+    let r = view(rx.results());
+    assert!(calls(&r).is_empty());
+    // A carrier in the channel over the noise: power, no sync.
+    let mut rx = receiver("p25", &[]);
+    rx.configure(&InputInfo::new(rate, 0.0, 0.0).recording())
+        .unwrap();
+    let mut x = noise(0.01, 10, 5 * 96_000);
+    let mut nco = sdrkit_algo_dsp::nco::Nco::new(rate, 1_200.0);
+    for s in x.iter_mut() {
+        *s += nco.next_sample() * 0.3;
+    }
+    feed(rx.as_mut(), &x);
     assert!(
         rx.results()
             .status()
@@ -161,8 +179,6 @@ fn the_verdict_says_why_nothing_decodes() {
         "{}",
         rx.results().status().summary
     );
-    let r = view(rx.results());
-    assert!(calls(&r).is_empty());
     // A decoding signal.
     let mut g = generator("p25", rate, 1, &[]);
     let x = generate_all(g.as_mut());
@@ -171,6 +187,29 @@ fn the_verdict_says_why_nothing_decodes() {
         .unwrap();
     feed(rx.as_mut(), &x[..(3.0 * rate) as usize]);
     assert_eq!(field(rx.results(), "verdict"), "decoding");
+}
+
+#[test]
+fn a_call_that_ends_leaves_no_signal() {
+    let rate = 96_000.0;
+    let mut g = generator("dmr", rate, 3, &[]);
+    let mut x = generate_all(g.as_mut());
+    x.truncate((3.0 * rate) as usize);
+    let tail = x.len();
+    x.resize(tail + (4.0 * rate) as usize, Complex32::default());
+    add_noise(&mut x, 25.0, 11);
+    let mut rx = receiver("dmr", &[]);
+    rx.configure(&InputInfo::new(rate, 0.0, 0.0).recording())
+        .unwrap();
+    feed(rx.as_mut(), &x[..tail]);
+    assert_eq!(field(rx.results(), "verdict"), "decoding");
+    feed(rx.as_mut(), &x[tail..]);
+    assert_eq!(
+        field(rx.results(), "verdict"),
+        "no_input",
+        "{}",
+        rx.results().status().summary
+    );
 }
 
 #[test]

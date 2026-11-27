@@ -25,7 +25,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `modulation` | Modulation | choice | `am` | `am` (AM (broadcast)), `fm` (FM video (FPV)), `nbtv_am` (NBTV / mechanical on AM), `nbtv_fm` (NBTV / mechanical on FM) | Broadcast television is AM. FM video needs 20 Msps. |
+| `modulation` | Modulation | choice | `auto` | `am` (AM (broadcast)), `fm` (FM video (FPV)), `nbtv_am` (NBTV / mechanical on AM), `nbtv_fm` (NBTV / mechanical on FM), `auto` (Automatic (AM or FM video)) | Automatic finds AM broadcast or FM video from the signal. Broadcast television is AM. FM video needs 20 Msps. |
 | `channels` | Channels | text | empty |  | The channels: entries separated by ";", each a label, "=" and the frequency in Hz, for example "E21=474000000" or "R5=5806000000". At most 256 entries for atv and 64 for fpv. The host fills it from a channel plan file. The table channels lists them and channel.tune takes a label. Empty: no channel. |
 | `system` | System | choice | `auto` | `auto` (Automatic), `b` (B (7 MHz)), `g` (G (8 MHz)), `i` (I), `dk` (D/K), `m` (M), `n` (N), `a` (A (405 lines)), `c` (C), `e` (E (819 lines)), `h` (H), `kp` (K'), `l` (L), `lp` (L' (band I)) | Automatic finds the system from the signal. E needs 20 Msps for its 14 MHz channel. |
 | `colour` | Colour system | choice | `auto` | `auto` (Automatic), `mono` (Mono), `pal` (PAL), `ntsc` (NTSC), `secam` (SECAM) |  |
@@ -178,7 +178,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `analogtv`, version 2.0. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `analogtv`, version 2.1. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Television and video (`television`). Media: sound (programme), video.
 

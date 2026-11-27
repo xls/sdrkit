@@ -2,6 +2,7 @@
 //! decides at a tick, and its decision acts from the first sample after it, however the input is cut.
 
 pub mod a2;
+pub mod auto;
 pub mod colour;
 pub mod fmvideo;
 pub mod front;
@@ -9,6 +10,7 @@ pub mod graph;
 pub mod nbtv;
 pub mod nicam_rx;
 pub mod picture;
+pub mod probe;
 pub mod search;
 pub mod selector;
 pub mod snow;

@@ -70,3 +70,24 @@ fn scan_lists() {
     let all = cell_list(&rows, "gsmr", "scan_mhz", "gsm900").expect("the GSM 900 range");
     assert_eq!(all.range_hz(), Some((921e6, 960e6)));
 }
+
+/// In Australia the presets of `cell` and `nr` give the band search the known carriers of the country first, and the
+/// ranges where the country uses each band: n78 from 3400 MHz, not 3300 MHz.
+#[test]
+fn australian_band_search_settings() {
+    let d = sdrkit_presets::Data::open(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../data")).expect("the data");
+    let au = sdrkit_presets::Region::new("AU").expect("a country code");
+    let text = |stack: &str, key: &str| -> String {
+        let p = d.preset(stack, &au, &sdrkit_presets::Options::default()).expect("a preset");
+        match p.settings.iter().find(|(k, _)| k == key) {
+            Some((_, Value::Text(t))) => t.clone(),
+            other => panic!("{stack} {key}: {other:?}"),
+        }
+    };
+    assert_eq!(text("nr", "search_first"), "884.45");
+    assert_eq!(text("cell", "search_first"), "778 763 795.5");
+    let nr = text("nr", "search_ranges");
+    assert!(nr.split(' ').any(|r| r == "3400-3800"), "{nr}");
+    assert!(!nr.contains("3300"), "{nr}");
+    assert!(text("cell", "search_ranges").split(' ').any(|r| r == "758-803"));
+}

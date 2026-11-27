@@ -7,6 +7,7 @@
 use crate::data::Table;
 use crate::error::DataError;
 use sdrkit_core::Value;
+use sdrkit_util_text::csv;
 use std::path::Path;
 
 /// The path of the cell band file in a data folder.
@@ -94,6 +95,26 @@ pub fn cell_settings(rows: &[CellList], stack: &str, name: &str) -> Option<Vec<(
         let text = r.bands().iter().map(u16::to_string).collect::<Vec<_>>().join(" ");
         vec![("band_order".to_owned(), Value::Text(text))]
     })
+}
+
+/// The band search settings of `cell` and `nr`: `search_first` from the known carriers `first` (Hz) and `search_ranges`
+/// from the band edges `ranges` (Hz), both in MHz. A list that is empty gives no setting.
+pub fn search_settings(first: &[f64], ranges: &[(f64, f64)]) -> Vec<(String, Value)> {
+    let mhz = |hz: f64| csv::number(hz / 1e6);
+    let mut out = Vec::new();
+    if !first.is_empty() {
+        let text = first.iter().map(|hz| mhz(*hz)).collect::<Vec<_>>().join(" ");
+        out.push(("search_first".to_owned(), Value::Text(text)));
+    }
+    if !ranges.is_empty() {
+        let text = ranges
+            .iter()
+            .map(|(lo, hi)| format!("{}-{}", mhz(*lo), mhz(*hi)))
+            .collect::<Vec<_>>()
+            .join(" ");
+        out.push(("search_ranges".to_owned(), Value::Text(text)));
+    }
+    out
 }
 
 /// The row of `stack` with this `list` and `name`.

@@ -65,10 +65,24 @@ fn cover_points(points: &[f64], window: f64, snap: f64) -> Vec<f64> {
     out
 }
 
+/// The points of `points` (Hz) that lie in one of `ranges` (low and high edge, Hz) and outside `window` of every centre of
+/// `taken` (a step of an earlier band holds them). When no range holds a point, every point: a range keeps only the bands
+/// it overlaps to it.
+fn within(points: Vec<f64>, ranges: &[(f64, f64)], taken: &[f64], window: f64) -> Vec<f64> {
+    let inside = |p: &f64| ranges.iter().any(|(lo, hi)| (*lo..=*hi).contains(p));
+    let all = !points.iter().any(inside);
+    points
+        .into_iter()
+        .filter(|p| all || inside(p))
+        .filter(|p| !taken.iter().any(|c| (p - c).abs() <= window.max(0.0)))
+        .collect()
+}
+
 /// The radio centres of an LTE search of band `band` at `rate`: every 100 kHz raster point of the downlink where a carrier
-/// of 1.4 MHz or more can have its centre lies in the window ([`lte_window`]) of one centre, lowest first. Empty for a band
-/// the table does not hold.
-pub fn lte_steps(band: u16, rate: f64) -> Vec<f64> {
+/// of 1.4 MHz or more can have its centre lies in the window ([`lte_window`]) of one centre, lowest first. Only the points
+/// in `ranges` (Hz) when one of them holds a point of the band, and none in the window of a centre of `taken`. Empty for a
+/// band the table does not hold.
+pub fn lte_steps(band: u16, rate: f64, ranges: &[(f64, f64)], taken: &[f64]) -> Vec<f64> {
     let Some(b) = lte_band(band) else {
         return Vec::new();
     };
@@ -76,13 +90,14 @@ pub fn lte_steps(band: u16, rate: f64) -> Vec<f64> {
     let hi = b.dl_high_hz - 0.7e6;
     let n = ((hi - lo) / 100e3).floor().max(0.0) as usize;
     let points: Vec<f64> = (0..=n).map(|k| ((lo + k as f64 * 100e3) / 1e3).round() * 1e3).collect();
-    cover_points(&points, lte_window(rate), 100e3)
+    cover_points(&within(points, ranges, taken, lte_window(rate)), lte_window(rate), 100e3)
 }
 
 /// The radio centres of an NR search of band `band` at `rate`: every sync raster point of the band, of each SSB spacing the
-/// rate takes ([`nr_least_rate`]), lies in the window ([`nr_window`]) of one centre, lowest first. Empty for a band the table
-/// does not hold, or a rate below the least of every spacing of the band.
-pub fn nr_steps(band: u16, rate: f64) -> Vec<f64> {
+/// rate takes ([`nr_least_rate`]), lies in the window ([`nr_window`]) of one centre, lowest first. Only the points in
+/// `ranges` (Hz) when one of them holds a point of the band, and none in the window of a centre of `taken`. Empty for a
+/// band the table does not hold, or a rate below the least of every spacing of the band.
+pub fn nr_steps(band: u16, rate: f64, ranges: &[(f64, f64)], taken: &[f64]) -> Vec<f64> {
     let mut out: Vec<f64> = Vec::new();
     for b in nr_bands(&[band]).into_iter().filter(|b| b.number() == band) {
         for s in b.info.sync.iter().filter(|s| rate >= nr_least_rate(s.scs_khz)) {
@@ -90,7 +105,8 @@ pub fn nr_steps(band: u16, rate: f64) -> Vec<f64> {
                 .step_by(s.step.max(1) as usize)
                 .filter_map(gscn_to_hz)
                 .collect();
-            for c in cover_points(&points, nr_window(rate, s.scs_khz), 10e3) {
+            let window = nr_window(rate, s.scs_khz);
+            for c in cover_points(&within(points, ranges, taken, window), window, 10e3) {
                 if !out.iter().any(|x| (x - c).abs() < 1e3) {
                     out.push(c);
                 }
@@ -260,21 +276,30 @@ mod tests {
     #[test]
     fn search_steps() {
         // Band 28 (758 to 803 MHz) at 20 Msps: windows of 8.5 MHz, three centres; at 2.56 Msps windows of 0.48 MHz.
-        let wide = lte_steps(28, 20e6);
+        let wide = lte_steps(28, 20e6, &[], &[]);
         assert_eq!(wide, vec![767.2e6, 784.3e6, 801.4e6]);
-        let narrow = lte_steps(28, 2.56e6);
+        let narrow = lte_steps(28, 2.56e6, &[], &[]);
         assert_eq!(narrow.len(), 49);
         let w = lte_window(2.56e6);
         for k in 0..=436 {
             let f = 758.7e6 + f64::from(k) * 100e3;
             assert!(narrow.iter().any(|c| (c - f).abs() <= w + 1.0), "{f} not covered");
         }
-        assert!(lte_steps(9999, 20e6).is_empty());
+        assert!(lte_steps(9999, 20e6, &[], &[]).is_empty());
+        // Band 5 lies inside band 26: after the steps of band 26 it has none of its own.
+        let b26 = lte_steps(26, 12e6, &[], &[]);
+        assert!(lte_steps(5, 12e6, &[], &b26).is_empty());
+        assert_eq!(lte_steps(5, 12e6, &[], &[]).len(), 3);
         // n78 at 20 Msps: every GSCN inside a window; at 3.84 Msps each 15 kHz point is a centre, 30 kHz points need 7.45 Msps.
-        let n78 = nr_steps(78, 20e6);
+        let n78 = nr_steps(78, 20e6, &[], &[]);
         assert!(!n78.is_empty() && n78.len() < 50, "{}", n78.len());
-        assert!(nr_steps(78, 3.84e6).is_empty(), "n78 has 30 kHz blocks only");
-        let n28 = nr_steps(28, 3.84e6);
+        // A range keeps the band to it; a range that holds no point of the band leaves the band whole.
+        let upper = nr_steps(78, 20e6, &[(3400e6, 3800e6), (758e6, 803e6)], &[]);
+        assert!(!upper.is_empty() && upper.len() < n78.len(), "{} of {}", upper.len(), n78.len());
+        assert!(upper.iter().all(|c| *c > 3390e6), "{upper:?}");
+        assert_eq!(nr_steps(78, 20e6, &[(758e6, 803e6)], &[]), n78);
+        assert!(nr_steps(78, 3.84e6, &[], &[]).is_empty(), "n78 has 30 kHz blocks only");
+        let n28 = nr_steps(28, 3.84e6, &[], &[]);
         assert!(n28.iter().all(|f| crate::bands::hz_to_gscn(*f).is_some()));
         assert!(n28.len() > 30, "{}", n28.len());
         // The offered LTE bands: presets first, no 5 GHz band 46, 47 or 49, every other band once.

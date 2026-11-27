@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "analogtv", version 2.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "analogtv", version 2.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ANALOGTV_VERSION_MAJOR 2
-#define SDRKIT_ANALOGTV_VERSION_MINOR 0
+#define SDRKIT_ANALOGTV_VERSION_MINOR 1
 
 // The stack "atv": its id, and the keys of its event types.
 #define SDRKIT_STACK_ATV "atv"
@@ -60,6 +60,8 @@ typedef enum sdrkit_atv_modulation {
   SDRKIT_ATV_MODULATION_NBTV_AM = 2,
   // NBTV / mechanical on FM
   SDRKIT_ATV_MODULATION_NBTV_FM = 3,
+  // Automatic (AM or FM video)
+  SDRKIT_ATV_MODULATION_AUTO = 4,
 } sdrkit_atv_modulation;
 
 // The options of the setting "system" of the stack "atv".
@@ -1293,7 +1295,7 @@ static inline int32_t sdrkit_atv_teletext_select(SDRKIT_HANDLE handle, const sdr
 // The settings of the test signal generator of the stack "atv" are the sdrkit_atv_gen_*() functions
 // after the settings of its receiver.
 
-// The setting "modulation" (Modulation) of the stack "atv". A value of `sdrkit_atv_modulation`. Broadcast television is AM. FM video needs 20 Msps.
+// The setting "modulation" (Modulation) of the stack "atv". A value of `sdrkit_atv_modulation`. Automatic finds AM broadcast or FM video from the signal. Broadcast television is AM. FM video needs 20 Msps.
 static inline int32_t sdrkit_atv_get_modulation(SDRKIT_HANDLE handle, sdrkit_atv_modulation *value) {
   int32_t index = 0;
   int32_t code = sdrkit_typed_setting_get_enum(handle, "modulation", &index);

@@ -684,7 +684,7 @@ pub fn family() -> &'static Described {
         // The MAC display holds the measurements and service names of the present signal: nothing is kept over a
         // change of frequency.
         // The key and the label of the aspect ratios are numbers, so the options get the names of their variants.
-        Described::new("analogtv", 2, 0)
+        Described::new("analogtv", 2, 1)
             .content(sdrkit_core::ContentKind::Television, &["atv", "mac", "fpv"])
             .audio(sdrkit_core::AudioKind::Programme, &["atv", "mac", "fpv"])
             .video(&["atv", "mac", "fpv"])

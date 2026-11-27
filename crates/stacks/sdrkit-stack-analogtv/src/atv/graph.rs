@@ -29,8 +29,8 @@ use std::sync::Arc;
 
 /// The lowest rate of the AM broadcast receiver.
 pub const MIN_RATE_HZ: f64 = 8e6;
-/// The lowest rate of the FM video receiver.
-pub const MIN_RATE_FM_HZ: f64 = 2e6;
+/// The lowest rate of the FM video receiver: below it the colour filters of the picture decoder pass the Nyquist rate.
+pub const MIN_RATE_FM_HZ: f64 = 8e6;
 /// The stage of the picture decoder and of the components that read its counts.
 pub const PICTURE_STAGE: &str = "picture";
 
@@ -246,20 +246,32 @@ pub fn graph(build: &Build, catalog: &Arc<Catalog>) -> Result<Graph, GraphError>
 /// Returns the build that a set of `atv` settings values selects.
 pub fn build_of(v: &Values) -> Build {
     Build {
-        modulation: v.get(&MODULATION),
+        modulation: v.get(&MODULATION).first(),
         nbtv: nbtv_format(v),
         nbtv_deviation: v.get(&NBTV_DEVIATION) * 1e3,
     }
 }
 
-/// The `atv` receiver: the stack graph of the modulation that `cfg` chooses, with its settings applied. A change of
-/// modulation or NBTV format needs a new receiver (those settings say `restart`).
+/// The `atv` receiver: the stack graph of the modulation that `cfg` chooses (AM for automatic), with its settings
+/// applied. A change of modulation or NBTV format needs a new receiver (those settings say `restart`).
 ///
 /// # Errors
 ///
 /// [`GraphError`] if the graph does not build or `cfg` holds a value that a component refuses.
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
-    let build = build_of(&cfg.settings);
+    receiver_of(cfg, build_of(&cfg.settings).modulation)
+}
+
+/// As [`receiver`], with the graph of `modulation`.
+///
+/// # Errors
+///
+/// As [`receiver`].
+pub fn receiver_of(cfg: &StackConfig, modulation: Modulation) -> Result<StackGraph, GraphError> {
+    let build = Build {
+        modulation,
+        ..build_of(&cfg.settings)
+    };
     let mut b = StackGraph::of(
         crate::typed::shape("atv"),
         graph(&build, &Catalog::of(cfg)?)?,
@@ -324,7 +336,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
             b = b
                 .min_rate(
                     MIN_RATE_FM_HZ,
-                    "FM video needs a sample rate of at least 2 Msps",
+                    "FM video needs a sample rate of at least 8 Msps",
                 )
                 .route(SYSTEM.key(), &["supervisor.system"])?
                 .route(COLOUR.key(), &["colour.colour", "supervisor.colour"])?

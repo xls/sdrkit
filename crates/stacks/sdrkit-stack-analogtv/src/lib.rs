@@ -45,6 +45,9 @@ use settings::{
 };
 
 fn make_atv(cfg: &StackConfig) -> Result<Box<dyn Receiver>, ConfigError> {
+    if cfg.settings.get(&settings::MODULATION) == settings::ModulationChoice::Auto {
+        return Ok(Box::new(atv::auto::AutoReceiver::new(cfg)?));
+    }
     Ok(Box::new(atv::graph::receiver(cfg)?))
 }
 

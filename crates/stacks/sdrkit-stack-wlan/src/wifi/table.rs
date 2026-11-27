@@ -648,7 +648,6 @@ impl NetworkTable {
     /// Takes a good MPDU: the counters, the network row and the log.
     pub fn take(&mut self, m: &WifiMpdu) {
         let now = m.time_s;
-        let hopping = self.hopping();
         let c = &mut self.counters;
         c.snr_db = match (c.snr_db, m.snr_db) {
             (None, Some(s)) => Some(s),
@@ -681,9 +680,7 @@ impl NetworkTable {
             return;
         };
         self.stations.access_point(b.bssid);
-        // While the radio hops, the first samples of a dwell can still be of the channel before: a frame that names another
-        // channel is then taken as heard there, not as the copy of a wider network on this channel.
-        if is_duplicate(&b, m.band, m.channel) && !hopping {
+        if is_duplicate(&b, m.band, m.channel) {
             c.dup_frames += 1;
             return;
         }

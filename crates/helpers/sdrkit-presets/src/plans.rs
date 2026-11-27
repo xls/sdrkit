@@ -20,6 +20,8 @@ use sdrkit_data_plans::{
 use sdrkit_util_text::csv;
 use std::path::Path;
 
+/// The widest channel that a plan lists, Hz.
+const MAX_WIDTH_HZ: f64 = 100e6;
 /// The most channels that a raster of one band gives.
 const MAX_POINTS: usize = sdrkit_data_plans::registry::MAX_CHANNELS;
 
@@ -228,6 +230,45 @@ impl PlanSet {
                 }
             })
             .flat_map(band_points)
+            .collect()
+    }
+
+    /// The bands of the plan of the country `code` for `stack` that name the stack or no stack: those of its own group
+    /// ([`PlanSet::find`] without shared groups). Empty when the country has no such group.
+    fn own_bands(&self, stack: &str, code: &str) -> Vec<&Band> {
+        let Some(g) = self.find(stack, code, false).and_then(|f| self.group(&f.id)) else {
+            return Vec::new();
+        };
+        let mut bands = Vec::new();
+        self.bands(g, &mut vec![g.id.as_str()], &mut bands);
+        bands.retain(|b| b.in_use && (b.modes.is_empty() || b.modes.iter().any(|m| m == stack)));
+        bands
+    }
+
+    /// The known carriers of `stack` in the country `code`, Hz: the channels in use that the bands of its plan list one
+    /// by one. An entry at the centre of its band, as wide as the band (at most [`MAX_WIDTH_HZ`]), stands for a search of
+    /// the band and is no carrier.
+    pub(crate) fn known_carriers(&self, stack: &str, code: &str) -> Vec<f64> {
+        let mut out: Vec<f64> = Vec::new();
+        for b in self.own_bands(stack, code) {
+            let whole = (b.end_hz - b.start_hz).min(MAX_WIDTH_HZ);
+            let mid = (b.start_hz + b.end_hz) / 2.0;
+            for c in b.channels.iter().filter(|c| c.in_use) {
+                let width = c.width_hz.or(b.channel_width_hz).unwrap_or(0.0);
+                let search = (c.centre_hz - mid).abs() < 1e3 && (width - whole).abs() < 1e3;
+                if !search && !out.iter().any(|hz| (hz - c.centre_hz).abs() < 0.5) {
+                    out.push(c.centre_hz);
+                }
+            }
+        }
+        out
+    }
+
+    /// The edges, Hz, of the bands of the plan of `stack` in the country `code`: where the country uses each band.
+    pub(crate) fn band_ranges(&self, stack: &str, code: &str) -> Vec<(f64, f64)> {
+        self.own_bands(stack, code)
+            .into_iter()
+            .map(|b| (b.start_hz, b.end_hz))
             .collect()
     }
 

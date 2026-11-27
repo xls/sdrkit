@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.8
+family cell version=1.9
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -564,7 +564,9 @@ cell.setting.band_order type=text unit= since=1.0
 cell.setting.band_search type=choice(auto,survey,off) unit= since=1.7
 cell.setting.search_bands type=text unit= since=1.7
 cell.setting.search_first type=text unit=MHz since=1.8
+cell.setting.search_ranges type=text unit=MHz since=1.9
 cell.setting.search_dwell_s type=f64 unit=s since=1.7
+cell.setting.search_look_s type=f64 unit=s since=1.9
 cell.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
 cell.setting.gen_sfn0 type=i64 unit= since=1.0
 cell.setting.gen_load type=bool unit= since=1.0
@@ -609,7 +611,9 @@ nr.setting.symbol_phase type=bool unit= since=1.4
 nr.setting.band_search type=choice(auto,survey,off) unit= since=1.7
 nr.setting.search_bands type=text unit= since=1.7
 nr.setting.search_first type=text unit=MHz since=1.8
+nr.setting.search_ranges type=text unit=MHz since=1.9
 nr.setting.search_dwell_s type=f64 unit=s since=1.7
+nr.setting.search_look_s type=f64 unit=s since=1.9
 nr.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
 nr.command.clear args= reply= since=1.0
 nr.command.remove args=row:text reply= since=1.0

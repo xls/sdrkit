@@ -1149,10 +1149,9 @@ fn a_hop_with_a_short_dwell_shows_its_results_and_the_channel_while_it_runs() {
 }
 
 /// On 5 GHz a beacon that names another channel than the tuned one is the copy of a wider network, and is left out. While
-/// the radio hops, the first samples of a dwell can be of the channel before: the beacon is then taken, on the channel it
-/// names.
+/// the radio hops it is left out too: after each move the stack is given samples of the new channel only.
 #[test]
-fn a_beacon_that_names_another_channel_is_taken_while_the_radio_hops() {
+fn a_beacon_that_names_another_channel_is_left_out_while_the_radio_hops() {
     let p = WifiGenParams {
         frames: scene_56(Band::G5, 36),
         ..WifiGenParams::default()
@@ -1178,8 +1177,7 @@ fn a_beacon_that_names_another_channel_is_taken_while_the_radio_hops() {
         (channels, num(res, "duplicate_frames").unwrap() > 0.0)
     };
     assert_eq!(heard(false), (vec![], true));
-    let (channels, _) = heard(true);
-    assert!(!channels.is_empty() && channels.iter().all(|&c| c == 36.0), "{channels:?}");
+    assert_eq!(heard(true), (vec![], true));
 }
 
 /// The channel lists of two domains of the data file give the hop list of each band, with and without the DFS channels.

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.8. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.9. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 8
+    public static let minor = 9
 }
 
 /// The result fields of `railway_cir`.
@@ -3129,7 +3129,16 @@ public enum CellSettings {
     public static func setCellSearchFirst(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_first", $0) })
     }
-    /// Time per step.
+    /// Ranges searched.
+    public static func cellSearchRanges(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "search_ranges", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setCellSearchRanges(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_ranges", $0) })
+    }
+    /// Longest time per step.
     public static func cellSearchDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
         var v: Double = 0
         let code = sdrkit_typed_setting_get_f64(handle, "search_dwell_s", &v)
@@ -3137,6 +3146,15 @@ public enum CellSettings {
     }
     public static func setCellSearchDwellS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value))
+    }
+    /// First look.
+    public static func cellSearchLookS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "search_look_s", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setCellSearchLookS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "search_look_s", value))
     }
     /// Capture length.
     public static func nrCaptureS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
@@ -3261,7 +3279,16 @@ public enum CellSettings {
     public static func setNrSearchFirst(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_first", $0) })
     }
-    /// Time per step.
+    /// Ranges searched.
+    public static func nrSearchRanges(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "search_ranges", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrSearchRanges(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_ranges", $0) })
+    }
+    /// Longest time per step.
     public static func nrSearchDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
         var v: Double = 0
         let code = sdrkit_typed_setting_get_f64(handle, "search_dwell_s", &v)
@@ -3269,6 +3296,15 @@ public enum CellSettings {
     }
     public static func setNrSearchDwellS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value))
+    }
+    /// First look.
+    public static func nrSearchLookS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "search_look_s", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrSearchLookS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "search_look_s", value))
     }
     /// Capture length.
     public static func nbiotCaptureS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

@@ -1,6 +1,7 @@
 //! The tests of the analogue video family: one program with a module per area, the known bugs and the helpers.
 
 mod atv_e2e;
+mod auto;
 mod atv_sound;
 mod atv_systems;
 mod bugs;

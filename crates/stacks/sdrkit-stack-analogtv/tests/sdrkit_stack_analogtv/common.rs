@@ -351,7 +351,7 @@ impl Run {
 
 /// Feeds `seconds` from `source` through `rx` in pieces of `piece`.
 pub fn run(
-    rx: &mut StackGraph,
+    rx: &mut dyn Receiver,
     rate: f64,
     seconds: f64,
     piece: usize,

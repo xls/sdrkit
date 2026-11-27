@@ -42,7 +42,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ce
 | `band_search` | Band search | choice | `auto` | `auto` (When nothing is found), `survey` (Always (survey)), `off` (Never) | When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never. |
 | `search_bands` | Bands searched | text | empty |  | Band numbers to search, in order ("28 5 3"). Empty: the bands of the band order (the bands of the country), else the band of the tuned frequency, else the nearest band. |
 | `search_first` | Searched first | text (MHz) | empty |  | Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none. |
-| `search_dwell_s` | Time per step | number (s) | 0.5 | 0.1 to 10 | The least time on each radio centre of a band search; longer when one capture takes longer to search. |
+| `search_ranges` | Ranges searched | text (MHz) | empty |  | Frequency ranges, MHz, that a band search keeps to in the bands they overlap ("3400-3800 758-803"); a band that no range overlaps is searched whole. Empty: every band whole. |
+| `search_dwell_s` | Longest time per step | number (s) | 2 | 0.1 to 10 | The longest time on one radio centre of a band search. A centre whose first look shows a sync signal is searched until its cells are read, or this time has passed. |
+| `search_look_s` | First look | number (s) | 0.05 | 0.02 to 1 | Seconds of signal searched on each radio centre of a band search. A centre that shows a sync signal is searched longer, up to search_dwell_s. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -107,7 +109,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.8. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.9. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -398,7 +400,9 @@ Struct `FoundCellEvent`. A cell found or identified by a search stack.
 | `band_search` | `sdrkit_cell_get_band_search` | `sdrkit_cell_set_band_search` |
 | `search_bands` | `sdrkit_cell_get_search_bands` | `sdrkit_cell_set_search_bands` |
 | `search_first` | `sdrkit_cell_get_search_first` | `sdrkit_cell_set_search_first` |
+| `search_ranges` | `sdrkit_cell_get_search_ranges` | `sdrkit_cell_set_search_ranges` |
 | `search_dwell_s` | `sdrkit_cell_get_search_dwell_s` | `sdrkit_cell_set_search_dwell_s` |
+| `search_look_s` | `sdrkit_cell_get_search_look_s` | `sdrkit_cell_set_search_look_s` |
 
 ### Settings of the test signal generator
 

@@ -543,6 +543,8 @@ const EYE: usize = 800;
 const HISTORY: usize = 240;
 /// Points of the transform that measures the channel.
 const NFFT: usize = 256;
+/// The carrier to noise below which a channel without frames has no signal, dB.
+const NO_POWER_CNR_DB: f32 = 3.0;
 /// The most replays whose samples are taken out of the signal time.
 const MAX_REPLAYS: usize = 64;
 
@@ -786,9 +788,12 @@ impl<P: Protocol> VoiceDecoder<P> {
             l.id_bad - f.id_bad,
         );
         let decoding = ok > 0 || l.confirmed > f.confirmed;
-        if self.level_dbfs < -110.0 {
+        let quiet = syncs == 0 && !decoding && id_ok + id_bad == 0;
+        // A channel with no power above the noise beside it (a call that ended, an empty channel) has no signal.
+        let no_power = self.cnr_db.is_none_or(|c| c < NO_POWER_CNR_DB);
+        if self.level_dbfs < -110.0 || (quiet && no_power) {
             Verdict::NoInput
-        } else if syncs == 0 && !decoding && id_ok + id_bad == 0 {
+        } else if quiet {
             Verdict::NoSync
         } else if !decoding && id_bad * 2 > id_ok + id_bad {
             Verdict::Identity

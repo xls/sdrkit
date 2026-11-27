@@ -616,18 +616,18 @@
         {
           "name": "NR band n78",
           "service": "mobile",
-          "start_hz": 3300000000,
+          "start_hz": 3400000000,
           "end_hz": 3800000000,
           "modes": [
             "nr"
           ],
-          "note": "GSCN 7711 to 8051 (30 kHz SSB); NR-ARFCN on the channel raster; 3400 to 3800 MHz in Australia; the 3575 to 3700 MHz lots of the ACMA 3.6 GHz auction (2018)",
+          "note": "GSCN 7711 to 8051 (30 kHz SSB); NR-ARFCN on the channel raster; 3400 to 3800 MHz in Australia, so the band search leaves out 3300 to 3400 MHz; the 3575 to 3700 MHz lots of the ACMA 3.6 GHz auction (2018)",
           "channels": [
             {
-              "name": "NR band n78, search (3300 to 3800 MHz)",
-              "centre_hz": 3550000000.0,
+              "name": "NR band n78, search (3400 to 3800 MHz)",
+              "centre_hz": 3600000000.0,
               "width_hz": 100000000.0,
-              "note": "the whole downlink: the stack searches the band from here"
+              "note": "the whole downlink in Australia: the stack searches the band from here"
             }
           ]
         },

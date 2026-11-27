@@ -1,5 +1,5 @@
 # The interface of the stack family analogtv. The registry test of the family writes this file.
-family analogtv version=2.0
+family analogtv version=2.1
 uses.mpegts major=1 since=1.0
 shape.AtvFields since=1.0
 shape.AtvFields.state type=choice(searching,sync,locked) unit= optional=no since=1.0
@@ -158,7 +158,7 @@ atv.series.vbi x_unit=us y_unit= since=1.0
 atv.series.spectrum x_unit=Hz y_unit=dB since=1.0
 atv.event.atv.state fields=AtvStateEvent since=1.0
 atv.event.teletext.page fields=TeletextPageEvent since=1.0
-atv.setting.modulation type=choice(am,fm,nbtv_am,nbtv_fm) unit= since=1.0
+atv.setting.modulation type=choice(am,fm,nbtv_am,nbtv_fm,auto) unit= since=1.0
 atv.setting.channels type=text unit= since=1.0
 atv.setting.system type=choice(auto,b,g,i,dk,m,n,a,c,e,h,kp,l,lp) unit= since=1.0
 atv.setting.colour type=choice(auto,mono,pal,ntsc,secam) unit= since=1.0

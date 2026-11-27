@@ -5,7 +5,8 @@
 //! the first plan that lists the country. A file whose rows are named
 //! by an area (`marine/vhf_channels.csv`, `avdata/datalink_channels.csv`) gives none: the host offers its rows by name.
 //! `cell/band_order.csv` gives the `band_order` of its row named by the code of the country, and offers its other rows by
-//! name.
+//! name. The plan of the country gives `cell` and `nr` the known carriers that a band search visits first and the ranges of
+//! its bands.
 
 use crate::data::Data;
 use crate::error::DataError;
@@ -106,6 +107,12 @@ impl Data {
                 let path = self.folder().join(crate::cell::CELL_BANDS_FILE);
                 if let Some(rows) = present(crate::cell::read_cell_lists(&path))? {
                     out.settings = crate::cell::cell_settings(&rows, stack, code).unwrap_or_default();
+                }
+                // The band search of LTE and NR: the known carriers of the country first, and where the country uses each band.
+                if stack != "nbiot" {
+                    let first = self.plans.known_carriers(stack, code);
+                    let ranges = self.plans.band_ranges(stack, code);
+                    out.settings.extend(crate::cell::search_settings(&first, &ranges));
                 }
             }
             _ => {}

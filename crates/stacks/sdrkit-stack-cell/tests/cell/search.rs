@@ -98,9 +98,12 @@ fn nr_band_search_finds_and_stays() {
                     next = Some(channels[0]);
                     hop = Some((channels, dwell_s, 0));
                 }
-                HostRequest::Retune { tuned_hz, .. } => {
+                // A step with a sync signal is searched longer: the radio goes back there.
+                HostRequest::Retune { tuned_hz, reason } => {
                     hop = None;
-                    stayed = Some(tuned_hz);
+                    if reason.contains("stays on") {
+                        stayed = Some(tuned_hz);
+                    }
                     next = Some(tuned_hz);
                 }
                 other => panic!("unexpected request {other:?}"),
@@ -151,7 +154,7 @@ fn a_known_carrier_is_searched_first() {
     });
     let hop = hop.expect("a hop");
     assert_eq!(hop[0], cell_hz, "{hop:?}");
-    assert_eq!(hop.len(), sdrkit_stack_cell::scan::nr_steps(28, 12e6).len() + 1);
+    assert_eq!(hop.len(), sdrkit_stack_cell::scan::nr_steps(28, 12e6, &[], &[]).len() + 1);
     // The radio moves there: the cell is found and the search stays on it.
     rx.retuned(&InputInfo::new(12e6, cell_hz, cell_hz).recording());
     out.clear();
@@ -195,10 +198,10 @@ fn nr_one_ssb_seen_from_two_centres_is_one_cell() {
     assert!((f[0] - cell_hz).abs() < 10e3, "{f:?} for {cell_hz}");
 }
 
-/// A network radio still sends samples of the old centre for a short time after it moved. A cell in them is not listed a
-/// second time at the new centre, at the old offset from it.
+/// After a move the engine passes only samples of the new centre: the cell of the old centre, outside the new capture, stays
+/// one cell at its own frequency.
 #[test]
-fn nr_samples_of_the_old_centre_after_a_move_give_no_second_cell() {
+fn nr_a_move_away_from_a_cell_gives_no_second_cell() {
     let (cell_hz, _) = scene(1);
     let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
     // Two neighbouring steps of a band search at 12 Msps: the cell is 1.48 MHz above the first and outside the second.
@@ -207,8 +210,6 @@ fn nr_samples_of_the_old_centre_after_a_move_give_no_second_cell() {
     rx.configure(&InputInfo::new(12e6, a, a).recording()).unwrap();
     rx.feed(&n28_from(a, 0.5), &mut Output::default());
     rx.retuned(&InputInfo::new(12e6, b, b).recording());
-    let late = n28_from(a, 0.2);
-    rx.feed(&late, &mut Output::default());
     rx.feed(&n28_from(b, 0.4), &mut Output::default());
     rx.finish(&mut Output::default());
     assert_eq!(cells_of(&rx), [222], "{:?}", cell_freqs(&rx));
@@ -265,7 +266,7 @@ fn a_quiet_live_frequency_starts_the_search() {
         }
         rx.finish(&mut out);
         hops.append(&mut out.requests);
-        let steps = sdrkit_stack_cell::scan::lte_steps(28, rate);
+        let steps = sdrkit_stack_cell::scan::lte_steps(28, rate, &[], &[]);
         if live {
             assert!(
                 hops.iter().any(|h| matches!(h, HostRequest::Hop { channels, .. } if *channels == steps)),
@@ -277,15 +278,19 @@ fn a_quiet_live_frequency_starts_the_search() {
     }
 }
 
-/// A start in Australia without a setting of its own: the host sets the country's band order, and the band search of a
-/// quiet live frequency steps through every band of that order, in that order.
+/// A start in Australia without a setting of its own: the host sets the country's band order, its known carriers and the
+/// ranges of its bands. The band search of a quiet live frequency visits the known carriers first, then steps through every
+/// band of that order, in that order, and leaves out n78 below 3400 MHz.
 #[test]
 fn a_default_start_in_australia_searches_the_bands_of_the_country() {
+    use sdrkit_core::SettingId;
+    use sdrkit_stack_cell::decoder::{FrequencyList, RangeList};
     let data = sdrkit_presets::Data::open(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data")).unwrap();
     let au = sdrkit_presets::Region::new("AU").unwrap();
     let rate = 12e6;
+    type Steps = fn(u16, f64, &[(f64, f64)], &[f64]) -> Vec<f64>;
     for (desc, want, steps) in [
-        (&CELL, &[28u16, 5, 26, 8, 3, 1, 7, 40][..], sdrkit_stack_cell::scan::lte_steps as fn(u16, f64) -> Vec<f64>),
+        (&CELL, &[28u16, 5, 26, 8, 3, 1, 7, 40][..], sdrkit_stack_cell::scan::lte_steps as Steps),
         (&NR, &[5, 28, 78, 1, 3, 7, 8, 40][..], sdrkit_stack_cell::scan::nr_steps),
     ] {
         let p = data.preset(desc.id, &au, &sdrkit_presets::Options::default()).unwrap();
@@ -297,7 +302,10 @@ fn a_default_start_in_australia_searches_the_bands_of_the_country() {
                 other => panic!("{k}: {other:?}"),
             })
             .collect();
-        let order = &p.settings.iter().find(|(k, _)| k == "band_order").expect("a band order").1;
+        let text = |key: &str| extra.iter().find(|(k, _)| *k == key).map(|(_, v)| v.as_str().unwrap_or_default().to_owned());
+        let order = text("band_order").expect("a band order");
+        let first = FrequencyList::read(SettingId(0), &text("search_first").expect("known carriers")).unwrap().hz;
+        let ranges = RangeList::read(SettingId(0), &text("search_ranges").expect("band ranges")).unwrap().hz;
         let mut rx = stack_graph(desc, &extra);
         rx.configure(&InputInfo::new(rate, p.frequency_hz, p.frequency_hz)).unwrap();
         let mut out = Output::default();
@@ -315,12 +323,17 @@ fn a_default_start_in_australia_searches_the_bands_of_the_country() {
             }
         }
         let hop = hop.unwrap_or_else(|| panic!("{}: no band search ({order:?})", desc.id));
-        // Every step of each band of the order is in the hop, which starts on the first band.
+        // The known carriers first, then every step of each band of the order, without what an earlier band covers.
+        assert_eq!(hop[..first.len()], first[..], "{}: the known carriers first", desc.id);
+        let mut taken: Vec<f64> = Vec::new();
         for b in want {
-            let missing: Vec<f64> = steps(*b, rate).into_iter().filter(|c| !hop.iter().any(|h| (h - c).abs() < 1.0)).collect();
+            let own = steps(*b, rate, &ranges, &taken);
+            let missing: Vec<f64> = own.iter().copied().filter(|c| !hop.iter().any(|h| (h - c).abs() < 1.0)).collect();
             assert!(missing.is_empty(), "{}: band {b} misses {missing:?}", desc.id);
+            taken.extend(own);
         }
-        assert_eq!(hop[0], steps(want[0], rate)[0], "{}: the first band first", desc.id);
+        assert_eq!(hop[first.len()], steps(want[0], rate, &ranges, &[])[0], "{}: the first band first", desc.id);
+        assert!(!hop.iter().any(|h| (3300e6..3400e6).contains(h)), "{}: a step in 3300 to 3400 MHz", desc.id);
     }
 }
 
@@ -398,7 +411,7 @@ fn a_pass_without_a_cell_does_not_stay_on_an_old_one() {
     // The retune reaches the search with the next samples; a search asked for before them would end at it.
     rx.feed(&noise(rate, 0.05, 0.05, 12), &mut Output::default());
     command(&mut rx, "search");
-    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate).len();
+    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate, &[], &[]).len();
     let (seen, _) = host_on_noise(&mut rx, rate, 1000e6, 12.0 * steps as f64, true);
     assert!(seen.iter().any(|q| matches!(q, HostRequest::Hop { .. })), "{seen:?}");
     assert!(!seen.iter().any(|q| matches!(q, HostRequest::Retune { .. })), "no stay: {seen:?}");
@@ -524,6 +537,114 @@ fn live_band28_recording_reads_the_operator() {
     assert_eq!(cs[0]["sib1"]["plmns"][0], "505-02", "{}", cs[0]);
 }
 
+/// A band search over a live recording: the recording's centre is the first step (a known carrier), the other steps are
+/// noise. The host follows each hop and retune and plays the recording on from where it was while the radio is on its
+/// centre. Returns the stack after the first pass.
+fn search_over(desc: &sdrkit_core::StackDescriptor, rec: &sdrkit_dev_test::sigmf::Recording, settings: &[(&str, J)]) -> sdrkit_graph::StackGraph {
+    let rate = rec.rate_hz;
+    let first = format!("{}", rec.centre_hz / 1e6);
+    let mut keys: Vec<(&str, J)> = vec![("band_search", J::from("survey")), ("search_first", J::from(first.as_str()))];
+    keys.extend(settings.iter().cloned());
+    let mut rx = stack_graph(desc, &keys);
+    let mut centre = rec.centre_hz;
+    rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
+    command(&mut rx, "search");
+    let piece = (0.01 * rate) as usize;
+    let mut r = sdrkit_algo_sim::rng::Rng::new(13);
+    let (mut out, mut at, mut step) = (Output::default(), 0usize, 0.0);
+    let mut hop: Option<(Vec<f64>, f64, usize)> = None;
+    while value(Owner::results(&rx), "search_passes").unwrap_or(0.0) < 1.0 {
+        let x: Vec<Complex32> = if (centre - rec.centre_hz).abs() < 1.0 && at + piece <= rec.samples.len() {
+            at += piece;
+            rec.samples[at - piece..at].to_vec()
+        } else {
+            (0..piece).map(|_| r.complex_normal(2.0 * 0.01 * 0.01)).collect()
+        };
+        rx.feed(&x, &mut out);
+        step += 0.01;
+        let mut next = None;
+        for q in out.requests.drain(..) {
+            match q {
+                HostRequest::Hop { channels, dwell_s, .. } => {
+                    next = Some(channels[0]);
+                    hop = Some((channels, dwell_s, 0));
+                }
+                HostRequest::Retune { tuned_hz, .. } => {
+                    hop = None;
+                    next = Some(tuned_hz);
+                }
+                _ => {}
+            }
+        }
+        out.clear();
+        if next.is_none() {
+            if let Some((ch, dwell, i)) = hop.as_mut() {
+                if step >= *dwell {
+                    *i = (*i + 1) % ch.len();
+                    next = Some(ch[*i]);
+                }
+            }
+        }
+        if let Some(n) = next {
+            centre = n;
+            step = 0.0;
+            rx.retuned(&InputInfo::new(rate, centre, centre).recording());
+        }
+    }
+    rx
+}
+
+/// The live recordings searched as the first step of a band search, a first look and a longer stay: the same cells and
+/// operators as the whole recordings give. Skipped when the recordings are not on this machine.
+#[test]
+#[ignore]
+fn live_recordings_through_a_band_search_step() {
+    if let Some(rec) = live_recording("sdrkit_nr_884.720MHz_7.68Msps_20261126-132757") {
+        let rx = search_over(&NR, &rec, &[("search_bands", J::from("5"))]);
+        assert_eq!(cells_of(&rx), [897]);
+    }
+    if let Some(rec) = live_recording("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305") {
+        let rx = search_over(&CELL, &rec, &[("search_bands", J::from("28")), ("band_order", J::from("28 5 26 8 3 1 7 40"))]);
+        let cs = cells(&state(&rx));
+        assert_eq!(cs.len(), 1, "{cs:#?}");
+        assert_eq!(cs[0]["pci"], 367);
+        assert_eq!(cs[0]["sib1"]["plmns"][0], "505-02", "{}", cs[0]);
+    }
+}
+
+/// Each first look of a band search step at ten places in the live recordings shows the cell's sync signal, so that the
+/// step is searched longer. Skipped when the recordings are not on this machine.
+#[test]
+#[ignore]
+fn live_first_looks_show_the_cells() {
+    use sdrkit_stack_cell::decoder::Capture;
+    for (name, nr, look_s) in [
+        ("sdrkit_nr_884.720MHz_7.68Msps_20261126-132757", true, 0.08),
+        ("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305", false, 0.05),
+    ] {
+        let Some(rec) = live_recording(name) else { continue };
+        let n = (look_s * rec.rate_hz) as usize;
+        let mut missed = Vec::new();
+        for k in 0..10 {
+            let at = k * (rec.samples.len() - n) / 10;
+            let cap = Capture::new(rec.samples[at..at + n].to_vec(), rec.rate_hz, rec.centre_hz, (at + n) as f64 / rec.rate_hz);
+            let seen = if nr {
+                let mut s = sdrkit_stack_cell::nr::search::NrSearcher::default();
+                let o = s.search(&cap);
+                !o.cells.is_empty() || o.best_pss_db >= s.min_pss_db
+            } else {
+                let mut s = sdrkit_stack_cell::lte::search::LteSearcher::default();
+                let o = s.search(&cap);
+                !o.cells.is_empty() || o.best_pss_db >= s.min_pss_db
+            };
+            if !seen {
+                missed.push(at);
+            }
+        }
+        assert!(missed.is_empty(), "{name}: no sync in the looks at {missed:?}");
+    }
+}
+
 /// The recording `<name>.sigmf-meta` in the folder that the variable `SDRKIT_LIVE_RECORDINGS` names, or None. The
 /// recordings of real signals are kept outside the repository; without the variable the test is skipped.
 fn live_recording(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
@@ -559,5 +680,123 @@ fn nr_learns_the_clock_error_of_the_radio() {
         let f = out.cells.iter().find(|f| f.pci == 17 && f.mib.is_some()).unwrap_or_else(|| panic!("capture {i}"));
         let off = f.cand.offset_hz + f.cfo_hz;
         assert!((off - 15e-6 * centre).abs() < 2e3, "capture {i}: {off}");
+    }
+}
+
+/// Weak cells that the stack lists from a longer signal show their sync signal in every first look of a band search step:
+/// an LTE cell at 0 dB SNR in looks of 50 ms, an NR cell at 0 dB SNR in looks of 80 ms, at five places of the signal.
+#[test]
+fn weak_cells_show_in_every_first_look() {
+    use sdrkit_stack_cell::decoder::Capture;
+    let rate = 7.68e6;
+    let lte = sdrkit_stack_cell::lte::gen::scene(1, None);
+    let lte_hz = sdrkit_stack_cell::bands::earfcn_to_mhz(lte.earfcn) * 1e6;
+    let lte_x = impaired(sdrkit_stack_cell::lte::gen::LteGenerator::new(rate, lte, Default::default()), &snr(0.0), 0.45);
+    let (nr_hz, nr_cells) = scene(1);
+    let nr_x = impaired(NrGenerator::new(rate, nr_cells, NrGenOptions::default()), &snr(0.0), 0.45);
+    for (desc, hz, x, look_s) in [(&CELL, lte_hz, &lte_x, 0.05), (&NR, nr_hz, &nr_x, 0.08)] {
+        let mut rx = stack_graph(desc, &[("band_search", J::from("off"))]);
+        run_graph(&mut rx, InputInfo::new(rate, hz, hz).recording(), x, &[]);
+        assert_eq!(cells_of(&rx).len(), 1, "{}: the weak cell is listed", desc.id);
+        let n = (look_s * rate) as usize;
+        for k in 0..5 {
+            let at = k * (x.len() - n) / 5;
+            let cap = Capture::new(x[at..at + n].to_vec(), rate, hz, (at + n) as f64 / rate);
+            let seen = if desc.id == "nr" {
+                let mut s = sdrkit_stack_cell::nr::search::NrSearcher::default();
+                let o = s.search(&cap);
+                !o.cells.is_empty() || o.best_pss_db >= s.min_pss_db
+            } else {
+                let mut s = sdrkit_stack_cell::lte::search::LteSearcher::default();
+                let o = s.search(&cap);
+                !o.cells.is_empty() || o.best_pss_db >= s.min_pss_db
+            };
+            assert!(seen, "{}: no sync in the look at {at}", desc.id);
+        }
+    }
+}
+
+/// A step whose search ends after the hop has moved on: the host serves the stack's request to search the step longer one
+/// step late. The radio goes back, the cell there is read, and the hop goes on from the step after it; the pass searches
+/// every step once.
+#[test]
+fn a_late_result_takes_the_radio_back_to_its_step() {
+    let rate = 12e6;
+    let (cell_hz, _) = scene(1);
+    let steps = sdrkit_stack_cell::scan::nr_steps(28, rate, &[], &[]);
+    let mut rx = stack_graph(
+        &NR,
+        &[("band_search", J::from("survey")), ("search_bands", J::from("28")), ("search_look_s", J::from(0.025))],
+    );
+    let mut centre = steps[0];
+    rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
+    command(&mut rx, "search");
+    let piece_s = 0.005;
+    let (mut out, mut step, mut fed) = (Output::default(), 0.0, 0.0);
+    let mut hop: Option<(Vec<f64>, f64, usize)> = None;
+    let mut late: Vec<f64> = Vec::new();
+    let mut back = 0;
+    let mut visits: Vec<f64> = Vec::new();
+    let mut gen_at = centre;
+    let mut x = n28_from(centre, 3.0);
+    let mut at = 0;
+    while value(Owner::results(&rx), "search_passes").unwrap_or(0.0) < 1.0 {
+        assert!(fed < 30.0, "no pass after {fed} s");
+        if gen_at != centre {
+            (gen_at, x, at) = (centre, n28_from(centre, 3.0), 0);
+        }
+        let n = (piece_s * rate) as usize;
+        rx.feed(&x[at..at + n], &mut out);
+        at = (at + n) % (x.len() - n);
+        fed += piece_s;
+        step += piece_s;
+        let mut next = None;
+        for q in out.requests.drain(..) {
+            match q {
+                // A newer request takes the place of one that waits.
+                HostRequest::Hop { channels, dwell_s, .. } => {
+                    late.clear();
+                    next = Some(channels[0]);
+                    hop = Some((channels, dwell_s, 0));
+                }
+                // Served one step late.
+                HostRequest::Retune { tuned_hz, .. } => late.push(tuned_hz),
+                _ => {}
+            }
+        }
+        out.clear();
+        if next.is_none() {
+            if let Some((ch, dwell, i)) = hop.as_mut() {
+                if step >= *dwell {
+                    *i = (*i + 1) % ch.len();
+                    next = Some(ch[*i]);
+                }
+            }
+        }
+        if let Some(n) = next {
+            if let Some(b) = late.pop().filter(|b| *b != n) {
+                // The hop moved on before the request came: the radio goes there, then back.
+                rx.retuned(&InputInfo::new(rate, n, n).recording());
+                hop = None;
+                back += 1;
+                centre = b;
+            } else {
+                centre = n;
+            }
+            late.clear();
+            step = 0.0;
+            visits.push(centre);
+            rx.retuned(&InputInfo::new(rate, centre, centre).recording());
+        }
+    }
+    assert!(back >= 1, "no late result: {visits:?}");
+    rx.finish(&mut Output::default());
+    let cs = cells(&state(&rx));
+    let pcis: Vec<i64> = cs.iter().filter_map(|c| c["pci"].as_i64()).collect();
+    assert_eq!(pcis, [222], "{cs:#?}");
+    assert!(cs[0]["sib1"].is_object(), "{}", cs[0]);
+    assert!((cs[0]["frequency_hz"].as_f64().unwrap() - cell_hz).abs() < 10e3);
+    for s in &steps {
+        assert!(visits.iter().any(|v| v == s), "{s} not visited: {visits:?}");
     }
 }

@@ -32,17 +32,23 @@ const LEVEL_S: f64 = 0.5;
 /// Below this input level, dBFS, the status says that the signal is too weak at the radio.
 const WEAK_DBFS: f32 = -35.0;
 
-/// The time on each step of a band search: at least `least_s`, and a capture of `capture_s` with the median of the wall
-/// times `searches` of the newest capture searches.
-fn dwell_s(least_s: f64, capture_s: f64, searches: &[f64]) -> f64 {
+/// The time on each step of a band search: a first look of `look_s` and its search, whose time is the median of the wall
+/// times `searches`, with a margin. A search that takes longer ends while the radio moves, or in the first look of the next
+/// step, which the newest samples of the helper thread hold.
+fn dwell_s(look_s: f64, searches: &[f64]) -> f64 {
     let mut t = searches.to_vec();
     t.sort_by(f64::total_cmp);
     let typical = t.get(t.len() / 2).copied().unwrap_or(0.0);
-    least_s.max(capture_s + 1.2 * typical + 0.05)
+    look_s + typical + 0.03
 }
 
-/// The capture searches whose wall times set the time on each step of a band search.
+/// The capture searches whose wall times stand for a search before a band search has its own.
 const SEARCH_TIMES: usize = 9;
+/// The searches of first looks whose wall times set the time on each step: few, so that the time follows the cost of each
+/// band.
+const LOOK_TIMES: usize = 3;
+/// A step time this far from the one of the hop that runs starts the hop again with the new time.
+const DWELL_CHANGE: f64 = 0.25;
 
 /// The most samples of a live input that wait while the helper thread searches.
 const HELPER_BACKLOG: usize = 262_144;
@@ -99,10 +105,31 @@ pub const SEARCH_FIRST: sdrkit_core::Setting<field::Text> =
         "Frequencies of known carriers, MHz, that a band search visits first, each at its own centre (\"884.45 763\"); a \
          frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none.",
     );
-/// The least time on each radio centre of a band search.
-pub const SEARCH_DWELL: sdrkit_core::Setting<field::F64> = sdrkit_core::Setting::new("search_dwell_s", "Time per step", "s", 0.5)
-    .range(0.1, 10.0, 0.0)
-    .help("The least time on each radio centre of a band search; longer when one capture takes longer to search.");
+/// The frequency ranges that a band search keeps to.
+pub const SEARCH_RANGES: sdrkit_core::Setting<field::Text> =
+    sdrkit_core::Setting::new("search_ranges", "Ranges searched", "MHz", "").help(
+        "Frequency ranges, MHz, that a band search keeps to in the bands they overlap (\"3400-3800 758-803\"); a band that no \
+         range overlaps is searched whole. Empty: every band whole.",
+    );
+/// The default longest time on one step, seconds: two tries of a system information block that failed.
+const DWELL_DEFAULT_S: f64 = 2.0;
+/// The longest time on one radio centre of a band search.
+pub const SEARCH_DWELL: sdrkit_core::Setting<field::F64> =
+    sdrkit_core::Setting::new("search_dwell_s", "Longest time per step", "s", DWELL_DEFAULT_S)
+        .range(0.1, 10.0, 0.0)
+        .help(
+            "The longest time on one radio centre of a band search. A centre whose first look shows a sync signal is searched \
+             until its cells are read, or this time has passed.",
+        );
+/// The first look on each radio centre of a band search, for a stack whose look is `default_s` seconds.
+pub const fn look_setting(default_s: f64) -> sdrkit_core::Setting<field::F64> {
+    sdrkit_core::Setting::new("search_look_s", "First look", "s", default_s)
+        .range(0.02, 1.0, 0.0)
+        .help(
+            "Seconds of signal searched on each radio centre of a band search. A centre that shows a sync signal is searched \
+             longer, up to search_dwell_s.",
+        )
+}
 
 /// The band search settings of a stack.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -113,18 +140,24 @@ pub struct SearchConfig {
     pub bands: BandList,
     /// The frequencies visited first.
     pub first: FrequencyList,
-    /// The least dwell, seconds.
+    /// The ranges searched.
+    pub ranges: RangeList,
+    /// The longest time on one step, seconds.
     pub dwell_s: f64,
+    /// The first look on each step, seconds.
+    pub look_s: f64,
 }
 
 impl SearchConfig {
-    /// The defaults of the settings.
-    pub fn new() -> SearchConfig {
+    /// The defaults of the settings, with a first look of `look_s` seconds.
+    pub fn new(look_s: f64) -> SearchConfig {
         SearchConfig {
             mode: SearchMode::Auto,
             bands: BandList::default(),
             first: FrequencyList::default(),
-            dwell_s: 0.5,
+            ranges: RangeList::default(),
+            dwell_s: DWELL_DEFAULT_S,
+            look_s,
         }
     }
     /// The value of the setting `band_search`.
@@ -261,6 +294,9 @@ pub struct FoundCarrier {
     pub last_s: f64,
     /// The operator of the cell was read.
     pub identified: bool,
+    /// Nothing more of the cell can be read at this centre and rate: its operator was read, or it sends none that this
+    /// capture holds.
+    pub settled: bool,
 }
 
 /// One capture of input samples passed to a search.
@@ -514,6 +550,11 @@ pub trait SearchStack: Send + 'static {
         let _ = found;
         0
     }
+    /// Whether a capture's result shows a sync signal over the threshold or a cell: a step of a band search where it shows
+    /// is searched longer.
+    fn sync_seen(&self, found: &Self::Found) -> bool {
+        Self::found_cells(found) > 0
+    }
     /// Why the newest capture showed no cell, for people ("no LTE carrier on this frequency"). None when it showed one or
     /// the stack does not say.
     fn quiet_reason(&self) -> Option<String> {
@@ -532,9 +573,10 @@ pub trait SearchStack: Send + 'static {
     fn band_search(&self) -> Option<&SearchConfig> {
         None
     }
-    /// The radio centres of a search of band `band` at `rate`, lowest first.
-    fn search_steps(&self, band: u16, rate: f64) -> Vec<f64> {
-        let _ = (band, rate);
+    /// The radio centres of a search of band `band` at `rate`, lowest first, without the places that a centre of `taken`
+    /// (the steps of the bands before) searches.
+    fn search_steps(&self, band: u16, rate: f64, taken: &[f64]) -> Vec<f64> {
+        let _ = (band, rate, taken);
         Vec::new()
     }
     /// The band order that the host set (the bands of its country), first band first; empty when none.
@@ -565,11 +607,51 @@ struct Pass {
     base: Vec<(f64, u16)>,
     at: Option<usize>,
     passes: u32,
+    /// The time on each step of the hop that runs, seconds.
     dwell_s: f64,
     /// Signal time of the start of the newest pass, seconds.
     started_s: f64,
-    /// Signal time of the newest move of the radio (or of the start), seconds.
+    /// Signal time of the newest move of the radio (or of the newest hop asked for), seconds.
     moved_s: f64,
+    /// The steps whose first look was searched in this pass.
+    searched: Vec<bool>,
+    /// The step where the hop that runs starts: the hop visits the steps in turn from there.
+    from: usize,
+    /// The step searched longer, and the signal time when its first look began, seconds.
+    longer: Option<(usize, f64)>,
+}
+
+impl Pass {
+    /// A pass over `steps` with `dwell_s` on each, from the first step, starting at signal time `now`.
+    fn new(steps: Vec<(f64, u16)>, base: Vec<(f64, u16)>, dwell_s: f64, now: f64) -> Pass {
+        Pass {
+            searched: vec![false; steps.len()],
+            steps,
+            base,
+            at: None,
+            passes: 0,
+            dwell_s,
+            started_s: now,
+            moved_s: now,
+            from: 0,
+            longer: None,
+        }
+    }
+    /// The steps in the order the hop visits them: from `from` on, in turn.
+    fn order(&self) -> impl Iterator<Item = usize> + '_ {
+        let n = self.steps.len();
+        (0..n).map(move |k| (self.from + k) % n)
+    }
+    /// The first step in the order of the hop whose first look was not searched.
+    fn first_waiting(&self) -> Option<usize> {
+        self.order().find(|&j| !self.searched[j])
+    }
+    /// Whether the hop passed a step before step `i` without a searched first look: the search took longer than the step.
+    fn skipped_before(&self, i: usize) -> bool {
+        self.order()
+            .take_while(|&j| j != i)
+            .any(|j| !self.searched[j])
+    }
 }
 
 /// A search whose radio does not move for this many dwells ends: the host refused or ended the hop.
@@ -654,6 +736,10 @@ pub struct SearchDecoder<M: SearchStack> {
     staying_hz: Option<f64>,
     /// The wall times of the newest capture searches, seconds, oldest first.
     search_times: Vec<f64>,
+    /// The wall times of the newest searches of first looks of a band search, seconds, oldest first.
+    look_times: Vec<f64>,
+    /// The first look of the step that the radio is on was searched: the samples wait for the next move.
+    looked: bool,
     /// The samples use too few levels of the converter.
     coarse: bool,
     /// The work space of the test of the converter levels.
@@ -705,6 +791,8 @@ impl<M: SearchStack> SearchDecoder<M> {
             tuned_hz: 0.0,
             staying_hz: None,
             search_times: Vec::with_capacity(SEARCH_TIMES),
+            look_times: Vec::with_capacity(LOOK_TIMES),
+            looked: false,
             coarse: false,
             levels: Vec::with_capacity(4096),
             live: false,
@@ -725,15 +813,17 @@ impl<M: SearchStack> SearchDecoder<M> {
     pub fn search_capture(&mut self, cap: &Capture) {
         let t0 = std::time::Instant::now();
         let found = self.stack.search(cap);
+        let took_s = t0.elapsed().as_secs_f64();
         if self.search_times.len() == SEARCH_TIMES {
             self.search_times.remove(0);
         }
-        self.search_times.push(t0.elapsed().as_secs_f64());
+        self.search_times.push(took_s);
         if M::found_cells(&found) > 0 {
             self.quiet = 0;
         } else {
             self.quiet = self.quiet.saturating_add(1);
         }
+        let sync = self.stack.sync_seen(&found);
         let mut log = Log {
             ring: &mut self.held.log,
             pending: &mut self.pending_log,
@@ -748,12 +838,13 @@ impl<M: SearchStack> SearchDecoder<M> {
         self.captures += 1;
         self.last_centre = cap.centre_hz;
         self.changed = true;
-        self.after_capture(cap.rate);
+        self.after_capture(cap, took_s, sync);
     }
 
-    /// The band search after a capture: starts one when the setting asks for it and the samples are live. A recording
-    /// cannot be retuned; the command `search` still asks the host.
-    fn after_capture(&mut self, rate: f64) {
+    /// The band search after a capture: the step of a search that runs, or a search that starts when the setting asks for
+    /// it and the samples are live. A recording cannot be retuned; the command `search` still asks the host.
+    fn after_capture(&mut self, cap: &Capture, took_s: f64, sync: bool) {
+        let rate = cap.rate;
         let Some(mode) = self.stack.band_search().map(|c| c.mode) else { return };
         // A carrier wider than the capture: in auto, on a live radio, the stack asks once for the rate and the centre
         // that read its system information.
@@ -781,14 +872,7 @@ impl<M: SearchStack> SearchDecoder<M> {
             if mode == SearchMode::Auto && self.quiet == 0 && self.stay("", since) {
                 return;
             }
-        }
-        if let Some(p) = &self.pass {
-            if self.time_s - p.moved_s > STUCK_DWELLS * p.dwell_s + self.stack.capture_s() {
-                // The host refused the hop or ended it: the search ends, and says so.
-                self.pass = None;
-                self.refused_s = Some(self.time_s);
-                self.changed = true;
-            }
+            self.step_searched(cap, took_s, sync);
             return;
         }
         if self.tuned_hz <= 0.0 || !self.live {
@@ -808,6 +892,147 @@ impl<M: SearchStack> SearchDecoder<M> {
         }
     }
 
+    /// A capture of the step that the radio is on. After a first look with a sync signal the step is searched longer, up
+    /// to the setting `search_dwell_s`, until the cells seen there are read, or until a capture shows no sync signal while
+    /// no cell was seen there (a peak of noise); else the hop goes on.
+    fn step_searched(&mut self, cap: &Capture, took_s: f64, sync: bool) {
+        let Some(p) = self.pass.as_ref() else { return };
+        let Some(i) = p.at.filter(|&i| (p.steps[i].0 - self.tuned_hz).abs() <= 1.0) else { return };
+        let longest_s = self.stack.band_search().map_or(0.0, |c| c.dwell_s);
+        match p.longer {
+            None => {
+                if self.look_times.len() == LOOK_TIMES {
+                    self.look_times.remove(0);
+                }
+                self.look_times.push(took_s);
+                let (_, read) = self.cells_seen(cap.start_time());
+                let Some(p) = self.pass.as_mut() else { return };
+                p.searched[i] = true;
+                self.looked = true;
+                if sync && !read && longest_s > cap.end_time - cap.start_time() {
+                    // The hop is held on the step: the result can come when the radio has moved on, so it moves back.
+                    p.longer = Some((i, cap.start_time()));
+                    self.looked = false;
+                    self.requests.push(HostRequest::retune(
+                        p.steps[i].0,
+                        "band search: a sync signal, searched longer",
+                    ));
+                    return;
+                }
+                self.step_over(i, false);
+            }
+            Some((e, since)) if e == i => {
+                let (seen, read) = self.cells_seen(since);
+                if read || (!sync && !seen) || self.time_s - since >= longest_s {
+                    self.end_longer();
+                }
+            }
+            Some(_) => {}
+        }
+    }
+
+    /// Whether cells were seen since signal time `since_s`, and whether each of them is read as far as this centre allows.
+    fn cells_seen(&self, since_s: f64) -> (bool, bool) {
+        let seen: Vec<FoundCarrier> = M::carriers(&self.held.tables)
+            .into_iter()
+            .filter(|c| c.last_s >= since_s)
+            .collect();
+        (!seen.is_empty(), !seen.is_empty() && seen.iter().all(|c| c.settled))
+    }
+
+    /// Ends the longer search of a step: the hop goes on from the next step that waits.
+    fn end_longer(&mut self) {
+        let Some(p) = self.pass.as_mut() else { return };
+        let Some((e, _)) = p.longer.take() else { return };
+        self.looked = true;
+        self.step_over(e, true);
+    }
+
+    /// After step `i`: the pass ends when every step was searched. A hop that was held, or whose time on each step no
+    /// longer fits the searches, starts again from the next step that waits.
+    fn step_over(&mut self, i: usize, held: bool) {
+        let want = self.hop_dwell();
+        let Some(p) = self.pass.as_mut() else { return };
+        let changed = (want - p.dwell_s).abs() > DWELL_CHANGE * p.dwell_s;
+        if p.searched.iter().all(|s| *s) {
+            let since = p.started_s;
+            p.passes += 1;
+            p.started_s = self.time_s;
+            p.searched.fill(false);
+            p.from = (i + 1) % p.steps.len();
+            let mode = self.stack.band_search().map(|c| c.mode);
+            // Only a cell seen in this pass: an older row of the tables tells nothing of where the radio can hear one now.
+            if mode == Some(SearchMode::Auto) && self.stay("", since) {
+                return;
+            }
+            if mode == Some(SearchMode::Survey) && self.visit_found(since) {
+                return;
+            }
+        }
+        if held || changed {
+            self.hop_again(want);
+        }
+    }
+
+    /// Asks for the hop again with `dwell_s` on each step, from the next step that waits.
+    fn hop_again(&mut self, dwell_s: f64) {
+        let Some(p) = self.pass.as_mut() else { return };
+        let Some(j) = p.first_waiting() else { return };
+        p.from = j;
+        p.dwell_s = dwell_s;
+        p.moved_s = self.time_s;
+        let channels = p.steps[j..].iter().chain(&p.steps[..j]).map(|s| s.0).collect();
+        self.requests.push(HostRequest::Hop {
+            channels,
+            dwell_s,
+            stop_on_lock: false,
+        });
+    }
+
+    /// The band search without a move for too long: the host refused the hop or ended it. The search ends, and says so.
+    fn check_moved(&mut self) {
+        let Some(p) = &self.pass else { return };
+        let look_s = self.stack.band_search().map_or(0.0, |c| c.look_s);
+        if p.longer.is_none() && self.time_s - p.moved_s > STUCK_DWELLS * p.dwell_s + look_s {
+            self.pass = None;
+            self.refused_s = Some(self.time_s);
+            self.changed = true;
+        }
+    }
+
+    /// The step searched longer after its time has passed without a capture (the radio did not come back).
+    fn check_longer(&mut self) {
+        let longest_s = self.stack.band_search().map_or(0.0, |c| c.dwell_s);
+        let over = self
+            .pass
+            .as_ref()
+            .and_then(|p| p.longer)
+            .is_some_and(|(_, since)| self.time_s - since >= longest_s + self.stack.capture_s());
+        if over {
+            self.end_longer();
+        }
+    }
+
+    /// Whether the samples now wait for the radio: the first look of the step was searched, or the radio has not yet come
+    /// back to the step searched longer.
+    fn samples_wait(&self) -> bool {
+        match &self.pass {
+            Some(p) => match p.longer {
+                None => self.looked,
+                Some((e, _)) => p.at != Some(e),
+            },
+            None => false,
+        }
+    }
+
+    /// The seconds of input in one capture: the first look while a band search steps, else the capture length.
+    fn capture_len_s(&self) -> f64 {
+        match (&self.pass, self.stack.band_search()) {
+            (Some(p), Some(c)) if p.longer.is_none() => c.look_s,
+            _ => self.stack.capture_s(),
+        }
+    }
+
     /// Starts a band search at `rate`: the bands of the setting, else those of the band order, else the band of the tuned
     /// frequency. A search whose bands fit in one capture tunes to its one centre. Returns false when no band holds a step.
     fn start_search(&mut self, rate: f64) -> bool {
@@ -821,7 +1046,8 @@ impl<M: SearchStack> SearchDecoder<M> {
         };
         let mut base: Vec<(f64, u16)> = Vec::new();
         for b in bands {
-            for c in self.stack.search_steps(b, rate) {
+            let taken: Vec<f64> = base.iter().map(|s| s.0).collect();
+            for c in self.stack.search_steps(b, rate, &taken) {
                 if !base.iter().any(|(x, _)| (x - c).abs() < 1.0) {
                     base.push((c, b));
                 }
@@ -839,11 +1065,12 @@ impl<M: SearchStack> SearchDecoder<M> {
         }
         base.retain(|(c, _)| !steps.iter().any(|(x, _)| (x - c).abs() < 1.0));
         steps.extend(base);
-        let dwell_s = self.dwell_s(cfg.dwell_s);
+        let dwell_s = self.hop_dwell();
         self.staying_hz = None;
         self.stayed = None;
         self.quiet = 0;
         self.refused_s = None;
+        self.looked = false;
         self.changed = true;
         match steps.len() {
             0 => {
@@ -866,25 +1093,22 @@ impl<M: SearchStack> SearchDecoder<M> {
                     dwell_s,
                     stop_on_lock: false,
                 });
-                self.pass = Some(Pass {
-                    base: steps.clone(),
-                    steps,
-                    at: None,
-                    passes: 0,
-                    dwell_s,
-                    started_s: self.time_s,
-                    moved_s: self.time_s,
-                });
+                self.pass = Some(Pass::new(steps.clone(), steps, dwell_s, self.time_s));
                 true
             }
         }
     }
 
-    /// The time on each step of a band search: at least `least_s`, and the time to collect a capture and search it. The
-    /// search time is the median of the newest searches: a capture with a cell to decode takes longer than one of the empty
-    /// steps that most of a search visits, and does not set the time of all of them.
-    fn dwell_s(&self, least_s: f64) -> f64 {
-        dwell_s(least_s, self.stack.capture_s(), &self.search_times)
+    /// The time on each step of a band search: the first look and its search. The search time is the median of the newest
+    /// searches of first looks, so that it follows the cost of the band; before the first one, that of the newest captures.
+    fn hop_dwell(&self) -> f64 {
+        let look_s = self.stack.band_search().map_or(0.0, |c| c.look_s);
+        let times = if self.look_times.is_empty() {
+            &self.search_times
+        } else {
+            &self.look_times
+        };
+        dwell_s(look_s, times)
     }
 
     /// Ends the band search on the cell of row `row` of the cells table, or, when `row` is empty, on the strongest cell
@@ -913,11 +1137,11 @@ impl<M: SearchStack> SearchDecoder<M> {
     }
 
     /// A survey after a pass: the next pass visits first each carrier of this pass whose operator is not read, at its own
-    /// centre, so that a capture holds the carrier's centre and its system information can be read. The time on each step
-    /// follows the searches of the pass.
-    fn visit_found(&mut self, since_s: f64) {
-        let dwell_s = self.dwell_s(self.stack.band_search().map_or(0.0, |c| c.dwell_s));
-        let Some(pass) = self.pass.as_mut() else { return };
+    /// centre, so that a capture holds the carrier's centre and its system information can be read. Returns true when the
+    /// steps changed and the hop was asked for again.
+    fn visit_found(&mut self, since_s: f64) -> bool {
+        let dwell_s = self.hop_dwell();
+        let Some(pass) = self.pass.as_mut() else { return false };
         let band_near = |hz: f64| {
             pass.base
                 .iter()
@@ -935,55 +1159,49 @@ impl<M: SearchStack> SearchDecoder<M> {
             .into_iter()
             .chain(pass.base.iter().copied())
             .collect();
-        // The time on each step follows the searches of the pass that ended.
-        let same_dwell = (dwell_s - pass.dwell_s).abs() <= 0.2 * pass.dwell_s;
-        if steps == pass.steps && same_dwell {
-            return;
+        if steps == pass.steps {
+            return false;
         }
-        pass.steps = steps;
-        pass.at = None;
-        pass.dwell_s = dwell_s;
+        let (passes, started_s) = (pass.passes, pass.started_s);
+        *pass = Pass::new(steps, std::mem::take(&mut pass.base), dwell_s, started_s);
+        pass.passes = passes;
+        pass.moved_s = self.time_s;
         self.requests.push(HostRequest::Hop {
             channels: pass.steps.iter().map(|s| s.0).collect(),
-            dwell_s: pass.dwell_s,
+            dwell_s,
             stop_on_lock: false,
         });
+        true
     }
 
-    /// The band search at a new frequency `tuned`: the step it is at, the end of a pass, or a frequency of someone else,
-    /// which ends the search.
+    /// The band search at a new frequency `tuned`: the step it is at, or a frequency of someone else, which ends the
+    /// search. A hop that passed a step whose search was not done starts again there with more time on each step.
     fn search_retuned(&mut self, tuned: f64) {
         self.tuned_hz = tuned;
         self.quiet = 0;
+        self.looked = false;
         if self.staying_hz.is_some_and(|h| (h - tuned).abs() <= 1.0) {
             return;
         }
         self.staying_hz = None;
         self.stayed = None;
+        let want = self.hop_dwell();
         let Some(pass) = self.pass.as_mut() else { return };
         let Some(i) = pass.steps.iter().position(|(c, _)| (c - tuned).abs() <= 1.0) else {
             // Someone else tuned the radio: the search ends.
             self.pass = None;
             return;
         };
-        // A pass ends at a move back to an earlier step; a second report of the same step is no move.
+        // A second report of the same step is no move.
         if pass.at == Some(i) {
             return;
         }
-        let wrapped = pass.at.is_some_and(|a| i < a);
+        let skipped = pass.longer.is_none() && pass.at.is_some() && pass.skipped_before(i);
         pass.at = Some(i);
         pass.moved_s = self.time_s;
-        if wrapped {
-            let since = pass.started_s;
-            pass.passes += 1;
-            pass.started_s = self.time_s;
-            let mode = self.stack.band_search().map(|c| c.mode);
-            // Only a cell seen in this pass: an older row of the tables tells nothing of where the radio can hear one now.
-            if mode == Some(SearchMode::Auto) {
-                self.stay("", since);
-            } else if mode == Some(SearchMode::Survey) {
-                self.visit_found(since);
-            }
+        if skipped {
+            let dwell_s = want.max((1.0 + DWELL_CHANGE) * pass.dwell_s);
+            self.hop_again(dwell_s);
         }
     }
 
@@ -1055,7 +1273,7 @@ impl<M: SearchStack> SearchDecoder<M> {
     }
 
     fn resize(&mut self) {
-        let len = (self.cap.rate * self.stack.capture_s()).round() as usize;
+        let len = (self.cap.rate * self.capture_len_s()).round() as usize;
         if len != self.len {
             self.len = len;
             self.cap.samples.clear();
@@ -1157,6 +1375,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         self.cap.centre_hz = input.centre_hz;
         self.cap.dial_offset_hz = input.tuned_hz - input.centre_hz;
         self.search_retuned(input.tuned_hz);
+        self.resize();
     }
     fn process(&mut self, x: &[Complex32], first: u64, out: &mut Outbox) {
         if x.is_empty() || self.cap.rate <= 0.0 {
@@ -1175,8 +1394,14 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         self.next_index = first + x.len() as u64;
         self.time_s = self.next_index as f64 / self.cap.rate;
         self.level(x);
+        self.check_longer();
+        self.check_moved();
+        self.resize();
+        if self.samples_wait() {
+            return;
+        }
         let mut i = 0;
-        while i < x.len() && self.len > 0 {
+        while i < x.len() && self.len > 0 && !self.samples_wait() {
             let n = (self.len - self.cap.samples.len()).min(x.len() - i);
             self.cap.samples.extend_from_slice(&x[i..i + n]);
             i += n;
@@ -1186,6 +1411,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
                 self.search_capture(&full);
                 self.cap = full;
                 self.cap.samples.clear();
+                self.resize();
                 let t = self.cap.end_time;
                 out.items::<CellEvent<M>>(0)
                     .extend(self.events.drain(..).map(|value| Timed { time: t, value }));
@@ -1510,6 +1736,44 @@ impl FrequencyList {
     }
 }
 
+/// A list of frequency ranges in MHz, each "low-high": the text as typed and the ranges, Hz.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct RangeList {
+    /// The text as typed.
+    pub text: String,
+    /// The ranges, Hz: the low edge, then the high edge.
+    pub hz: Vec<(f64, f64)>,
+}
+
+impl RangeList {
+    /// Reads the list `text` of setting `id`: ranges "low-high" in MHz apart by spaces or commas.
+    ///
+    /// # Errors
+    ///
+    /// [`SettingError::Malformed`] with the position of the first word that is not a range of two positive numbers, the
+    /// low one first.
+    pub fn read(id: SettingId, text: &str) -> Result<RangeList, SettingError> {
+        let mut hz = Vec::new();
+        let mut at = 0;
+        for word in text.split(|c: char| c == ',' || c.is_whitespace()) {
+            let here = at;
+            at += word.len() + 1;
+            if word.is_empty() {
+                continue;
+            }
+            let edges = word.split_once('-').and_then(|(a, b)| Some((a.parse::<f64>().ok()?, b.parse::<f64>().ok()?)));
+            match edges {
+                Some((lo, hi)) if lo.is_finite() && hi.is_finite() && lo > 0.0 && lo < hi => hz.push((lo * 1e6, hi * 1e6)),
+                _ => return Err(SettingError::Malformed { id, at: Some(here) }),
+            }
+        }
+        Ok(RangeList {
+            text: text.to_owned(),
+            hz,
+        })
+    }
+}
+
 /// The receiver of a search stack: one search component named `search` built from the description of the stack,
 /// every setting of the search component routed to it (the test signal settings stay with the generator), the
 /// commands `clear` and `remove`, and the settings of `cfg` applied.
@@ -1556,14 +1820,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_slow_capture_does_not_set_the_time_of_each_step() {
-        // Eight searches of empty steps and one of a step with a cell to decode.
-        let mut t = vec![0.05; 8];
-        t.insert(3, 3.0);
-        assert!((dwell_s(0.5, 0.08, &t) - 0.5).abs() < 1e-9);
-        // Searches that are slow throughout lengthen it.
-        assert!((dwell_s(0.5, 0.08, &[1.0; 9]) - 1.33).abs() < 1e-9);
-        assert_eq!(dwell_s(0.5, 0.08, &[]), 0.5);
+    fn the_time_on_a_step_is_the_look_and_its_search() {
+        // Two searches of empty looks and one of a look with a cell to decode.
+        assert!((dwell_s(0.08, &[0.25, 3.0, 0.2]) - 0.36).abs() < 1e-9);
+        assert!((dwell_s(0.05, &[]) - 0.08).abs() < 1e-9);
     }
 
     #[test]
@@ -1575,6 +1835,15 @@ mod tests {
             FrequencyList::read(id, "763 x").unwrap_err(),
             SettingError::Malformed { id, at: Some(4) }
         );
+    }
+
+    #[test]
+    fn range_lists() {
+        let id = SettingId(0);
+        assert_eq!(RangeList::read(id, "3400-3800, 758-803").unwrap().hz, [(3400e6, 3800e6), (758e6, 803e6)]);
+        assert!(RangeList::read(id, "").unwrap().hz.is_empty());
+        assert_eq!(RangeList::read(id, "758-803 900").unwrap_err(), SettingError::Malformed { id, at: Some(8) });
+        assert!(RangeList::read(id, "803-758").is_err());
     }
 
     #[test]

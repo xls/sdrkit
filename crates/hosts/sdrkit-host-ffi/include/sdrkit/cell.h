@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.8. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.9. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 8
+#define SDRKIT_CELL_VERSION_MINOR 9
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -2941,12 +2941,28 @@ static inline int32_t sdrkit_cell_set_search_first(SDRKIT_HANDLE handle, sdrkit_
   return sdrkit_typed_setting_set_string(handle, "search_first", value);
 }
 
-// The setting "search_dwell_s" (Time per step) of the stack "cell". Unit: s. The least time on each radio centre of a band search; longer when one capture takes longer to search.
+// The setting "search_ranges" (Ranges searched) of the stack "cell". Unit: MHz. Frequency ranges, MHz, that a band search keeps to in the bands they overlap ("3400-3800 758-803"); a band that no range overlaps is searched whole. Empty: every band whole.
+static inline int32_t sdrkit_cell_get_search_ranges(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "search_ranges", value);
+}
+static inline int32_t sdrkit_cell_set_search_ranges(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "search_ranges", value);
+}
+
+// The setting "search_dwell_s" (Longest time per step) of the stack "cell". Unit: s. The longest time on one radio centre of a band search. A centre whose first look shows a sync signal is searched until its cells are read, or this time has passed.
 static inline int32_t sdrkit_cell_get_search_dwell_s(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "search_dwell_s", value);
 }
 static inline int32_t sdrkit_cell_set_search_dwell_s(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value);
+}
+
+// The setting "search_look_s" (First look) of the stack "cell". Unit: s. Seconds of signal searched on each radio centre of a band search. A centre that shows a sync signal is searched longer, up to search_dwell_s.
+static inline int32_t sdrkit_cell_get_search_look_s(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "search_look_s", value);
+}
+static inline int32_t sdrkit_cell_set_search_look_s(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "search_look_s", value);
 }
 
 // The setting "gen_scene" (Test signal scene) of the test signal generator of the stack "cell". A value of `sdrkit_cell_gen_scene`.
@@ -3161,12 +3177,28 @@ static inline int32_t sdrkit_nr_set_search_first(SDRKIT_HANDLE handle, sdrkit_st
   return sdrkit_typed_setting_set_string(handle, "search_first", value);
 }
 
-// The setting "search_dwell_s" (Time per step) of the stack "nr". Unit: s. The least time on each radio centre of a band search; longer when one capture takes longer to search.
+// The setting "search_ranges" (Ranges searched) of the stack "nr". Unit: MHz. Frequency ranges, MHz, that a band search keeps to in the bands they overlap ("3400-3800 758-803"); a band that no range overlaps is searched whole. Empty: every band whole.
+static inline int32_t sdrkit_nr_get_search_ranges(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "search_ranges", value);
+}
+static inline int32_t sdrkit_nr_set_search_ranges(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "search_ranges", value);
+}
+
+// The setting "search_dwell_s" (Longest time per step) of the stack "nr". Unit: s. The longest time on one radio centre of a band search. A centre whose first look shows a sync signal is searched until its cells are read, or this time has passed.
 static inline int32_t sdrkit_nr_get_search_dwell_s(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "search_dwell_s", value);
 }
 static inline int32_t sdrkit_nr_set_search_dwell_s(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value);
+}
+
+// The setting "search_look_s" (First look) of the stack "nr". Unit: s. Seconds of signal searched on each radio centre of a band search. A centre that shows a sync signal is searched longer, up to search_dwell_s.
+static inline int32_t sdrkit_nr_get_search_look_s(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "search_look_s", value);
+}
+static inline int32_t sdrkit_nr_set_search_look_s(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "search_look_s", value);
 }
 
 // The setting "gen_scene" (Test signal scene) of the test signal generator of the stack "nr". A value of `sdrkit_nr_gen_scene`.

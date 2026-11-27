@@ -1918,7 +1918,7 @@ pub static NR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey",
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 8)
+        Family::new("cell", 1, 9)
             .added(
                 1,
                 1,
@@ -2103,6 +2103,17 @@ pub fn family() -> &'static Family {
             )
             // Version 1.8: the known carriers that a band search visits first.
             .added(1, 8, &["cell.setting.search_first", "nr.setting.search_first"])
+            // Version 1.9: a first look on each step of a band search, and the ranges that a search keeps to.
+            .added(
+                1,
+                9,
+                &[
+                    "cell.setting.search_look_s",
+                    "cell.setting.search_ranges",
+                    "nr.setting.search_look_s",
+                    "nr.setting.search_ranges",
+                ],
+            )
             .shared_source(
                 "decoder",
                 &["cell", "nr", "nbiot", "gsmr", "umts", "cdma2000", "tdscdma"],
