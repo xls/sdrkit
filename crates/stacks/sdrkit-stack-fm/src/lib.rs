@@ -79,6 +79,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Broadcast radio",
     blurb: "FM broadcast stations in stereo, with the station name and radio text from RDS.",
     tuning: Tuning {
+        host_audio_channels: 2,
         kind: Some(sdrkit_core::TuningKind::Channels),
         demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Wfm, 200e3)),
         min_hz: 65.8e6,

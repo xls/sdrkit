@@ -83,6 +83,7 @@ pub static ATV: StackDescriptor = StackDescriptor {
     group: "Video",
     blurb: "Analogue television: PAL, NTSC and SECAM pictures with FM, AM, NICAM or A2 sound and teletext; also FM video and NBTV. Transmits a picture and the sound that the host gives.",
     tuning: Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 45e6,
         max_hz: 6e9,
@@ -168,6 +169,7 @@ pub static FPV: StackDescriptor = StackDescriptor {
     group: "Video",
     blurb: "Analogue FPV video transmitters on the 5.8 GHz and 1.2 GHz channels: a channel table, the picture and its sound. Transmits a picture and the sound that the host gives.",
     tuning: Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 900e6,
         max_hz: 6e9,

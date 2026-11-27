@@ -216,6 +216,7 @@ pub static ATIS: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: <atis::AtisSetting as sdrkit_core::SettingSet>::schema,
@@ -256,6 +257,7 @@ pub static MARINEVHF: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: <vhf::VhfSetting as sdrkit_core::SettingSet>::schema,

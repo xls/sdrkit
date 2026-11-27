@@ -320,6 +320,7 @@ pub static DMR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "DMR two-slot TDMA: calls with their speech, talkgroups, talker aliases, text messages and positions. Transmits voice from the microphone and text messages as short data in direct mode.",
     tuning: sdrkit_core::Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Free),
         ..narrow(30.0, 1000.0, 0.0, 2.4e6, 12_500.0, 96_000.0, 0.0)
     },
@@ -376,6 +377,7 @@ pub static M17: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "M17 amateur digital voice: callsigns, text, positions, SMS packets; Codec 2 speech through a plug-in. Transmits voice from the microphone (Codec 2 3200) and SMS or data packets.",
     tuning: sdrkit_core::Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Free),
         ..narrow(28.0, 1300.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0)
     },
@@ -407,6 +409,7 @@ pub static DSTAR: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "D-STAR digital voice: voice calls with their speech, callsigns and repeaters from the header, slow-data messages and positions. Transmits voice from the microphone and slow-data texts, with the radio header.",
     tuning: sdrkit_core::Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Free),
         ..narrow(28.0, 1300.0, 0.0, 2e6, 6_250.0, 96_000.0, 50_000.0)
     },
@@ -632,6 +635,7 @@ pub static FREEDV: StackDescriptor = StackDescriptor {
     group: GROUP,
     blurb: "FreeDV on HF (upper sideband): the 1600, 700D and 700E waveforms with their callsign text; Codec 2 speech through a plug-in. RADE is not received. Transmits voice from the microphone on 1600 (Codec 2 1300), 700D or 700E (Codec 2 700C) with the callsign text.",
     tuning: Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Free),
         demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Usb, 3e3)),
         tune_offset_hz: 20_000.0,

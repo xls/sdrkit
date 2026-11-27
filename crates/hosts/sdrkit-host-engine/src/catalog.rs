@@ -7,12 +7,11 @@ use sdrkit_core::interface::{Family, StackShape};
 use sdrkit_core::publish::field;
 use sdrkit_core::{
     AdapterCatalog, AudioKind, AutoGain, Command, ContentKind, Commands, DemodMode, Facilities, Field, Owner,
-    PlainDemod, Published, Receiver, ResultsDecl, Schema, SignalType, StackConfig, StackDescriptor, TableDef,
+    PlainDemod, Published, ResultsDecl, Schema, SignalType, StackConfig, StackDescriptor, TableDef,
     TuningKind, TxContent, Values,
 };
 use sdrkit_driver_core::DriverDescriptor;
-use sdrkit_graph::components::HostIn;
-use sdrkit_graph::{ComponentDescriptor, Graph, Registry};
+use sdrkit_graph::{ComponentDescriptor, Registry};
 use std::sync::{Arc, LazyLock, OnceLock};
 
 /// A name for people.
@@ -281,8 +280,6 @@ pub(crate) fn transmit_commands(families: &[&'static Family], id: &str) -> Vec<&
 pub(crate) struct Sources<'a> {
     /// The stacks.
     pub(crate) stacks: &'a [&'static StackDescriptor],
-    /// The host audio channels of each stack of `stacks`, in the same order ([`StackKind::host_audio_channels`]).
-    pub(crate) host_audio: &'a [u16],
     /// The interface descriptions of the families of the stacks: what a stack transmits comes from them.
     pub(crate) families: &'a [&'static Family],
     /// The driver kinds.
@@ -304,13 +301,12 @@ fn write_demod(r: &mut sdrkit_core::RowMut<'_>, d: Option<PlainDemod>) {
 pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
     let Sources {
         stacks,
-        host_audio,
         families,
         drivers,
         components,
         usb,
     } = *sources;
-    for (i, s) in stacks.iter().enumerate() {
+    for s in stacks {
         let t = &s.tuning;
         let l = &s.lock_profile;
         let transmits = transmit_commands(families, s.id);
@@ -339,10 +335,7 @@ pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
             r.set(&LOCK_SNR_DB, f64::from(l.signal_snr_db));
             r.set(&LOCK_COLLECT_S, l.collect_s);
             r.set(&TRANSMIT, !transmits.is_empty());
-            r.set(
-                &HOST_AUDIO_CHANNELS,
-                i64::from(host_audio.get(i).copied().unwrap_or(0)),
-            );
+            r.set(&HOST_AUDIO_CHANNELS, i64::from(t.host_audio_channels));
             // The content kind and the media come from the description of the stack. A stack without a description
             // has no kind and no media.
             let shape = families.iter().find_map(|f| f.stack_shape(s.id));
@@ -419,28 +412,12 @@ struct Made {
     commands: Commands,
 }
 
-/// The most channels of a host audio input (`host.in`) in the graph of `rx`. 0 for a receiver without a graph, or
-/// with a graph that has no host audio input.
-fn host_audio_channels(rx: &mut dyn Receiver) -> u16 {
-    let Some(g) = rx.as_any_mut().and_then(|a| a.downcast_mut::<Graph>()) else {
-        return 0;
-    };
-    g.order()
-        .into_iter()
-        .filter_map(|id| g.component_as::<HostIn>(id))
-        .map(HostIn::channels)
-        .max()
-        .unwrap_or(0)
-}
-
 /// A stack kind as an owner: the schema with its defaults and the declarations of a stack of the kind. It has no values
 /// and no results. The schema is made on the first read, and the declarations by [`StackKind::ensure`] on first use.
 pub(crate) struct StackKind {
     desc: &'static StackDescriptor,
     schema: OnceLock<Arc<Schema>>,
     made: Option<Made>,
-    /// The most host audio channels of the graph of the stack, over its default and its submodes.
-    host_audio_channels: u16,
 }
 
 impl StackKind {
@@ -449,12 +426,10 @@ impl StackKind {
             desc,
             schema: OnceLock::new(),
             made: None,
-            host_audio_channels: 0,
         }
     }
 
-    /// Makes a stack of the kind with the defaults once, to read its declarations, and once more for each submode, to
-    /// read the host audio channels of its graph. A submode that cannot be made counts 0.
+    /// Makes a stack of the kind with the defaults once, to read its declarations.
     pub(crate) fn ensure(
         &mut self,
         adapters: &Arc<dyn AdapterCatalog>,
@@ -467,23 +442,12 @@ impl StackKind {
             MADE_HERE.set(MADE_HERE.get() + 1);
             let mut rx = (self.desc.make_receiver)(&cfg)?;
             rx.set_facilities(facilities);
-            let submodes = self.desc.submodes.iter().filter_map(|m| {
-                let mut rx = (self.desc.make_receiver)(&cfg.clone().with_submode(m.id)).ok()?;
-                Some(host_audio_channels(rx.as_mut()))
-            });
-            self.host_audio_channels = submodes.fold(host_audio_channels(rx.as_mut()), u16::max);
             self.made = Some(Made {
                 results: Arc::clone(rx.results_decl()),
                 commands: rx.commands().clone(),
             });
         }
         Ok(())
-    }
-
-    /// The most host audio channels of the graph of the stack, over its default and its submodes. 0 before
-    /// [`StackKind::ensure`] has made the stack.
-    pub(crate) fn host_audio_channels(&self) -> u16 {
-        self.host_audio_channels
     }
 }
 
@@ -574,16 +538,17 @@ mod tests {
     fn a_start_makes_no_stack_and_the_event_catalog_is_that_of_the_made_stacks() {
         let stacks = sdrkit_host_catalog::all();
         let e = engine();
-        let listed = e
+        let (listed, host_audio) = e
             .owner(OwnerRef::Engine, |o| {
                 let res = o.results();
-                res.table(res.decl().table_id(STACKS.key).unwrap())
-                    .unwrap()
-                    .rows_newest_first()
-                    .count()
+                let t = res.table(res.decl().table_id(STACKS.key).unwrap()).unwrap();
+                let c = t.columns().id(HOST_AUDIO_CHANNELS.key).unwrap();
+                let n = |id: &str| t.row(id).and_then(|r| r.value(c)).cloned();
+                (t.rows_newest_first().count(), [n("fm"), n("adsb")])
             })
             .unwrap();
         assert_eq!(listed, stacks.len());
+        assert_eq!(host_audio, [Some(sdrkit_core::Value::I64(2)), Some(sdrkit_core::Value::I64(0))]);
         assert_eq!(MADE_HERE.get(), 0, "stacks made by the start");
         let mut first: Vec<EventDecl> = Vec::new();
         for d in stacks {

@@ -63,6 +63,7 @@ pub static CQUAM: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: Some(1.75e6),
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: cquam::CquamSetting::schema,
@@ -130,6 +131,7 @@ pub static HAMDRM: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: false,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: hamdrm::HamSetting::schema,

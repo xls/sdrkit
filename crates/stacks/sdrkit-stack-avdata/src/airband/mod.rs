@@ -425,6 +425,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Aviation",
     blurb: "Aircraft voice on VHF AM: several channels at once, with squelch, scanning, a transmission log and a band watch, and push-to-talk AM on the tuned channel.",
     tuning: Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Channels),
         demod: Some(sdrkit_core::PlainDemod::new(sdrkit_core::DemodMode::Am, 8.33e3)),
         min_hz: 108e6,

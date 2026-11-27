@@ -245,8 +245,6 @@ struct Keys {
 pub struct Engine {
     shared: Arc<Shared>,
     control: Option<JoinHandle<()>>,
-    /// The thread that counts the host audio channels of the stacks after the start.
-    host_audio: Option<JoinHandle<()>>,
 }
 
 impl std::fmt::Debug for Engine {
@@ -1002,27 +1000,6 @@ fn copy_where(from: &Values, to: &mut Values, keep: impl Fn(&str, &sdrkit_core::
     }
 }
 
-/// Makes the stack kinds at `indices` of the stack list of `weak`, one after the other, and writes the host audio
-/// channels of their graphs into the stacks table. Stops when the engine stops.
-fn count_host_audio(weak: &std::sync::Weak<Shared>, indices: &[usize]) {
-    let mut counts = Vec::new();
-    for &i in indices {
-        let Some(sh) = weak.upgrade().filter(|sh| !*lock(&sh.stop)) else {
-            return;
-        };
-        let Some(kind) = sh.stacks.get(i) else {
-            continue;
-        };
-        let mut k = lock(kind);
-        if k.ensure(&sh.adapters, &sh.facilities).is_ok() && k.host_audio_channels() != 0 {
-            counts.push((sh.keys.stacks[i].id, k.host_audio_channels()));
-        }
-    }
-    if let Some(sh) = weak.upgrade() {
-        sh.engine.lock().note_host_audio(&counts);
-    }
-}
-
 /// Adds `decls` to `out`, except a kind that `out` holds already.
 fn add_events(out: &mut Vec<EventDecl>, decls: &[EventDecl]) {
     for d in decls {
@@ -1109,17 +1086,12 @@ impl Engine {
         // The event kinds of a stack come from the interface description of its family, in the order of the stack
         // list, so the start makes no stack. A stack without a description is made here once to read them.
         let mut stack_kinds = Vec::with_capacity(setup.stacks.len());
-        let mut host_audio = Vec::with_capacity(setup.stacks.len());
-        let mut later = Vec::new();
-        for (i, d) in setup.stacks.iter().enumerate() {
+        for d in &setup.stacks {
             let mut k = StackKind::new(d);
             match setup.families.iter().find_map(|fam| fam.stack_shape(d.id)) {
                 Some(shape) => {
                     let these: Vec<EventDecl> = shape.events.iter().map(|e| e.def.decl()).collect();
                     add_events(&mut decls, &these);
-                    if !catalog::transmit_commands(&setup.families, d.id).is_empty() {
-                        later.push(i);
-                    }
                 }
                 // A stack that cannot be made with its defaults declares no events. Its kind owner returns the error.
                 None => {
@@ -1128,7 +1100,6 @@ impl Engine {
                     }
                 }
             }
-            host_audio.push(k.host_audio_channels());
             stack_kinds.push(Mutex::new(k));
         }
         let first = First::make(f, &setup.stacks)?;
@@ -1149,7 +1120,6 @@ impl Engine {
             engine: published::Kept::new(EngineOwner::new(
                 &catalog::Sources {
                     stacks: &setup.stacks,
-                    host_audio: &host_audio,
                     families: &setup.families,
                     drivers: &descriptors,
                     components: &setup.components,
@@ -1221,13 +1191,6 @@ impl Engine {
                 k.ensure(&sh.adapters, &sh.facilities).ok()?;
                 Some(Arc::new(session::merged_decl(k.results_decl())))
             }));
-        // The host audio channels of a stack come from its graph. Each stack that transmits is made once on a thread of
-        // its own, so that no call of the host waits for it; the stacks table shows 0 for it until then.
-        let weak = Arc::downgrade(&shared);
-        let host_audio = std::thread::Builder::new()
-            .name("sdrkit-host-audio".into())
-            .spawn(move || count_host_audio(&weak, &later))
-            .ok();
         let station = shared.station();
         *lock(&shared.signal_station) = station;
         shared.engine.lock().note_device();
@@ -1250,7 +1213,6 @@ impl Engine {
         Ok(Engine {
             shared,
             control: Some(control),
-            host_audio,
         })
     }
 
@@ -2122,9 +2084,6 @@ impl Drop for Engine {
         *lock(&self.shared.stop) = true;
         self.shared.wake.notify_all();
         if let Some(t) = self.control.take() {
-            let _ = t.join();
-        }
-        if let Some(t) = self.host_audio.take() {
             let _ = t.join();
         }
         let shares: Vec<_> = lock(&self.shared.shares)

@@ -195,6 +195,7 @@ pub static VOICE_CHANNELS: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[
         SubMode {
@@ -273,6 +274,7 @@ pub static MDC1200: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: mdc::MdcSetting::schema,
@@ -316,6 +318,7 @@ pub static FLEETSYNC: StackDescriptor = StackDescriptor {
         not_circular: false,
         radio_filter_hz: None,
         no_offset_tuning: true,
+        ..Tuning::DEFAULT
     },
     submodes: &[],
     settings: fleetsync::FleetsyncSetting::schema,

@@ -397,15 +397,6 @@ impl EngineOwner {
     }
 
     /// Writes the calibration of the device, once it has finished, and the cores that the sessions may use.
-    /// Writes the host audio channels of the stacks in `counts` into the stacks table.
-    pub(crate) fn note_host_audio(&mut self, counts: &[(&str, u16)]) {
-        for (id, n) in counts {
-            if let Some(mut r) = self.results.row_mut(&catalog::STACKS, id) {
-                r.set(&catalog::HOST_AUDIO_CHANNELS, i64::from(*n));
-            }
-        }
-    }
-
     pub(crate) fn note_device(&mut self) {
         let d = crate::stages::device_if_ready();
         let int = |n: usize| i64::try_from(n).unwrap_or(i64::MAX);

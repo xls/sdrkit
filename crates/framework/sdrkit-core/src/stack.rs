@@ -47,6 +47,9 @@ pub struct Tuning {
     /// The plain demodulation that the general stack takes to listen to the signal of the stack by ear. `None` for a
     /// signal that no plain demodulation suits (OFDM, cells, most digital modes).
     pub demod: Option<PlainDemod>,
+    /// The most channels of host audio that the graph of the stack takes (a `host.in` component), over its submodes: 1
+    /// for mono, 2 for stereo, 0 for none. The stacks table reads it without making the stack.
+    pub host_audio_channels: u16,
 }
 
 crate::choice_enum! {
@@ -129,6 +132,7 @@ impl Tuning {
         no_offset_tuning: false,
         kind: None,
         demod: None,
+        host_audio_channels: 0,
     };
 
     /// A stack that can be tuned anywhere, with every flag off. A `const fn`, so a descriptor can start from it:

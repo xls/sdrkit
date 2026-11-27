@@ -350,4 +350,55 @@ mod tests {
             .collect();
         assert!(wrong.is_empty(), "{wrong:?}");
     }
+
+    /// The most channels of a host audio input (`host.in`) in the graph of `rx`. 0 for a receiver without a graph.
+    fn graph_host_audio(rx: &mut dyn sdrkit_core::Receiver) -> u16 {
+        use sdrkit_graph::components::HostIn;
+        let Some(g) = rx
+            .as_any_mut()
+            .and_then(|a| a.downcast_mut::<sdrkit_graph::Graph>())
+        else {
+            return 0;
+        };
+        g.order()
+            .into_iter()
+            .filter_map(|id| g.component_as::<HostIn>(id))
+            .map(HostIn::channels)
+            .max()
+            .unwrap_or(0)
+    }
+
+    /// The host audio channels that a stack declares are those that its graph takes: the most over its default and
+    /// its submodes, each made with the defaults. A submode that cannot be made counts 0.
+    #[test]
+    fn the_declared_host_audio_channels_are_those_of_the_graph() {
+        let facilities = Facilities {
+            codecs: Arc::new(codecs()),
+            ..Facilities::default()
+        };
+        let registry = registry(&facilities);
+        let adapters: Arc<dyn sdrkit_core::AdapterCatalog> = registry.catalog().clone();
+        let mut wrong = Vec::new();
+        for s in all() {
+            let cfg =
+                StackConfig::new(Values::defaults(&(s.settings)())).with_adapters(adapters.clone());
+            let submodes = s.submodes.iter().map(|m| cfg.clone().with_submode(m.id));
+            let built = std::iter::once(cfg.clone())
+                .chain(submodes)
+                .filter_map(|c| {
+                    let mut rx = (s.make_receiver)(&c).ok()?;
+                    rx.set_facilities(&facilities);
+                    Some(graph_host_audio(rx.as_mut()))
+                })
+                .max()
+                .unwrap_or(0);
+            if built != s.tuning.host_audio_channels {
+                wrong.push((s.id, s.tuning.host_audio_channels, built));
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "declared and built host audio channels differ: {wrong:?}"
+        );
+    }
 }

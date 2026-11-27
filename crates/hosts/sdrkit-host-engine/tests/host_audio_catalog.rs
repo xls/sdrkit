@@ -1,6 +1,7 @@
-//! The stacks table says how many channels of host audio the graph of each stack takes, before a session runs: 2 for
-//! the stereo FM sender, 1 for a mono voice or TV sender, 0 for a stack that sends no host audio. Every stack whose
-//! session asks for host audio after a transmit command has a count that is not 0.
+//! The stacks table says how many channels of host audio the graph of each stack takes, from the first read after the
+//! start and before a session runs: 2 for the stereo FM sender, 1 for a mono voice or TV sender, 0 for a stack that
+//! sends no host audio. Every stack whose session asks for host audio after a transmit command has a count that is
+//! not 0.
 
 mod common;
 
@@ -31,12 +32,17 @@ fn channels(e: &Engine, id: &str) -> i64 {
     }
 }
 
+/// The first read of the stacks table after the start has the counts: FM takes stereo, ADS-B takes none.
+#[test]
+fn the_first_read_after_the_start_has_the_host_audio_channels() {
+    let e = sdrkit_host_catalog::engine().unwrap();
+    assert_eq!(channels(&e, "fm"), 2);
+    assert_eq!(channels(&e, "adsb"), 0);
+}
+
 #[test]
 fn the_stacks_table_counts_the_host_audio_channels_of_each_graph() {
     let e = sdrkit_host_catalog::engine().unwrap();
-    // The counts come from a thread of the engine after its start.
-    wait_for(30.0, || (channels(&e, "fm") == 2).then_some(()))
-        .expect("the host audio channels are counted");
     let mut counts: Vec<(String, i64)> = sdrkit_host_catalog::all()
         .iter()
         .map(|d| (d.id.to_owned(), channels(&e, d.id)))
@@ -47,7 +53,10 @@ fn the_stacks_table_counts_the_host_audio_channels_of_each_graph() {
     let expect = [
         ("fm", 2),
         ("general", 1),
+        ("dmr", 1),
+        ("dstar", 1),
         ("m17", 1),
+        ("airband", 1),
         ("freedv", 1),
         ("qo100", 1),
         ("atv", 1),
@@ -199,9 +208,7 @@ fn every_stack_that_asks_for_host_audio_after_a_transmit_command_counts_its_chan
             asked
         });
         if wanted {
-            // The counts come from a thread of the engine after its start.
-            let counted = wait_for(30.0, || (channels(&e, &stack) != 0).then_some(()));
-            assert!(counted.is_some(), "{stack} asks for host audio");
+            assert_ne!(channels(&e, &stack), 0, "{stack} asks for host audio");
             asked.push(stack);
         }
         e.stop_session(s).unwrap();

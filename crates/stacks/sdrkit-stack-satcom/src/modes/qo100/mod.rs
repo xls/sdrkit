@@ -222,6 +222,7 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
     group: "Satellite",
     blurb: "QO-100 through a Ku LNB: beacon lock and LNB correction, the transponders' signals, conversations and DATV carriers. Sends SSB voice on the narrowband uplink.",
     tuning: Tuning {
+        host_audio_channels: 1,
         kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 50e6,
         max_hz: 1200e6,
