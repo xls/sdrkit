@@ -10,7 +10,7 @@ use crate::graph::GraphError;
 use crate::stream::{Buffer, Data, Format, Item, Kind, Packet, TagKind, Timed};
 use sdrkit_core::command::{Command, CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::Fields;
-use sdrkit_core::publish::keys;
+use sdrkit_core::publish::{field, keys, Field};
 use sdrkit_core::{
     Complex32, ConfigError, Event, Published, Record, Results, Schema, SettingError, SettingId,
     StageError, StateBlob, StateError, Value, Values,
@@ -402,6 +402,13 @@ pub trait Decoder: Send + 'static {
     fn helper(&self) -> Helper {
         Helper::Never
     }
+    /// Whether the decoder takes its input in looks now: it examines one piece and, on purpose, leaves out what arrives
+    /// while it works on it. Items that do not fit the backlog while this is true count as `skipped` ([`LookFields`]) and
+    /// not as `dropped`. The component reads it each time the decoder is not on a helper thread. The default is false:
+    /// the decoder wants every item.
+    fn looks(&self) -> bool {
+        false
+    }
     /// The run context (live, station, helpers).
     fn attach(&mut self, ctx: &RunContext) {
         let _ = ctx;
@@ -438,6 +445,18 @@ pub struct DecoderFields {
     pub dropped: Option<i64>,
 }
 
+/// Items that a decoder left out between looks ([`Decoder::looks`]).
+pub const SKIPPED: Field<field::I64> = Field::new("skipped", "Not examined between looks", "");
+
+/// The result set of a decoder that takes its input in looks ([`Decoder::looks`]). The decoder declares the field in
+/// [`Decoder::results`], and the description of its stack lists the set; the component writes it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Fields)]
+pub struct LookFields {
+    /// Items left out between looks, on purpose. It holds a value while the decoder runs on a helper thread.
+    #[field(shared = SKIPPED)]
+    pub skipped: Option<i64>,
+}
+
 /// A [`Decoder`] as a component: input `in`, the decoder's outputs, the decoder's settings and the `clear` command.
 pub struct DecoderComponent<D: Decoder> {
     dec: Option<D>,
@@ -450,7 +469,8 @@ pub struct DecoderComponent<D: Decoder> {
     rate: f64,
     // Helper-thread state.
     job: Option<Ticket<Done<D>>>,
-    waiting: Vec<D::Input>,
+    /// The items that wait for the decoder, oldest first: a queue, so that dropping the oldest moves nothing.
+    waiting: std::collections::VecDeque<D::Input>,
     spare: Vec<D::Input>,
     waiting_first: u64,
     queued: Vec<(SettingId, Value)>,
@@ -461,6 +481,12 @@ pub struct DecoderComponent<D: Decoder> {
     dropped: u64,
     /// `dropped` is in the results (the decoder runs on a helper thread).
     dropped_shown: bool,
+    /// Items left out while the decoder took its input in looks.
+    skipped: u64,
+    /// [`Decoder::looks`], read when the decoder was last here.
+    looks: bool,
+    /// The declaration of the decoder holds `skipped` ([`LookFields`]).
+    skipped_declared: bool,
     /// The report interval in seconds of signal, read at configure (the decoder is away while a batch runs).
     interval: f64,
     /// The newest item time at the last report, for an input without a rate.
@@ -494,6 +520,7 @@ impl<D: Decoder> DecoderComponent<D> {
         if decl.field_id(keys::DROPPED.key).is_none() {
             decl = decl.with_fields(&[&keys::DROPPED]);
         }
+        let skipped_declared = decl.field_id(SKIPPED.key).is_some();
         DecoderComponent {
             name: dec.name(),
             outputs: dec.outputs(),
@@ -520,7 +547,7 @@ impl<D: Decoder> DecoderComponent<D> {
             since: 0.0,
             rate: 0.0,
             job: None,
-            waiting: Vec::new(),
+            waiting: std::collections::VecDeque::new(),
             spare: Vec::new(),
             waiting_first: 0,
             queued: Vec::new(),
@@ -529,6 +556,9 @@ impl<D: Decoder> DecoderComponent<D> {
             pending_forget: None,
             dropped: 0,
             dropped_shown: false,
+            skipped: 0,
+            looks: false,
+            skipped_declared,
             interval: 0.1,
             last_report_t: f64::NEG_INFINITY,
             report_pending: false,
@@ -545,6 +575,10 @@ impl<D: Decoder> DecoderComponent<D> {
     /// Input items dropped because the helper thread could not keep up.
     pub fn dropped(&self) -> u64 {
         self.dropped
+    }
+    /// Input items left out while the decoder took its input in looks ([`Decoder::looks`]).
+    pub fn skipped(&self) -> u64 {
+        self.skipped
     }
     /// Whether a batch is being decoded on a helper thread.
     pub fn busy(&self) -> bool {
@@ -600,18 +634,22 @@ impl<D: Decoder> DecoderComponent<D> {
         !x.is_empty()
     }
 
-    /// Writes the count of dropped items into the results while the decoder runs on a helper thread, and takes it out when it
-    /// does not.
+    /// Writes the counts of dropped and skipped items into the results while the decoder runs on a helper thread, and takes
+    /// them out when it does not.
     fn show_dropped(&mut self) {
-        if self.threaded().is_some() {
-            self.results.put(&DecoderFields {
-                dropped: Some(self.dropped as i64),
-            });
-            self.dropped_shown = true;
-        } else if self.dropped_shown {
-            self.results.put(&DecoderFields { dropped: None });
-            self.dropped_shown = false;
+        let shown = self.threaded().is_some();
+        if !shown && !self.dropped_shown {
+            return;
         }
+        self.results.put(&DecoderFields {
+            dropped: shown.then_some(self.dropped as i64),
+        });
+        if self.skipped_declared {
+            self.results.put(&LookFields {
+                skipped: shown.then_some(self.skipped as i64),
+            });
+        }
+        self.dropped_shown = shown;
     }
 
     /// Runs `x` in line, splitting it at retunes, and reports when due.
@@ -922,18 +960,26 @@ impl<D: Decoder> Component for DecoderComponent<D> {
                         self.format = Some(f);
                     }
                     self.waiting_first = first + retunes[nr - 1].0 as u64;
-                    self.waiting.extend_from_slice(&x[retunes[nr - 1].0..]);
+                    self.waiting.extend(x[retunes[nr - 1].0..].iter().cloned());
                 } else {
                     if self.waiting.is_empty() {
                         self.waiting_first = first;
                     }
-                    self.waiting.extend_from_slice(x);
+                    self.waiting.extend(x.iter().cloned());
+                }
+                if let Some(d) = &self.dec {
+                    self.looks = d.looks();
                 }
                 if self.waiting.len() > backlog {
                     let over = self.waiting.len() - backlog;
                     self.waiting.drain(..over);
                     self.waiting_first += over as u64;
-                    self.dropped += over as u64;
+                    // Between looks the decoder leaves the items out on purpose; else it was late.
+                    if self.looks {
+                        self.skipped += over as u64;
+                    } else {
+                        self.dropped += over as u64;
+                    }
                 }
                 self.start_batch(batch);
                 self.show_dropped();
@@ -949,7 +995,7 @@ impl<D: Decoder> Component for DecoderComponent<D> {
         self.wait_job();
         if let Some(dec) = self.dec.as_mut() {
             if !self.waiting.is_empty() {
-                dec.process(&self.waiting, self.waiting_first, &mut self.out);
+                dec.process(self.waiting.make_contiguous(), self.waiting_first, &mut self.out);
                 self.waiting_first += self.waiting.len() as u64;
                 self.waiting.clear();
             }

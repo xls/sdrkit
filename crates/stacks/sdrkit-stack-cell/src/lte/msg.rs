@@ -931,6 +931,23 @@ pub enum SibEntry {
     Other(u16),
 }
 
+impl SibEntry {
+    /// The number of the SIB.
+    pub fn number(&self) -> u16 {
+        match self {
+            SibEntry::Sib2(_) => 2,
+            SibEntry::Sib3(_) => 3,
+            SibEntry::Sib4(_) => 4,
+            SibEntry::Sib5(_) => 5,
+            SibEntry::Sib6(_) => 6,
+            SibEntry::Sib7(_) => 7,
+            SibEntry::Sib8(_) => 8,
+            SibEntry::Sib24(_) => 24,
+            SibEntry::Other(n) => *n,
+        }
+    }
+}
+
 /// The SIB numbers of the extension alternatives of sib-TypeAndInfo, in order (sib12-v920 to sib33-v1800).
 const SIB_INFO_EXT: [u16; 21] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 24, 25, 26, 26, 27, 28, 29, 30, 31, 32, 33];
 /// The place of SIB24 among them.

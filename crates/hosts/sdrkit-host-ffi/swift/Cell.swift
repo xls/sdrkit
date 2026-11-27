@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.9. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.10. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 9
+    public static let minor = 10
 }
 
 /// The result fields of `railway_cir`.
@@ -199,6 +199,23 @@ public struct CellBandSearchFields {
         var c = sdrkit_cell_band_search_fields()
         let code = sdrkit_cell_band_search_fields_read(handle, &c)
         return code == SDRKIT_OK ? .success(CellBandSearchFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The result set of a decoder that takes its input in looks ([`Decoder::looks`]). The decoder declares the field in [`Decoder::results`], and the description of its stack lists the set; the component writes it.
+public struct CellLookFields {
+    /// Items left out between looks, on purpose. It holds a value while the decoder runs on a helper thread.
+    public var skipped: Int64?
+
+    init(_ c: sdrkit_cell_look_fields) {
+        skipped = c.has_skipped ? c.skipped : nil
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<CellLookFields, SDRKitCode> {
+        var c = sdrkit_cell_look_fields()
+        let code = sdrkit_cell_look_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(CellLookFields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 

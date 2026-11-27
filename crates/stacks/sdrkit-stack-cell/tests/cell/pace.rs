@@ -1,5 +1,11 @@
 //! The cell stacks fed at the pace of a live radio: no call of the feed holds the samples of the radio up for longer than
 //! the queue of the engine holds. The tests measure wall time, so they run only when asked for (`--ignored`), alone.
+//!
+//! A stack keeps up when it drops no sample and the process needs less than [`CPU_MOST`] seconds of processor time for a
+//! second of signal. Other work on the machine takes the processor away and makes drops, and it makes the processor time
+//! longer too, though less. So a run with drops is made again ([`TRIES`]), and the least processor time of the runs
+//! counts: a stack that is too slow drops in every run. When more work is ready to run than the machine has processors
+//! ([`machine_is_full`]), drops tell nothing of the stack: the test says so and judges the processor time alone.
 
 use crate::common::*;
 use sdrkit_core::{Complex32, HostRequest, InputInfo, Output, Owner, Receiver, StackDescriptor};
@@ -13,6 +19,42 @@ const BLOCK: usize = 16_384;
 const QUEUE: usize = 128 * BLOCK;
 /// The time a network radio takes to move, seconds: no samples reach the stack meanwhile.
 const MOVE_S: f64 = 0.1;
+/// The most processor time of the process for a second of signal while a stack follows cells: the search has one thread,
+/// and needs room on it.
+const CPU_MOST: f64 = 0.8;
+/// The runs made until one shows no drop.
+const TRIES: usize = 3;
+
+/// The processor time that the process has used, seconds. None where the system does not tell.
+fn cpu_s() -> Option<f64> {
+    #[cfg(unix)]
+    {
+        let mut u = std::mem::MaybeUninit::<libc::rusage>::zeroed();
+        // SAFETY: getrusage fills the struct that the pointer names, and the struct lives until the call returns.
+        let ok = unsafe { libc::getrusage(libc::RUSAGE_SELF, u.as_mut_ptr()) } == 0;
+        // SAFETY: the call above filled the struct, and a zeroed rusage is a valid value too.
+        let u = unsafe { u.assume_init() };
+        let s = |t: libc::timeval| t.tv_sec as f64 + t.tv_usec as f64 * 1e-6;
+        ok.then(|| s(u.ru_utime) + s(u.ru_stime))
+    }
+    #[cfg(not(unix))]
+    None
+}
+
+/// Whether more work was ready to run in the last minute than the machine has processors. False where the system does
+/// not tell.
+fn machine_is_full() -> bool {
+    #[cfg(unix)]
+    {
+        let mut load = [0f64; 1];
+        // SAFETY: getloadavg writes at most one value into the array of one.
+        let n = unsafe { libc::getloadavg(load.as_mut_ptr(), 1) };
+        let cores = std::thread::available_parallelism().map_or(1, |c| c.get());
+        n == 1 && load[0] > cores as f64
+    }
+    #[cfg(not(unix))]
+    false
+}
 
 /// What a run at the pace of the radio measured.
 #[derive(Debug, Default)]
@@ -25,8 +67,15 @@ struct Paced {
     longest_s: f64,
     /// The time in the feed, seconds.
     busy_s: f64,
-    /// The samples that the search left out while it searched (`dropped`).
+    /// The samples that the stack wanted and did not take, because its search was late (`dropped`), counted since the
+    /// stack was built.
     dropped: f64,
+    /// The samples that a band search left out between looks, on purpose (`skipped`), counted since the stack was built.
+    skipped: f64,
+    /// `dropped` when the band search started.
+    dropped_before_pass: Option<f64>,
+    /// The processor time of the process for a second of signal. None where the system does not tell.
+    cpu: Option<f64>,
     /// The retunes the run made.
     retunes: usize,
     /// The steps searched longer for a sync signal.
@@ -51,6 +100,7 @@ fn paced(
     let mut p = Paced::default();
     let mut out = Output::default();
     let start = Instant::now();
+    let cpu0 = cpu_s();
     let (mut lost, mut total) = (0usize, 0usize);
     let mut hop: Option<(Vec<f64>, f64, usize)> = None;
     let mut step_s = 0.0;
@@ -77,6 +127,9 @@ fn paced(
         let r = Owner::results(&*rx);
         if let Some(c) = value(r, "capture_centre").filter(|c| !p.searched.iter().any(|s| (s - c).abs() < 1.0)) {
             p.searched.push(c);
+        }
+        if p.dropped_before_pass.is_none() && value(r, "search_steps").is_some() {
+            p.dropped_before_pass = value(r, "dropped");
         }
         if value(r, "search_passes").unwrap_or(0.0) >= 1.0 {
             p.pass_s = Some(p.fed_s);
@@ -126,7 +179,39 @@ fn paced(
     }
     p.lost = lost as f64 / total.max(1) as f64;
     p.dropped = value(Owner::results(&*rx), "dropped").unwrap_or(0.0);
+    p.skipped = value(Owner::results(&*rx), "skipped").unwrap_or(0.0);
+    p.cpu = cpu0.zip(cpu_s()).map(|(a, b)| (b - a) / p.fed_s.max(1e-9));
     p
+}
+
+/// Feeds `rx` the pieces of `next` at the pace of the signal for `seconds` on `centre`, again while a run shows drops, at
+/// most [`TRIES`] runs. Returns the newest run, with the least processor time of the runs, and whether it showed no drop
+/// (true also when the drops cannot be judged, see [`machine_is_full`]).
+fn follows(
+    rx: &mut sdrkit_graph::StackGraph,
+    rate: f64,
+    centre: f64,
+    seconds: f64,
+    mut next: impl FnMut(f64) -> Vec<Complex32>,
+) -> (Paced, bool) {
+    let mut before = value(Owner::results(&*rx), "dropped").unwrap_or(0.0);
+    let mut p = Paced::default();
+    let mut cpu: Option<f64> = None;
+    for _ in 0..TRIES {
+        p = paced(rx, rate, centre, seconds, true, &mut next);
+        cpu = p.cpu.map(|c| cpu.map_or(c, |least| least.min(c)));
+        p.cpu = cpu;
+        if p.dropped == before {
+            return (p, true);
+        }
+        eprintln!("a run with {} samples dropped is made again: {p:?}", p.dropped - before);
+        before = p.dropped;
+    }
+    if machine_is_full() {
+        eprintln!("not judged by its drops: the machine has more work than processors");
+        return (p, true);
+    }
+    (p, false)
 }
 
 /// Blocks of `x`, again and again.
@@ -153,19 +238,23 @@ fn noise_pieces() -> impl FnMut(f64) -> Vec<Complex32> {
 
 fn report(what: &str, desc: &StackDescriptor, p: &Paced) {
     eprintln!(
-        "{} {what}: {:.1} s fed, lost {:.1} %, in the feed {:.1} % of the time, longest feed {:.0} ms, search left out {:.0} \
-         samples, {} retunes",
+        "{} {what}: {:.1} s fed, lost {:.1} %, in the feed {:.1} % of the time, longest feed {:.0} ms, dropped {:.0} samples, \
+         skipped between looks {:.0} samples, processor {:.0} % of the signal time, {} retunes",
         desc.id,
         p.fed_s,
         100.0 * p.lost,
         100.0 * p.busy_s / p.fed_s,
         1e3 * p.longest_s,
         p.dropped,
+        p.skipped,
+        100.0 * p.cpu.unwrap_or(f64::NAN),
         p.retunes
     );
 }
 
-/// A 10 MHz LTE carrier at 12 Msps fed live for 20 s: the cell, its system information, and nothing lost.
+/// A 10 MHz LTE carrier at 12 Msps fed live with the default settings: once the cell and its system information are
+/// read, every sample is searched (none dropped, none skipped) for 35 s, which holds one more read of the system
+/// information.
 #[test]
 #[ignore]
 fn lte_keeps_up_with_a_live_carrier_at_12_msps() {
@@ -176,16 +265,56 @@ fn lte_keeps_up_with_a_live_carrier_at_12_msps() {
     let x = impaired(g, &snr(25.0), 1.0);
     let mut rx = stack_graph(&CELL, &[]);
     rx.configure(&InputInfo::new(rate, hz, hz)).unwrap();
-    let p = paced(&mut rx, rate, hz, 20.0, true, cycle(x));
+    let mut gen = cycle(x);
+    let first = paced(&mut rx, rate, hz, 3.0, true, &mut gen);
+    assert_eq!(value(Owner::results(&rx), "cell_count"), Some(1.0), "{first:?}");
+    let (p, kept_up) = follows(&mut rx, rate, hz, 35.0, &mut gen);
     report("on a carrier", &CELL, &p);
     assert_eq!(p.lost, 0.0, "{p:?}");
+    assert!(kept_up, "{p:?}");
+    assert_eq!(p.skipped, 0.0, "{p:?}");
+    assert!(p.cpu.is_none_or(|c| c < CPU_MOST), "{p:?}");
     rx.finish(&mut Output::default());
     assert_eq!(cells(&state(&rx)).len(), 1);
     assert!(cells(&state(&rx))[0]["sib1"].is_object(), "{}", cells(&state(&rx))[0]);
 }
 
+/// The recording of a real LTE cell fed live, again and again for 20 s: the cell shows SIB1 to SIB3 and no SIB that it does
+/// not show when the recording waits for the search, and once the cell is followed nothing is dropped. Skipped when the
+/// recordings are not on this machine.
+#[test]
+#[ignore]
+fn a_live_cell_shows_the_sibs_of_its_recording() {
+    let Some(rec) = crate::search::live_recording("sdrkit_cell_763.000MHz_11.52Msps_20261126-132305") else { return };
+    let (rate, hz) = (rec.rate_hz, rec.centre_hz);
+    let seconds = rec.samples.len() as f64 / rate;
+    let sibs = |rx: &sdrkit_graph::StackGraph| -> Vec<i64> {
+        let all = cells(&state(rx));
+        let c = all.iter().find(|c| c["sib1"].is_object()).expect("a cell with SIB1");
+        c["sibs_seen"].as_array().expect("the SIBs seen").iter().filter_map(J::as_i64).collect()
+    };
+    let mut waits = stack_graph(&CELL, &[("band_search", J::from("off"))]);
+    waits.configure(&InputInfo::new(rate, hz, hz).recording()).unwrap();
+    for x in rec.samples.chunks(BLOCK) {
+        waits.feed(x, &mut Output::default());
+    }
+    waits.finish(&mut Output::default());
+    let mut live = stack_graph(&CELL, &[("band_search", J::from("off"))]);
+    live.configure(&InputInfo::new(rate, hz, hz)).unwrap();
+    let mut gen = cycle(rec.samples);
+    let first = paced(&mut live, rate, hz, 8.0, true, &mut gen);
+    report("on a recording, first", &CELL, &first);
+    let (p, kept_up) = follows(&mut live, rate, hz, 12.0, &mut gen);
+    report("on a recording", &CELL, &p);
+    live.finish(&mut Output::default());
+    let (whole, seen) = (sibs(&waits), sibs(&live));
+    eprintln!("a recording of {seconds:.1} s: SIBs {whole:?}, live {seen:?}");
+    assert!(kept_up, "{p:?}");
+    assert!(seen.iter().all(|n| whole.contains(n)) && [1, 2, 3].iter().all(|n| seen.contains(n)), "{seen:?} {whole:?}");
+}
+
 /// One n28 cell, and three cells on three raster points, at 12 Msps fed live with the default settings: once they are
-/// listed, every sample is searched (none dropped) for 20 s, and the SIB1 of the first cell is read.
+/// listed, every sample is searched (none dropped, none skipped) for 20 s, and the SIB1 of the first cell is read.
 #[test]
 #[ignore]
 fn nr_follows_a_live_cell_at_12_msps_in_real_time() {
@@ -208,10 +337,12 @@ fn nr_follows_a_live_cell_at_12_msps_in_real_time() {
         let mut gen = cycle(x);
         let first = paced(&mut rx, rate, hz, 3.0, true, &mut gen);
         assert_eq!(value(Owner::results(&rx), "cell_count"), Some(f64::from(n)), "{first:?} {:?}", Owner::results(&rx).status().summary);
-        let p = paced(&mut rx, rate, hz, 20.0, true, &mut gen);
+        let (p, kept_up) = follows(&mut rx, rate, hz, 20.0, &mut gen);
         report(&format!("on {n} cells"), &NR, &p);
         assert_eq!(p.lost, 0.0, "{p:?}");
-        assert_eq!(p.dropped, first.dropped, "{n} cells: {p:?}");
+        assert!(kept_up, "{n} cells: {p:?}");
+        assert_eq!(p.skipped, 0.0, "{n} cells: {p:?}");
+        assert!(p.cpu.is_none_or(|c| c < CPU_MOST), "{n} cells: {p:?}");
         rx.finish(&mut Output::default());
         let cs = cells(&state(&rx));
         assert_eq!(cs.len(), usize::from(n), "{cs:#?}");
@@ -220,7 +351,8 @@ fn nr_follows_a_live_cell_at_12_msps_in_real_time() {
 }
 
 /// One pass of the band search over the Australian bands at 12 Msps, live on noise, with 0.1 s for each move of the radio:
-/// under two minutes for `nr` and under 40 s for `cell`, and every step searched.
+/// under two minutes for `nr` and under 40 s for `cell`, and every step searched. What the search leaves out between
+/// looks counts as skipped, and nothing as dropped once the search runs.
 #[test]
 #[ignore]
 fn an_australian_pass_at_12_msps_searches_every_step() {
@@ -256,6 +388,8 @@ fn an_australian_pass_at_12_msps_searches_every_step() {
         );
         assert_eq!(p.lost, 0.0, "{}: {p:?}", desc.id);
         assert!(missed.is_empty(), "{}: {missed:?}", desc.id);
+        assert!(p.skipped > 0.0, "{}: {p:?}", desc.id);
+        assert_eq!(Some(p.dropped), p.dropped_before_pass, "{}: {p:?}", desc.id);
         let most_s = if desc.id == "nr" { 120.0 } else { 40.0 };
         assert!(p.pass_s.is_some_and(|t| t < most_s), "{p:?}");
     }

@@ -1627,13 +1627,7 @@ fn apply_bcch(
                         );
                     }
                     SibEntry::Sib6(_) | SibEntry::Sib7(_) | SibEntry::Sib8(_) | SibEntry::Sib24(_) => {
-                        let n = match e {
-                            SibEntry::Sib6(_) => 6,
-                            SibEntry::Sib7(_) => 7,
-                            SibEntry::Sib8(_) => 8,
-                            _ => 24,
-                        };
-                        see(c, n);
+                        see(c, e.number());
                         if let Some((systems, v)) = other_carriers(&e) {
                             c.other_carriers.retain(|o| !systems.contains(&o.system));
                             c.other_carriers.extend(v);

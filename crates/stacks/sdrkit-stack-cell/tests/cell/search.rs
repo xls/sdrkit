@@ -716,7 +716,7 @@ fn live_first_looks_show_the_cells() {
 
 /// The recording `<name>.sigmf-meta` in the folder that the variable `SDRKIT_LIVE_RECORDINGS` names, or None. The
 /// recordings of real signals are kept outside the repository; without the variable the test is skipped.
-fn live_recording(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
+pub(crate) fn live_recording(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
     let Ok(folder) = std::env::var("SDRKIT_LIVE_RECORDINGS") else {
         eprintln!("skipped: SDRKIT_LIVE_RECORDINGS is not set");
         return None;

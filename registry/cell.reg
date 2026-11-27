@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.9
+family cell version=1.10
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -77,6 +77,8 @@ shape.BandSearchFields.search_step type=i64 unit= optional=yes since=1.7
 shape.BandSearchFields.search_steps type=i64 unit= optional=yes since=1.7
 shape.BandSearchFields.search_passes type=i64 unit= optional=no since=1.7
 shape.BandSearchFields.quiet_reason type=text unit= optional=yes since=1.7
+shape.LookFields since=1.10
+shape.LookFields.skipped type=i64 unit= optional=yes since=1.10
 shape.CellRow since=1.0
 shape.CellRow.plmn type=text unit= optional=yes since=1.0
 shape.CellRow.operator type=text unit= optional=yes since=1.0
@@ -519,6 +521,7 @@ cell.fields.SearchFields since=1.0
 cell.fields.CellFields since=1.0
 cell.fields.DecoderFields since=1.0
 cell.fields.BandSearchFields since=1.7
+cell.fields.LookFields since=1.10
 cell.kept.SearchFields.retunes since=1.0
 cell.kept.SearchFields.decoded since=1.0
 cell.kept.SearchFields.failed since=1.0
@@ -580,6 +583,7 @@ nr.fields.SearchFields since=1.0
 nr.fields.NrFields since=1.0
 nr.fields.DecoderFields since=1.0
 nr.fields.BandSearchFields since=1.7
+nr.fields.LookFields since=1.10
 nr.kept.SearchFields.retunes since=1.0
 nr.kept.SearchFields.decoded since=1.0
 nr.kept.SearchFields.failed since=1.0

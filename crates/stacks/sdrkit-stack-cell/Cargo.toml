@@ -33,3 +33,7 @@ sdrkit-components = { path = "../../framework/sdrkit-components" }
 sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
 # The starting dials that a host reads from the data folder.
 sdrkit-presets = { path = "../../helpers/sdrkit-presets" }
+
+[target.'cfg(unix)'.dev-dependencies]
+# The processor time of the pace tests.
+libc = "0.2"

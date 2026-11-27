@@ -42,7 +42,8 @@ pub use component::{
 pub use connect::{ComponentHandle, ConnectError, PortRef};
 pub use context::{Pool, RunContext, Ticket};
 pub use decoder::{
-    Decoder, DecoderCommand, DecoderComponent, DecoderFields, DecoderInput, Helper, Outbox,
+    Decoder, DecoderCommand, DecoderComponent, DecoderFields, DecoderInput, Helper, LookFields,
+    Outbox,
 };
 pub use desc::{
     ComponentDesc, ComponentDescriptor, Description, MakeComponent, MediaDecoder, Registry,

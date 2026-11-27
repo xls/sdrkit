@@ -50,8 +50,9 @@ const LOOK_TIMES: usize = 3;
 /// A step time this far from the one of the hop that runs starts the hop again with the new time.
 const DWELL_CHANGE: f64 = 0.25;
 
-/// The most input, seconds, that waits while the helper thread searches: more than a bounded search of a capture takes.
-const HELPER_BACKLOG_S: f64 = 0.12;
+/// The most input, seconds, that waits while the helper thread searches: more than a bounded search of a capture takes,
+/// also the one that reads the system information of a cell.
+const HELPER_BACKLOG_S: f64 = 0.3;
 
 /// While a band search steps, the most samples that waited during a search that are taken: older ones belong to a look
 /// that is over, and are left out by design.
@@ -1607,6 +1608,11 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
             batch: 0,
             backlog: ((self.cap.rate * HELPER_BACKLOG_S) as usize).max(1 << 16),
         }
+    }
+    /// A band search looks at one short capture on each step and leaves out what arrives meanwhile. Following the cells of
+    /// one frequency is no look: there every sample is wanted.
+    fn looks(&self) -> bool {
+        self.live && self.pass.is_some()
     }
     fn attach(&mut self, ctx: &RunContext) {
         self.clock.attach(ctx.wall_clock(), &ctx.clock, self.time_s);

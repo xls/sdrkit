@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.9. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.10. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 9
+#define SDRKIT_CELL_VERSION_MINOR 10
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -350,6 +350,16 @@ typedef struct sdrkit_cell_band_search_fields {
   // Why no cell shows: what the newest capture held, or what the radio gives. None while cells show.
   sdrkit_string quiet_reason;
 } sdrkit_cell_band_search_fields;
+
+// The result set of a decoder that takes its input in looks ([`Decoder::looks`]). The decoder declares the field in [`Decoder::results`], and the description of its stack lists the set; the component writes it.
+typedef struct sdrkit_cell_look_fields {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // True if `skipped` holds a value.
+  bool has_skipped;
+  // Items left out between looks, on purpose. It holds a value while the decoder runs on a helper thread.
+  int64_t skipped;
+} sdrkit_cell_look_fields;
 
 // The options of `duplex` of `sdrkit_cell_row`.
 typedef enum sdrkit_cell_row_duplex {
@@ -3908,6 +3918,11 @@ static inline int32_t sdrkit_cell_fields_read(SDRKIT_HANDLE handle, sdrkit_cell_
 // Fills `fields` with the result fields of the snapshot of `handle`.
 static inline int32_t sdrkit_cell_band_search_fields_read(SDRKIT_HANDLE handle, sdrkit_cell_band_search_fields *fields) {
   return sdrkit_typed_fields(handle, "cell.BandSearchFields", fields, sizeof(sdrkit_cell_band_search_fields));
+}
+
+// Fills `fields` with the result fields of the snapshot of `handle`.
+static inline int32_t sdrkit_cell_look_fields_read(SDRKIT_HANDLE handle, sdrkit_cell_look_fields *fields) {
+  return sdrkit_typed_fields(handle, "cell.LookFields", fields, sizeof(sdrkit_cell_look_fields));
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.

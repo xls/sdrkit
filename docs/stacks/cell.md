@@ -74,6 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `search_steps` | Search steps | whole number |
 | `search_passes` | Search passes | whole number |
 | `quiet_reason` | Why nothing shows | text |
+| `skipped` | Not examined between looks | whole number |
 
 ## Result tables
 
@@ -109,7 +110,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.9. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.10. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -158,6 +159,14 @@ Struct `BandSearchFields`. Where the band search of `cell` and `nr` is, and why 
 | `search_steps` | whole number | optional | 1.7 | The radio centres of the search. |
 | `search_passes` | whole number | always | 1.7 | The passes over every step done since the search started. |
 | `quiet_reason` | text | optional | 1.7 | Why no cell shows: what the newest capture held, or what the radio gives. None while cells show. |
+
+### Result fields
+
+Struct `LookFields`. The result set of a decoder that takes its input in looks ([`Decoder::looks`]). The decoder declares the field in [`Decoder::results`], and the description of its stack lists the set; the component writes it.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `skipped` | whole number | optional | 1.10 | Items left out between looks, on purpose. It holds a value while the decoder runs on a helper thread. |
 
 ### Table `cells`
 

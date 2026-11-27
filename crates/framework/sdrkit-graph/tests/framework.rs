@@ -569,12 +569,14 @@ impl Component for Framer {
     }
 }
 
-/// Counts frames and its own reports. With `sleep_ms` it is slow, so a helper thread falls behind a live radio.
+/// Counts frames and its own reports. With `sleep_ms` it is slow, so a helper thread falls behind a live radio. With
+/// `looks` it takes its input in looks.
 #[derive(Default)]
 struct FrameCount {
     frames: u64,
     reports: u64,
     sleep_ms: u64,
+    looks: bool,
 }
 impl Decoder for FrameCount {
     fn values(&self) -> sdrkit_core::Values {
@@ -597,7 +599,14 @@ impl Decoder for FrameCount {
         self.frames += x.len() as u64;
     }
     fn results(&self) -> Published {
-        Published::new(&[&keys::FRAMES_OK])
+        if self.looks {
+            Published::new(&[&keys::FRAMES_OK, &sdrkit_graph::decoder::SKIPPED])
+        } else {
+            Published::new(&[&keys::FRAMES_OK])
+        }
+    }
+    fn looks(&self) -> bool {
+        self.looks
     }
     fn report(&mut self, r: &mut Published) {
         self.reports += 1;
@@ -714,11 +723,14 @@ fn a_decoder_on_a_helper_thread_publishes_the_items_it_dropped() {
     let (decoded, dropped) = (c.decoder().unwrap().frames, c.dropped());
     assert!(dropped > 0, "nothing was dropped");
     assert!(decoded + dropped <= 40 && 40 - decoded - dropped <= 2);
+    assert_eq!(c.skipped(), 0);
     g.refresh_results();
     assert_eq!(
         g.results().fields().get(&keys::DROPPED),
         Some(dropped as i64)
     );
+
+    assert_eq!(g.results().decl().field_id("skipped"), None);
 
     // In line (a recording) nothing is dropped and the key is not published.
     let mut g = frame_graph(
@@ -1204,4 +1216,48 @@ fn a_decoder_reads_the_hosts_facilities_when_attached() {
     let c = g.component_as::<DecoderComponent<Marks>>("dec").unwrap();
     let (now, r, bytes) = c.decoder().unwrap().attached.clone().unwrap();
     assert_eq!((now, r, bytes), (1_700_000_000.0, expected, vec![1, 2, 3]));
+}
+
+#[test]
+fn a_decoder_that_takes_looks_publishes_the_items_between_them_as_skipped() {
+    // The slow decoder of the test above, which now says that it takes its input in looks: the frames that do not wait
+    // are left out on purpose, so they count as skipped and none as dropped.
+    let mut g = frame_graph(
+        FrameCount {
+            sleep_ms: 30,
+            looks: true,
+            ..Default::default()
+        },
+        None,
+    );
+    g.configure(&InputInfo::new(8000.0, 0.0, 0.0)).unwrap(); // live
+    let mut out = Output::default();
+    for _ in 0..40 {
+        g.feed(&ones(800), &mut out);
+    }
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    loop {
+        g.feed(&[], &mut out);
+        let c = g
+            .component_as::<DecoderComponent<FrameCount>>("count")
+            .unwrap();
+        if !c.busy() && c.decoder().is_some() {
+            break;
+        }
+        assert!(std::time::Instant::now() < deadline);
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    let c = g
+        .component_as::<DecoderComponent<FrameCount>>("count")
+        .unwrap();
+    let (decoded, skipped) = (c.decoder().unwrap().frames, c.skipped());
+    assert!(skipped > 0, "nothing was skipped");
+    assert!(decoded + skipped <= 40 && 40 - decoded - skipped <= 2);
+    assert_eq!(c.dropped(), 0);
+    g.refresh_results();
+    assert_eq!(g.results().fields().get(&keys::DROPPED), Some(0));
+    assert_eq!(
+        g.results().fields().get(&sdrkit_graph::decoder::SKIPPED),
+        Some(skipped as i64)
+    );
 }

@@ -7,7 +7,7 @@ use sdrkit_core::interface::{
 use sdrkit_core::publish::{field, keys};
 use sdrkit_core::settings::Argument;
 use sdrkit_core::SettingSet;
-use sdrkit_graph::DecoderFields;
+use sdrkit_graph::{DecoderFields, LookFields};
 use sdrkit_util_objects::commands as objcmd;
 use sdrkit_util_objects::publish::columns;
 use std::sync::{Arc, OnceLock};
@@ -342,7 +342,8 @@ fn search_end(
         .kept(kept)
 }
 
-/// [`search_end`] of a stack with a band search: its fields and the commands `search` and `stay`.
+/// [`search_end`] of a stack with a band search: its fields, the count of what it left out between looks, and the
+/// commands `search` and `stay`.
 fn band_search_end(
     s: StackShape,
     event: &'static EventKind<FoundCellEvent<'static>>,
@@ -350,7 +351,7 @@ fn band_search_end(
     kept: &[&'static str],
 ) -> StackShape {
     search_end(
-        s.fields::<BandSearchFields>(),
+        s.fields::<BandSearchFields>().fields::<LookFields>(),
         event,
         settings,
         kept,
@@ -1918,7 +1919,7 @@ pub static NR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey",
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 9)
+        Family::new("cell", 1, 10)
             .added(
                 1,
                 1,
@@ -2112,6 +2113,17 @@ pub fn family() -> &'static Family {
                     "cell.setting.search_ranges",
                     "nr.setting.search_look_s",
                     "nr.setting.search_ranges",
+                ],
+            )
+            // Version 1.10: what a band search left out between looks, apart from what was dropped.
+            .added(
+                1,
+                10,
+                &[
+                    "shape.LookFields",
+                    "shape.LookFields.skipped",
+                    "cell.fields.LookFields",
+                    "nr.fields.LookFields",
                 ],
             )
             .shared_source(

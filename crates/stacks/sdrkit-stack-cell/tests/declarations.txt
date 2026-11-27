@@ -38,6 +38,7 @@ field FieldDecl { key: "search_step", label: "Search step", unit: "", kind: I64,
 field FieldDecl { key: "search_steps", label: "Search steps", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "search_passes", label: "Search passes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "quiet_reason", label: "Why nothing shows", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "skipped", label: "Not examined between looks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 400
   marks TableMarks { label: Some(25), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(23), own: None, delivery: None, failure: None }
   column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -212,6 +213,7 @@ field FieldDecl { key: "search_step", label: "Search step", unit: "", kind: I64,
 field FieldDecl { key: "search_steps", label: "Search steps", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "search_passes", label: "Search passes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "quiet_reason", label: "Why nothing shows", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "skipped", label: "Not examined between looks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 300
   marks TableMarks { label: Some(18), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(16), own: None, delivery: None, failure: None }
   column FieldDecl { key: "decoded", label: "Decoded", unit: "", kind: Choice, choices: [ChoiceDecl { key: "sync", label: "Sync" }, ChoiceDecl { key: "mib", label: "MIB" }, ChoiceDecl { key: "sib1", label: "SIB1" }], refers_to: None, content: None, reading: 0 }

@@ -2,7 +2,7 @@
 //! timing, PBCH and the MIB, channel estimation, and the system information on SI-RNTI (PCFICH, PDCCH common search space, PDSCH
 //! with the turbo code, SIB1 combining). Receive only: a downlink control message is accepted only when its CRC matches SI-RNTI.
 
-use super::msg::Mib;
+use super::msg::{Bcch, Mib, SibEntry};
 use super::phy::*;
 use crate::decoder::Capture;
 use crate::dsp::{resample_to, welch, ResamplerCache};
@@ -223,12 +223,71 @@ pub struct LteSearcher {
     turn: usize,
     /// The radio centre of the newest capture, Hz.
     centre_hz: f64,
+    /// What is read of the system information of the cells followed.
+    si: Vec<SiRead>,
+    /// The carrier positions that a probe pointed to while cells were followed and that held no cell: radio frequency, Hz,
+    /// and the signal time of the search.
+    barren: Vec<(f64, f64)>,
+    /// The candidate being searched reads the system information.
+    si_now: bool,
+    /// The candidate being searched is searched again for cells under the cells found.
+    deep: bool,
+}
+
+/// What is read of the system information of a cell that is followed.
+#[derive(Clone, Debug)]
+struct SiRead {
+    pci: u16,
+    /// The carrier, in steps of 100 kHz.
+    raster: i64,
+    /// Signal time of the newest capture that showed the cell, seconds.
+    seen_s: f64,
+    /// Signal time of the newest read, seconds. None: not yet tried.
+    read_s: Option<f64>,
+    /// Signal time of the first SIB1 with the value tag `tag`, seconds.
+    sib1_s: Option<f64>,
+    /// The value tag of the newest SIB1.
+    tag: Option<u8>,
+    /// The SIBs that SIB1 schedules, SIB2 included, and that were not read since `sib1_s`.
+    missing: Vec<u16>,
+}
+
+impl SiRead {
+    /// Whether a capture that ends at `now` reads the system information of the cell: until SIB1 is read, every
+    /// [`SI_RETRY_S`]; then every [`SI_COLLECT_EVERY_S`] until the SIBs that SIB1 schedules are read, at most
+    /// [`SI_COLLECT_S`]; then every [`SI_AGAIN_S`], which shows a new value tag and looks again for SIBs not yet read.
+    fn wanted(&self, now: f64) -> bool {
+        let Some(read) = self.read_s.filter(|t| now >= *t) else { return true };
+        match self.sib1_s {
+            None => now - read >= SI_RETRY_S,
+            Some(t) if !self.missing.is_empty() && now - t < SI_COLLECT_S => now - read >= SI_COLLECT_EVERY_S,
+            Some(_) => now - read >= SI_AGAIN_S,
+        }
+    }
 }
 
 /// A carrier stays followed for this many seconds of signal after its newest cell.
 const FOLLOW_S: f64 = 1.0;
 /// While cells are followed, a capture probes one carrier position in this many, in turn.
-const PROBE_SHARES: usize = 8;
+const PROBE_SHARES: usize = 32;
+/// While cells are followed, one capture in this many searches their carrier again for cells under the cells found.
+const DEEP_EVERY: usize = 8;
+/// The system information of a followed cell is read again after this many seconds of signal.
+const SI_AGAIN_S: f64 = 30.0;
+/// A read of a followed cell that showed no SIB1 is tried again after this many seconds of signal.
+const SI_RETRY_S: f64 = 1.0;
+/// After a SIB1, the captures read the other SIBs of a followed cell for at most this many seconds of signal: more than
+/// twice the longest period of a SIB (5.12 s).
+const SI_COLLECT_S: f64 = 12.0;
+/// While the other SIBs are read, a read follows the one before after this many seconds of signal: every second capture
+/// of the default length, so that the search catches up between two reads.
+const SI_COLLECT_EVERY_S: f64 = 0.3;
+/// While cells are followed, a carrier position that a probe pointed to and that held no cell is left alone for this many
+/// seconds of signal, with the positions this near, Hz: a wide carrier answers the probe beside its centre too.
+const BARREN_S: f64 = 10.0;
+const BARREN_HZ: f64 = 300e3;
+/// The most cells whose system information reads are kept.
+const SI_CELLS: usize = 64;
 
 const SYNC_RATE: f64 = 1.92e6;
 const HALF: usize = 9600;
@@ -265,6 +324,10 @@ impl Default for LteSearcher {
             found_at: Vec::new(),
             turn: 0,
             centre_hz: f64::NAN,
+            si: Vec::new(),
+            barren: Vec::new(),
+            si_now: true,
+            deep: true,
         }
     }
 }
@@ -688,6 +751,11 @@ impl LteSearcher {
         (a, b)
     }
 
+    /// Whether the candidate being searched reads the system information.
+    fn reads_si(&self) -> bool {
+        self.system_information && self.si_now
+    }
+
     /// Searches one candidate.
     pub fn search_candidate(&mut self, cap: &Capture, c: Cand) -> Vec<LteFound> {
         let fs = cap.rate;
@@ -720,6 +788,9 @@ impl LteSearcher {
         };
         // Passes over the PSS peaks while new cells are found; after the first, only peaks at the timing of a known cell.
         for pass in 0..4 {
+            if pass > 0 && !self.deep {
+                break;
+            }
             let before = all.len();
             for pk in &peaks {
                 if limit(&all, 0) {
@@ -772,7 +843,7 @@ impl LteSearcher {
             }
         }
         // Decoded cells still without SIB1: the system information again with every other decoded cell at their timing taken out.
-        if self.system_information {
+        if self.reads_si() {
             for _ in 0..3 {
                 let mut progress = false;
                 for i in 0..all.len() {
@@ -833,7 +904,7 @@ impl LteSearcher {
             |n_rb: usize| f.cand.offset_hz.abs() + n_rb as f64 * 90e3 + 30e3 < cap.rate / 2.0;
         if let Some((m, ports, sfn0)) = f.mib {
             let n_rb = N_RB[m.bw_index as usize];
-            if self.system_information && !f.tdd && fits(n_rb) {
+            if self.reads_si() && !f.tdd && fits(n_rb) {
                 let (clock, pci, ext) = (f.clock_ppm, f.pci, f.ext);
                 let mut g = f.clone();
                 self.read_si(
@@ -862,7 +933,7 @@ impl LteSearcher {
         }
         // A borrowed configuration: the same carrier has the same bandwidth and PHICH configuration, the SFN follows from the
         // timing; the decoded cell's port count first, then the others.
-        if f.tdd || f.sss_sig < 3.0 || !self.system_information || self.borrow_tries >= 6 {
+        if f.tdd || f.sss_sig < 3.0 || !self.reads_si() || self.borrow_tries >= 6 {
             return;
         }
         let Some(&(d, apart)) = same.first() else {
@@ -1056,22 +1127,31 @@ impl LteSearcher {
             prev = Some(v);
         }
         cfo += acc2.arg() as f64 / (TAU * slope / SYNC_RATE);
-        // The sync-rate stream with the offset taken out.
+        // The sync-rate stream with the offset taken out: from the capture again, or, on a carrier that is followed, the
+        // stream of the candidate turned by the offset, which costs a fraction (the offset is small beside the filter).
         let fs = cap.rate;
         let n = y.len();
         let mut z = Vec::new();
-        resample_to(
-            &mut self.cache,
-            &cap.samples,
-            fs,
-            c.offset_hz + cfo,
-            SYNC_RATE,
-            1.3e6,
-            0.0,
-            clock_ppm * 0.0,
-            n,
-            &mut z,
-        );
+        if self.deep {
+            resample_to(
+                &mut self.cache,
+                &cap.samples,
+                fs,
+                c.offset_hz + cfo,
+                SYNC_RATE,
+                1.3e6,
+                0.0,
+                clock_ppm * 0.0,
+                n,
+                &mut z,
+            );
+        } else {
+            let step = -TAU * cfo / SYNC_RATE;
+            z.extend(y.iter().enumerate().map(|(i, v)| {
+                let ph = step * i as f64;
+                v * Complex32::new(ph.cos() as f32, ph.sin() as f32)
+            }));
+        }
         let mut fft = self.plans.forward(128);
         // SSS: four (prefix, duplex) hypotheses.
         let hyps: [(usize, bool, bool); 4] = [
@@ -1864,8 +1944,9 @@ fn line(p: &[(f64, f64)]) -> (f64, f64) {
     ((sy - b * sx) / m, b)
 }
 
-/// The candidates of a capture.
-pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Cand> {
+/// The candidates of a capture, and the share of the carrier positions probed while cells are followed
+/// ([`LteSearcher::following`]).
+pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> (Vec<Cand>, Option<usize>) {
     let share = s.following(cap);
     let mut out: Vec<Cand> = Vec::new();
     let push = |out: &mut Vec<Cand>, c: Cand| {
@@ -1907,6 +1988,9 @@ pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Can
                 continue;
             }
             let off = r as f64 * 100e3 - cap.centre_hz;
+            if share.is_some() && s.barren.iter().any(|b| (b.0 - r as f64 * 100e3).abs() <= BARREN_HZ) {
+                continue;
+            }
             if let Some(d) = s.probe(cap, off) {
                 probes.push((d, off));
             }
@@ -1963,7 +2047,7 @@ pub fn candidates(s: &mut LteSearcher, cap: &Capture, humps: &[Hump]) -> Vec<Can
             );
         }
     }
-    out
+    (out, share)
 }
 
 impl LteSearcher {
@@ -1972,15 +2056,92 @@ impl LteSearcher {
     fn following(&mut self, cap: &Capture) -> Option<usize> {
         if (cap.centre_hz - self.centre_hz).abs() > 1.0 || !self.bounded {
             self.found_at.clear();
+            self.si.clear();
+            self.barren.clear();
         }
         self.centre_hz = cap.centre_hz;
         let now = cap.end_time;
         self.found_at.retain(|f| now >= f.1 && now - f.1 <= FOLLOW_S);
+        self.si.retain(|s| now >= s.seen_s && now - s.seen_s <= FOLLOW_S);
+        self.barren.retain(|b| now >= b.1 && now - b.1 <= BARREN_S);
         if self.found_at.is_empty() {
+            self.barren.clear();
             return None;
         }
         self.turn = (self.turn + 1) % PROBE_SHARES;
         Some(self.turn)
+    }
+
+    /// How candidate `c` of a capture is searched: whether its system information is read, and whether it is searched
+    /// again for cells under the cells found. Both, except on a carrier that is followed: there the system information is
+    /// read when a cell of the carrier wants it ([`SiRead::wanted`]), and the carrier is searched again then and on one
+    /// capture in [`DEEP_EVERY`].
+    fn plan(&self, cap: &Capture, c: &Cand, following: bool) -> (bool, bool) {
+        let hz = cap.centre_hz + c.offset_hz;
+        if !following || !self.found_at.iter().any(|f| (f.0 - hz).abs() < 50e3) {
+            return (true, true);
+        }
+        let raster = (hz / 100e3).round() as i64;
+        let mut cells = self.si.iter().filter(|s| s.raster == raster).peekable();
+        let si = cells.peek().is_none() || cells.any(|s| s.wanted(cap.end_time));
+        (si, si || self.turn.is_multiple_of(DEEP_EVERY))
+    }
+
+    /// Keeps what a search of a carrier at `hz` read of the system information of the cells `found`, with `si` when the
+    /// search read it.
+    fn note_si(&mut self, hz: f64, now: f64, si: bool, found: &[LteFound]) {
+        let raster = (hz / 100e3).round() as i64;
+        for f in found.iter().filter(|f| f.mib.is_some()) {
+            let at = match self.si.iter().position(|s| s.pci == f.pci && s.raster == raster) {
+                Some(i) => i,
+                None => {
+                    if self.si.len() >= SI_CELLS {
+                        self.si.remove(0);
+                    }
+                    self.si.push(SiRead {
+                        pci: f.pci,
+                        raster,
+                        seen_s: now,
+                        read_s: None,
+                        sib1_s: None,
+                        tag: None,
+                        missing: Vec::new(),
+                    });
+                    self.si.len() - 1
+                }
+            };
+            let s = &mut self.si[at];
+            s.seen_s = now;
+            if !si {
+                continue;
+            }
+            s.read_s = Some(now);
+            for msg in f.tbs.iter().filter_map(|t| Bcch::parse(&t.3)) {
+                match msg {
+                    Bcch::Sib1(b) => {
+                        if s.tag != Some(b.value_tag) {
+                            s.tag = Some(b.value_tag);
+                            s.sib1_s = Some(now);
+                            // The first entry of the list carries SIB2 without naming it. The warnings (SIB10 to SIB12) are
+                            // sent only while there is one.
+                            s.missing = b.scheduling.iter().flat_map(|(_, v)| v.iter().copied()).collect();
+                            s.missing.retain(|n| !(10..=12).contains(n));
+                            if !b.scheduling.is_empty() && !s.missing.contains(&2) {
+                                s.missing.push(2);
+                            }
+                        } else if !s.missing.is_empty() && s.sib1_s.is_some_and(|t| now - t >= SI_COLLECT_S) {
+                            // SIBs still not read: the later read looks for them again.
+                            s.sib1_s = Some(now);
+                        }
+                    }
+                    Bcch::Si(entries) => {
+                        for n in entries.iter().map(SibEntry::number) {
+                            s.missing.retain(|m| *m != n);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// Searches the capture for every cell it holds (see [`LteSearcher::bounded`]).
@@ -1992,9 +2153,10 @@ impl LteSearcher {
             humps: humps.clone(),
             ..Default::default()
         };
-        let cands = candidates(self, cap, &humps);
+        let (cands, share) = candidates(self, cap, &humps);
         out.candidates = cands.len();
         for c in cands {
+            (self.si_now, self.deep) = self.plan(cap, &c, share.is_some());
             let mut found = self.search_candidate(cap, c);
             if found.is_empty() && c.snapped && (c.raw_hz - c.offset_hz).abs() > 20e3 {
                 let raw = Cand {
@@ -2004,6 +2166,13 @@ impl LteSearcher {
                     raw_hz: c.raw_hz,
                 };
                 found = self.search_candidate(cap, raw);
+            }
+            let hz = cap.centre_hz + c.offset_hz;
+            if share.is_some() && found.is_empty() && !self.found_at.iter().any(|f| (f.0 - hz).abs() < 50e3) {
+                self.barren.push((hz, cap.end_time));
+            }
+            if self.bounded && cap.centre_known() {
+                self.note_si(cap.centre_hz + c.offset_hz, cap.end_time, self.reads_si(), &found);
             }
             for f in found {
                 let act = f.cand.offset_hz + f.cfo_hz;
@@ -2023,6 +2192,7 @@ impl LteSearcher {
                 self.found_at.push((hz, cap.end_time));
             }
         }
+        (self.si_now, self.deep) = (true, true);
         out.best_pss_db = self.best_db;
         out
     }
@@ -2062,6 +2232,75 @@ mod tests {
                 [other.clone(), v, other]
             })
             .collect()
+    }
+
+    /// A cell found with the transport blocks `msgs`.
+    fn found(pci: u16, msgs: Vec<Bcch>) -> LteFound {
+        LteFound {
+            cand: Cand { offset_hz: 0.0, range_hz: 25e3, snapped: true, raw_hz: 0.0 },
+            cfo_hz: 0.0,
+            clock_ppm: 0.0,
+            pci,
+            tdd: false,
+            ext: false,
+            mib: Some((Mib::default(), 2, 0)),
+            pss_db: 20.0,
+            sss_sig: 10.0,
+            rsrp_dbfs: -30.0,
+            rsrq_db: -10.0,
+            sinr_db: 20.0,
+            tbs: msgs.iter().map(|m| (0, 5, false, m.encode())).collect(),
+            crc_failures: 0,
+            dci_failed: 0,
+            decoded: None,
+            sync: None,
+        }
+    }
+
+    #[test]
+    fn the_system_information_of_a_followed_cell_is_read_until_complete_and_then_seldom() {
+        use super::super::gen::{scene, sib1_of, sib2_of};
+        let cell = scene(0, None);
+        let sib1 = |tag: u8| {
+            let mut b = sib1_of(&cell);
+            b.value_tag = tag;
+            b.scheduling = vec![(16, vec![]), (32, vec![3])];
+            Bcch::Sib1(Box::new(b))
+        };
+        let sib2 = || Bcch::Si(vec![SibEntry::Sib2(Box::new(sib2_of(&cell)))]);
+        let sib3 = || Bcch::Si(vec![SibEntry::Sib3(Default::default())]);
+        let hz = 806e6;
+        let mut s = LteSearcher::default();
+        let wanted = |s: &LteSearcher, now: f64| s.si.iter().any(|c| c.wanted(now));
+        // Seen without a read: the next capture reads.
+        s.note_si(hz, 0.2, false, &[found(7, vec![])]);
+        assert!(wanted(&s, 0.4));
+        // A read without SIB1 is tried again after SI_RETRY_S.
+        s.note_si(hz, 0.4, true, &[found(7, vec![])]);
+        assert!(!wanted(&s, 0.6));
+        assert!(wanted(&s, 0.41 + SI_RETRY_S));
+        // SIB1: every capture reads until SIB2 and SIB3 are in.
+        s.note_si(hz, 1.4, true, &[found(7, vec![sib1(4)])]);
+        assert_eq!(s.si[0].missing, [3, 2]);
+        assert!(!wanted(&s, 1.6));
+        assert!(wanted(&s, 1.8));
+        s.note_si(hz, 1.8, true, &[found(7, vec![sib2()])]);
+        assert!(wanted(&s, 2.2));
+        s.note_si(hz, 2.2, true, &[found(7, vec![sib3()])]);
+        assert!(s.si[0].missing.is_empty());
+        // Complete: the next read after SI_AGAIN_S.
+        assert!(!wanted(&s, 2.6));
+        assert!(!wanted(&s, 2.2 + SI_AGAIN_S - 0.1));
+        assert!(wanted(&s, 2.21 + SI_AGAIN_S));
+        // The same value tag: nothing is collected again. A new one: the SIBs are read again.
+        let t = 2.21 + SI_AGAIN_S;
+        s.note_si(hz, t, true, &[found(7, vec![sib1(4)])]);
+        assert!(!wanted(&s, t + 0.2));
+        s.note_si(hz, t + SI_AGAIN_S, true, &[found(7, vec![sib1(5)])]);
+        assert!(wanted(&s, t + SI_AGAIN_S + 0.4));
+        // A SIB that never comes is waited for SI_COLLECT_S at most.
+        s.note_si(hz, t + SI_AGAIN_S + SI_COLLECT_S - 0.1, true, &[found(7, vec![])]);
+        assert!(!wanted(&s, t + SI_AGAIN_S + SI_COLLECT_S + 0.4));
     }
 
     #[test]
