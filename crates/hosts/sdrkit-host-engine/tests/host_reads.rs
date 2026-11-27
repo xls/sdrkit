@@ -121,8 +121,12 @@ impl Reads {
         ]
     }
 
-    fn max(&self) -> f64 {
-        self.kinds().iter().map(|k| k.1.max()).fold(0.0, f64::max)
+    /// The number of reads that took over `ms` milliseconds.
+    fn slow(&self, ms: f64) -> usize {
+        self.kinds()
+            .iter()
+            .map(|k| k.1 .0.iter().filter(|x| x.1 > ms).count())
+            .sum()
     }
 
     fn print(&self) {
@@ -258,9 +262,8 @@ static ROWS: TableDef = TableDef {
     cap: 16,
     marks: sdrkit_core::RowMarks::NONE,
 };
-/// The blocks that the pacers were fed, and the time they worked on them in nanoseconds.
+/// The blocks that the pacers were fed.
 static FEEDS: AtomicU64 = AtomicU64::new(0);
-static WORK_NS: AtomicU64 = AtomicU64::new(0);
 /// While set, a pacer stays in the block it works on. `HELD` says that one does.
 static HOLD: AtomicBool = AtomicBool::new(false);
 static HELD: AtomicBool = AtomicBool::new(false);
@@ -299,7 +302,6 @@ impl Receiver for Pacer {
             out.events.push(TICK.event(0.0, 0.0).set(&N, number));
         }
         FEEDS.fetch_add(1, Ordering::Relaxed);
-        WORK_NS.fetch_add(t.elapsed().as_nanos() as u64, Ordering::Relaxed);
         // A test holds the block, for a minute at most.
         let held = || HOLD.load(Ordering::Acquire) || self.n >= STOP_AT.load(Ordering::Acquire);
         while held() && t.elapsed() < Duration::from_secs(60) {
@@ -350,6 +352,12 @@ const RATE: f64 = 250e3;
 
 /// An engine with the pacer stack and the FM stack, and a pacer session on the tone signal with its spectrum on.
 fn pacer_engine() -> (Engine, RadioId, SessionId) {
+    pacer_engine_paced(false)
+}
+
+/// As [`pacer_engine`]; with `benchmark` the tone plays as fast as the pacer takes it, so a block always waits for the
+/// session.
+fn pacer_engine_paced(benchmark: bool) -> (Engine, RadioId, SessionId) {
     let e = Engine::new(Setup {
         facilities: Facilities {
             storage: Arc::new(MemStorage::new()),
@@ -364,6 +372,9 @@ fn pacer_engine() -> (Engine, RadioId, SessionId) {
     })
     .unwrap();
     let radio = tone_radio(&e, RATE);
+    if benchmark {
+        set(&e, OwnerRef::Radio(radio), "benchmark", Value::Bool(true));
+    }
     let values = Values::defaults(&(PACER.settings)());
     let id = e
         .start_stack("pacer", None, &values, Input::Radio(radio), None)
@@ -376,33 +387,25 @@ fn pacer_engine() -> (Engine, RadioId, SessionId) {
     (e, radio, id)
 }
 
-/// What the pacer session of `e` did in `time`: the blocks a second, the mean time of a block in milliseconds, and the
-/// share of its samples that it lost.
-fn pace(e: &Engine, id: SessionId, time: Duration) -> (f64, f64, f64) {
-    let s = OwnerRef::Session(id);
-    let at = || {
-        (
-            FEEDS.load(Ordering::Relaxed) as f64,
-            WORK_NS.load(Ordering::Relaxed) as f64,
-            number(e, s, DROPPED.key),
-            number(e, s, SAMPLES.key),
-        )
-    };
-    let a = at();
-    std::thread::sleep(time);
-    let b = at();
-    let blocks = (b.0 - a.0).max(1.0);
-    (
-        blocks / time.as_secs_f64(),
-        (b.1 - a.1) / blocks / 1e6,
-        (b.2 - a.2) / (b.3 - a.3 + b.2 - a.2).max(1.0),
-    )
+/// Waits up to 10 s for the pacers to take `n` more blocks. Returns false if they did not.
+fn pacers_go_on(n: u64) -> bool {
+    let at = FEEDS.load(Ordering::Relaxed);
+    wait_for(10.0, || {
+        (FEEDS.load(Ordering::Relaxed) >= at + n).then_some(())
+    })
+    .is_some()
 }
 
+/// A host thread that reads a session and every other owner in a tight loop does not slow the session, and a host that
+/// stops inside a read does not hold it up. The pacer takes every block as soon as it can, so its rate shows any wait
+/// of the session thread. Phases with the reads alternate with control phases in which the same thread spins without
+/// a read, so the processor load, the cores and the clock speed are alike in both. Each phase with the reads is set
+/// against the mean of the control phases before and after it, and the median of these ratios counts: the scheduler
+/// slows single phases, reads that cost the session time slow every phase.
 #[test]
 fn a_reader_in_a_tight_loop_does_not_slow_the_session() {
     let _alone = ALONE.lock().unwrap_or_else(|p| p.into_inner());
-    let (e, radio, id) = pacer_engine();
+    let (e, radio, id) = pacer_engine_paced(true);
     // A session of a graph, for the reads of a stack with components, tables and audio.
     let synth = e.find("driver.synth").unwrap();
     let fm_radio = e
@@ -422,23 +425,43 @@ fn a_reader_in_a_tight_loop_does_not_slow_the_session() {
         e.find("service.record").unwrap(),
         component,
     ];
-    let quiet = pace(&e, id, Duration::from_secs(4));
+    // A host that stops inside a read of each owner: the session takes its blocks meanwhile.
+    for r in [OwnerRef::Session(id), OwnerRef::Stack(id)]
+        .into_iter()
+        .chain(others)
+    {
+        assert!(
+            e.owner(r, |_| pacers_go_on(20)).unwrap(),
+            "a read of {r:?} held up the session"
+        );
+    }
+    const PHASES: usize = 13;
+    const PHASE: Duration = Duration::from_millis(750);
     let stop = AtomicBool::new(false);
-    let (busy, reads, pause) = std::thread::scope(|scope| {
-        // The longest time that the scheduler keeps a thread that calls nothing off its processor, in milliseconds.
+    let reading = AtomicBool::new(false);
+    // The blocks a second of each phase. The reader reads in the odd ones.
+    let mut rates: Vec<f64> = Vec::new();
+    let (reads, slow_pauses) = std::thread::scope(|scope| {
+        // The pauses over 5 ms of a thread that calls nothing, while the reader reads: what the scheduler takes.
         let idle = scope.spawn(|| {
-            let (mut last, mut pause) = (Instant::now(), 0.0f64);
+            let (mut last, mut n) = (Instant::now(), 0usize);
             while !stop.load(Ordering::Relaxed) {
                 let now = Instant::now();
-                pause = pause.max((now - last).as_secs_f64() * 1e3);
+                if reading.load(Ordering::Relaxed) && now - last > Duration::from_millis(5) {
+                    n += 1;
+                }
                 last = now;
             }
-            pause
+            n
         });
         let reader = scope.spawn(|| {
             let mut reads = Reads::default();
             let start = Instant::now();
             while !stop.load(Ordering::Relaxed) {
+                if !reading.load(Ordering::Relaxed) {
+                    std::hint::spin_loop();
+                    continue;
+                }
                 reads.frame(&e, id, start);
                 reads.frame(&e, fm, start);
                 for r in others {
@@ -450,23 +473,44 @@ fn a_reader_in_a_tight_loop_does_not_slow_the_session() {
             }
             reads
         });
-        let busy = pace(&e, id, Duration::from_secs(10));
+        for i in 0..PHASES {
+            let on = i % 2 == 1;
+            reading.store(on, Ordering::Relaxed);
+            // The block that runs at the switch belongs to neither phase.
+            std::thread::sleep(Duration::from_millis(100));
+            let (n, t) = (FEEDS.load(Ordering::Relaxed), Instant::now());
+            std::thread::sleep(PHASE);
+            let rate = (FEEDS.load(Ordering::Relaxed) - n) as f64 / t.elapsed().as_secs_f64();
+            rates.push(rate);
+        }
         stop.store(true, Ordering::Relaxed);
-        (busy, reader.join().unwrap(), idle.join().unwrap())
+        (reader.join().unwrap(), idle.join().unwrap())
     });
     reads.print();
-    println!("PACE quiet: {quiet:?} with the reader: {busy:?} (blocks/s, ms per block, share lost); pause {pause} ms");
-    assert!(reads.session.0.len() > 1000, "the reader ran");
-    // A read takes under 5 ms, beside what the scheduler takes from the reader and from a thread that holds a lock.
-    let limit = 5.0 + 2.0 * pause;
-    assert!(
-        reads.max() < limit,
-        "the slowest read took {} ms, the limit is {limit} ms",
-        reads.max()
+    let mut ratios: Vec<f64> = (1..PHASES)
+        .step_by(2)
+        .map(|i| rates[i] / ((rates[i - 1] + rates[i + 1]) / 2.0))
+        .collect();
+    ratios.sort_by(f64::total_cmp);
+    let ratio = ratios[ratios.len() / 2];
+    let lost = number(&e, OwnerRef::Session(id), DROPPED.key);
+    let slow_reads = reads.slow(5.0);
+    println!(
+        "PACE blocks/s by phase {rates:.1?}; ratios {ratios:.3?}; reads over 5 ms {slow_reads}, idle pauses over 5 ms \
+         {slow_pauses}; lost {lost}"
     );
-    assert!(busy.0 >= quiet.0 * 0.95, "{busy:?} against {quiet:?}");
-    assert!(busy.1 <= quiet.1 * 1.25 + 0.1, "{busy:?} against {quiet:?}");
-    assert!(busy.2 <= quiet.2 + 0.001, "{busy:?} against {quiet:?}");
+    assert!(reads.session.0.len() > 1000, "the reader ran");
+    assert!(
+        ratio >= 0.8,
+        "the reads slowed the session to {ratio:.3} of its rate: {rates:.1?}"
+    );
+    assert_eq!(lost, 0.0, "the session lost samples");
+    // A read that waited for the session would wait at every block, a hundred times a second. The reader and the idle
+    // thread spin alike, so the scheduler stops them alike.
+    assert!(
+        slow_reads <= 3 * slow_pauses + 20,
+        "{slow_reads} reads took over 5 ms, against {slow_pauses} pauses of a thread that calls nothing"
+    );
 }
 
 #[test]
@@ -518,22 +562,6 @@ fn a_read_returns_while_the_session_works_on_a_block() {
     HOLD.store(false, Ordering::Release);
     assert!(held, "the reads took {took:?} and waited for the block");
     assert!(took < Duration::from_secs(1), "the reads took {took:?}");
-}
-
-#[test]
-fn the_session_works_on_its_blocks_while_a_read_is_open() {
-    let _alone = ALONE.lock().unwrap_or_else(|p| p.into_inner());
-    let (e, _, id) = pacer_engine();
-    for r in [OwnerRef::Stack(id), OwnerRef::Session(id)] {
-        // Three blocks while the read stays open, at any speed of the machine.
-        let fed = e
-            .owner(r, |_| {
-                let before = FEEDS.load(Ordering::Relaxed);
-                wait_for(60.0, || (FEEDS.load(Ordering::Relaxed) >= before + 3).then_some(()))
-            })
-            .unwrap();
-        assert!(fed.is_some(), "the session fed no 3 blocks while a read of {r:?} was open");
-    }
 }
 
 #[test]

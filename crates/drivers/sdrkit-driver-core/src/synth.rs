@@ -1,7 +1,7 @@
 //! The test-signal driver: plays a [`Generator`], paced like a file, with a gain model and 8-bit quantisation that give the
 //! signal the grain and clipping of a low-cost radio.
 
-use crate::paced::{PacedWriter, Pacing, BENCHMARK, BLOCK, PACE};
+use crate::paced::{PacedWriter, Pacing, SystemClock, Time, BENCHMARK, BLOCK, PACE};
 use crate::{
     Capabilities, Doing, DriverDescriptor, DriverError, Link, Retuned, RingWriter, Source,
     SourceDriver, Started, StreamFormat, CENTRE, RATE,
@@ -196,6 +196,39 @@ impl SynthDriver {
     pub fn new(factory: Arc<dyn GeneratorFactory>) -> Self {
         SynthDriver { factory }
     }
+
+    /// The test signal that [`SourceDriver::open`] opens.
+    fn source(&self, address: &str, values: &Values) -> Result<SynthSource, DriverError> {
+        let stack = stack_of(address);
+        let settings = self.settings_at(address)?;
+        let caps = Capabilities {
+            name: "Test signal".into(),
+            min_freq_hz: 0.0,
+            max_freq_hz: 1e12,
+            ..Default::default()
+        };
+        let inputs = inputs_of(&self.factory, stack, values);
+        Ok(SynthSource {
+            caps,
+            factory: self.factory.clone(),
+            stack: stack.into(),
+            settings,
+            wanted: Arc::new(Wanted {
+                now: Mutex::new(Want {
+                    values: values.clone(),
+                    inputs,
+                    version: 0,
+                    taken: 0,
+                    ended: false,
+                }),
+                taken: Condvar::new(),
+                cut: AtomicBool::new(false),
+            }),
+            stop: Arc::new(AtomicBool::new(false)),
+            thread: None,
+            time: Arc::new(SystemClock),
+        })
+    }
 }
 
 /// The scale of the gain model: 10^((G - 62) / 20) with G = LNA + VGA + 14 if the amplifier is on.
@@ -284,34 +317,7 @@ impl SourceDriver for SynthDriver {
     ///
     /// [`DriverError::Address`] if the factory has no test signal for the stack.
     fn open(&self, address: &str, values: &Values) -> Result<Box<dyn Source>, DriverError> {
-        let stack = stack_of(address);
-        let settings = self.settings_at(address)?;
-        let caps = Capabilities {
-            name: "Test signal".into(),
-            min_freq_hz: 0.0,
-            max_freq_hz: 1e12,
-            ..Default::default()
-        };
-        let inputs = inputs_of(&self.factory, stack, values);
-        Ok(Box::new(SynthSource {
-            caps,
-            factory: self.factory.clone(),
-            stack: stack.into(),
-            settings,
-            wanted: Arc::new(Wanted {
-                now: Mutex::new(Want {
-                    values: values.clone(),
-                    inputs,
-                    version: 0,
-                    taken: 0,
-                    ended: false,
-                }),
-                taken: Condvar::new(),
-                cut: AtomicBool::new(false),
-            }),
-            stop: Arc::new(AtomicBool::new(false)),
-            thread: None,
-        }))
+        Ok(Box::new(self.source(address, values)?))
     }
 
     /// The settings of the test signal of the stack ([`GeneratorFactory::settings`]) whose key the kind does not have.
@@ -340,6 +346,8 @@ pub struct SynthSource {
     wanted: Arc<Wanted>,
     stop: Arc<AtomicBool>,
     thread: Option<JoinHandle<()>>,
+    /// The clock of the thread.
+    time: Arc<dyn Time>,
 }
 
 /// The settings that a test signal plays, shared by the source and its thread.
@@ -421,9 +429,15 @@ impl Source for SynthSource {
             self.factory.clone(),
             self.stack.clone(),
         );
+        let out = PacedWriter::with_time(
+            sink,
+            DEFAULT_RATE_HZ,
+            Pacing::RealTime(1.0),
+            self.time.clone(),
+        );
         let t = std::thread::Builder::new()
             .name("sdrkit-synth".into())
-            .spawn(move || play(sink, &wanted, &stop, &factory, &stack))
+            .spawn(move || play(out, &wanted, &stop, &factory, &stack))
             .map_err(|_| DriverError::Thread)?;
         self.thread = Some(t);
         Ok(self.started())
@@ -486,10 +500,10 @@ impl Drop for SynthSource {
     }
 }
 
-/// The thread of a test signal: makes the signal of the last version of [`Wanted`] and writes it into `sink` until
+/// The thread of a test signal: makes the signal of the last version of [`Wanted`] and writes it through `out` until
 /// `stop`. It takes a new version before each block, and at once when [`Wanted::cut`] ends the block it is writing.
 fn play(
-    sink: RingWriter,
+    mut out: PacedWriter,
     wanted: &Wanted,
     stop: &AtomicBool,
     factory: &Arc<dyn GeneratorFactory>,
@@ -504,7 +518,6 @@ fn play(
         quantize: true,
         scale: None,
     };
-    let mut out = PacedWriter::new(sink, DEFAULT_RATE_HZ, opts.pacing);
     let mut block = vec![Complex32::default(); BLOCK];
     let mut noise = ConverterNoise(0x9E37_79B9_7F4A_7C15);
     loop {
@@ -571,6 +584,7 @@ fn play(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::paced::SLICE;
     use crate::ring;
     use crate::testing::values;
     use sdrkit_core::{Schema, Value};
@@ -942,29 +956,137 @@ mod tests {
         assert!(took < Duration::from_millis(100), "{took:?}");
     }
 
+    /// A clock that moves only when the test moves it. A thread that sleeps on it waits until the time reaches the end
+    /// of its sleep; once free, a sleep moves the time to its end at once.
+    struct Stepped {
+        base: Instant,
+        at: Mutex<Steps>,
+        moved: Condvar,
+    }
+
+    #[derive(Default)]
+    struct Steps {
+        now: Duration,
+        /// The end of the sleep of the thread that sleeps now.
+        until: Option<Duration>,
+        free: bool,
+    }
+
+    impl Time for Stepped {
+        fn now(&self) -> Instant {
+            self.base + lock(&self.at).now
+        }
+        fn sleep(&self, d: Duration) {
+            let mut s = lock(&self.at);
+            let until = s.now + d;
+            if s.free {
+                s.now = until;
+                return;
+            }
+            s.until = Some(until);
+            self.moved.notify_all();
+            let mut s = self
+                .moved
+                .wait_while(s, |s| s.now < until && !s.free)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            s.until = None;
+        }
+    }
+
+    impl Stepped {
+        fn new() -> Arc<Stepped> {
+            Arc::new(Stepped {
+                base: Instant::now(),
+                at: Mutex::default(),
+                moved: Condvar::new(),
+            })
+        }
+
+        /// Waits until a thread sleeps on the clock.
+        fn asleep(&self) -> std::sync::MutexGuard<'_, Steps> {
+            let (s, out) = self
+                .moved
+                .wait_timeout_while(lock(&self.at), Duration::from_secs(10), |s| {
+                    s.until.is_none()
+                })
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            assert!(!out.timed_out(), "the thread does not sleep");
+            s
+        }
+
+        /// Waits until a thread sleeps, then moves the time to the end of its sleep. Returns how far the time moved.
+        fn wake(&self) -> Duration {
+            let mut s = self.asleep();
+            let until = s.until.take().unwrap_or(s.now);
+            let d = until - s.now;
+            s.now = until;
+            self.moved.notify_all();
+            d
+        }
+    }
+
+    /// Lets the clock run free when dropped, so that a source on it can stop.
+    struct Free(Arc<Stepped>);
+
+    impl Drop for Free {
+        fn drop(&mut self) {
+            lock(&self.0.at).free = true;
+            self.0.moved.notify_all();
+        }
+    }
+
     #[test]
     fn at_a_low_rate_a_remake_ends_the_wait_for_the_time_of_a_block() {
         let d = driver(None);
         let base = [("rate", Value::Hz(48e3)), ("quantize", Value::Bool(false))];
-        let mut src = d.open("ramp", &values(&d, &base)).unwrap();
-        // A ring larger than a block: the thread has written its block and waits 683 ms for its time.
+        let mut src = d.source("ramp", &values(&d, &base)).unwrap();
+        let clock = Stepped::new();
+        src.time = clock.clone();
+        let free = Free(clock.clone());
+        // A ring larger than a block: the thread writes its block, then sleeps for the 683 ms of its time.
         let (w, mut r) = cf32(BLOCK * 4);
-        let stats = w.stats();
         src.start(w).unwrap();
-        assert_eq!(r.wait(BLOCK, Duration::from_secs(2)), BLOCK);
-        std::thread::sleep(Duration::from_millis(20));
+        drop(clock.asleep());
+        assert_eq!(r.available(), BLOCK);
         let mut set = base.to_vec();
         set.push(("lna_gain", Value::I64(10)));
-        let t = Instant::now();
-        src.apply(&values(&d, &set)).unwrap();
-        let took = t.elapsed();
-        let at = usize::try_from(stats.written()).unwrap();
-        assert!(r.wait(at + 2, Duration::from_secs(2)) >= at + 2);
-        let mut buf = vec![Complex32::default(); at + 2];
-        assert_eq!(r.read_iq(&mut buf), at + 2);
+        let v = values(&d, &set);
+        let wanted = src.wanted.clone();
+        let slept = std::thread::scope(|s| {
+            let _free = Free(clock.clone());
+            let apply = s.spawn(|| src.apply(&v).unwrap());
+            // The call marks the remake, then waits for the thread to take it.
+            while lock(&wanted.now).version == 0 {
+                std::thread::yield_now();
+            }
+            // Each turn ends one sleep of the thread and waits for the next: of the old block, or of the new one once the
+            // thread has taken the remake.
+            let mut slept = Duration::ZERO;
+            for _ in 0..100 {
+                if lock(&wanted.now).taken == 1 {
+                    break;
+                }
+                slept += clock.wake();
+                drop(clock.asleep());
+            }
+            apply.join().unwrap();
+            slept
+        });
+        assert!(
+            slept <= SLICE,
+            "the remake waited {slept:?} of the time of the block"
+        );
+        // The block of the old signal, then the new ramp from its start.
+        assert_eq!(r.available(), 2 * BLOCK);
+        let mut buf = vec![Complex32::default(); BLOCK + 2];
+        assert_eq!(r.read_iq(&mut buf), BLOCK + 2);
+        drop(free);
         src.stop();
-        assert_eq!([buf[at].re, buf[at + 1].re], [0.0, 1.0 / 512.0], "old samples after the call");
-        assert!(took < Duration::from_millis(100), "{took:?}");
+        assert_eq!(
+            [buf[BLOCK].re, buf[BLOCK + 1].re],
+            [0.0, 1.0 / 512.0],
+            "old samples after the call"
+        );
     }
 
     /// A factory of a ramp whose make waits for [`Gated::go`], whose wanted inputs hold the radio centre as the tuned

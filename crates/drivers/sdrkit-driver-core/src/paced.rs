@@ -5,6 +5,7 @@ use sdrkit_core::publish::field;
 use sdrkit_core::{Complex32, Hz};
 use sdrkit_core::{Setting, Values};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 /// The speed of the playback: 1 is real time, lower values are slow motion.
@@ -44,6 +45,27 @@ impl Pacing {
     }
 }
 
+/// The time of a paced writer: the clock it reads and how it waits.
+pub(crate) trait Time: Send + Sync {
+    fn now(&self) -> Instant;
+    fn sleep(&self, d: Duration);
+}
+
+/// The system clock.
+pub(crate) struct SystemClock;
+
+impl Time for SystemClock {
+    fn now(&self) -> Instant {
+        Instant::now()
+    }
+    fn sleep(&self, d: Duration) {
+        std::thread::sleep(d);
+    }
+}
+
+/// The longest single wait of a writer, so that a stop or a cut ends a wait in time.
+pub(crate) const SLICE: Duration = Duration::from_millis(20);
+
 /// Writes blocks into the ring at a pace, waiting for room (1 ms steps) so nothing is ever dropped.
 pub struct PacedWriter {
     writer: RingWriter,
@@ -51,17 +73,29 @@ pub struct PacedWriter {
     pacing: Pacing,
     anchor: Instant,
     sent: u64,
+    time: Arc<dyn Time>,
 }
 
 impl PacedWriter {
     /// A writer at `rate_hz`; the clock is anchored now.
     pub fn new(writer: RingWriter, rate_hz: Hz, pacing: Pacing) -> Self {
+        Self::with_time(writer, rate_hz, pacing, Arc::new(SystemClock))
+    }
+
+    /// A writer at `rate_hz` on the clock `time`, anchored now.
+    pub(crate) fn with_time(
+        writer: RingWriter,
+        rate_hz: Hz,
+        pacing: Pacing,
+        time: Arc<dyn Time>,
+    ) -> Self {
         PacedWriter {
             writer,
             rate: rate_hz,
             pacing,
-            anchor: Instant::now(),
+            anchor: time.now(),
             sent: 0,
+            time,
         }
     }
 
@@ -69,7 +103,7 @@ impl PacedWriter {
     pub fn reanchor(&mut self, rate_hz: Hz, pacing: Pacing) {
         self.rate = rate_hz;
         self.pacing = pacing;
-        self.anchor = Instant::now();
+        self.anchor = self.time.now();
         self.sent = 0;
     }
 
@@ -105,7 +139,7 @@ impl PacedWriter {
             let queued = self.writer.capacity() - self.writer.room();
             let room = limit.saturating_sub(queued).min(self.writer.room());
             if room == 0 {
-                std::thread::sleep(Duration::from_millis(1));
+                self.time.sleep(Duration::from_millis(1));
                 continue;
             }
             done += write(&mut self.writer, done, (len - done).min(room));
@@ -120,11 +154,11 @@ impl PacedWriter {
                     if stop.load(Ordering::Acquire) {
                         return false;
                     }
-                    let now = Instant::now();
+                    let now = self.time.now();
                     if now >= due {
                         break;
                     }
-                    std::thread::sleep((due - now).min(Duration::from_millis(20)));
+                    self.time.sleep((due - now).min(SLICE));
                 }
             }
         }
