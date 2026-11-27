@@ -1,4 +1,6 @@
 //! Z-Wave (`zwave`): every channel of the `channels` setting in the capture, MPDUs at R1, R2 and R3, and tables of networks, nodes and commands.
+//! The channels ask for the least rate that holds them all; at a lower rate the capture holds the first channels of the list,
+//! and the status names the others.
 //! Security S0 and S2 payloads are shown as encrypted and never decoded.
 //!
 //! Standard: ITU-T G.9959 (PHY and MAC)
@@ -33,10 +35,10 @@ use sdrkit_core::publish::{field, Published};
 use sdrkit_core::AutoGain;
 use sdrkit_core::SignalType;
 use sdrkit_core::{
-    Complex32, ConfigError, Event, GenConfig, Generator, LockProfile, LockState, Receiver, Record,
-    Results, ResultsDecl, Setting, SettingError, SettingId, SettingSet, SignalInfo, StackConfig,
-    StackDescriptor, StateBlob, StateError, Status, TableId, Tuning, Value, Values, VerifyCase,
-    VerifyHooks, VerifyOptions,
+    Complex32, ConfigError, Event, GenConfig, Generator, HostRequest, LockProfile, LockState,
+    Receiver, Record, Results, ResultsDecl, Setting, SettingError, SettingId, SettingSet,
+    SignalInfo, StackConfig, StackDescriptor, StateBlob, StateError, Status, TableId, Tuning,
+    Value, Values, VerifyCase, VerifyHooks, VerifyOptions,
 };
 use sdrkit_graph::Catalog;
 use sdrkit_graph::{
@@ -56,7 +58,7 @@ use std::sync::Arc;
 
 /// The least sample rate of the stack.
 pub const MIN_RATE_HZ: f64 = 1e6;
-/// The sample rate the stack asks for: it holds channels up to about 1.7 MHz apart with the width of their signals.
+/// The sample rate the stack asks for without a channel list, and the least that a list asks for ([`covering_rate`]).
 pub const RATE_HZ: f64 = 2.4e6;
 /// Frames kept in the log.
 pub const FRAMES_CAP: usize = 600;
@@ -140,6 +142,160 @@ pub fn groups(channels: &[(f64, u8)], centre: f64, rate: f64) -> Vec<Group> {
         }
     }
     g
+}
+
+/// A channel lies inside a capture when it is less than this share of the rate from the centre (spec 6.2).
+const COVER: f64 = 0.45;
+/// The room a planned capture keeps on each side of a channel: the half width of the signal and a guard.
+const EDGE_HZ: f64 = 250e3;
+/// A planned centre keeps at least this far from a channel, so the DC spike of the radio stays off it.
+const DC_GUARD_HZ: f64 = 150e3;
+/// How far a planned centre moves off a channel that it would sit on.
+const DC_SHIFT_HZ: f64 = 400e3;
+
+/// The channel groups of `channels` in order of preference (the order of the list), each as its channel frequencies:
+/// channels within 60 kHz of the first channel of a group share it.
+fn group_freqs(channels: &[(f64, u8)]) -> Vec<Vec<f64>> {
+    let mut g: Vec<Vec<f64>> = Vec::new();
+    for &(f, _) in channels {
+        match g.iter_mut().find(|x| (x[0] - f).abs() <= 60e3) {
+            Some(x) => x.push(f),
+            None => g.push(vec![f]),
+        }
+    }
+    g
+}
+
+/// The lowest and the highest frequency of `channels`; `None` for an empty list.
+fn span(channels: &[(f64, u8)]) -> Option<(f64, f64)> {
+    let lo = channels.iter().map(|c| c.0).reduce(f64::min)?;
+    let hi = channels.iter().map(|c| c.0).reduce(f64::max)?;
+    Some((lo, hi))
+}
+
+/// A capture planned for a list of channels.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Capture {
+    /// The frequency to tune, Hz.
+    pub centre_hz: f64,
+    /// The sample rate, Hz.
+    pub rate_hz: f64,
+    /// The channel groups that the capture holds with room, each as its channel frequencies.
+    pub kept: Vec<Vec<f64>>,
+    /// The channel groups left out.
+    pub left: Vec<Vec<f64>>,
+}
+
+/// The least rate that holds every channel of `channels` with room: (span / 2 + room) / 0.45, rounded up to 0.1 MHz, and
+/// at least [`RATE_HZ`]. [`RATE_HZ`] for an empty list.
+pub fn covering_rate(channels: &[(f64, u8)]) -> f64 {
+    let Some((lo, hi)) = span(channels) else {
+        return RATE_HZ;
+    };
+    let need = ((hi - lo) / 2.0 + EDGE_HZ) / COVER;
+    ((need / 1e5 - 1e-9).ceil() * 1e5).max(RATE_HZ)
+}
+
+/// The capture at `rate` that holds the most preferred channels: the groups in order, each kept when it fits with the
+/// groups kept before it. The centre is the middle of the kept channels; when channels are left out, it moves off a
+/// channel that it would sit on.
+pub fn capture_at(channels: &[(f64, u8)], rate: f64) -> Capture {
+    let reach = COVER * rate - EDGE_HZ;
+    let (mut kept, mut left) = (Vec::<Vec<f64>>::new(), Vec::new());
+    let (mut lo, mut hi) = (f64::INFINITY, f64::NEG_INFINITY);
+    for g in group_freqs(channels) {
+        let glo = g.iter().copied().fold(lo, f64::min);
+        let ghi = g.iter().copied().fold(hi, f64::max);
+        if ghi - glo <= 2.0 * reach.max(0.0) + 1.0 {
+            (lo, hi) = (glo, ghi);
+            kept.push(g);
+        } else {
+            left.push(g);
+        }
+    }
+    let mut centre = if lo.is_finite() { (lo + hi) / 2.0 } else { 0.0 };
+    let fits = |c: f64| kept.iter().flatten().all(|f| (f - c).abs() <= reach + 1.0);
+    let on_channel = kept
+        .iter()
+        .flatten()
+        .any(|f| (f - centre).abs() < DC_GUARD_HZ);
+    let off = [centre - DC_SHIFT_HZ, centre + DC_SHIFT_HZ];
+    if let Some(c) = off
+        .into_iter()
+        .find(|&c| on_channel && !left.is_empty() && fits(c))
+    {
+        centre = c;
+    }
+    Capture {
+        centre_hz: centre,
+        rate_hz: rate,
+        kept,
+        left,
+    }
+}
+
+/// The capture that holds every channel of `channels`: [`capture_at`] at [`covering_rate`].
+pub fn capture(channels: &[(f64, u8)]) -> Capture {
+    capture_at(channels, covering_rate(channels))
+}
+
+/// The rate that the `channels` setting asks for: [`covering_rate`] of its list; 0 (the rate of the stack) for an empty or
+/// malformed list.
+fn channels_rate(v: &Value) -> f64 {
+    match v {
+        Value::Text(t) => parse_channels(t)
+            .filter(|l| !l.is_empty())
+            .map_or(0.0, |l| covering_rate(&l)),
+        _ => 0.0,
+    }
+}
+
+/// A frequency in MHz with two decimals at most and one at least ("908.4", "869.85").
+fn mhz(hz: f64) -> String {
+    let t = format!("{:.2}", hz / 1e6);
+    match t.strip_suffix('0') {
+        Some(s) if !s.ends_with('.') => s.to_owned(),
+        _ => t,
+    }
+}
+
+/// "a", "a and b", "a, b and c".
+fn and_list(items: &[String]) -> String {
+    match items {
+        [] => String::new(),
+        [a] => a.clone(),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+    }
+}
+
+/// What the status says when the capture at `centre` and `rate` leaves out channels of `channels`: how far apart they are,
+/// the rate that covers all, and the channels received. Empty when every channel is inside.
+pub fn coverage_note(channels: &[(f64, u8)], centre: f64, rate: f64) -> String {
+    let groups = group_freqs(channels);
+    let lowest = |g: &Vec<f64>| g.iter().copied().fold(f64::INFINITY, f64::min);
+    let inside: Vec<String> = groups
+        .iter()
+        .filter(|g| g.iter().any(|f| (f - centre).abs() < COVER * rate))
+        .map(|g| mhz(lowest(g)))
+        .collect();
+    if inside.len() == groups.len() {
+        return String::new();
+    }
+    let all: Vec<String> = groups.iter().map(|g| mhz(lowest(g))).collect();
+    let (lo, hi) = span(channels).unwrap_or_default();
+    let got = match inside.len() {
+        0 => "none is received".to_owned(),
+        1 => format!("only {} MHz is received", inside[0]),
+        _ => format!("only {} MHz are received", and_list(&inside)),
+    };
+    format!(
+        "channels {} MHz are {} MHz apart: {:.1} Msps covers {}; at {:.1} Msps {got}",
+        and_list(&all),
+        mhz(hi - lo),
+        covering_rate(channels) / 1e6,
+        if groups.len() == 2 { "both" } else { "all" },
+        rate / 1e6,
+    )
 }
 
 /// A burst from one group (`zw.burst`).
@@ -308,6 +464,10 @@ impl GroupChain {
     }
 }
 
+/// Seconds of samples at one format before the stack asks to move the capture: the host sets the rate that the channels
+/// ask for at the start, and the first samples can still be at the rate before.
+const MOVE_WAIT_S: f64 = 1.0;
+
 /// `zw.groups`: one front end and burst detector for each channel group.
 #[derive(Default)]
 pub struct Groups {
@@ -315,8 +475,16 @@ pub struct Groups {
     channels_text: String,
     chains: Vec<GroupChain>,
     centre: f64,
+    rate: f64,
     plan: Option<Plan>,
     out: Vec<ZwBurst>,
+    live: bool,
+    /// The centre to ask for once enough samples came at this format.
+    move_to: Option<f64>,
+    waited: usize,
+    /// The channels, rate and centre of the last request: the stack asks once for each.
+    asked: Option<(String, u64, u64)>,
+    key: (String, u64, u64),
 }
 
 /// What the tables need to know about the channels (`zw.plan`): sent once after each configure.
@@ -324,6 +492,8 @@ pub struct Groups {
 pub struct Plan {
     /// Every channel in use: (frequency, rate, covered).
     pub channels: Vec<(f64, u8, bool)>,
+    /// The note of [`coverage_note`]; empty when every channel is inside.
+    pub note: String,
 }
 
 impl Item for Plan {
@@ -335,7 +505,8 @@ pub const CHANNELS: Setting<field::Text> = Setting::new("channels", "Channels", 
     "Entries separated by \";\", each the frequency in Hz and the rates on it (1, 2, 3) separated by \"/\", for example \
      \"868420000/1;868400000/2;869850000/3\". At most 64 entries. Empty: one channel at the tuned frequency with the three \
      rates.",
-);
+)
+.sets_rate(channels_rate);
 
 /// Reads [`CHANNELS`] from `v`: the text and its channels.
 fn read_channels(id: SettingId, v: &Value) -> Result<(String, Vec<(f64, u8)>), SettingError> {
@@ -352,6 +523,29 @@ sdrkit_core::settings! {
     }
 }
 
+impl Groups {
+    /// The centre to ask for at the present rate, when the capture holds no channel of the list, or when it is at the
+    /// centre of the whole list (the host tuned the region) and the rate is too low for it: the centre of
+    /// [`capture_at`], if that holds a channel that the capture misses and lies outside the capture (a frequency inside
+    /// it moves the session, not the radio). `None` otherwise: a frequency that the user chose and that holds a channel
+    /// stays.
+    fn wanted_move(&self, tuned: f64) -> Option<f64> {
+        if self.channels.is_empty() || self.rate <= 0.0 {
+            return None;
+        }
+        let inside = |f: f64| (f - self.centre).abs() < COVER * self.rate;
+        let none = !self.channels.iter().any(|c| inside(c.0));
+        let at_whole = (tuned - capture(&self.channels).centre_hz).abs() < 1e3;
+        if !(none || at_whole) {
+            return None;
+        }
+        let best = capture_at(&self.channels, self.rate);
+        let more = best.kept.iter().flatten().any(|&f| !inside(f));
+        let outside = (best.centre_hz - self.centre).abs() >= COVER * self.rate;
+        (more && outside).then_some(best.centre_hz)
+    }
+}
+
 impl Component for Groups {
     fn info(&self) -> ComponentInfo {
         ComponentInfo::processor(
@@ -360,6 +554,7 @@ impl Component for Groups {
             vec![
                 Port::typed::<ZwBurst>("bursts").rate_from(RateFrom::Fixed(0.0)),
                 Port::typed::<Plan>("plan").rate_from(RateFrom::Fixed(0.0)),
+                Port::typed::<HostRequest>("requests").rate_from(RateFrom::Fixed(0.0)),
             ],
         )
         .with_settings(GroupsSetting::schema())
@@ -367,6 +562,7 @@ impl Component for Groups {
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         let f = &inputs[0];
         self.centre = f.centre_hz;
+        self.rate = f.rate;
         let channels = channels_or_centre(&self.channels, self.centre);
         self.chains = groups(&channels, self.centre, f.rate)
             .into_iter()
@@ -375,19 +571,66 @@ impl Component for Groups {
         let plan = Plan {
             channels: channels
                 .into_iter()
-                .map(|(hz, rt)| (hz, rt, (hz - self.centre).abs() < 0.45 * f.rate))
+                .map(|(hz, rt)| (hz, rt, (hz - self.centre).abs() < COVER * f.rate))
                 .collect(),
+            note: coverage_note(&self.channels, self.centre, f.rate),
         };
         self.plan = Some(plan);
+        self.move_to = self.wanted_move(f.tuned_hz);
+        self.waited = 0;
+        self.key = (
+            self.channels_text.clone(),
+            f.rate.to_bits(),
+            f.centre_hz.to_bits(),
+        );
+        // A capture that moved since the request may ask again when it comes back.
+        if self.asked.as_ref() != Some(&self.key) {
+            self.asked = None;
+        }
         let mut o = f.with_kind(Kind::typed::<ZwBurst>());
         o.rate = 0.0;
-        Ok(vec![o, Format::new(Kind::typed::<Plan>(), 0.0)])
+        Ok(vec![
+            o,
+            Format::new(Kind::typed::<Plan>(), 0.0),
+            Format::new(Kind::typed::<HostRequest>(), 0.0),
+        ])
+    }
+    fn attach(&mut self, ctx: &RunContext) {
+        self.live = ctx.live;
     }
     fn process(&mut self, io: &mut Io) {
         let x = io.iq(0);
         let c = self.centre;
         for ch in self.chains.iter_mut() {
             ch.feed(x, c, &mut self.out);
+        }
+        if let Some(to) = self.move_to {
+            self.waited += x.len();
+            let due = self.live && self.waited as f64 >= MOVE_WAIT_S * self.rate;
+            if due && self.asked.as_ref() != Some(&self.key) {
+                self.asked = Some(self.key.clone());
+                self.move_to = None;
+                let kept: Vec<String> = capture_at(&self.channels, self.rate)
+                    .kept
+                    .iter()
+                    .map(|g| mhz(g.iter().copied().fold(f64::INFINITY, f64::min)))
+                    .collect();
+                let one = kept.len() == 1;
+                let time = io.input(0).first() as f64 / self.rate.max(1.0);
+                io.items_out::<HostRequest>(2).push(Timed {
+                    time,
+                    value: HostRequest::Retune {
+                        tuned_hz: to,
+                        reason: format!(
+                            "Z-Wave {} {} MHz {} the capture at {:.1} Msps",
+                            if one { "channel" } else { "channels" },
+                            and_list(&kept),
+                            if one { "fits" } else { "fit" },
+                            self.rate / 1e6
+                        ),
+                    },
+                });
+            }
         }
         if !self.out.is_empty() {
             let items = io.items_out::<ZwBurst>(0);
@@ -983,6 +1226,7 @@ pub struct Tables {
     class_count: usize,
     store: Store,
     channels: Vec<ChannelRow>,
+    note: String,
     tuned_hz: f64,
     snr: f32,
     level: f32,
@@ -1019,6 +1263,7 @@ impl Default for Tables {
             class_count: 0,
             store: Store::default(),
             channels: Vec::new(),
+            note: String::new(),
             tuned_hz: 0.0,
             snr: 0.0,
             level: 0.0,
@@ -1232,6 +1477,10 @@ impl Tables {
         } else {
             summary.push_str("no Z-Wave channel in the band taken in");
         }
+        if !self.note.is_empty() {
+            summary.push_str("; ");
+            summary.push_str(&self.note);
+        }
         let p = &mut self.published;
         {
             let r = p.results_mut();
@@ -1303,6 +1552,7 @@ impl Tables {
     fn plan(&mut self, p: &Plan) {
         self.channel_keys.clear();
         self.published.clear_rows(&ZWAVE_CHANNELS);
+        self.note.clone_from(&p.note);
         let old = std::mem::take(&mut self.channels);
         self.channels = p
             .channels
@@ -1495,6 +1745,7 @@ pub fn build_graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .connect("decode", "tables.in")
         .connect("sender.out", "tx.in")
         .output("tables.events")
+        .output("groups.requests")
         .output("sender.events")
         .clock(REPORT_S)
         .status_from("tables")

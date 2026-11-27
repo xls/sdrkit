@@ -1,16 +1,16 @@
 # id: zwave_regions
 # name: Z-Wave channel frequencies by region
 # stacks: zwave
-# source: the list that the zwave stack held in code; the rates R1, R2 and R3 are those of ITU-T G.9959; the frequencies are not confirmed against the rules of each regulator
-# note: One row for each region. centre_mhz is the frequency to tune. r1_mhz, r2_mhz and r3_mhz list the channels of each rate, apart by spaces; an empty list means the region has no channel at that rate. A host sets the tuned frequency to centre_mhz in Hz and the setting channels of the stack to every channel as frequency in Hz / rate. countries lists the ISO 3166-1 alpha-2 codes of the countries that use the region, apart by spaces; a host picks the row of a country by it.
-id,name,centre_mhz,r1_mhz,r2_mhz,r3_mhz,countries
-EU,Europe,869.13,868.42,868.40,869.85,AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE IS LI NO CH GB
-US,USA / Canada / Mexico,908.00,908.42,908.40,916.00,US CA MX
-ANZ,Australia / New Zealand,920.61,921.42,921.40,919.80,AU NZ
-HK,Hong Kong,919.80,919.80,919.80,919.80,HK
-IN,India,865.20,865.20,865.20,865.20,IN
-RU,Russia,869.00,869.00,869.00,869.00,RU
-CN,China,868.40,868.40,868.40,868.40,CN
-IL,Israel,916.00,916.00,916.00,916.00,IL
-JP,Japan,923.00,,922.50 923.90 926.30,,JP
-KR,South Korea,921.70,,920.90 921.70 923.10,,KR
+# source: the list that the zwave stack held in code; the rates R1, R2 and R3 are those of ITU-T G.9959; the Long Range channels are those of the Z-Wave Long Range plan for the USA; the frequencies are not confirmed against the rules of each regulator
+# note: One row for each region. r1_mhz, r2_mhz and r3_mhz list the channels of each rate, apart by spaces; an empty list means the region has no channel at that rate. The order of the channels (R1, then R2, then R3, each list in its order) is the order of preference: at a rate too low for every channel, the stack takes the first channels that fit. centre_mhz is the frequency to tune: the centre of the capture that holds every channel, as the stack plans it (the middle of the channels); the stack asks for the least rate that holds every channel. A host sets the tuned frequency to centre_mhz in Hz and the setting channels of the stack to every channel as frequency in Hz / rate. lr_mhz lists the Z-Wave Long Range channels (100 kbit/s DSSS-OQPSK), apart by spaces: known, not decoded by the stack. countries lists the ISO 3166-1 alpha-2 codes of the countries that use the region, apart by spaces; a host picks the row of a country by it.
+id,name,centre_mhz,r1_mhz,r2_mhz,r3_mhz,countries,lr_mhz
+EU,Europe,869.125,868.42,868.40,869.85,AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE IS LI NO CH GB,
+US,USA / Canada / Mexico,912.20,908.42,908.40,916.00,US CA MX,912.00 920.00
+ANZ,Australia / New Zealand,920.61,921.42,921.40,919.80,AU NZ,
+HK,Hong Kong,919.80,919.80,919.80,919.80,HK,
+IN,India,865.20,865.20,865.20,865.20,IN,
+RU,Russia,869.00,869.00,869.00,869.00,RU,
+CN,China,868.40,868.40,868.40,868.40,CN,
+IL,Israel,916.00,916.00,916.00,916.00,IL,
+JP,Japan,924.40,,922.50 923.90 926.30,,JP,
+KR,South Korea,922.00,,920.90 921.70 923.10,,KR,

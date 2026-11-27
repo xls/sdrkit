@@ -328,7 +328,10 @@ fn noise_counts_no_bad_frames() {
 fn a_frame_decodes_after_a_step_of_the_level() {
     let rate = ZWAVE.tuning.rate_hz;
     let region = crate::util::zwave_region("ANZ");
-    let (_, mpdu) = zwave::schedule().into_iter().find(|(x, _)| *x == 2).unwrap();
+    let (_, mpdu) = zwave::schedule()
+        .into_iter()
+        .find(|(x, _)| *x == 2)
+        .unwrap();
     let chan = region.rates_hz[1][0];
     let s = zwave::frame_samples(2, &mpdu, rate);
     let w = std::f64::consts::TAU * (chan - region.centre_hz) / rate;
@@ -551,4 +554,287 @@ fn a_change_of_frequency_keeps_the_nodes_and_drops_the_channel_counts() {
     assert_eq!(field(r.results(), "frames_ok"), frames);
     assert_eq!(channel_frames(&*r), 0);
     assert_eq!(r.results().status().snr_db, None);
+}
+
+/// The channel groups of `channels` (within 60 kHz), each as its channels (frequency, rate), in order.
+fn channel_groups(channels: &[(f64, u8)]) -> Vec<Vec<(f64, u8)>> {
+    let mut g: Vec<Vec<(f64, u8)>> = Vec::new();
+    for &c in channels {
+        match g.iter_mut().find(|x| (x[0].0 - c.0).abs() <= 60e3) {
+            Some(x) => x.push(c),
+            None => g.push(vec![c]),
+        }
+    }
+    g
+}
+
+/// Noise at `rate` around `centre` with `rounds` rounds of frames, 0.1 s apart from 0.05 s: in round k every channel group
+/// inside the band of the radio (±0.45 `rate`) sends one frame at once, on its (k mod n)-th channel. Returns the samples
+/// and the channels (frequency, rate) of the frames sent.
+fn every_channel_at_once(
+    channels: &[(f64, u8)],
+    centre: f64,
+    rate: f64,
+    rounds: usize,
+) -> (Vec<Complex32>, Vec<(f64, u8)>) {
+    let sched = zwave::schedule();
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(21);
+    let mut x: Vec<Complex32> = (0..((0.15 + 0.1 * rounds as f64) * rate) as usize)
+        .map(|_| rng.complex_normal(2e-4))
+        .collect();
+    let mut sent = Vec::new();
+    for k in 0..rounds {
+        let at = ((0.05 + 0.1 * k as f64) * rate) as usize;
+        for g in channel_groups(channels) {
+            let (hz, r) = g[k % g.len()];
+            if (hz - centre).abs() >= 0.45 * rate {
+                continue;
+            }
+            let of_rate: Vec<&Vec<u8>> = sched
+                .iter()
+                .filter(|(x, _)| *x == r)
+                .map(|(_, m)| m)
+                .collect();
+            let mpdu = of_rate[k % of_rate.len()];
+            let s = zwave::frame_samples(r, mpdu, rate);
+            let w = std::f64::consts::TAU * (hz - centre) / rate;
+            for (j, v) in s.iter().enumerate() {
+                let (sin, cos) = (w * j as f64).sin_cos();
+                x[at + j] += v * Complex32::new(0.1 * cos as f32, 0.1 * sin as f32);
+            }
+            sent.push((hz, r));
+        }
+    }
+    (x, sent)
+}
+
+/// The `channels` value of a data row.
+fn channels_of(id: &str) -> Value {
+    Value::Text(crate::util::zwave_region(id).channels_text())
+}
+
+/// The rate that the stack asks for with the channels of region `id`.
+fn asked_rate(id: &str) -> f64 {
+    ZWAVE.rate_hz(&crate::util::stack_with(&ZWAVE, &[("channels", channels_of(id))]).settings)
+}
+
+/// The centre of each data row is the centre that the stack plans for the channels of the row, and that capture holds
+/// every channel.
+#[test]
+fn each_region_centre_is_the_planned_centre() {
+    for r in crate::util::zwave_regions() {
+        let c = zwave::capture(&r.channels());
+        assert!(
+            (c.centre_hz - r.centre_hz).abs() < 1.0,
+            "{}: planned {} Hz, the row has {} Hz",
+            r.id,
+            c.centre_hz,
+            r.centre_hz
+        );
+        assert!(c.left.is_empty(), "{}", r.id);
+    }
+}
+
+/// The channels of a region ask for the least rate that holds them all; no list asks for the rate of the stack.
+#[test]
+fn the_channels_of_a_region_ask_for_the_least_rate_that_holds_them() {
+    for (id, msps) in [
+        ("EU", 2.4),
+        ("ANZ", 2.4),
+        ("US", 9.0),
+        ("JP", 4.8),
+        ("KR", 3.0),
+    ] {
+        assert_eq!(asked_rate(id), msps * 1e6, "{id}");
+    }
+    assert_eq!(
+        ZWAVE.rate_hz(&crate::util::stack_with(&ZWAVE, &[]).settings),
+        zwave::RATE_HZ
+    );
+}
+
+/// At the rate that its channels ask for and the centre of its row, a frame on every channel at once of US, JP and KR
+/// decodes, and the status names no channel left out.
+#[test]
+fn every_channel_decodes_at_the_covering_rate() {
+    for id in ["US", "JP", "KR"] {
+        let region = crate::util::zwave_region(id);
+        let rate = asked_rate(id);
+        let (x, sent) = every_channel_at_once(&region.channels(), region.centre_hz, rate, 3);
+        assert_eq!(
+            sent.len(),
+            3 * channel_groups(&region.channels()).len(),
+            "{id}"
+        );
+        let mut r = rx(rate, region.centre_hz, &[("channels", channels_of(id))]);
+        feed(r.as_mut(), &x);
+        let res = r.results();
+        assert_eq!(field(res, "frames_ok") as usize, sent.len(), "{id}");
+        assert_eq!(field(res, "frames_bad"), 0, "{id}");
+        assert!(
+            column(res, &CHANNELS, "covered").iter().all(|c| c == "yes"),
+            "{id}"
+        );
+        // Every channel has its frames.
+        let with_frames = column(res, &CHANNELS, "frames")
+            .iter()
+            .filter(|n| n.parse::<i64>().unwrap_or(0) > 0)
+            .count();
+        assert_eq!(with_frames, region.channels().len(), "{id}");
+        let summary = &res.status().summary;
+        assert!(!summary.contains("apart"), "{id}: {summary}");
+    }
+}
+
+/// At 2.4 Msps, where the capture ends on a radio that gives no more: US and JP move to the capture that holds their
+/// first channels and decode them; KR stays on the centre of its row (the move fits in the capture, so the radio stays)
+/// and decodes its middle channel. The status names the channels left out and the rate that covers all.
+#[test]
+fn at_a_low_rate_the_preferred_channels_decode_and_the_status_names_the_others() {
+    let rate = 2.4e6;
+    for (id, at_mhz, first, text) in [
+        (
+            "US",
+            908.01,
+            true,
+            "channels 908.4 and 916.0 MHz are 7.6 MHz apart: 9.0 Msps covers both; at 2.4 Msps only 908.4 MHz is received",
+        ),
+        (
+            "JP",
+            923.2,
+            true,
+            "channels 922.5, 923.9 and 926.3 MHz are 3.8 MHz apart: 4.8 Msps covers all; at 2.4 Msps only 922.5 and 923.9 MHz \
+             are received",
+        ),
+        (
+            "KR",
+            922.0,
+            false,
+            "channels 920.9, 921.7 and 923.1 MHz are 2.2 MHz apart: 3.0 Msps covers all; at 2.4 Msps only 921.7 MHz is received",
+        ),
+    ] {
+        let region = crate::util::zwave_region(id);
+        let channels = region.channels();
+        let at = at_mhz * 1e6;
+        if first {
+            let plan = zwave::capture_at(&channels, rate);
+            assert!((plan.centre_hz - at).abs() < 1.0, "{id}: {}", plan.centre_hz);
+            assert!(plan.kept[0].contains(&channels[0].0), "{id}");
+        } else {
+            assert_eq!(at, region.centre_hz, "{id}");
+        }
+        let (x, sent) = every_channel_at_once(&channels, at, rate, 3);
+        let mut r = rx(rate, at, &[("channels", channels_of(id))]);
+        feed(r.as_mut(), &x);
+        let res = r.results();
+        assert!(!sent.is_empty(), "{id}");
+        assert_eq!(sent.iter().any(|c| c.0 == channels[0].0), first, "{id}");
+        assert_eq!(field(res, "frames_ok") as usize, sent.len(), "{id}");
+        assert_eq!(field(res, "frames_bad"), 0, "{id}");
+        let summary = &res.status().summary;
+        assert!(summary.ends_with(text), "{id}: {summary}");
+    }
+}
+
+/// Feeds `seconds` of noise to `r` and returns the requests that it makes.
+fn requests_in(r: &mut dyn Receiver, rate: f64, seconds: f64) -> Vec<sdrkit_core::HostRequest> {
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(5);
+    let mut out = Output::default();
+    let mut asked = Vec::new();
+    let mut left = (seconds * rate) as usize;
+    while left > 0 {
+        let n = left.min(65536);
+        let x: Vec<Complex32> = (0..n).map(|_| rng.complex_normal(2e-4)).collect();
+        r.feed(&x, &mut out);
+        asked.append(&mut out.requests);
+        out.clear();
+        left -= n;
+    }
+    asked
+}
+
+/// The one request of `asked`: a retune to `to_hz`.
+fn assert_retune(asked: &[sdrkit_core::HostRequest], to_hz: f64, id: &str) {
+    match asked {
+        [sdrkit_core::HostRequest::Retune { tuned_hz, .. }] => {
+            assert!((tuned_hz - to_hz).abs() < 1.0, "{id}: {tuned_hz}")
+        }
+        other => panic!("{id}: {other:?}"),
+    }
+}
+
+/// On a live radio at the centre of the region and a rate too low for it, the stack asks once to move to the capture
+/// that holds the first channels, and again when the capture comes back. It asks nothing when that capture lies inside
+/// the present one (KR), on a channel that the user chose, and on a recording.
+#[test]
+fn at_a_low_rate_the_stack_asks_once_for_the_preferred_capture() {
+    let rate = 2.4e6;
+    for (id, to_mhz) in [("US", 908.01), ("JP", 923.2)] {
+        let region = crate::util::zwave_region(id);
+        let (home, to) = (region.centre_hz, to_mhz * 1e6);
+        let cfg = crate::util::stack_with(&ZWAVE, &[("channels", channels_of(id))]);
+        let mut r = zwave::receiver(&cfg).unwrap();
+        r.configure(&InputInfo::new(rate, home, home)).unwrap();
+        assert!(
+            requests_in(&mut r, rate, 0.5).is_empty(),
+            "{id}: the rate may still change"
+        );
+        assert_retune(&requests_in(&mut r, rate, 1.0), to, id);
+        assert!(
+            requests_in(&mut r, rate, 1.5).is_empty(),
+            "{id}: asked twice"
+        );
+        // The session moves and the radio stays: no second request.
+        r.configure(&InputInfo::new(rate, home, to)).unwrap();
+        assert!(requests_in(&mut r, rate, 1.5).is_empty(), "{id}");
+        // The radio moves, then the host tunes the region again.
+        r.configure(&InputInfo::new(rate, to, to)).unwrap();
+        assert!(requests_in(&mut r, rate, 1.5).is_empty(), "{id}");
+        r.configure(&InputInfo::new(rate, home, home)).unwrap();
+        assert_retune(&requests_in(&mut r, rate, 1.5), to, id);
+    }
+    let kr = crate::util::zwave_region("KR");
+    let cfg = crate::util::stack_with(&ZWAVE, &[("channels", channels_of("KR"))]);
+    let mut r = zwave::receiver(&cfg).unwrap();
+    r.configure(&InputInfo::new(rate, kr.centre_hz, kr.centre_hz))
+        .unwrap();
+    assert!(requests_in(&mut r, rate, 1.5).is_empty());
+    let region = crate::util::zwave_region("US");
+    let cfg = crate::util::stack_with(&ZWAVE, &[("channels", channels_of("US"))]);
+    // A channel of the list that the user tuned.
+    let mut r = zwave::receiver(&cfg).unwrap();
+    r.configure(&InputInfo::new(rate, 916e6, 916e6)).unwrap();
+    assert!(requests_in(&mut r, rate, 1.5).is_empty());
+    // A recording.
+    let mut r = zwave::receiver(&cfg).unwrap();
+    r.configure(&InputInfo::new(rate, region.centre_hz, region.centre_hz).recording())
+        .unwrap();
+    assert!(requests_in(&mut r, rate, 1.5).is_empty());
+}
+
+/// Noise alone, with a step of its level, counts no frame, good or bad, at the rate that the channels of US, JP and KR
+/// ask for.
+#[test]
+fn noise_counts_no_bad_frames_at_the_covering_rates() {
+    for (seed, id) in [(31u64, "US"), (32, "JP"), (33, "KR")] {
+        let region = crate::util::zwave_region(id);
+        let rate = asked_rate(id);
+        let mut r = rx(rate, region.centre_hz, &[("channels", channels_of(id))]);
+        let mut rng = sdrkit_algo_sim::rng::Rng::new(seed);
+        let mut out = Output::default();
+        let total = (4.0 * rate) as usize;
+        let mut k = 0usize;
+        while k < total {
+            let n = (total - k).min(65536);
+            let x: Vec<Complex32> = (k..k + n)
+                .map(|j| rng.complex_normal(if (j as f64) < 0.7 * rate { 2e-4 } else { 8e-3 }))
+                .collect();
+            r.feed(&x, &mut out);
+            out.clear();
+            k += n;
+        }
+        r.finish(&mut out);
+        assert_eq!(field(r.results(), "frames_ok"), 0, "{id}");
+        assert_eq!(field(r.results(), "frames_bad"), 0, "{id}");
+    }
 }
