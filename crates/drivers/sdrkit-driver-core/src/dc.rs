@@ -18,22 +18,24 @@ pub const BLOCK: usize = 1024;
 #[derive(Clone, Debug)]
 pub struct DcBlock {
     mean: Complex32,
-    fresh: bool,
+    /// After a restart, the sum and the count of the samples seen, while fewer than [`BLOCK`].
+    fresh: Option<(Complex32, usize)>,
 }
 
 impl Default for DcBlock {
     fn default() -> Self {
         DcBlock {
             mean: Complex32::default(),
-            fresh: true,
+            fresh: Some((Complex32::default(), 0)),
         }
     }
 }
 
 impl DcBlock {
-    /// Starts the estimate again: after a retune or a change of gain, the first block sets it at once.
+    /// Starts the estimate again: after a retune or a change of gain, the mean of the first [`BLOCK`] samples sets it
+    /// at once, however the reads cut them. Until then the estimate from before stays.
     pub fn restart(&mut self) {
-        self.fresh = true;
+        self.fresh = Some((Complex32::default(), 0));
     }
 
     /// The estimate now.
@@ -50,12 +52,16 @@ impl DcBlock {
                 sq += x.im;
             }
             let n = block.len() as f32;
-            let m = Complex32::new(si / n, sq / n);
-            if self.fresh {
-                self.mean = m;
-                self.fresh = false;
-            } else {
-                self.mean += (m - self.mean) * (n / TAU);
+            match &mut self.fresh {
+                Some((sum, count)) => {
+                    *sum += Complex32::new(si, sq);
+                    *count += block.len();
+                    if *count >= BLOCK {
+                        self.mean = *sum / *count as f32;
+                        self.fresh = None;
+                    }
+                }
+                None => self.mean += (Complex32::new(si / n, sq / n) - self.mean) * (n / TAU),
             }
             let d = self.mean;
             for x in block.iter_mut() {
@@ -147,6 +153,51 @@ mod tests {
         let mut t = capture(5 * TAU as usize, step, None);
         slow.process(&mut t);
         assert!((slow.mean() - step).norm() < 2e-3, "{:?}", slow.mean());
+    }
+
+    /// `n` samples whose I part goes up and down by `level` around 0.004 and whose Q part is 0.004, from sample `from`.
+    fn swing(from: usize, n: usize, level: f32) -> Vec<Complex32> {
+        (from..from + n)
+            .map(|k| Complex32::new(if k % 2 == 0 { level } else { -level } + 0.004, 0.004))
+            .collect()
+    }
+
+    /// True if every sample of `iq` has the magnitude `level` within 0.02.
+    fn all_at(iq: &[Complex32], level: f32) -> bool {
+        iq.iter().all(|x| (x.norm() - level).abs() < 0.02)
+    }
+
+    #[test]
+    fn short_pieces_after_a_restart_do_not_set_the_estimate() {
+        let mut b = DcBlock::default();
+        let mut a = swing(0, BLOCK * 64, 0.25);
+        b.process(&mut a);
+        assert!(all_at(&a[BLOCK..], 0.25));
+        // A retune: the next pieces have 1, 3 and 15 samples, then the reads are long again.
+        b.restart();
+        let mut k = 0;
+        for n in [1, 3, 15, 1300, 16_384, 16_384] {
+            let mut p = swing(k, n, 0.4);
+            b.process(&mut p);
+            assert!(all_at(&p, 0.4), "piece of {n}: {:?}", &p[..n.min(4)]);
+            k += n;
+        }
+        assert!((b.mean() - Complex32::new(0.004, 0.004)).norm() < 1e-3, "{:?}", b.mean());
+    }
+
+    #[test]
+    fn a_restart_on_the_last_sample_of_a_read_does_not_set_the_estimate_from_that_sample() {
+        let (mut w, mut r) = crate::ring(1 << 16, sdrkit_graph::stream::SampleType::Cf32);
+        w.stats().set_dc_removal(true);
+        let mut out = vec![Complex32::default(); 1 << 15];
+        w.write_iq(&swing(0, BLOCK * 8 - 1, 0.25));
+        w.stats().restart_dc();
+        w.write_iq(&swing(BLOCK * 8 - 1, BLOCK * 16 + 1, 0.25));
+        // The first read ends on the first sample after the restart.
+        let n = r.read_iq(&mut out[..BLOCK * 8]);
+        assert!(all_at(&out[BLOCK..n], 0.25), "{:?}", &out[n - 4..n]);
+        let n = r.read_iq(&mut out);
+        assert!(all_at(&out[..n], 0.25), "{:?}", &out[..4]);
     }
 
     #[test]
