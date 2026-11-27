@@ -245,6 +245,8 @@ struct Keys {
 pub struct Engine {
     shared: Arc<Shared>,
     control: Option<JoinHandle<()>>,
+    /// The thread that counts the host audio channels of the stacks after the start.
+    host_audio: Option<JoinHandle<()>>,
 }
 
 impl std::fmt::Debug for Engine {
@@ -1000,6 +1002,27 @@ fn copy_where(from: &Values, to: &mut Values, keep: impl Fn(&str, &sdrkit_core::
     }
 }
 
+/// Makes the stack kinds at `indices` of the stack list of `weak`, one after the other, and writes the host audio
+/// channels of their graphs into the stacks table. Stops when the engine stops.
+fn count_host_audio(weak: &std::sync::Weak<Shared>, indices: &[usize]) {
+    let mut counts = Vec::new();
+    for &i in indices {
+        let Some(sh) = weak.upgrade().filter(|sh| !*lock(&sh.stop)) else {
+            return;
+        };
+        let Some(kind) = sh.stacks.get(i) else {
+            continue;
+        };
+        let mut k = lock(kind);
+        if k.ensure(&sh.adapters, &sh.facilities).is_ok() && k.host_audio_channels() != 0 {
+            counts.push((sh.keys.stacks[i].id, k.host_audio_channels()));
+        }
+    }
+    if let Some(sh) = weak.upgrade() {
+        sh.engine.lock().note_host_audio(&counts);
+    }
+}
+
 /// Adds `decls` to `out`, except a kind that `out` holds already.
 fn add_events(out: &mut Vec<EventDecl>, decls: &[EventDecl]) {
     for d in decls {
@@ -1083,40 +1106,29 @@ impl Engine {
                 LISTEN_FAILED.decl(),
             ],
         );
-        // Each stack is made once with its defaults to read its declarations. That is most of the time of a start, so
-        // the stacks are made on as many threads as the processor has, each thread a share of the list.
-        let mut kinds: Vec<(StackKind, bool)> = setup
-            .stacks
-            .iter()
-            .map(|d| (StackKind::new(d), false))
-            .collect();
-        let threads = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
-        let share = kinds.len().div_ceil(threads).max(1);
-        std::thread::scope(|scope| {
-            for part in kinds.chunks_mut(share) {
-                let adapters = &adapters;
-                scope.spawn(move || {
-                    for (k, made) in part {
-                        *made = k.ensure(adapters, f).is_ok();
+        // The event kinds of a stack come from the interface description of its family, in the order of the stack
+        // list, so the start makes no stack. A stack without a description is made here once to read them.
+        let mut stack_kinds = Vec::with_capacity(setup.stacks.len());
+        let mut host_audio = Vec::with_capacity(setup.stacks.len());
+        let mut later = Vec::new();
+        for (i, d) in setup.stacks.iter().enumerate() {
+            let mut k = StackKind::new(d);
+            match setup.families.iter().find_map(|fam| fam.stack_shape(d.id)) {
+                Some(shape) => {
+                    let these: Vec<EventDecl> = shape.events.iter().map(|e| e.def.decl()).collect();
+                    add_events(&mut decls, &these);
+                    if !catalog::transmit_commands(&setup.families, d.id).is_empty() {
+                        later.push(i);
                     }
-                });
+                }
+                // A stack that cannot be made with its defaults declares no events. Its kind owner returns the error.
+                None => {
+                    if k.ensure(&adapters, f).is_ok() {
+                        add_events(&mut decls, k.events());
+                    }
+                }
             }
-        });
-        // The results of each stack as a session shows them, for the check of a scan that names a stack.
-        let stack_results: Vec<(&'static str, Arc<sdrkit_core::ResultsDecl>)> = setup
-            .stacks
-            .iter()
-            .zip(&kinds)
-            .filter(|(_, (_, made))| *made)
-            .map(|(d, (k, _))| (d.id, Arc::clone(k.results_decl())))
-            .collect();
-        let host_audio: Vec<u16> = kinds.iter().map(|(k, _)| k.host_audio_channels()).collect();
-        let mut stack_kinds = Vec::with_capacity(kinds.len());
-        for (k, made) in kinds {
-            // A stack that cannot be made with its defaults declares no events. Its kind owner returns the error.
-            if made {
-                add_events(&mut decls, k.events());
-            }
+            host_audio.push(k.host_audio_channels());
             stack_kinds.push(Mutex::new(k));
         }
         let first = First::make(f, &setup.stacks)?;
@@ -1125,13 +1137,6 @@ impl Engine {
         add_events(&mut decls, &service_events);
         let events = Arc::new(EventCatalog::from_decls(&decls)?);
         let services = Services::new(first, Arc::clone(&events), f, &setup.transport)?;
-        services
-            .scan
-            .lock()
-            .set_stack_results(Arc::new(move |id: &str| {
-                let (_, d) = stack_results.iter().find(|(s, _)| *s == id)?;
-                Some(Arc::new(session::merged_decl(d)))
-            }));
         let keys = Keys {
             stacks: setup.stacks.clone(),
             drivers: descriptors.iter().map(|d| d.key).collect(),
@@ -1202,6 +1207,27 @@ impl Engine {
             ticked: Condvar::new(),
             wake: Arc::new(Condvar::new()),
         });
+        // The results of a stack as a session shows them, for the check of a scan that names a stack. The stack is made
+        // on the first check that names it.
+        let weak = Arc::downgrade(&shared);
+        shared
+            .services
+            .scan
+            .lock()
+            .set_stack_results(Arc::new(move |id: &str| {
+                let sh = weak.upgrade()?;
+                let i = sh.keys.stacks.iter().position(|d| d.id == id)?;
+                let mut k = lock(sh.stacks.get(i)?);
+                k.ensure(&sh.adapters, &sh.facilities).ok()?;
+                Some(Arc::new(session::merged_decl(k.results_decl())))
+            }));
+        // The host audio channels of a stack come from its graph. Each stack that transmits is made once on a thread of
+        // its own, so that no call of the host waits for it; the stacks table shows 0 for it until then.
+        let weak = Arc::downgrade(&shared);
+        let host_audio = std::thread::Builder::new()
+            .name("sdrkit-host-audio".into())
+            .spawn(move || count_host_audio(&weak, &later))
+            .ok();
         let station = shared.station();
         *lock(&shared.signal_station) = station;
         shared.engine.lock().note_device();
@@ -1224,6 +1250,7 @@ impl Engine {
         Ok(Engine {
             shared,
             control: Some(control),
+            host_audio,
         })
     }
 
@@ -2095,6 +2122,9 @@ impl Drop for Engine {
         *lock(&self.shared.stop) = true;
         self.shared.wake.notify_all();
         if let Some(t) = self.control.take() {
+            let _ = t.join();
+        }
+        if let Some(t) = self.host_audio.take() {
             let _ = t.join();
         }
         let shares: Vec<_> = lock(&self.shared.shares)

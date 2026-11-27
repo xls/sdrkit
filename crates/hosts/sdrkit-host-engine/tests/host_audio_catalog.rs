@@ -34,6 +34,9 @@ fn channels(e: &Engine, id: &str) -> i64 {
 #[test]
 fn the_stacks_table_counts_the_host_audio_channels_of_each_graph() {
     let e = sdrkit_host_catalog::engine().unwrap();
+    // The counts come from a thread of the engine after its start.
+    wait_for(30.0, || (channels(&e, "fm") == 2).then_some(()))
+        .expect("the host audio channels are counted");
     let mut counts: Vec<(String, i64)> = sdrkit_host_catalog::all()
         .iter()
         .map(|d| (d.id.to_owned(), channels(&e, d.id)))

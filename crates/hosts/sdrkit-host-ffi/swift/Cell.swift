@@ -177,7 +177,7 @@ public struct CellFields {
 public struct CellBandSearchFields {
     /// The band searched now ("band 28", "n78"). None when no search runs.
     public var searchBand: String?
-    /// The radio centre of the search step, counted from 1.
+    /// The step of the pass, counted from 1: the steps searched in this pass and the one that waits.
     public var searchStep: Int64?
     /// The radio centres of the search.
     public var searchSteps: Int64?

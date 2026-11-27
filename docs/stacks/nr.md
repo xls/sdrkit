@@ -153,7 +153,7 @@ Struct `BandSearchFields`. Where the band search of `cell` and `nr` is, and why 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `search_band` | text | optional | 1.7 | The band searched now ("band 28", "n78"). None when no search runs. |
-| `search_step` | whole number | optional | 1.7 | The radio centre of the search step, counted from 1. |
+| `search_step` | whole number | optional | 1.7 | The step of the pass, counted from 1: the steps searched in this pass and the one that waits. |
 | `search_steps` | whole number | optional | 1.7 | The radio centres of the search. |
 | `search_passes` | whole number | always | 1.7 | The passes over every step done since the search started. |
 | `quiet_reason` | text | optional | 1.7 | Why no cell shows: what the newest capture held, or what the radio gives. None while cells show. |

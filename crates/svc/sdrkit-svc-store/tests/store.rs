@@ -1,12 +1,14 @@
 //! The store as an owner: inserts, the throttle, retention, search, the journal in storage, exports, daily files and
 //! sessions.
 
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, LazyLock};
 
 use sdrkit_core::command::CommandError;
 use sdrkit_core::owner::{self, Owner};
 use sdrkit_core::publish::keys::{self, Family, Urgency};
 use sdrkit_core::publish::{field, Field};
+use sdrkit_core::storage::{StoreEntry, StoreReader, StoreWriter, WriteMode};
 use sdrkit_core::{
     Event, EventCatalog, EventDef, MemStorage, Record, SettingError, Storage, StorageError,
     StorePath, Value,
@@ -17,7 +19,8 @@ use sdrkit_svc_store::store::{
     BAD_LINES, FOLDED, MATCHES, MAX_AGE, MAX_BYTES, MAX_ROWS, MESSAGES, PRUNED, ROWS,
 };
 use sdrkit_svc_store::{
-    export, Added, DailyFiles, DailyFormat, Export, SessionBook, SessionType, Store, StoreError,
+    export, Added, DailyFiles, DailyFormat, Export, Query, SessionBook, SessionType, Store,
+    StoreError,
 };
 
 const ALTITUDE_FT: Field<field::I64> = Field::new("altitude_ft", "Altitude", "ft");
@@ -123,8 +126,8 @@ fn repeats_fold_and_new_text_does_not() {
     let mut s = memory(&k);
     let a = put(&mut s, &k, 100.0, &plane("7C6DB8", 1000));
     let b = put(&mut s, &k, 110.0, &plane("7C6DB8", 2000));
-    assert_eq!(b, Added::Folded(a.id()));
-    let m = s.get(a.id()).unwrap();
+    assert_eq!(Some(b), a.id().map(Added::Folded));
+    let m = s.get(a.id().unwrap()).unwrap();
     assert_eq!((m.repeats, m.last_time, m.time), (1, 110.0, 100.0));
     assert_eq!(m.fields.get(&ALTITUDE_FT), Some(2000));
     assert!(matches!(
@@ -341,7 +344,7 @@ fn the_journal_survives_a_restart_and_compacts() {
     assert_eq!((&*m.kind_key, m.family), ("air.plane", Family::Aircraft));
     assert_eq!(m.fields.get(&keys::CALLSIGN), Some("QFA1"));
     let added = put(&mut s, &k, 60.0, &text("more"));
-    assert_eq!(added.id(), 6);
+    assert_eq!(added.id(), Some(6));
     let del = s.commands().id("delete").unwrap();
     let mut given = s.commands().def(del).unwrap().new_args();
     given
@@ -355,6 +358,238 @@ fn the_journal_survives_a_restart_and_compacts() {
     owner::invoke(&mut s, clear, &args).unwrap();
     assert!(s.is_empty());
     assert!(storage.read(&path).unwrap().is_empty());
+}
+
+/// A storage that counts the bytes read from its files.
+struct Counting {
+    inner: MemStorage,
+    read: Arc<AtomicU64>,
+}
+
+struct CountingReader {
+    inner: Box<dyn StoreReader>,
+    read: Arc<AtomicU64>,
+}
+
+impl std::io::Read for CountingReader {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let n = self.inner.read(buf)?;
+        self.read.fetch_add(n as u64, Ordering::Relaxed);
+        Ok(n)
+    }
+}
+
+impl std::io::Seek for CountingReader {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        self.inner.seek(pos)
+    }
+}
+
+impl StoreReader for CountingReader {
+    fn size(&mut self) -> Result<u64, StorageError> {
+        self.inner.size()
+    }
+}
+
+impl Storage for Counting {
+    fn read(&self, path: &StorePath) -> Result<Vec<u8>, StorageError> {
+        let d = self.inner.read(path)?;
+        self.read.fetch_add(d.len() as u64, Ordering::Relaxed);
+        Ok(d)
+    }
+    fn write(&self, path: &StorePath, data: &[u8]) -> Result<(), StorageError> {
+        self.inner.write(path, data)
+    }
+    fn open_writer(
+        &self,
+        path: &StorePath,
+        mode: WriteMode,
+    ) -> Result<Box<dyn StoreWriter>, StorageError> {
+        self.inner.open_writer(path, mode)
+    }
+    fn open_reader(&self, path: &StorePath) -> Result<Box<dyn StoreReader>, StorageError> {
+        Ok(Box::new(CountingReader {
+            inner: self.inner.open_reader(path)?,
+            read: Arc::clone(&self.read),
+        }))
+    }
+    fn remove(&self, path: &StorePath) -> Result<(), StorageError> {
+        self.inner.remove(path)
+    }
+    fn remove_tree(&self, path: &StorePath) -> Result<(), StorageError> {
+        self.inner.remove_tree(path)
+    }
+    fn rename(&self, from: &StorePath, to: &StorePath) -> Result<(), StorageError> {
+        self.inner.rename(from, to)
+    }
+    fn list(&self, folder: &StorePath) -> Result<Vec<StoreEntry>, StorageError> {
+        self.inner.list(folder)
+    }
+    fn stat(&self, path: &StorePath) -> Result<StoreEntry, StorageError> {
+        self.inner.stat(path)
+    }
+    fn free_space(&self) -> Result<Option<u64>, StorageError> {
+        self.inner.free_space()
+    }
+}
+
+/// A journal of `n` messages with distinct texts, one second apart, in a new storage.
+fn journal_of(k: &Arc<Kinds>, n: u32) -> (Arc<Counting>, StorePath) {
+    let storage = Arc::new(Counting {
+        inner: MemStorage::new(),
+        read: Arc::default(),
+    });
+    let path = StorePath::new("store/messages.jsonl").unwrap();
+    let mut s = Store::open(Arc::clone(k), storage.clone(), path.clone()).unwrap();
+    set(&mut s, "max_age", Value::Duration(0.0));
+    for i in 0..n {
+        put(&mut s, k, f64::from(i), &text(&format!("line {i}")));
+    }
+    (storage, path)
+}
+
+fn ids(found: &[&sdrkit_svc_store::Message]) -> Vec<u64> {
+    found.iter().map(|m| m.id).collect()
+}
+
+fn newest(s: &Store, k: &Kinds, limit: i64) -> Query {
+    let id = s.commands().id("search").unwrap();
+    let mut args = s.commands().def(id).unwrap().new_args();
+    args.set_value(args.decl().id("limit").unwrap(), &Value::I64(limit))
+        .unwrap();
+    Query::new(k, &s.commands().check(id, &args).unwrap()).unwrap()
+}
+
+#[test]
+fn an_open_reads_the_same_bytes_for_any_size_of_the_journal() {
+    let k = kinds();
+    let mut read = Vec::new();
+    for n in [3_000, 30_000] {
+        let (storage, path) = journal_of(&k, n);
+        let size = storage.stat(&path).unwrap().size;
+        storage.read.store(0, Ordering::Relaxed);
+        let s = Store::open(Arc::clone(&k), storage.clone(), path).unwrap();
+        assert!(
+            !s.is_loaded(),
+            "{n} messages: {size} bytes are more than the tail"
+        );
+        assert_eq!(field(&s, &ROWS), i64::from(n));
+        read.push(storage.read.load(Ordering::Relaxed));
+    }
+    assert!(read[1] <= read[0] + 4096, "bytes read: {read:?}");
+    assert!(read[1] < 400 << 10, "bytes read: {read:?}");
+}
+
+#[test]
+fn the_newest_messages_of_an_open_are_those_of_a_full_load() {
+    let k = kinds();
+    let (storage, path) = journal_of(&k, 20_000);
+    let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+    let partial = ids(&s.search(&newest(&s, &k, 200)));
+    assert_eq!(partial.len(), 200);
+    assert_eq!(partial[0], 20_000);
+    // A search before the load shows the newest messages, and runs again on every message when the load ends.
+    assert!(search(&mut s, &[("limit", Value::I64(10))]).unwrap() < 20_000);
+    s.wait_for_load();
+    assert!(s.is_loaded());
+    assert_eq!(field(&s, &MATCHES), 20_000);
+    assert_eq!(ids(&s.search(&newest(&s, &k, 200))), partial);
+    let mut fresh = Store::open(Arc::clone(&k), storage, path).unwrap();
+    fresh.wait_for_load();
+    assert_eq!(fresh.len(), 20_000);
+    assert_eq!(ids(&fresh.search(&newest(&fresh, &k, 200))), partial);
+}
+
+#[test]
+fn a_torn_last_line_stays_a_line_of_its_own() {
+    let k = kinds();
+    let (storage, path) = journal_of(&k, 10);
+    let mut data = storage.read(&path).unwrap();
+    data.extend_from_slice(b"{\"id\":11,\"time\":1");
+    storage.write(&path, &data).unwrap();
+    {
+        let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+        assert_eq!((s.len(), field(&s, &BAD_LINES)), (10, 1));
+        assert_eq!(put(&mut s, &k, 20.0, &text("after")).id(), Some(11));
+    }
+    let s = Store::open(Arc::clone(&k), storage, path).unwrap();
+    assert_eq!((s.len(), field(&s, &BAD_LINES)), (11, 1));
+    assert_eq!(s.get(11).unwrap().text.as_deref(), Some("after"));
+}
+
+#[test]
+fn a_rotation_keeps_the_newest_messages_within_the_limit() {
+    let k = kinds();
+    let storage = Arc::new(MemStorage::new());
+    let path = StorePath::new("store/messages.jsonl").unwrap();
+    let older = StorePath::new("store/messages.jsonl.1").unwrap();
+    let limit = 64 << 10;
+    {
+        let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+        set(&mut s, "max_bytes", Value::I64(limit));
+        set(&mut s, "max_age", Value::Duration(0.0));
+        for i in 0..5_000 {
+            put(&mut s, &k, f64::from(i), &text(&format!("line {i}")));
+            let on_disk =
+                storage.stat(&path).unwrap().size + storage.stat(&older).map_or(0, |e| e.size);
+            assert!(on_disk <= limit as u64 + 200, "{on_disk} bytes after {i}");
+        }
+    }
+    assert!(storage.stat(&older).is_ok());
+    let mut s = Store::open(Arc::clone(&k), storage, path).unwrap();
+    s.wait_for_load();
+    let kept: Vec<u64> = s.iter().map(|m| m.id).collect();
+    assert_eq!(kept.last(), Some(&5_000));
+    // Every message from the oldest kept on is there: a rotation drops the oldest only.
+    assert_eq!(kept, (kept[0]..=5_000).collect::<Vec<u64>>());
+    // At least half of the limit is kept, in lines of under 200 bytes.
+    assert!(
+        kept.len() >= (limit / 2 / 200) as usize,
+        "{} kept",
+        kept.len()
+    );
+    // Files written with a higher limit are cut to the newest messages when the full load ends.
+    let (storage, path) = journal_of(&k, 3_000);
+    let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+    set(&mut s, "max_bytes", Value::I64(limit));
+    s.wait_for_load();
+    let on_disk = storage.stat(&path).unwrap().size + storage.stat(&older).map_or(0, |e| e.size);
+    assert!(on_disk <= limit as u64, "{on_disk} bytes");
+    assert_eq!(s.iter().last().map(|m| m.id), Some(3_000));
+}
+
+#[test]
+fn the_ids_go_on_after_repeats_and_without_the_side_index() {
+    let k = kinds();
+    let storage = Arc::new(MemStorage::new());
+    let path = StorePath::new("store/messages.jsonl").unwrap();
+    let index = StorePath::new("store/messages.jsonl.idx").unwrap();
+    {
+        let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+        set(&mut s, "max_age", Value::Duration(0.0));
+        put(&mut s, &k, 0.0, &text("first"));
+        // Repeats of one plane fill more than the tail that an open reads.
+        for i in 0..4_000 {
+            put(
+                &mut s,
+                &k,
+                1.0 + f64::from(i) * 0.001,
+                &plane("7C6DB8", 1000),
+            );
+        }
+    }
+    assert!(storage.stat(&path).unwrap().size > 300 << 10);
+    {
+        let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+        assert_eq!(put(&mut s, &k, 10.0, &text("third")).id(), Some(3));
+    }
+    storage.remove(&index).unwrap();
+    let mut s = Store::open(Arc::clone(&k), storage.clone(), path.clone()).unwrap();
+    // Without the index the ids come from the full load: a new message waits for it.
+    assert_eq!(put(&mut s, &k, 11.0, &text("fourth")), Added::Waiting);
+    s.wait_for_load();
+    assert_eq!(s.get(4).unwrap().text.as_deref(), Some("fourth"));
+    assert_eq!(s.get(2).unwrap().repeats, 3_999);
 }
 
 #[test]

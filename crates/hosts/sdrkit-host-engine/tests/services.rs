@@ -718,3 +718,46 @@ fn the_engine_returns_its_station_to_every_receiver() {
     );
     assert!(call("VK2ABC").is_some(), "a running receiver gets a change");
 }
+
+/// A journal of more messages than an open reads: a search through the store owner shows the newest messages at once,
+/// and the engine lands the full read on its own, which runs the search again on every message.
+#[test]
+fn a_search_of_a_large_store_ends_on_every_message() {
+    let storage = std::sync::Arc::new(sdrkit_core::MemStorage::new());
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs_f64();
+    let n = 5_000;
+    let mut journal = String::new();
+    for i in 0..n {
+        let t = now - f64::from(n - i);
+        journal.push_str(&format!(
+            "{{\"id\":{},\"time\":{t},\"last_time\":{t},\"kind\":\"engine.request\",\"family\":\"other\",\
+             \"urgency\":\"none\",\"freq_hz\":0.0,\"text\":\"request number {i} of a long journal\",\
+             \"repeats\":0,\"fields\":{{}}}}\n",
+            i + 1
+        ));
+    }
+    let path = sdrkit_core::StorePath::new("store/messages.jsonl").unwrap();
+    sdrkit_core::Storage::write(&*storage, &path, journal.as_bytes()).unwrap();
+    let e = live_engine(storage);
+    let store = e.find("service.store").unwrap();
+    let field = |key: &str| {
+        e.owner(store, |o| {
+            let r = o.results();
+            let id = r.decl().fields().id(key)?;
+            r.fields().value(id).cloned()
+        })
+        .unwrap()
+    };
+    assert_eq!(field("loaded"), Some(Value::Bool(false)));
+    call(&e, store, "search", &[("limit", Value::I64(10))]).unwrap();
+    assert_eq!(rows(&e, store, "messages").len(), 10);
+    wait_for(30.0, || {
+        (field("matches") == Some(Value::I64(i64::from(n)))).then_some(())
+    })
+    .expect("the search runs again on every message");
+    assert_eq!(field("loaded"), Some(Value::Bool(true)));
+    assert_eq!(field("rows"), Some(Value::I64(i64::from(n))));
+}

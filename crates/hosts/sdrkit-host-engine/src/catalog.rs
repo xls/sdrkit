@@ -13,7 +13,7 @@ use sdrkit_core::{
 use sdrkit_driver_core::DriverDescriptor;
 use sdrkit_graph::components::HostIn;
 use sdrkit_graph::{ComponentDescriptor, Graph, Registry};
-use std::sync::{Arc, LazyLock};
+use std::sync::{Arc, LazyLock, OnceLock};
 
 /// A name for people.
 pub const NAME: Field<field::Text> = Field::new("name", "Name", "");
@@ -404,6 +404,12 @@ pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
     }
 }
 
+#[cfg(test)]
+thread_local! {
+    /// The stacks that [`StackKind::ensure`] made on this thread.
+    static MADE_HERE: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 static NO_RESULTS: LazyLock<Arc<ResultsDecl>> = LazyLock::new(Arc::default);
 static NO_COMMANDS: LazyLock<Commands> = LazyLock::new(Commands::default);
 
@@ -428,10 +434,10 @@ fn host_audio_channels(rx: &mut dyn Receiver) -> u16 {
 }
 
 /// A stack kind as an owner: the schema with its defaults and the declarations of a stack of the kind. It has no values
-/// and no results.
+/// and no results. The schema is made on the first read, and the declarations by [`StackKind::ensure`] on first use.
 pub(crate) struct StackKind {
     desc: &'static StackDescriptor,
-    schema: Arc<Schema>,
+    schema: OnceLock<Arc<Schema>>,
     made: Option<Made>,
     /// The most host audio channels of the graph of the stack, over its default and its submodes.
     host_audio_channels: u16,
@@ -441,7 +447,7 @@ impl StackKind {
     pub(crate) fn new(desc: &'static StackDescriptor) -> Self {
         StackKind {
             desc,
-            schema: (desc.settings)(),
+            schema: OnceLock::new(),
             made: None,
             host_audio_channels: 0,
         }
@@ -455,8 +461,10 @@ impl StackKind {
         facilities: &Facilities,
     ) -> Result<(), EngineError> {
         if self.made.is_none() {
-            let cfg = StackConfig::new(Values::defaults(&self.schema))
+            let cfg = StackConfig::new(Values::defaults(self.schema()))
                 .with_adapters(Arc::clone(adapters));
+            #[cfg(test)]
+            MADE_HERE.set(MADE_HERE.get() + 1);
             let mut rx = (self.desc.make_receiver)(&cfg)?;
             rx.set_facilities(facilities);
             let submodes = self.desc.submodes.iter().filter_map(|m| {
@@ -481,7 +489,7 @@ impl StackKind {
 
 impl Owner for StackKind {
     fn schema(&self) -> &Arc<Schema> {
-        &self.schema
+        self.schema.get_or_init(|| (self.desc.settings)())
     }
     fn results_decl(&self) -> &Arc<ResultsDecl> {
         self.made.as_ref().map_or(&NO_RESULTS, |m| &m.results)
@@ -532,5 +540,77 @@ impl Owner for ComponentKind {
     }
     fn commands(&self) -> &Commands {
         self.made.as_ref().map_or(&NO_COMMANDS, |m| &m.commands)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Engine, OwnerRef, Setup};
+    use sdrkit_core::interface::EventShape;
+    use sdrkit_core::EventDecl;
+
+    fn engine() -> Engine {
+        let facilities = Facilities {
+            storage: Arc::new(sdrkit_core::MemStorage::new()),
+            clock: crate::system_clock(),
+            random: crate::system_random(),
+            codecs: Arc::new(sdrkit_host_catalog::codecs()),
+        };
+        Engine::new(Setup {
+            components: sdrkit_host_catalog::registry(&facilities),
+            facilities,
+            transport: Arc::new(sdrkit_core::net::StdNet),
+            stacks: sdrkit_host_catalog::all(),
+            families: sdrkit_host_catalog::families(),
+        })
+        .unwrap()
+    }
+
+    /// A start and a read of the stack list make no stack on the thread of the host. Each stack made on first use
+    /// declares the event kinds of its description, in order, and the event catalog holds the kinds that making every
+    /// stack in the order of the stack list gives: the first declaration of a kind.
+    #[test]
+    fn a_start_makes_no_stack_and_the_event_catalog_is_that_of_the_made_stacks() {
+        let stacks = sdrkit_host_catalog::all();
+        let e = engine();
+        let listed = e
+            .owner(OwnerRef::Engine, |o| {
+                let res = o.results();
+                res.table(res.decl().table_id(STACKS.key).unwrap())
+                    .unwrap()
+                    .rows_newest_first()
+                    .count()
+            })
+            .unwrap();
+        assert_eq!(listed, stacks.len());
+        assert_eq!(MADE_HERE.get(), 0, "stacks made by the start");
+        let mut first: Vec<EventDecl> = Vec::new();
+        for d in stacks {
+            let shape = sdrkit_host_catalog::family_of(d.id)
+                .and_then(|f| f.stack_shape(d.id))
+                .unwrap_or_else(|| panic!("{}: no description", d.id));
+            let r = e.find(&format!("stack.{}", d.id)).unwrap();
+            let made: Vec<EventDecl> = e.owner(r, |o| o.events().to_vec()).unwrap();
+            let described: Vec<&str> = shape
+                .events
+                .iter()
+                .map(|x: &EventShape| x.def.kind)
+                .collect();
+            let kinds: Vec<&str> = made.iter().map(|x| &*x.kind).collect();
+            assert_eq!(kinds, described, "{}", d.id);
+            crate::add_events(&mut first, &made);
+        }
+        let catalog = e.event_catalog();
+        for m in &first {
+            let id = catalog
+                .id(&m.kind)
+                .unwrap_or_else(|| panic!("{} is not in the catalog", m.kind));
+            assert!(
+                Arc::ptr_eq(catalog.fields(id).unwrap(), &m.fields),
+                "{}",
+                m.kind
+            );
+        }
     }
 }

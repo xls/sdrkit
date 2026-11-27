@@ -2,7 +2,7 @@
 //! retention by rows, size and age, and a journal of one JSON line per message in the host's storage.
 
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::collections::{HashMap, VecDeque};
 use std::io::Write as _;
 use std::sync::Arc;
 
@@ -20,6 +20,7 @@ use sdrkit_svc_events::{FieldRef, KindSet, Kinds, NameError, Observation};
 
 use crate::error::StoreError;
 use crate::export::{export, Export};
+use crate::journal::{self, Disk, Files, Loading};
 use crate::message::Message;
 
 /// The owner key of the store.
@@ -28,7 +29,8 @@ pub const KEY: OwnerKey = OwnerKey::of("service.store");
 /// The most messages kept.
 pub const MAX_ROWS: Setting<field::I64> =
     Setting::new("max_rows", "Most messages", "", 100_000).range(1.0, 1e9, 1.0);
-/// The most bytes kept (the size of the messages in the journal).
+/// The most bytes kept: of the messages in memory, and of the journal files on disk. The journal rotates when it passes
+/// half of it, so the two journal files hold at most this many bytes.
 pub const MAX_BYTES: Setting<field::I64> =
     Setting::new("max_bytes", "Most bytes", "", 64 << 20).range(1.0, 1e12, 1.0);
 /// The oldest message kept, seconds. 0 keeps messages however old.
@@ -142,6 +144,9 @@ pub const PRUNED: Field<field::I64> = Field::new("pruned", "Pruned", "");
 pub const BAD_LINES: Field<field::I64> = Field::new("bad_lines", "Unreadable lines", "");
 /// Messages that the last search matched.
 pub const MATCHES: Field<field::I64> = Field::new("matches", "Matches", "");
+/// Every message of the files is read. Until then a search shows the newest messages only, and runs again when the
+/// read ends.
+pub const LOADED: Field<field::Bool> = Field::new("loaded", "Every message read", "");
 
 /// First seen.
 pub const FIRST: Field<field::Time> = Field::new("time", "First seen", "");
@@ -175,7 +180,9 @@ pub const MESSAGES: TableDef = TableDef {
     marks: sdrkit_core::RowMarks::NONE,
 };
 
-const STATUS: &[&dyn Declare] = &[&ROWS, &BYTES, &FOLDED, &PRUNED, &BAD_LINES, &MATCHES];
+const STATUS: &[&dyn Declare] = &[
+    &ROWS, &BYTES, &FOLDED, &PRUNED, &BAD_LINES, &MATCHES, &LOADED,
+];
 
 /// What an insert did.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -184,15 +191,31 @@ pub enum Added {
     New(u64),
     /// Folded into this earlier message by the throttle.
     Folded(u64),
+    /// Kept until the full load gives the store its ids: the message is written then.
+    Waiting,
 }
 
 impl Added {
-    /// The message's id.
-    pub fn id(self) -> u64 {
+    /// The message's id. `None` for [`Added::Waiting`].
+    pub fn id(self) -> Option<u64> {
         match self {
-            Added::New(id) | Added::Folded(id) => id,
+            Added::New(id) | Added::Folded(id) => Some(id),
+            Added::Waiting => None,
         }
     }
+}
+
+/// Opens `path` of `storage` to append to it.
+fn open_append(
+    storage: &dyn Storage,
+    path: &StorePath,
+) -> Result<Box<dyn StoreWriter>, StoreError> {
+    storage
+        .open_writer(path, WriteMode::Append)
+        .map_err(|source| StoreError::Storage {
+            path: path.clone(),
+            source,
+        })
 }
 
 enum Term {
@@ -330,12 +353,21 @@ fn terms(kinds: &Kinds, text: &str, within: Option<&KindSet>) -> Result<Vec<Term
 }
 
 struct Journal {
-    path: StorePath,
-    out: Box<dyn StoreWriter>,
-    lines: usize,
+    files: Files,
+    /// `None` only while a rotation or a compaction replaces the file.
+    out: Option<Box<dyn StoreWriter>>,
+    disk: Disk,
+    /// `disk.len` when the side index was last written.
+    indexed_len: u64,
 }
 
 /// The message store: the owner `service.store`.
+///
+/// An open reads the side index and the newest lines of the journal only, so it takes the same time for any size of
+/// the journal. Every message of the files is read by a full load on a thread of its own, which starts at the first
+/// search, delete or compaction; until it ends, a search shows the newest messages, and it runs again when the load
+/// ends. A rotation bounds the files: when the journal passes half of [`MAX_BYTES`], it becomes the older journal and
+/// the older one before it is deleted.
 pub struct Store {
     kinds: Arc<Kinds>,
     storage: Arc<dyn Storage>,
@@ -350,6 +382,20 @@ pub struct Store {
     journal: Option<Journal>,
     shown: Vec<u64>,
     p: Published,
+    /// Every message of the files is in `messages`.
+    loaded: bool,
+    /// `next_id` is exact, so new messages can be written. False after an open without a fitting side index, until
+    /// the full load ends.
+    ids_known: bool,
+    loading: Option<Loading>,
+    /// Counts the clears: a load that a clear overtook is dropped.
+    generation: u64,
+    /// New messages that wait for `ids_known`, oldest first.
+    waiting: Vec<Message>,
+    /// Messages deleted before the full load ended.
+    deleted: Vec<u64>,
+    compact_after_load: bool,
+    search_after_load: Option<Values>,
 }
 
 impl Store {
@@ -369,11 +415,20 @@ impl Store {
             journal: None,
             shown: Vec::new(),
             p: Published::new(STATUS).with_tables(&[&MESSAGES]),
+            loaded: true,
+            ids_known: true,
+            loading: None,
+            generation: 0,
+            waiting: Vec::new(),
+            deleted: Vec::new(),
+            compact_after_load: false,
+            search_after_load: None,
         }
     }
 
-    /// Opens (or makes) a store kept in the journal at `path` of `storage`. Lines that cannot be read are skipped and
-    /// counted.
+    /// Opens (or makes) a store kept in the journal at `path` of `storage`, with the older journal `<path>.1` and the
+    /// side index `<path>.idx`. It reads the side index and at most a few hundred KiB of the end of the journal. Lines
+    /// that cannot be read are skipped and counted; a last line that was cut off stays a line of its own.
     ///
     /// # Errors
     ///
@@ -384,38 +439,37 @@ impl Store {
         path: StorePath,
     ) -> Result<Self, StoreError> {
         let mut s = Store::in_memory(kinds, Arc::clone(&storage));
-        let mut lines = 0;
-        let data = match storage.read(&path) {
-            Ok(d) => d,
-            Err(sdrkit_core::StorageError::NotFound) => Vec::new(),
-            Err(source) => return Err(StoreError::Storage { path, source }),
-        };
-        let mut by_id: BTreeMap<u64, Message> = BTreeMap::new();
-        for line in String::from_utf8_lossy(&data).lines() {
-            if line.trim().is_empty() {
-                continue;
-            }
-            lines += 1;
-            match Message::from_line(line, &s.kinds) {
-                Some(m) => {
-                    by_id.insert(m.id, m);
-                }
-                None => s.bad_lines += 1,
-            }
-        }
-        for (_, m) in by_id {
-            s.next_id = s.next_id.max(m.id + 1);
+        let files = Files::of(&path)?;
+        let opened = journal::open(&*storage, &files, &s.kinds)?;
+        s.bad_lines = opened.bad_lines;
+        s.next_id = opened.disk.next_id;
+        for (_, m) in opened.tail {
             s.push(m);
         }
-        let out = storage
-            .open_writer(&path, WriteMode::Append)
-            .map_err(|source| StoreError::Storage {
-                path: path.clone(),
-                source,
-            })?;
-        s.journal = Some(Journal { path, out, lines });
+        s.loaded = opened.whole;
+        s.ids_known = opened.indexed;
+        let mut out = open_append(&*storage, &files.current)?;
+        let mut disk = opened.disk;
+        if opened.torn {
+            out.write_all(b"\n")
+                .and_then(|()| out.flush())
+                .map_err(|e| StoreError::Storage {
+                    path: files.current.clone(),
+                    source: e.into(),
+                })?;
+            disk.len += 1;
+        }
+        s.journal = Some(Journal {
+            files,
+            out: Some(out),
+            disk,
+            indexed_len: disk.len,
+        });
         let now = s.messages.back().map_or(0.0, |m| m.last_time);
-        s.prune(now);
+        s.drop_old(now);
+        if !s.ids_known {
+            s.start_load();
+        }
         s.publish();
         Ok(s)
     }
@@ -445,11 +499,21 @@ impl Store {
     ///
     /// [`StoreError::Storage`] if the journal cannot be written. The message is kept in memory.
     pub fn insert(&mut self, o: &Observation<'_>) -> Result<Added, StoreError> {
+        self.poll_load(false);
         let key = match self.kinds.catalog().def(o.kind) {
             Some(d) => d.kind.clone(),
             None => Cow::Owned(o.event.kind().to_owned()),
         };
-        let mut m = Message::new(o, key);
+        let m = Message::new(o, key);
+        if !self.ids_known {
+            self.waiting.push(m);
+            self.publish();
+            return Ok(Added::Waiting);
+        }
+        self.add(m, o.unix_time)
+    }
+
+    fn add(&mut self, mut m: Message, now: f64) -> Result<Added, StoreError> {
         let fold_s = self.fold_s();
         if fold_s > 0.0 {
             if let Some(idx) = m
@@ -475,7 +539,7 @@ impl Store {
                     let id = old.id;
                     self.folded += 1;
                     self.publish();
-                    self.write(line)?;
+                    self.write(line, false)?;
                     return Ok(Added::Folded(id));
                 }
             }
@@ -485,32 +549,202 @@ impl Store {
         let id = m.id;
         let line = m.refresh();
         self.push(m);
-        self.prune(o.unix_time);
+        self.drop_old(now);
         self.publish();
-        self.write(line)?;
-        self.compact_if_needed()?;
+        self.write(line, true)?;
         Ok(Added::New(id))
     }
 
-    fn write(&mut self, line: Result<String, serde_json::Error>) -> Result<(), StoreError> {
+    /// Appends a line to the journal. `row` is true for the first line of a message.
+    fn write(
+        &mut self,
+        line: Result<String, serde_json::Error>,
+        row: bool,
+    ) -> Result<(), StoreError> {
         let line = line?;
-        if let Some(j) = &mut self.journal {
-            let r = j
-                .out
-                .write_all(line.as_bytes())
-                .and_then(|()| j.out.write_all(b"\n"))
-                .and_then(|()| j.out.flush());
-            r.map_err(|e| StoreError::Storage {
-                path: j.path.clone(),
+        let Some(j) = &mut self.journal else {
+            return Ok(());
+        };
+        // A rotation or a compaction that failed left no writer: the journal is opened again.
+        let out = match &mut j.out {
+            Some(out) => out,
+            None => j.out.insert(open_append(&*self.storage, &j.files.current)?),
+        };
+        out.write_all(line.as_bytes())
+            .and_then(|()| out.write_all(b"\n"))
+            .and_then(|()| out.flush())
+            .map_err(|e| StoreError::Storage {
+                path: j.files.current.clone(),
                 source: e.into(),
             })?;
-            j.lines += 1;
+        j.disk.len += line.len() as u64 + 1;
+        if row {
+            j.disk.rows += 1;
+        }
+        let half = u64::try_from(self.values.get(&MAX_BYTES)).unwrap_or(u64::MAX) / 2;
+        if j.disk.len > half && self.loading.is_none() {
+            return self.rotate();
+        }
+        if j.disk.len - j.indexed_len >= journal::INDEX_EVERY {
+            self.write_index()?;
         }
         Ok(())
     }
 
-    /// Drops the oldest messages past a limit of the retention. `now` is the wall clock, Unix seconds.
+    /// Writes the side index.
+    fn write_index(&mut self) -> Result<(), StoreError> {
+        let next_id = self.next_id;
+        let Some(j) = &mut self.journal else {
+            return Ok(());
+        };
+        if !self.ids_known {
+            return Ok(());
+        }
+        j.disk.next_id = next_id;
+        j.disk.write(&*self.storage, &j.files)?;
+        j.indexed_len = j.disk.len;
+        Ok(())
+    }
+
+    /// Makes the journal the older journal, deleting the older one before it, and starts an empty journal.
+    fn rotate(&mut self) -> Result<(), StoreError> {
+        let Some(j) = &mut self.journal else {
+            return Ok(());
+        };
+        let storage = &*self.storage;
+        let err = |source| StoreError::Storage {
+            path: j.files.current.clone(),
+            source,
+        };
+        j.out = None;
+        storage
+            .rename(&j.files.current, &j.files.older)
+            .map_err(err)?;
+        j.out = Some(open_append(storage, &j.files.current)?);
+        j.disk.old_rows = j.disk.rows;
+        j.disk.old_bytes = j.disk.len;
+        j.disk.rows = 0;
+        j.disk.len = 0;
+        self.write_index()
+    }
+
+    /// Takes the result of a full load that has ended (`wait` waits for it) and merges it with the messages in memory.
+    /// A failed load is reported as a problem of the store.
+    fn poll_load(&mut self, wait: bool) {
+        let Some(l) = self.loading.as_mut() else {
+            return;
+        };
+        let Some(r) = l.take(wait) else {
+            return;
+        };
+        let rows_before = l.rows_before;
+        self.loading = None;
+        let r = r.and_then(|loaded| self.merge(loaded, rows_before));
+        if let Err(e) = r {
+            if !self.ids_known {
+                // The ids stay as the tail gave them.
+                self.ids_known = true;
+                let _ = self.flush_waiting();
+            }
+            self.p.results_mut().problem(&e.to_string());
+            self.publish();
+        }
+    }
+
+    fn merge(&mut self, l: journal::Loaded, rows_before: u64) -> Result<(), StoreError> {
+        if l.generation != self.generation {
+            return Ok(());
+        }
+        let mut all = l.messages;
+        // A message in memory is as new as the files or newer.
+        for m in self.messages.drain(..) {
+            all.insert(m.id, m);
+        }
+        for id in self.deleted.drain(..) {
+            all.remove(&id);
+        }
+        self.latest.clear();
+        self.bytes = 0;
+        self.bad_lines += l.bad_lines;
+        let top = all.keys().next_back().copied().unwrap_or(0);
+        for (_, m) in all {
+            self.push(m);
+        }
+        self.next_id = self.next_id.max(top + 1);
+        self.loaded = true;
+        self.ids_known = true;
+        if let Some(j) = &mut self.journal {
+            j.disk.old_rows = l.old_rows;
+            j.disk.rows = l.rows + j.disk.rows.saturating_sub(rows_before);
+        }
+        let now = self.messages.back().map_or(0.0, |m| m.last_time);
+        self.drop_old(now);
+        // Files past the limit (written with a higher limit) are cut to the messages kept.
+        let max_bytes = u64::try_from(self.values.get(&MAX_BYTES)).unwrap_or(u64::MAX);
+        let over = self
+            .journal
+            .as_ref()
+            .is_some_and(|j| j.disk.len + j.disk.old_bytes > max_bytes);
+        if std::mem::take(&mut self.compact_after_load) || over {
+            self.compact()?;
+        }
+        self.flush_waiting()?;
+        if let Some(args) = self.search_after_load.take() {
+            if let Ok(q) = Query::new(&self.kinds, &args) {
+                self.run_search(&q);
+            }
+        }
+        self.write_index()?;
+        self.publish();
+        Ok(())
+    }
+
+    /// Writes the messages that waited for their ids.
+    fn flush_waiting(&mut self) -> Result<(), StoreError> {
+        for m in std::mem::take(&mut self.waiting) {
+            let now = m.time;
+            self.add(m, now)?;
+        }
+        Ok(())
+    }
+
+    /// Starts the full load, if the store has not loaded every message and no load runs.
+    fn start_load(&mut self) {
+        if self.loaded || self.loading.is_some() {
+            return;
+        }
+        let Some(j) = &self.journal else {
+            return;
+        };
+        self.loading = Some(Loading::start(
+            Arc::clone(&self.storage),
+            j.files.clone(),
+            Arc::clone(&self.kinds),
+            j.disk.len,
+            self.generation,
+            j.disk.rows,
+        ));
+    }
+
+    /// True when every message of the files is in memory.
+    pub fn is_loaded(&self) -> bool {
+        self.loaded
+    }
+
+    /// Starts the full load if it has not run, and waits for it to end.
+    pub fn wait_for_load(&mut self) {
+        self.start_load();
+        self.poll_load(true);
+    }
+
+    /// Takes the result of a full load that has ended, then drops the oldest messages past a limit of the retention.
+    /// `now` is the wall clock, Unix seconds.
     pub fn prune(&mut self, now: f64) {
+        self.poll_load(false);
+        self.drop_old(now);
+    }
+
+    fn drop_old(&mut self, now: f64) {
         let max_rows = usize::try_from(self.values.get(&MAX_ROWS)).unwrap_or(usize::MAX);
         let max_bytes = u64::try_from(self.values.get(&MAX_BYTES)).unwrap_or(u64::MAX);
         let age = self.values.get(&MAX_AGE);
@@ -539,70 +773,113 @@ impl Store {
         }
     }
 
-    fn compact_if_needed(&mut self) -> Result<(), StoreError> {
-        let rows = self.messages.len();
-        if self
-            .journal
-            .as_ref()
-            .is_some_and(|j| j.lines > rows * 2 + 1000)
-        {
-            self.compact()?;
-        }
-        Ok(())
-    }
-
-    /// Rewrites the journal with only the messages kept, as one atomic replace.
+    /// Rewrites the journal files with only the messages kept, each file as one atomic replace: past half of
+    /// [`MAX_BYTES`], the oldest half of the limit in the older journal and the newer messages in the journal. Before the full load has ended, it
+    /// starts the load and compacts when it ends.
     ///
     /// # Errors
     ///
-    /// [`StoreError::Storage`] if the journal cannot be written.
+    /// [`StoreError::Storage`] if a file cannot be written.
     pub fn compact(&mut self) -> Result<(), StoreError> {
-        let (Some(j), storage) = (&mut self.journal, &self.storage) else {
+        if !self.loaded {
+            self.compact_after_load = true;
+            self.start_load();
             return Ok(());
-        };
-        let mut data = Vec::new();
-        for m in &self.messages {
-            data.extend_from_slice(m.line()?.as_bytes());
-            data.push(b'\n');
         }
-        let err = |source| StoreError::Storage {
-            path: j.path.clone(),
-            source,
-        };
-        storage.write(&j.path, &data).map_err(err)?;
-        j.out = storage
-            .open_writer(&j.path, WriteMode::Append)
-            .map_err(|source| StoreError::Storage {
-                path: j.path.clone(),
-                source,
-            })?;
-        j.lines = self.messages.len();
-        Ok(())
+        // Past half of the limit, the oldest half goes to the older journal, so the journal rotates as late as it can.
+        let half = u64::try_from(self.values.get(&MAX_BYTES)).unwrap_or(u64::MAX) / 2;
+        let mut split = 0;
+        if self.bytes > half {
+            let mut oldest = 0;
+            for m in &self.messages {
+                oldest += m.bytes as u64;
+                if oldest > half {
+                    break;
+                }
+                split += 1;
+            }
+        }
+        let mut older = Vec::new();
+        let mut current = Vec::new();
+        for (i, m) in self.messages.iter().enumerate() {
+            let out = if i < split { &mut older } else { &mut current };
+            out.extend_from_slice(m.line()?.as_bytes());
+            out.push(b'\n');
+        }
+        let rows = (self.messages.len() - split) as u64;
+        self.replace_files(&older, split as u64, &current, rows)
     }
 
-    /// The messages that match `q`, newest first.
+    /// Replaces the older journal with `older` (`old_rows` messages; deleted if empty) and the journal with `current`
+    /// (`rows` messages).
+    fn replace_files(
+        &mut self,
+        older: &[u8],
+        old_rows: u64,
+        current: &[u8],
+        rows: u64,
+    ) -> Result<(), StoreError> {
+        let Some(j) = &mut self.journal else {
+            return Ok(());
+        };
+        let storage = &*self.storage;
+        let err = |path: &StorePath, source| StoreError::Storage {
+            path: path.clone(),
+            source,
+        };
+        j.out = None;
+        if older.is_empty() {
+            match storage.remove(&j.files.older) {
+                Ok(()) | Err(sdrkit_core::StorageError::NotFound) => {}
+                Err(e) => return Err(err(&j.files.older, e)),
+            }
+        } else {
+            storage
+                .write(&j.files.older, older)
+                .map_err(|e| err(&j.files.older, e))?;
+        }
+        storage
+            .write(&j.files.current, current)
+            .map_err(|e| err(&j.files.current, e))?;
+        j.out = Some(open_append(storage, &j.files.current)?);
+        j.disk.len = current.len() as u64;
+        j.disk.rows = rows;
+        j.disk.old_rows = old_rows;
+        j.disk.old_bytes = older.len() as u64;
+        self.write_index()
+    }
+
+    /// The messages in memory that match `q`, newest first. Before the full load has ended these are the newest
+    /// messages only ([`Store::is_loaded`]).
     pub fn search(&self, q: &Query) -> Vec<&Message> {
         let mut hits: Vec<&Message> = self.messages.iter().filter(|m| q.matches(m)).collect();
         hits.sort_by(|a, b| b.last_time.total_cmp(&a.last_time).then(b.id.cmp(&a.id)));
         hits.into_iter().skip(q.offset).take(q.limit).collect()
     }
 
-    /// The message with id `id`.
+    fn run_search(&mut self, q: &Query) {
+        let all = self.messages.iter().filter(|m| q.matches(m)).count();
+        let ids = self.search(q).iter().map(|m| m.id).collect();
+        self.p.set(&MATCHES, i64::try_from(all).unwrap_or(i64::MAX));
+        self.show(ids);
+    }
+
+    /// The message with id `id`, if it is in memory.
     pub fn get(&self, id: u64) -> Option<&Message> {
         self.index_of(id).map(|i| &self.messages[i])
     }
 
-    /// Every message, oldest first.
+    /// Every message in memory, oldest first.
     pub fn iter(&self) -> impl Iterator<Item = &Message> {
         self.messages.iter()
     }
 
-    /// The number of messages kept.
+    /// The number of messages in memory.
     pub fn len(&self) -> usize {
         self.messages.len()
     }
 
-    /// True if the store keeps no message.
+    /// True if the store keeps no message in memory.
     pub fn is_empty(&self) -> bool {
         self.messages.is_empty()
     }
@@ -614,6 +891,9 @@ impl Store {
         if let Some(m) = self.messages.remove(i) {
             self.forget(&m);
         }
+        if !self.loaded {
+            self.deleted.push(id);
+        }
         self.compact()?;
         Ok(true)
     }
@@ -622,7 +902,15 @@ impl Store {
         self.messages.clear();
         self.latest.clear();
         self.bytes = 0;
-        self.compact()
+        self.deleted.clear();
+        self.compact_after_load = false;
+        self.search_after_load = None;
+        self.generation += 1;
+        self.loading = None;
+        self.loaded = true;
+        self.ids_known = true;
+        self.replace_files(&[], 0, &[], 0)?;
+        self.flush_waiting()
     }
 
     fn table_id(&self) -> Option<TableId> {
@@ -668,11 +956,20 @@ impl Store {
 
     fn publish(&mut self) {
         let n = |x: u64| i64::try_from(x).unwrap_or(i64::MAX);
-        self.p.set(&ROWS, n(self.messages.len() as u64));
-        self.p.set(&BYTES, n(self.bytes));
+        // Before the full load the counts are those of the files.
+        let (rows, bytes) = match &self.journal {
+            Some(j) if !self.loaded => (
+                j.disk.rows + j.disk.old_rows + self.waiting.len() as u64,
+                j.disk.len + j.disk.old_bytes,
+            ),
+            _ => (self.messages.len() as u64, self.bytes),
+        };
+        self.p.set(&ROWS, n(rows));
+        self.p.set(&BYTES, n(bytes));
         self.p.set(&FOLDED, n(self.folded));
         self.p.set(&PRUNED, n(self.pruned));
         self.p.set(&BAD_LINES, n(self.bad_lines));
+        self.p.set(&LOADED, self.loaded);
     }
 
     fn row_id(&self, args: &Values) -> Result<u64, CommandError> {
@@ -685,6 +982,16 @@ impl Store {
                 table: self.table_id().unwrap_or(TableId(u16::MAX)),
                 key: row.to_owned(),
             })
+    }
+}
+
+impl Drop for Store {
+    /// Writes the messages that wait for their ids, which waits for the full load, and the side index.
+    fn drop(&mut self) {
+        if !self.waiting.is_empty() {
+            self.wait_for_load();
+        }
+        let _ = self.write_index();
     }
 }
 
@@ -712,13 +1019,17 @@ impl Owner for Store {
         StoreCommand::commands()
     }
     fn invoke(&mut self, id: CommandId, args: &Values) -> Result<Option<Record>, CommandError> {
-        match StoreCommand::from_id(id).ok_or(CommandError::NoSuchId { id })? {
+        let command = StoreCommand::from_id(id).ok_or(CommandError::NoSuchId { id })?;
+        self.poll_load(false);
+        match command {
             StoreCommand::Search => {
                 let q = Query::new(&self.kinds, args).map_err(failed)?;
-                let all = self.messages.iter().filter(|m| q.matches(m)).count();
-                let ids = self.search(&q).iter().map(|m| m.id).collect();
-                self.p.set(&MATCHES, i64::try_from(all).unwrap_or(i64::MAX));
-                self.show(ids);
+                self.run_search(&q);
+                if !self.loaded {
+                    // The search runs again on every message when the load ends.
+                    self.search_after_load = Some(args.clone());
+                    self.start_load();
+                }
             }
             StoreCommand::Delete => {
                 let row = self.row_id(args)?;

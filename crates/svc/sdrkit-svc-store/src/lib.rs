@@ -7,6 +7,7 @@
 pub mod daily;
 pub mod error;
 pub mod export;
+mod journal;
 pub mod message;
 pub mod session;
 pub mod store;

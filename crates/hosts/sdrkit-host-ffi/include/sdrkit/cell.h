@@ -337,7 +337,7 @@ typedef struct sdrkit_cell_band_search_fields {
   sdrkit_string search_band;
   // True if `search_step` holds a value.
   bool has_search_step;
-  // The radio centre of the search step, counted from 1.
+  // The step of the pass, counted from 1: the steps searched in this pass and the one that waits.
   int64_t search_step;
   // True if `search_steps` holds a value.
   bool has_search_steps;

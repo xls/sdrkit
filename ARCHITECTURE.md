@@ -460,7 +460,7 @@ clock, the stack list, the band plans), and passes it the events of every sessio
 | `service.identify` | Identify: names the kind of a signal. |
 | `service.memory` | Memories: stored channels. |
 | `service.freqdb` | Frequency database. |
-| `service.store` | Message store: keeps decoded messages in `store/messages.jsonl`. |
+| `service.store` | Message store: keeps decoded messages in `store/messages.jsonl`, with the older journal `store/messages.jsonl.1` and the side index `store/messages.jsonl.idx`. A start reads the index and the newest lines only; every message is read on a thread of its own at the first search. The setting `max_bytes` (default 64 MiB) bounds memory and both files: the journal rotates at half of it. |
 | `service.sessions` | Conversations. |
 | `service.watch` | Watch list. |
 | `service.automation` | Automation rules. |
