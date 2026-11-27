@@ -10,6 +10,27 @@ use sdrkit_util_bits::crc::catalog::CRC16_SPI_FUJITSU;
 use sdrkit_util_bits::crc::Trailer;
 use serde::{Deserialize, Serialize};
 
+/// The MPDU header of a channel configuration (G.9959 clause 8.1.3, Figures 8-5 to 8-8, 8-11 and 8-12).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Header {
+    /// Channel configurations 1 and 2: the sequence number is 4 bits of the second frame control octet.
+    #[default]
+    OneTwo,
+    /// Channel configuration 3 (three channels at R3): a sequence number octet after the length, and a frame control
+    /// without the routed and speed modified bits.
+    Three,
+}
+
+impl Header {
+    /// The octets of the header before the destination (or the multicast control).
+    pub fn fixed_len(self) -> usize {
+        match self {
+            Header::OneTwo => 8,
+            Header::Three => 9,
+        }
+    }
+}
+
 /// A parsed MPDU.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Mpdu {
@@ -29,6 +50,10 @@ pub struct Mpdu {
     pub members: Vec<u16>,
     /// The application payload (command class, command, parameters).
     pub payload: Vec<u8>,
+    /// The header layout.
+    pub header: Header,
+    /// The sequence number octet of [`Header::Three`]; 0 otherwise.
+    pub seq_octet: u8,
 }
 
 impl Mpdu {
@@ -38,15 +63,35 @@ impl Mpdu {
     }
     /// Sequence number.
     pub fn seq(&self) -> u8 {
-        self.fc2 & 0x0F
+        match self.header {
+            Header::OneTwo => self.fc2 & 0x0F,
+            Header::Three => self.seq_octet,
+        }
     }
     /// Ack requested.
     pub fn ack_req(&self) -> bool {
-        self.fc1 & 0x40 != 0
+        match self.header {
+            Header::OneTwo => self.fc1 & 0x40 != 0,
+            Header::Three => self.fc1 & 0x80 != 0,
+        }
+    }
+    /// Sent at low power.
+    pub fn low_power(&self) -> bool {
+        match self.header {
+            Header::OneTwo => self.fc1 & 0x20 != 0,
+            Header::Three => self.fc1 & 0x40 != 0,
+        }
+    }
+    /// The sender can be woken by a beam (beaming information not zero).
+    pub fn beaming(&self) -> bool {
+        match self.header {
+            Header::OneTwo => self.fc2 & 0x60 != 0,
+            Header::Three => self.fc2 & 0x70 != 0,
+        }
     }
     /// Routed.
     pub fn routed(&self) -> bool {
-        self.fc1 & 0x80 != 0 || self.header_type() == 8
+        (self.header == Header::OneTwo && self.fc1 & 0x80 != 0) || self.header_type() == 8
     }
     /// The encryption ("none", "S0", "S2").
     pub fn encryption(&self) -> &'static str {
@@ -79,34 +124,37 @@ pub fn check(mpdu: &[u8], rate: u8) -> bool {
     }
 }
 
-/// Parses an MPDU (check octets included; `rate` determines their number). `None` when it is malformed.
-pub fn parse(m: &[u8], rate: u8) -> Option<Mpdu> {
+/// Parses an MPDU with the header layout `header` (check octets included; `rate` determines their number). `None` when it
+/// is malformed.
+pub fn parse(m: &[u8], rate: u8, header: Header) -> Option<Mpdu> {
     let ck = if rate == 3 { 2 } else { 1 };
-    if m.len() < 9 + ck || m[7] as usize != m.len() {
+    let h = header.fixed_len();
+    if m.len() < h + 1 + ck || m[7] as usize != m.len() {
         return None;
     }
     let home = u32::from_be_bytes([m[0], m[1], m[2], m[3]]);
     let (fc1, fc2) = (m[5], m[6]);
+    let seq_octet = if header == Header::Three { m[8] } else { 0 };
     let end = m.len() - ck;
     let ht = fc1 & 0x0F;
     let (dst, members, pstart) = if ht == 2 {
-        let ctl = m[8];
+        let ctl = m[h];
         let off = (ctl >> 5) as u16;
         let ml = (ctl & 0x1F) as usize;
-        if !(1..=29).contains(&ml) || 9 + ml > end {
+        if !(1..=29).contains(&ml) || h + 1 + ml > end {
             return None;
         }
         let mut mem = Vec::new();
         for i in 0..ml {
             for b in 0..8 {
-                if m[9 + i] & (1 << b) != 0 {
+                if m[h + 1 + i] & (1 << b) != 0 {
                     mem.push(off * 32 + 8 * i as u16 + b + 1);
                 }
             }
         }
-        (0, mem, 9 + ml)
+        (0, mem, h + 1 + ml)
     } else {
-        (m[8], vec![], 9)
+        (m[h], vec![], h + 1)
     };
     Some(Mpdu {
         home,
@@ -117,6 +165,8 @@ pub fn parse(m: &[u8], rate: u8) -> Option<Mpdu> {
         dst,
         members,
         payload: m[pstart..end].to_vec(),
+        header,
+        seq_octet,
     })
 }
 
@@ -144,6 +194,27 @@ pub fn build(
     } else {
         m.push(0xFF ^ xor8(&m));
     }
+    m
+}
+
+/// Builds an MPDU of channel configuration 3 (always R3): header with the sequence number octet `seq`, destination (or
+/// multicast control and mask), payload and the CRC.
+pub fn build_three(
+    home: u32,
+    src: u8,
+    fc: [u8; 2],
+    seq: u8,
+    dst_or_mask: &[u8],
+    payload: &[u8],
+) -> Vec<u8> {
+    let mut m = home.to_be_bytes().to_vec();
+    m.extend([src, fc[0], fc[1]]);
+    m.push((9 + dst_or_mask.len() + payload.len() + 2) as u8);
+    m.push(seq);
+    m.extend_from_slice(dst_or_mask);
+    m.extend_from_slice(payload);
+    let c = CRC16_SPI_FUJITSU.checksum(&m);
+    m.extend_from_slice(&c.to_be_bytes());
     m
 }
 
@@ -577,7 +648,7 @@ pub fn command_fields(p: &[u8], mut r: Reading) -> Reading {
 /// The `ism` reading of a checked MPDU at `rate` (1, 2, 3): the home id and source as the id, the frame type, and the command
 /// with its value when the payload is not encrypted.
 pub fn ism_reading(mpdu: &[u8], rate: u8) -> Option<Reading> {
-    let m = parse(mpdu, rate)?;
+    let m = parse(mpdu, rate, Header::OneTwo)?;
     let model = ["Z-Wave-R1", "Z-Wave-R2", "Z-Wave-R3"][(rate - 1) as usize];
     let check = if rate == 3 {
         Check::Crc
@@ -648,15 +719,37 @@ mod tests {
         let m = build(0xC0FFEE01, 1, 0x41, 1, &[2], &[0x25, 0x01, 0xFF], 2);
         assert_eq!(hex(&m), "C0FFEE010141010D022501FFBA");
         assert!(check(&m, 2));
-        let p = parse(&m, 2).unwrap();
+        let p = parse(&m, 2, Header::OneTwo).unwrap();
         assert_eq!(describe(&p), "SWITCH_BINARY Set on");
+    }
+
+    #[test]
+    fn configuration_three_has_a_sequence_octet() {
+        // Singlecast, ack requested, low power, sequence 0xA5, to node 2.
+        let m = build_three(0xC0FFEE01, 1, [0xC1, 0x00], 0xA5, &[2], &[0x25, 0x01, 0xFF]);
+        assert_eq!(m.len(), 15);
+        assert_eq!(m[7], 15);
+        assert!(check(&m, 3));
+        let p = parse(&m, 3, Header::Three).unwrap();
+        assert_eq!((p.src, p.dst, p.seq()), (1, 2, 0xA5));
+        assert!(p.ack_req() && p.low_power() && !p.routed() && !p.beaming());
+        assert_eq!(describe(&p), "SWITCH_BINARY Set on");
+        // A routed MPDU of configuration 3 has header type 8; bit 7 asks for an ack.
+        let r = build_three(0xC0FFEE01, 1, [0x88, 0x40], 7, &[2], &[0x00]);
+        let p = parse(&r, 3, Header::Three).unwrap();
+        assert!(p.routed() && p.ack_req() && p.beaming());
+        // Multicast: the control octet and the mask come after the sequence number.
+        let mc = build_three(0xC0FFEE01, 1, [0x02, 0x00], 9, &[0x01, 0x16], &[0x25, 0x01, 0x00]);
+        let p = parse(&mc, 3, Header::Three).unwrap();
+        assert_eq!(p.members, vec![2, 3, 5]);
+        assert_eq!(p.seq(), 9);
     }
 
     #[test]
     fn multicast_members() {
         let m = from_hex("C0FFEE0101020A0E01162501001B").unwrap();
         assert!(check(&m, 2));
-        let p = parse(&m, 2).unwrap();
+        let p = parse(&m, 2, Header::OneTwo).unwrap();
         assert_eq!(p.members, vec![2, 3, 5]);
         assert_eq!(describe(&p), "SWITCH_BINARY Set off");
     }

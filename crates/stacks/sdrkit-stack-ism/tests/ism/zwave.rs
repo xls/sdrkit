@@ -46,7 +46,7 @@ fn byte_vectors_parse_describe_and_rebuild() {
         let m = from_hex(v["mpdu_hex"].as_str().unwrap()).unwrap();
         let r = rate_of(v["rate"].as_str().unwrap());
         assert!(frame::check(&m, r), "{}", v["describe"]);
-        let p = frame::parse(&m, r).unwrap();
+        let p = frame::parse(&m, r, frame::Header::OneTwo).unwrap();
         let want = v["describe"].as_str().unwrap();
         let want = want.split(" (multicast").next().unwrap();
         assert_eq!(frame::describe(&p), want);
@@ -64,7 +64,7 @@ fn byte_vectors_parse_describe_and_rebuild() {
         }
     }
     // The schedule matches the vectors except the random bytes of the S0 and S2 frames.
-    for (i, (r, m)) in zwave::schedule().iter().enumerate() {
+    for (i, (r, m)) in zwave::schedule(frame::Header::OneTwo).iter().enumerate() {
         let want = vecs[i]["mpdu_hex"].as_str().unwrap();
         if i == 12 || i == 13 {
             assert_eq!(hex(&m[..10]), want[..20]);
@@ -157,7 +157,7 @@ fn conformance_vector() {
 
 /// How many frames of the schedule fit in `seconds` (the first at 50 ms, 40 ms between frames), with their acks, S0 and S2.
 fn sent_in(seconds: f64, rate: f64) -> (usize, i64, i64, i64) {
-    let sched = zwave::schedule();
+    let sched = zwave::schedule(frame::Header::OneTwo);
     let (mut t, mut sent, mut acks, mut s0, mut s2) = (0.05f64, 0usize, 0, 0, 0);
     for k in 0.. {
         let (r, m) = &sched[k % sched.len()];
@@ -166,7 +166,7 @@ fn sent_in(seconds: f64, rate: f64) -> (usize, i64, i64, i64) {
             break;
         }
         sent += 1;
-        let p = frame::parse(m, *r).unwrap();
+        let p = frame::parse(m, *r, frame::Header::OneTwo).unwrap();
         acks += (p.header_type() == 3) as i64;
         s0 += (p.encryption() == "S0") as i64;
         s2 += (p.encryption() == "S2") as i64;
@@ -216,7 +216,7 @@ fn generator_round_trip_eu() {
 
 /// The frames of each rate (R1, R2, R3) that the schedule sends in `seconds` at `rate`.
 fn sent_by_rate(seconds: f64, rate: f64) -> [usize; 3] {
-    let sched = zwave::schedule();
+    let sched = zwave::schedule(frame::Header::OneTwo);
     let (mut t, mut sent) = (0.05f64, [0usize; 3]);
     for k in 0.. {
         let (r, m) = &sched[k % sched.len()];
@@ -328,7 +328,7 @@ fn noise_counts_no_bad_frames() {
 fn a_frame_decodes_after_a_step_of_the_level() {
     let rate = ZWAVE.tuning.rate_hz;
     let region = crate::util::zwave_region("ANZ");
-    let (_, mpdu) = zwave::schedule()
+    let (_, mpdu) = zwave::schedule(frame::Header::OneTwo)
         .into_iter()
         .find(|(x, _)| *x == 2)
         .unwrap();
@@ -369,7 +369,7 @@ fn burst(r: u8, mpdu: &[u8], chan: f64) -> Vec<Complex32> {
 #[test]
 fn corrupted_check_counts_and_adds_no_node() {
     for (r, chan) in [(2u8, 868.40e6), (3, 869.85e6)] {
-        let (_, good) = zwave::schedule()
+        let (_, good) = zwave::schedule(frame::Header::OneTwo)
             .into_iter()
             .find(|(x, _)| *x == r)
             .unwrap();
@@ -402,7 +402,7 @@ fn corrupted_check_counts_and_adds_no_node() {
 /// refuses the frame.
 #[test]
 fn r1_refuses_a_manchester_pair_without_a_change() {
-    let (_, mpdu) = zwave::schedule()
+    let (_, mpdu) = zwave::schedule(frame::Header::OneTwo)
         .into_iter()
         .find(|(r, _)| *r == 1)
         .unwrap();
@@ -428,6 +428,7 @@ fn r1_refuses_a_manchester_pair_without_a_change() {
         start: 394,
         noise: 1e-6,
         time: 0.0,
+        header: frame::Header::OneTwo,
     };
     assert!(!matches!(
         zwave::decode_burst(&b, false),
@@ -577,7 +578,7 @@ fn every_channel_at_once(
     rate: f64,
     rounds: usize,
 ) -> (Vec<Complex32>, Vec<(f64, u8)>) {
-    let sched = zwave::schedule();
+    let sched = zwave::schedule(zwave::header_of(channels));
     let mut rng = sdrkit_algo_sim::rng::Rng::new(21);
     let mut x: Vec<Complex32> = (0..((0.15 + 0.1 * rounds as f64) * rate) as usize)
         .map(|_| rng.complex_normal(2e-4))
@@ -683,52 +684,61 @@ fn every_channel_decodes_at_the_covering_rate() {
         assert_eq!(with_frames, region.channels().len(), "{id}");
         let summary = &res.status().summary;
         assert!(!summary.contains("apart"), "{id}: {summary}");
+        // JP and KR are channel configuration 3: the sequence number is the octet after the length (0x21, 0x22 in the
+        // test frames), and the destination and payload follow it.
+        if id != "US" {
+            let seqs = column(res, &FRAMES, "seq");
+            assert!(seqs.iter().any(|s| s == "33") && seqs.iter().any(|s| s == "34"), "{id}: {seqs:?}");
+            let commands = column(res, &FRAMES, "command");
+            assert!(commands.iter().any(|c| c == "SWITCH_BINARY Set on"), "{id}: {commands:?}");
+        }
     }
 }
 
-/// At 2.4 Msps, where the capture ends on a radio that gives no more: US and JP move to the capture that holds their
-/// first channels and decode them; KR stays on the centre of its row (the move fits in the capture, so the radio stays)
-/// and decodes its middle channel. The status names the channels left out and the rate that covers all.
+/// At 2.4 Msps, where the capture ends on a radio that gives no more: US, JP and KR move to the capture that holds their
+/// first channels and decode them (KR its first two, a move that lies inside the capture at the centre of its row). The
+/// status names the channels left out and the rate that covers all.
 #[test]
 fn at_a_low_rate_the_preferred_channels_decode_and_the_status_names_the_others() {
     let rate = 2.4e6;
-    for (id, at_mhz, first, text) in [
+    for (id, at_mhz, text) in [
         (
             "US",
             908.01,
-            true,
             "channels 908.4 and 916.0 MHz are 7.6 MHz apart: 9.0 Msps covers both; at 2.4 Msps only 908.4 MHz is received",
         ),
         (
             "JP",
             923.2,
-            true,
             "channels 922.5, 923.9 and 926.3 MHz are 3.8 MHz apart: 4.8 Msps covers all; at 2.4 Msps only 922.5 and 923.9 MHz \
              are received",
         ),
         (
             "KR",
-            922.0,
-            false,
-            "channels 920.9, 921.7 and 923.1 MHz are 2.2 MHz apart: 3.0 Msps covers all; at 2.4 Msps only 921.7 MHz is received",
+            921.3,
+            "channels 920.9, 921.7 and 923.1 MHz are 2.2 MHz apart: 3.0 Msps covers all; at 2.4 Msps only 920.9 and 921.7 MHz \
+             are received",
         ),
     ] {
         let region = crate::util::zwave_region(id);
         let channels = region.channels();
         let at = at_mhz * 1e6;
-        if first {
-            let plan = zwave::capture_at(&channels, rate);
-            assert!((plan.centre_hz - at).abs() < 1.0, "{id}: {}", plan.centre_hz);
-            assert!(plan.kept[0].contains(&channels[0].0), "{id}");
-        } else {
-            assert_eq!(at, region.centre_hz, "{id}");
-        }
+        let plan = zwave::capture_at(&channels, rate);
+        assert!((plan.centre_hz - at).abs() < 1.0, "{id}: {}", plan.centre_hz);
+        assert!(plan.kept[0].contains(&channels[0].0), "{id}");
         let (x, sent) = every_channel_at_once(&channels, at, rate, 3);
         let mut r = rx(rate, at, &[("channels", channels_of(id))]);
         feed(r.as_mut(), &x);
         let res = r.results();
         assert!(!sent.is_empty(), "{id}");
-        assert_eq!(sent.iter().any(|c| c.0 == channels[0].0), first, "{id}");
+        assert!(sent.iter().any(|c| c.0 == channels[0].0), "{id}");
+        // Every channel that the plan keeps has its frames, and no other.
+        for c in &sent {
+            assert!(plan.kept.iter().flatten().any(|f| *f == c.0), "{id}: {c:?}");
+        }
+        for f in plan.kept.iter().flatten() {
+            assert!(sent.iter().any(|c| c.0 == *f), "{id}: {f}");
+        }
         assert_eq!(field(res, "frames_ok") as usize, sent.len(), "{id}");
         assert_eq!(field(res, "frames_bad"), 0, "{id}");
         let summary = &res.status().summary;
@@ -753,25 +763,35 @@ fn requests_in(r: &mut dyn Receiver, rate: f64, seconds: f64) -> Vec<sdrkit_core
     asked
 }
 
-/// The one request of `asked`: a retune to `to_hz`.
-fn assert_retune(asked: &[sdrkit_core::HostRequest], to_hz: f64, id: &str) {
+/// The one request of `asked`: a tune of the session itself to `to_hz`, with the width `width_hz` that the capture must
+/// hold around it.
+fn assert_retune(asked: &[sdrkit_core::HostRequest], to_hz: f64, width_hz: f64, id: &str) {
     match asked {
-        [sdrkit_core::HostRequest::Retune { tuned_hz, .. }] => {
-            assert!((tuned_hz - to_hz).abs() < 1.0, "{id}: {tuned_hz}")
+        [sdrkit_core::HostRequest::Tune {
+            session,
+            freq_hz: Some(hz),
+            target: sdrkit_core::TuneTarget::Running,
+            rate_hz: None,
+            bandwidth_hz: Some(w),
+            ..
+        }] if session.is_empty() => {
+            assert!((hz - to_hz).abs() < 1.0, "{id}: {hz}");
+            assert!((w - width_hz).abs() < 1.0, "{id}: {w}");
         }
         other => panic!("{id}: {other:?}"),
     }
 }
 
 /// On a live radio at the centre of the region and a rate too low for it, the stack asks once to move to the capture
-/// that holds the first channels, and again when the capture comes back. It asks nothing when that capture lies inside
-/// the present one (KR), on a channel that the user chose, and on a recording.
+/// that holds the first channels, and again when the capture comes back; also when that centre lies inside the present
+/// capture (KR). The request states the width of the kept channels with 250 kHz of room on each side. It asks nothing on
+/// a channel that the user chose, and on a recording.
 #[test]
 fn at_a_low_rate_the_stack_asks_once_for_the_preferred_capture() {
     let rate = 2.4e6;
-    for (id, to_mhz) in [("US", 908.01), ("JP", 923.2)] {
+    for (id, to_mhz, width_mhz) in [("US", 908.01, 0.52), ("JP", 923.2, 1.9), ("KR", 921.3, 1.3)] {
         let region = crate::util::zwave_region(id);
-        let (home, to) = (region.centre_hz, to_mhz * 1e6);
+        let (home, to, width) = (region.centre_hz, to_mhz * 1e6, width_mhz * 1e6);
         let cfg = crate::util::stack_with(&ZWAVE, &[("channels", channels_of(id))]);
         let mut r = zwave::receiver(&cfg).unwrap();
         r.configure(&InputInfo::new(rate, home, home)).unwrap();
@@ -779,7 +799,7 @@ fn at_a_low_rate_the_stack_asks_once_for_the_preferred_capture() {
             requests_in(&mut r, rate, 0.5).is_empty(),
             "{id}: the rate may still change"
         );
-        assert_retune(&requests_in(&mut r, rate, 1.0), to, id);
+        assert_retune(&requests_in(&mut r, rate, 1.0), to, width, id);
         assert!(
             requests_in(&mut r, rate, 1.5).is_empty(),
             "{id}: asked twice"
@@ -791,14 +811,8 @@ fn at_a_low_rate_the_stack_asks_once_for_the_preferred_capture() {
         r.configure(&InputInfo::new(rate, to, to)).unwrap();
         assert!(requests_in(&mut r, rate, 1.5).is_empty(), "{id}");
         r.configure(&InputInfo::new(rate, home, home)).unwrap();
-        assert_retune(&requests_in(&mut r, rate, 1.5), to, id);
+        assert_retune(&requests_in(&mut r, rate, 1.5), to, width, id);
     }
-    let kr = crate::util::zwave_region("KR");
-    let cfg = crate::util::stack_with(&ZWAVE, &[("channels", channels_of("KR"))]);
-    let mut r = zwave::receiver(&cfg).unwrap();
-    r.configure(&InputInfo::new(rate, kr.centre_hz, kr.centre_hz))
-        .unwrap();
-    assert!(requests_in(&mut r, rate, 1.5).is_empty());
     let region = crate::util::zwave_region("US");
     let cfg = crate::util::stack_with(&ZWAVE, &[("channels", channels_of("US"))]);
     // A channel of the list that the user tuned.

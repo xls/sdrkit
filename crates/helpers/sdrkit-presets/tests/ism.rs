@@ -48,7 +48,7 @@ fn every_zwave_region_loads_with_its_channels() {
     let (_, eu) = zwave_settings(&rows, "eu").unwrap();
     assert_eq!(text(&eu, "channels"), "868420000/1;868400000/2;869850000/3");
     let (_, jp) = zwave_settings(&rows, "JP").unwrap();
-    assert_eq!(text(&jp, "channels"), "922500000/2;923900000/2;926300000/2");
+    assert_eq!(text(&jp, "channels"), "922500000/3;923900000/3;926300000/3");
     assert!(zwave_settings(&rows, "XX").is_none());
 }
 

@@ -31,6 +31,9 @@ const ROUND: Setting<field::I64> = Setting::new("round", "Round", "", 0).range(0
 /// A new frequency above 0 sends a retune there.
 const FIXED_HZ: Setting<field::Hz> =
     Setting::new("fixed_hz", "Fixed", "Hz", 0.0).range(0.0, 1e10, 0.0);
+/// Above 0, the request of [`FIXED_HZ`] is a tune of the session itself that states this width around the frequency.
+const WIDTH_HZ: Setting<field::Hz> =
+    Setting::new("width_hz", "Width", "Hz", 0.0).range(0.0, 1e9, 0.0);
 /// The probe reports lock while the centre is here.
 const LOCK_HZ: Setting<field::Hz> =
     Setting::new("lock_hz", "Lock", "Hz", 0.0).range(0.0, 1e10, 0.0);
@@ -56,6 +59,7 @@ sdrkit_core::settings! {
         DwellS = DWELL_S,
         Round = ROUND,
         FixedHz = FIXED_HZ,
+        WidthHz = WIDTH_HZ,
         LockHz = LOCK_HZ,
         StopOnLock = STOP_ON_LOCK,
         SlowMs = SLOW_MS,
@@ -211,7 +215,20 @@ impl Receiver for Probe {
         let fixed = self.values.get(&FIXED_HZ);
         if fixed > 0.0 && fixed != self.sent_fixed {
             self.sent_fixed = fixed;
-            out.requests.push(HostRequest::retune(fixed, "fixed"));
+            let width = self.values.get(&WIDTH_HZ);
+            out.requests.push(if width > 0.0 {
+                HostRequest::Tune {
+                    session: String::new(),
+                    freq_hz: Some(fixed),
+                    target: sdrkit_core::TuneTarget::Running,
+                    submode: String::new(),
+                    rate_hz: None,
+                    bandwidth_hz: Some(width),
+                    settings: Vec::new(),
+                }
+            } else {
+                HostRequest::retune(fixed, "fixed")
+            });
         }
         let lock = self.values.get(&LOCK_HZ);
         let state = if lock > 0.0 && self.centre == lock {
@@ -803,6 +820,62 @@ fn a_retune_without_a_hop_starts_at_the_first_sample_of_the_new_frequency() {
         assert!(step.told && step.after_gap && step.bad == 0, "{s:?}");
     }
     told_with_the_samples(&log(54), 2);
+    e.stop_session(a).unwrap();
+    e.close_session(a).unwrap();
+    e.close_radio(r).unwrap();
+}
+
+/// Waits until the probe `tag` was told that it listens to `hz`.
+fn wait_tuned(tag: i64, hz: f64) {
+    wait_for(10.0, || log(tag).contains(&Note::Tuned(hz)).then_some(()))
+        .unwrap_or_else(|| panic!("probe {tag} was not told {hz} Hz: {:?}", log(tag)));
+}
+
+#[test]
+fn a_stack_request_moves_the_radio_only_when_the_capture_does_not_hold_its_width() {
+    let rtl = slow_tuner();
+    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
+    let kind = e.find("driver.rtl_tcp").unwrap();
+    let mut radio = defaults(&e, kind);
+    radio
+        .set(radio.schema().id("rate").unwrap(), &Value::Hz(2.4e6))
+        .unwrap();
+    let r = e.open_radio("rtl_tcp", &rtl.addr(), &radio).unwrap();
+    let v = probe(&e, 56, &[("rtl_levels", Value::Bool(true))]);
+    let a = e
+        .start_stack("probe", None, &v, Input::Radio(r), Some(100e6))
+        .unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(300));
+    assert_eq!(number(&e, OwnerRef::Radio(r), "rate_hz"), 2.4e6);
+    let sent = freq_commands(&rtl);
+    // At 2.4 Msps the capture holds 0.96 MHz either side of the centre. A request without a width inside it, and one
+    // whose width fits (100.3 MHz with 0.5 MHz), move the session only.
+    set(&e, a, "fixed_hz", Value::Hz(100.2e6));
+    wait_tuned(56, 100.2e6);
+    set(&e, a, "width_hz", Value::Hz(0.5e6));
+    set(&e, a, "fixed_hz", Value::Hz(100.3e6));
+    wait_tuned(56, 100.3e6);
+    let s = wait_stay(56, 100e6, 40_000);
+    assert_eq!(s.len(), 1, "{s:?}");
+    assert_eq!(freq_commands(&rtl), sent);
+    // 100.7 MHz with 1.3 MHz reaches 1.35 MHz from the centre: the radio moves there, and the stack is told at the
+    // first sample of the new centre.
+    set(&e, a, "width_hz", Value::Hz(1.3e6));
+    set(&e, a, "fixed_hz", Value::Hz(100.7e6));
+    let s = wait_stay(56, 100.7e6, 20_000);
+    assert_eq!(s.len(), 2, "{s:?}");
+    assert!(s[1].told && s[1].after_gap && s[1].bad == 0, "{s:?}");
+    let notes = log(56);
+    let i = notes.iter().position(|n| *n == Note::Centre(100.7e6)).unwrap();
+    assert_eq!(notes.get(i + 1), Some(&Note::Tuned(100.7e6)), "{notes:?}");
+    assert_eq!(freq_commands(&rtl).last(), Some(&100.7e6));
+    // The host tunes inside the capture: the session listens there and the radio stays.
+    let sent = freq_commands(&rtl);
+    set(&e, a, "tuned_hz", Value::Hz(100.9e6));
+    wait_tuned(56, 100.9e6);
+    let s = wait_stay(56, 100.7e6, 40_000);
+    assert_eq!(s.len(), 2, "{s:?}");
+    assert_eq!(freq_commands(&rtl), sent);
     e.stop_session(a).unwrap();
     e.close_session(a).unwrap();
     e.close_radio(r).unwrap();

@@ -126,7 +126,7 @@ impl FrameSource for ZwaveFrames {
             )));
         }
         let chip_rate = [19_200.0, 40_000.0, 100_000.0][usize::from(r - 1)];
-        let text = frame::parse(&mpdu, r).map_or_else(String::new, |m| frame::describe(&m));
+        let text = frame::parse(&mpdu, r, frame::Header::OneTwo).map_or_else(String::new, |m| frame::describe(&m));
         Ok(Frame {
             samples: frame_samples(r, &mpdu, at.rate),
             offset_hz,

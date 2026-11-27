@@ -2246,7 +2246,7 @@ impl Shared {
                     lock(&s.control).operator.set_frequency(after);
                     // A frequency that the host set ends a hop of the session.
                     let moved = self.end_hop_by(id, || {
-                        self.drop_stack_rate(&s).and_then(|()| self.move_radio(id, &s))
+                        self.drop_stack_rate(&s).and_then(|()| self.move_radio(id, &s, 0.0))
                     });
                     if let Err(e) = moved {
                         self.log(format!("{}: {e}", session_key(id)));

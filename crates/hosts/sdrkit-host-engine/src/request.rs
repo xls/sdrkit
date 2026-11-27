@@ -149,6 +149,17 @@ pub(crate) struct Follower {
 /// What a carried out request started or tuned.
 type Served = Option<SessionId>;
 
+/// What the radio does when a session tunes ([`Shared::move_radio`]).
+#[derive(Clone, Copy, PartialEq)]
+enum TuneMove {
+    /// It moves when its capture does not hold the new frequency with this width around it, in Hz (0: the frequency
+    /// alone).
+    Listen(f64),
+    /// A step of a hop: as [`TuneMove::Listen`] with no width, and the session takes a frequency inside the capture in
+    /// step with the samples ([`Shared::tune_step`]).
+    Step,
+}
+
 /// The frequency that request `r` names, if it names one.
 fn freq_of(r: &HostRequest) -> Option<f64> {
     match r {
@@ -302,6 +313,11 @@ impl Shared {
                 if freq_hz.is_some() {
                     self.end_hop(id);
                 }
+                // The width that a stack states in a request for itself is what its capture must hold.
+                let width = match from {
+                    Requester::Session(own) if own == id => bandwidth_hz.unwrap_or(0.0),
+                    _ => 0.0,
+                };
                 // A visit of a scan starts with no result of the channel before.
                 self.serve_tune(
                     id,
@@ -309,7 +325,7 @@ impl Shared {
                     &submode,
                     &settings,
                     bandwidth_hz,
-                    (freq_hz, scan),
+                    (freq_hz, scan, width),
                 )?;
                 if let Some(hz) = rate_hz {
                     self.take_stack_rate(id, hz)?;
@@ -373,7 +389,7 @@ impl Shared {
                     _ => TuneTarget::Running,
                 };
                 let freq = Some(a.event.freq_hz).filter(|f| *f > 0.0);
-                self.serve_tune(id, &target, "", &[], None, (freq, false))?;
+                self.serve_tune(id, &target, "", &[], None, (freq, false, 0.0))?;
                 Ok(Some(id))
             }
             RequestKind::Output => {
@@ -432,8 +448,8 @@ impl Shared {
     }
 
     /// Tunes session `id`: puts the stack of `target` in it, applies `settings` and the bandwidth, then tunes it to
-    /// the frequency of `to`: (the frequency, fresh). With fresh, the session starts with no result of the frequency
-    /// before ([`Shared::tune`]).
+    /// the frequency of `to`: (the frequency, fresh, width). With fresh, the session starts with no result of the
+    /// frequency before; the radio moves when its capture does not hold the width around the frequency ([`Shared::tune`]).
     fn serve_tune(
         &self,
         id: SessionId,
@@ -441,7 +457,7 @@ impl Shared {
         submode: &str,
         settings: &[OwnerSetting],
         bandwidth_hz: Option<f64>,
-        to: (Option<f64>, bool),
+        to: (Option<f64>, bool, f64),
     ) -> Result<(), EngineError> {
         let put = self.retarget(id, target, submode)?;
         self.apply_settings(id, settings, bandwidth_hz)?;
@@ -451,8 +467,8 @@ impl Shared {
                 self.set_stack_rate(&s, true)?;
             }
         }
-        if let (Some(hz), fresh) = to {
-            self.tune(id, hz, fresh, false)?;
+        if let (Some(hz), fresh, width) = to {
+            self.tune(id, hz, fresh, TuneMove::Listen(width))?;
         }
         Ok(())
     }
@@ -493,20 +509,20 @@ impl Shared {
     /// Tunes session `id` to `hz`: its operator listens there, the session follows, and the radio does what the operator
     /// then demands ([`Shared::move_radio`]).
     pub(crate) fn tune_to(&self, id: SessionId, hz: f64) -> Result<(), EngineError> {
-        self.tune(id, hz, false, false)
+        self.tune(id, hz, false, TuneMove::Listen(0.0))
     }
 
     /// [`Shared::tune_to`] for a step of a hop of the radio that the session reads: if the radio stays where it is,
     /// the session still takes the frequency in step with the samples, at the first block after those that the radio
     /// wrote so far ([`crate::radio::RadioOwner::mark_step`]).
     pub(crate) fn tune_step(&self, id: SessionId, hz: f64) -> Result<(), EngineError> {
-        self.tune(id, hz, false, true)
+        self.tune(id, hz, false, TuneMove::Step)
     }
 
     /// [`Shared::tune_to`]. With `fresh`, the stack forgets the results of the frequency before and the session shows
-    /// none of them until the stack has taken the change, also when `hz` is the frequency that the session has. With
-    /// `step`, the change is a step of a hop ([`Shared::tune_step`]).
-    fn tune(&self, id: SessionId, hz: f64, fresh: bool, step: bool) -> Result<(), EngineError> {
+    /// none of them until the stack has taken the change, also when `hz` is the frequency that the session has. `how`
+    /// says what the radio does ([`TuneMove`]).
+    fn tune(&self, id: SessionId, hz: f64, fresh: bool, how: TuneMove) -> Result<(), EngineError> {
         let s = self
             .session(id)
             .ok_or(EngineError::NoSuchOwner(OwnerRef::Session(id)))?;
@@ -523,9 +539,14 @@ impl Shared {
             tuned?;
         }
         let asked = s.link.feed.moves_asked();
+        let width = match how {
+            TuneMove::Listen(w) => w,
+            TuneMove::Step => 0.0,
+        };
         let moved = self
             .drop_stack_rate(&s)
-            .and_then(|()| self.move_radio(id, &s));
+            .and_then(|()| self.move_radio(id, &s, width));
+        let step = how == TuneMove::Step;
         if let (true, Input::Radio(r)) = (step && s.link.feed.moves_asked() == asked, s.input) {
             if let Some(radio) = self.radio(r) {
                 radio.owner.lock().mark_step();
@@ -539,10 +560,17 @@ impl Shared {
     /// This is the place that moves a streaming radio for a session; only the wide look of a scan sets the centre
     /// itself ([`Shared::centre_radio`]). The transmitter goes to the frequency that the
     /// operator sends on. The centre of the receiver moves to the frequency that the operator listens to, plus its offset,
-    /// if that frequency is more than 40 % of the sample rate from the centre; else it stays. Does nothing for a session
-    /// that reads no radio and for an operator that demands no frequency. While another session hops the radio, the
-    /// centre stays where the hop put it ([`crate::hop`]).
-    pub(crate) fn move_radio(&self, id: SessionId, s: &Session) -> Result<(), EngineError> {
+    /// if that frequency with `width_hz` around it reaches more than 40 % of the sample rate from the centre; else it
+    /// stays. A move for the width alone, with the frequency inside the capture, is left out when the centre is there
+    /// already or the radio does not tune. Does nothing for a session that reads no radio and for an operator that
+    /// demands no frequency. While another session hops the radio, the centre stays where the hop put it
+    /// ([`crate::hop`]).
+    pub(crate) fn move_radio(
+        &self,
+        id: SessionId,
+        s: &Session,
+        width_hz: f64,
+    ) -> Result<(), EngineError> {
         let Input::Radio(r) = s.input else {
             return Ok(());
         };
@@ -564,17 +592,24 @@ impl Shared {
             return Ok(());
         }
         let (rate_hz, centre_hz) = radio.feed.tuning();
-        if rate_hz <= 0.0 || (rx.tuned_hz - centre_hz).abs() <= 0.4 * rate_hz {
+        let off = (rx.tuned_hz - centre_hz).abs();
+        let inside = off <= CAPTURE_SHARE * rate_hz;
+        let held = off + width_hz.max(0.0) / 2.0 <= CAPTURE_SHARE * rate_hz;
+        if rate_hz <= 0.0 || held {
             return Ok(());
         }
         let mut o = radio.owner.lock();
-        let c = EngineError::id_of(o.schema(), sdrkit_driver_core::CENTRE.field.key)?;
         let offset = match &tuning {
             Some(t) if o.capabilities().realtime => radio_offset(t, o.centre_clean(), rate_hz),
             _ => rx.tune_offset_hz,
         };
-        let centre = sdrkit_core::Value::Hz(rx.tuned_hz + offset);
-        EngineError::apply(&mut *o, c, &centre)?;
+        let to = rx.tuned_hz + offset;
+        let (lo, hi) = o.freq_range();
+        if inside && ((to - centre_hz).abs() < 1.0 || hi <= lo) {
+            return Ok(());
+        }
+        let c = EngineError::id_of(o.schema(), sdrkit_driver_core::CENTRE.field.key)?;
+        EngineError::apply(&mut *o, c, &sdrkit_core::Value::Hz(to))?;
         Ok(())
     }
 

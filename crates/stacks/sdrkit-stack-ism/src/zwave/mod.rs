@@ -111,6 +111,16 @@ fn channels_or_centre(list: &[(f64, u8)], centre: f64) -> Vec<(f64, u8)> {
     }
 }
 
+/// The MPDU header of a channel list: channel configuration 3 when every channel is at R3 (G.9959 Table 7-3: only
+/// configuration 3 has no channel at R1 or R2), else configurations 1 and 2. An empty list is configuration 1 or 2.
+pub fn header_of(channels: &[(f64, u8)]) -> frame::Header {
+    if !channels.is_empty() && channels.iter().all(|c| c.1 == 3) {
+        frame::Header::Three
+    } else {
+        frame::Header::OneTwo
+    }
+}
+
 /// A group of channels sharing a front end: frequency and the rates its channels use.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Group {
@@ -317,6 +327,8 @@ pub struct ZwBurst {
     pub noise: f32,
     /// Signal time, seconds.
     pub time: f64,
+    /// The MPDU header layout of the channel configuration.
+    pub header: frame::Header,
 }
 
 impl Item for ZwBurst {
@@ -354,10 +366,11 @@ struct GroupChain {
     below: u32,
     start_noise: f32,
     t0: f64,
+    header: frame::Header,
 }
 
 impl GroupChain {
-    fn new(g: Group, rate_in: f64, centre: f64) -> Option<GroupChain> {
+    fn new(g: Group, rate_in: f64, centre: f64, header: frame::Header) -> Option<GroupChain> {
         let d = ((rate_in / 400e3).round() as usize).max(1);
         let taps = design_by_taps(8 * d + 1, (110e3 / rate_in).min(0.5), Window::Hamming).ok()?;
         Some(GroupChain {
@@ -379,6 +392,7 @@ impl GroupChain {
             below: 0,
             start_noise: 0.0,
             t0: 0.0,
+            header,
         })
     }
 
@@ -431,6 +445,7 @@ impl GroupChain {
                         start: PRE_ROLL - 12,
                         noise: self.start_noise,
                         time: self.t0,
+                        header: self.header,
                     });
                 }
                 // No frame lasts as long as the cap: the level rose and stays up (a gain step, a steady carrier), so it is the
@@ -526,9 +541,9 @@ sdrkit_core::settings! {
 impl Groups {
     /// The centre to ask for at the present rate, when the capture holds no channel of the list, or when it is at the
     /// centre of the whole list (the host tuned the region) and the rate is too low for it: the centre of
-    /// [`capture_at`], if that holds a channel that the capture misses and lies outside the capture (a frequency inside
-    /// it moves the session, not the radio). `None` otherwise: a frequency that the user chose and that holds a channel
-    /// stays.
+    /// [`capture_at`], if that holds a channel that the capture misses. The request asks for the centre of the capture,
+    /// also when that centre lies inside the present capture. `None` otherwise: a frequency that the user chose and
+    /// that holds a channel stays.
     fn wanted_move(&self, tuned: f64) -> Option<f64> {
         if self.channels.is_empty() || self.rate <= 0.0 {
             return None;
@@ -541,8 +556,7 @@ impl Groups {
         }
         let best = capture_at(&self.channels, self.rate);
         let more = best.kept.iter().flatten().any(|&f| !inside(f));
-        let outside = (best.centre_hz - self.centre).abs() >= COVER * self.rate;
-        (more && outside).then_some(best.centre_hz)
+        more.then_some(best.centre_hz)
     }
 }
 
@@ -564,9 +578,10 @@ impl Component for Groups {
         self.centre = f.centre_hz;
         self.rate = f.rate;
         let channels = channels_or_centre(&self.channels, self.centre);
+        let header = header_of(&self.channels);
         self.chains = groups(&channels, self.centre, f.rate)
             .into_iter()
-            .filter_map(|g| GroupChain::new(g, f.rate, self.centre))
+            .filter_map(|g| GroupChain::new(g, f.rate, self.centre, header))
             .collect();
         let plan = Plan {
             channels: channels
@@ -610,24 +625,21 @@ impl Component for Groups {
             if due && self.asked.as_ref() != Some(&self.key) {
                 self.asked = Some(self.key.clone());
                 self.move_to = None;
-                let kept: Vec<String> = capture_at(&self.channels, self.rate)
-                    .kept
-                    .iter()
-                    .map(|g| mhz(g.iter().copied().fold(f64::INFINITY, f64::min)))
-                    .collect();
-                let one = kept.len() == 1;
+                // The width that the capture must hold around the centre: the kept channels with room on each side.
+                let kept = capture_at(&self.channels, self.rate).kept;
+                let width = span(&kept.iter().flatten().map(|&f| (f, 0)).collect::<Vec<_>>())
+                    .map_or(0.0, |(lo, hi)| hi - lo + 2.0 * EDGE_HZ);
                 let time = io.input(0).first() as f64 / self.rate.max(1.0);
                 io.items_out::<HostRequest>(2).push(Timed {
                     time,
-                    value: HostRequest::Retune {
-                        tuned_hz: to,
-                        reason: format!(
-                            "Z-Wave {} {} MHz {} the capture at {:.1} Msps",
-                            if one { "channel" } else { "channels" },
-                            and_list(&kept),
-                            if one { "fits" } else { "fit" },
-                            self.rate / 1e6
-                        ),
+                    value: HostRequest::Tune {
+                        session: String::new(),
+                        freq_hz: Some(to),
+                        target: sdrkit_core::TuneTarget::Running,
+                        submode: String::new(),
+                        rate_hz: None,
+                        bandwidth_hz: Some(width),
+                        settings: Vec::new(),
                     },
                 });
             }
@@ -681,6 +693,8 @@ pub struct ZwFrame {
     pub offset_hz: f64,
     /// Signal time, seconds.
     pub time: f64,
+    /// The MPDU header layout.
+    pub header: frame::Header,
 }
 
 impl Item for ZwFrame {
@@ -762,6 +776,7 @@ pub fn decode_burst(b: &ZwBurst, sof_any: bool) -> ZwOutcome {
         snr_db: snr as f32,
         offset_hz: off as f64,
         time: b.time,
+        header: b.header,
     };
     for &r in &b.rates {
         let (chip_rate, dev) = match r {
@@ -774,7 +789,7 @@ pub fn decode_burst(b: &ZwBurst, sof_any: bool) -> ZwOutcome {
         // Chip values from the tone energies over one chip, scaled to Hz; when they give no frame, the mean of the discriminator.
         if tone_chip_values(&b.samples, rate, off as f64, dev, w, &mut avg) {
             if let Some(m) =
-                chips_to_frame(&avg, b.start, spc, r, sof_any, &mut plausible, &mut bytes)
+                chips_to_frame(&avg, b.start, (spc, r, b.header), sof_any, &mut plausible, &mut bytes)
             {
                 return ZwOutcome::Frame(found(r, &m));
             }
@@ -785,7 +800,7 @@ pub fn decode_burst(b: &ZwBurst, sof_any: bool) -> ZwOutcome {
         for k in 0..n {
             avg[k] = (boxcar.push(f[k]) / w as f64) as f32;
         }
-        if let Some(m) = chips_to_frame(&avg, b.start, spc, r, sof_any, &mut plausible, &mut bytes)
+        if let Some(m) = chips_to_frame(&avg, b.start, (spc, r, b.header), sof_any, &mut plausible, &mut bytes)
         {
             return ZwOutcome::Frame(found(r, &m));
         }
@@ -824,15 +839,14 @@ const PREAMBLE_BITS: usize = 32;
 /// The neighbouring preamble bits that may be equal (bit errors) among [`PREAMBLE_BITS`].
 const PREAMBLE_ERRORS: usize = 2;
 
-/// A frame from chip values `avg` (Hz, positive for the upper tone) of a burst whose preamble starts at sample `from`, at rate
-/// `r` with `spc` samples a chip: the chip phase from the preamble, a Gardner timing tracker, both polarities, the preamble,
-/// the start of frame and the checks. Sets `plausible` when a preamble, a start of frame and a length fit but no check
-/// passes.
+/// A frame from chip values `avg` (Hz, positive for the upper tone) of a burst whose preamble starts at sample `from`, at
+/// (`spc` samples a chip, rate `r`, header layout): the chip phase from the preamble, a Gardner timing tracker, both
+/// polarities, the preamble, the start of frame and the checks. Sets `plausible` when a preamble, a start of frame and a
+/// length fit but no check passes.
 fn chips_to_frame(
     avg: &[f32],
     from: usize,
-    spc: f64,
-    r: u8,
+    (spc, r, header): (f64, u8, frame::Header),
     sof_any: bool,
     plausible: &mut bool,
     bytes: &mut Vec<u8>,
@@ -914,12 +928,12 @@ fn chips_to_frame(
                 let l = bytes[7] as usize;
                 let ck = if r == 3 { 2 } else { 1 };
                 let max = if r == 3 { 170 } else { 64 };
-                if l < 9 + ck || l > max || l > bytes.len() {
+                if l < header.fixed_len() + 1 + ck || l > max || l > bytes.len() {
                     continue;
                 }
                 *plausible = true;
                 let m = &bytes[..l];
-                if frame::check(m, r) && frame::parse(m, r).is_some() {
+                if frame::check(m, r) && frame::parse(m, r, header).is_some() {
                     return Some(m.to_vec());
                 }
             }
@@ -1281,7 +1295,7 @@ impl Default for Tables {
 
 impl Tables {
     fn frame(&mut self, f: &ZwFrame) {
-        let Some(m) = frame::parse(&f.bytes, f.rate) else {
+        let Some(m) = frame::parse(&f.bytes, f.rate, f.header) else {
             return;
         };
         let home = format!("{:08X}", m.home);
@@ -1376,8 +1390,8 @@ impl Tables {
             n.sent += 1;
             n.rate.clone_from(&rate);
             n.level_db = f.level_db;
-            n.beaming = m.fc2 & 0x60 != 0;
-            n.low_power = m.fc1 & 0x20 != 0;
+            n.beaming = m.beaming();
+            n.low_power = m.low_power();
             if enc != "none" {
                 n.encrypted += 1;
             }
@@ -1796,10 +1810,14 @@ fn make_receiver(cfg: &StackConfig) -> Result<Box<dyn Receiver>, ConfigError> {
     Ok(Box::new(receiver(cfg)?))
 }
 
-/// The generator schedule: (rate, MPDU) of each frame, in order (spec 6.8).
-pub fn schedule() -> Vec<(u8, Vec<u8>)> {
+/// The generator schedule for the header layout `header`: (rate, MPDU) of each frame, in order (spec 6.8). Channel
+/// configuration 3 has R3 frames only.
+pub fn schedule(header: frame::Header) -> Vec<(u8, Vec<u8>)> {
     use frame::build;
     let h = 0xC0FFEE01;
+    if header == frame::Header::Three {
+        return schedule_three(h);
+    }
     // The encrypted payloads are random bytes after the encapsulation header.
     let mut rng = Rng::new(0x5EC);
     let mut s0 = vec![0x98, 0x81];
@@ -1861,6 +1879,27 @@ pub fn schedule() -> Vec<(u8, Vec<u8>)> {
             ),
         ),
     ]
+}
+
+/// The schedule of channel configuration 3: R3 frames with the sequence number octet (G.9959 Figures 8-6, 8-8, 8-12).
+fn schedule_three(h: u32) -> Vec<(u8, Vec<u8>)> {
+    use frame::build_three;
+    [
+        // Singlecast with an ack requested, and its ack.
+        build_three(h, 1, [0x81, 0x00], 0x21, &[2], &[0x25, 0x01, 0xFF]),
+        build_three(h, 2, [0x03, 0x00], 0x21, &[1], &[]),
+        build_three(h, 1, [0x01, 0x00], 0x22, &[2], &[0x25, 0x02]),
+        build_three(h, 2, [0x01, 0x00], 0x9C, &[1], &[0x25, 0x03, 0xFF]),
+        // A sensor report at low power, from a node that a beam wakes.
+        build_three(h, 4, [0x41, 0x40], 0xFE, &[1], &[0x31, 0x05, 0x01, 0x22, 0x00, 0xDC]),
+        // Broadcast and multicast.
+        build_three(h, 6, [0x01, 0x00], 0xFF, &[0xFF], &[0x01, 0x01, 0xD3, 0x9C, 0x00, 0x04, 0x10, 0x01]),
+        build_three(h, 1, [0x02, 0x00], 0x00, &[0x01, 0x16], &[0x25, 0x01, 0x00]),
+        build_three(h, 2, [0x01, 0x00], 0x5A, &[1], &[0x71, 0x05, 0x00, 0x00, 0x00, 0xFF, 0x06, 0x16]),
+    ]
+    .into_iter()
+    .map(|m| (3, m))
+    .collect()
 }
 
 /// The chips of one frame at rate `r`: the preamble octets (0x55, 10 of them, 24 at R3), the start of frame, the MPDU, and two
@@ -1928,7 +1967,7 @@ pub fn generator(rate: f64, channels: &[(f64, u8)], centre: f64) -> Option<Clean
     let on: [f64; 3] =
         [1u8, 2, 3].map(|r| channels.iter().find(|c| c.1 == r).map_or(first, |c| c.0));
     let channel = move |r: u8| on[usize::from(r.clamp(1, 3) - 1)];
-    let sched = schedule();
+    let sched = schedule(header_of(&channels));
     let mut t = 0.05f64;
     let mut k = 0usize;
     let mut scene = Scene::new(rate).ok()?;
