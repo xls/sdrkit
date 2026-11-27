@@ -487,3 +487,216 @@ fn a_try_without_control_channels_says_what_it_searched() {
     assert!(c["sib1_occasions"].as_u64().is_some_and(|n| n >= 2), "{c}");
     assert_eq!(c["sib1_pdcch"], 0, "{c}");
 }
+
+/// The live recording of a busy n5 carrier at 12 Msps: no capture shows a block other than the one cell, whose MIB
+/// decodes, and the stack lists that cell alone, with its operator. Skipped when the recording is not on this machine.
+#[test]
+#[ignore]
+fn a_busy_live_carrier_lists_only_its_cell() {
+    use sdrkit_stack_cell::decoder::Capture;
+    let Some(rec) = crate::search::live_recording("sdrkit_nr_884.450MHz_12Msps_20261127-161307") else { return };
+    let (rate, hz) = (rec.rate_hz, rec.centre_hz);
+    let n = (0.08 * rate) as usize;
+    let mut s = sdrkit_stack_cell::nr::search::NrSearcher::default();
+    let captures = rec.samples.len() / n;
+    let mut decoded = 0;
+    for k in 0..captures {
+        let cap = Capture::new(rec.samples[k * n..(k + 1) * n].to_vec(), rate, hz, ((k + 1) * n) as f64 / rate);
+        let out = s.search(&cap);
+        let found: Vec<(u16, bool)> = out.cells.iter().map(|f| (f.pci, f.mib.is_some())).collect();
+        assert!(found.iter().all(|f| f.0 == 897), "capture {k}: {found:?}");
+        decoded += usize::from(found.contains(&(897, true)));
+    }
+    assert!(10 * decoded >= 9 * captures, "{decoded} of {captures}");
+    let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
+    run_graph(&mut rx, InputInfo::new(rate, hz, hz).recording(), &rec.samples[..rec.samples.len() / 2], &[]);
+    let cs = cells(&state(&rx));
+    assert_eq!(cs.len(), 1, "{cs:#?}");
+    assert_eq!((&cs[0]["pci"], &cs[0]["sib1"]["networks"][0]["plmn"]), (&J::from(897), &J::from("505-01")), "{}", cs[0]);
+}
+
+/// Adds to `x` (at `rate`) one OFDM symbol of 15 kHz subcarriers with a normal prefix whose useful part starts at input
+/// sample `useful` (any fraction): `values` on the subcarriers `first`, `first + 1`, ... (from the radio centre).
+fn add_symbol(x: &mut [Complex32], rate: f64, useful: f64, first: i64, values: &[Complex32]) {
+    let n = (rate / 15e3).round() as usize;
+    let cp = 144.0 / 2048.0 * n as f64;
+    let base = useful.floor();
+    let mut f = vec![Complex32::default(); n];
+    for (j, v) in values.iter().enumerate() {
+        let k = first + j as i64;
+        // The fraction of a sample by which the symbol starts after `base`, as a phase of each subcarrier.
+        let a = -std::f64::consts::TAU * k as f64 * (useful - base) / n as f64;
+        f[k.rem_euclid(n as i64) as usize] = *v * Complex32::from_polar(1.0, a as f32);
+    }
+    sdrkit_algo_dsp::fft::Fft::inverse(n).process(&mut f);
+    let s = 1.0 / (n as f32).sqrt();
+    for i in (useful - cp).ceil() as i64..(useful + n as f64).ceil() as i64 {
+        if let Some(v) = usize::try_from(i).ok().and_then(|i| x.get_mut(i)) {
+            *v += f[(i - base as i64).rem_euclid(n as i64) as usize] * s;
+        }
+    }
+}
+
+/// A random 16-QAM value of mean power `p`, whose real part has the sign of `sign` when given.
+fn qam16(r: &mut sdrkit_algo_sim::rng::Rng, p: f32, sign: Option<f32>) -> Complex32 {
+    let level = |r: &mut sdrkit_algo_sim::rng::Rng| [-3.0f32, -1.0, 1.0, 3.0][(r.next_u32() % 4) as usize];
+    let re = level(r);
+    let re = sign.map_or(re, |s| re.abs() * s.signum());
+    Complex32::new(re, level(r)) * (p / 10.0).sqrt()
+}
+
+/// A random QPSK value of power `p`.
+fn qpsk(r: &mut sdrkit_algo_sim::rng::Rng, p: f32) -> Complex32 {
+    let b = |r: &mut sdrkit_algo_sim::rng::Rng| if r.next_u32() & 1 == 0 { 1.0f32 } else { -1.0 };
+    Complex32::new(b(r), b(r)) * (p / 2.0).sqrt()
+}
+
+/// One real n28 cell at 12 Msps beside traffic of a busy carrier: bursts of QPSK and 16-QAM OFDM data at random times and
+/// places over the band, and a burst of broadcast data sent again every 20 ms whose 16-QAM values follow in their signs the
+/// PSS and the SSS of PCI 301 on two of its symbols (traffic that passes the sync search), more than a block's width from
+/// the real block. Only the real cell is listed, with its MIB, and no capture shows the other as a block.
+#[test]
+fn traffic_bursts_beside_one_block_list_one_cell() {
+    use sdrkit_stack_cell::decoder::Capture;
+    use sdrkit_stack_cell::nr::phy::{pss, sss};
+    let rate = 12e6;
+    let (ssb_hz, mut cells) = scene(1);
+    let centre = ssb_hz - 3e6;
+    cells[0].offset_hz = 3e6;
+    let seconds = 0.5;
+    let mut x = impaired(NrGenerator::new(rate, cells, NrGenOptions::default()), &snr(15.0), seconds);
+    let p = 4.0 * x.iter().map(|v| v.norm_sqr()).sum::<f32>() / x.len() as f32;
+    let mut r = sdrkit_algo_sim::rng::Rng::new(29);
+    let sym = 856.25;
+    // The broadcast burst: 14 symbols on the raster point nearest 2.4 MHz under the centre, its sync-like symbols 0 and 2.
+    let probe = Capture::new(vec![Complex32::default(); 1000], rate, centre, 0.0);
+    let (cands, _) = sdrkit_stack_cell::nr::search::candidates(&probe, &[]);
+    let fake = cands
+        .iter()
+        .filter(|c| c.scs == 15)
+        .min_by(|a, b| (a.offset_hz + 2.4e6).abs().total_cmp(&(b.offset_hz + 2.4e6).abs()))
+        .expect("a raster point under the centre")
+        .offset_hz;
+    assert!((fake - 3e6).abs() > 240.0 * 15e3, "{fake}");
+    let (nid1, nid2) = (100u16, 1u16);
+    let (ps, ss) = (pss(nid2), sss(nid1, nid2));
+    // The PSS lies on subcarriers -64 to 62 of the block centre, which is a whole number of subcarriers off a bin here.
+    let at = (fake / 15e3).round() as i64;
+    let first = at - 150;
+    let broadcast: Vec<Vec<Complex32>> = (0..14)
+        .map(|l| {
+            (0..300)
+                .map(|j| {
+                    let i = j - 86;
+                    let seq = match l {
+                        0 => Some(&ps),
+                        2 => Some(&ss),
+                        _ => None,
+                    };
+                    let sign = seq.and_then(|s| (0..127).contains(&i).then(|| s[i as usize]));
+                    qam16(&mut r, p, sign)
+                })
+                .collect()
+        })
+        .collect();
+    let period = 0.02 * rate;
+    let mut t = 0.0073 * rate;
+    while t + 14.0 * sym < x.len() as f64 {
+        for (l, v) in broadcast.iter().enumerate() {
+            add_symbol(&mut x, rate, t + l as f64 * sym + 56.25, first, v);
+        }
+        t += period;
+    }
+    // Bursts of traffic: 2 to 14 symbols of QPSK or 16-QAM on 100 to 600 subcarriers, in about a third of the time.
+    let mut t = 0.0;
+    while t < x.len() as f64 {
+        let n = 2 + (r.next_u32() % 13) as usize;
+        let width = 100 + (r.next_u32() % 501) as i64;
+        let first = -360 + (r.next_u32() % (720 - width as u32)) as i64;
+        let qam = r.next_u32() & 1 == 0;
+        for l in 0..n {
+            let v: Vec<Complex32> = (0..width).map(|_| if qam { qam16(&mut r, p, None) } else { qpsk(&mut r, p) }).collect();
+            add_symbol(&mut x, rate, t + l as f64 * sym + 56.25, first, &v);
+        }
+        t += (3 * n) as f64 * sym * (0.5 + r.uniform());
+    }
+    // The bursts pass the sync search where the gate of the DMRS is not.
+    let mut s = sdrkit_stack_cell::nr::search::NrSearcher::default();
+    let n = (0.08 * rate) as usize;
+    for k in 0..x.len() / n {
+        let cap = Capture::new(x[k * n..(k + 1) * n].to_vec(), rate, centre, ((k + 1) * n) as f64 / rate);
+        let out = s.search(&cap);
+        let others: Vec<(u16, bool)> = out.cells.iter().filter(|f| f.pci != 222).map(|f| (f.pci, f.mib.is_some())).collect();
+        assert!(others.is_empty(), "capture {k}: {others:?}");
+        assert!(out.cells.iter().any(|f| f.pci == 222 && f.mib.is_some()), "capture {k}");
+    }
+    let d = run_mode(&NR, &[], InputInfo::new(rate, centre, centre).recording(), &x, &[]);
+    let cs = d["cells"].as_array().unwrap();
+    assert_eq!(cs.len(), 1, "{cs:#?}");
+    assert_eq!(cs[0]["pci"], 222);
+    assert!(cs[0]["mib"].is_object(), "{}", cs[0]);
+}
+
+/// A real block whose PBCH does not decode (its data random, so the CRC fails) at 3 dB SNR: the PSS, the SSS and the
+/// PBCH DMRS of PCI 301 every 20 ms, the radio clock 3 ppm off. The cell is listed by its sync signals after three
+/// captures, and no longer listed once it has been gone for more than [`SYNC_ONLY_KEPT_S`].
+#[test]
+fn a_block_without_its_mib_is_listed_after_three_captures_and_dropped_when_gone() {
+    use sdrkit_stack_cell::nr::phy::{dmrs, dmrs_res, pbch_res, pss, sss, useful_start};
+    use sdrkit_core::Receiver;
+    use sdrkit_stack_cell::nr::SYNC_ONLY_KEPT_S;
+    let rate = 3.84e6;
+    let (centre, _) = scene(1);
+    let pci = 301u16;
+    let (ps, ss) = (pss(pci % 3), sss(pci / 3, pci % 3));
+    let r = dmrs(pci, 0);
+    let mut grid = [[Complex32::default(); 240]; 4];
+    for i in 0..127 {
+        grid[0][56 + i] = Complex32::new(ps[i], 0.0);
+        grid[2][56 + i] = Complex32::new(ss[i], 0.0);
+    }
+    for (m, &(k, l)) in dmrs_res(pci).iter().enumerate() {
+        grid[l][k] = r[m];
+    }
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(41);
+    for &(k, l) in &pbch_res(pci) {
+        grid[l][k] = qpsk(&mut rng, 1.0);
+    }
+    let noise = |rng: &mut sdrkit_algo_sim::rng::Rng, n: usize| -> Vec<Complex32> { (0..n).map(|_| rng.complex_normal(0.5)).collect() };
+    let seconds = 0.5;
+    let mut x = noise(&mut rng, (seconds * rate) as usize);
+    let period = 0.02 * rate * (1.0 + 3e-6);
+    let mut t = 0.0031 * rate;
+    while t + 0.005 * rate < x.len() as f64 {
+        for (l, row) in grid.iter().enumerate() {
+            add_symbol(&mut x, rate, t + useful_start(15, 2 + l) as f64, -120, row);
+        }
+        t += period;
+    }
+    let mut rx = stack_graph(&NR, &[]);
+    rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
+    let mut out = sdrkit_core::Output::default();
+    let n = (0.08 * rate) as usize;
+    let mut listed_at = None;
+    for (k, piece) in x.chunks(n).enumerate() {
+        rx.feed(piece, &mut out);
+        out.clear();
+        if listed_at.is_none() && cells(&state(&rx)).iter().any(|c| c["pci"] == pci) {
+            listed_at = Some(k);
+        }
+    }
+    assert_eq!(listed_at, Some(2), "listed after the capture of that index");
+    let cs = cells(&state(&rx));
+    assert_eq!(cs.len(), 1, "{cs:#?}");
+    assert!(cs[0]["mib"].is_null(), "{}", cs[0]);
+    // The cell goes off the air.
+    let quiet = noise(&mut rng, n);
+    let mut gone_s = 0.0;
+    while gone_s < SYNC_ONLY_KEPT_S + 1.0 {
+        rx.feed(&quiet, &mut out);
+        out.clear();
+        gone_s += 0.08;
+    }
+    let cs = cells(&state(&rx));
+    assert!(cs.is_empty(), "{cs:#?}");
+}

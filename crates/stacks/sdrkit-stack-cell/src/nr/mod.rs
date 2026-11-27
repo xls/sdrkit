@@ -553,9 +553,11 @@ pub struct NrSearch {
     /// Why the cells of the newest capture are read only in part (CORESET#0 wider than the capture).
     partial: Option<String>,
     /// The cells seen by their synchronisation signals only, not yet listed.
-    sightings: Sightings<NrKey>,
+    sightings: SyncSightings,
     /// The SSB frequencies of the decoded cells of the newest capture, Hz (absolute when the centre is known).
     decoded_hz: Vec<f64>,
+    /// Whether the newest capture left raster points of its centre that no capture on it has searched yet.
+    sweep_open: bool,
 }
 
 impl Default for NrSearch {
@@ -570,9 +572,73 @@ impl Default for NrSearch {
             scan: SearchConfig::new(LOOK_DEFAULT_S),
             quiet: None,
             partial: None,
-            sightings: Sightings::default(),
+            sightings: SyncSightings::default(),
             decoded_hz: Vec::new(),
+            sweep_open: false,
         }
+    }
+}
+
+/// A cell seen by its synchronisation signals only and not yet listed.
+#[derive(Clone, Copy, Debug)]
+struct Sighting {
+    key: NrKey,
+    /// The signal time of the newest capture that showed it, seconds.
+    at_s: f64,
+    /// The frequency of its block, Hz.
+    hz: f64,
+    /// The start of the half frame of its block modulo the SSB period, seconds ([`search::NrFound::frame_s`]).
+    frame_s: f64,
+    /// The captures in a row that showed it at that frequency and timing.
+    count: u32,
+}
+
+/// The cells seen by their synchronisation signals only. Such a cell is listed when [`SYNC_ONLY_SIGHTINGS`] captures, each
+/// within [`Sightings::WITHIN_S`] of the one before, show its PCI at the same frequency and the same timing modulo the SSB
+/// period; a burst of traffic that passes the PSS, the SSS and the DMRS by chance does not come back that way.
+#[derive(Clone, Debug, Default)]
+struct SyncSightings {
+    seen: Vec<Sighting>,
+}
+
+/// The captures that show a cell without its MIB before it is listed.
+const SYNC_ONLY_SIGHTINGS: u32 = 3;
+/// The most frequency difference of two sightings of one cell, Hz.
+const SAME_HZ: f64 = 2e3;
+/// The most timing difference of two sightings of one cell soon after each other, seconds; it grows with the time between
+/// them by the clock error of the radio.
+const SAME_TIME_S: f64 = 20e-6;
+/// A cell listed by its synchronisation signals alone is no longer listed when searches of its raster point have not shown
+/// it for this many seconds of signal.
+pub const SYNC_ONLY_KEPT_S: f64 = 5.0;
+
+impl SyncSightings {
+    /// The most sightings kept.
+    const CAP: usize = 64;
+
+    /// Notes sighting `s` (its `count` is set here). `ppm` is the clock error of the radio as far as known. True when the
+    /// cell has now been seen [`SYNC_ONLY_SIGHTINGS`] times in a row.
+    fn again(&mut self, mut s: Sighting, ppm: f64) -> bool {
+        let t = s.at_s;
+        self.seen.retain(|x| t - x.at_s <= Sightings::<NrKey>::WITHIN_S && x.at_s <= t);
+        s.count = 1;
+        if let Some(i) = self.seen.iter().position(|x| x.key == s.key) {
+            let x = self.seen.remove(i);
+            let dt = t - x.at_s;
+            let d = (s.frame_s - x.frame_s).rem_euclid(search::SSB_PERIOD_S);
+            let d = d.min(search::SSB_PERIOD_S - d);
+            let tol = SAME_TIME_S + (ppm.abs() + 2.0) * 1e-6 * dt;
+            if dt <= 0.0 {
+                s.count = x.count;
+            } else if (s.hz - x.hz).abs() <= SAME_HZ && d <= tol {
+                s.count = x.count + 1;
+            }
+        }
+        if self.seen.len() >= Self::CAP {
+            self.seen.remove(0);
+        }
+        self.seen.push(s);
+        s.count >= SYNC_ONLY_SIGHTINGS
     }
 }
 
@@ -580,6 +646,13 @@ impl Default for NrSearch {
 fn quiet_reason(out: &NrSearchOut, rate: f64, threshold_db: f64) -> Option<String> {
     if !out.cells.is_empty() {
         return None;
+    }
+    if out.sweep_open {
+        return Some(format!(
+            "searching the {} sync raster positions of this capture in turn, {} in each capture",
+            out.candidates,
+            out.searched.len()
+        ));
     }
     let narrow30 = rate < crate::scan::nr_least_rate(30);
     let note30 = if narrow30 {
@@ -668,7 +741,7 @@ impl NrSearch {
         let time = cap.end_time;
         *log.decoded += f.pbch_ok as u64;
         *log.failed += (f.pbch_tried - f.pbch_ok) as u64;
-        if f.mib.is_none() && f.significance < 6.0 {
+        if !f.is_block() {
             return;
         }
         let known = cap.centre_known();
@@ -691,7 +764,9 @@ impl NrSearch {
             if self.decoded_hz.iter().any(|d| (d - actual).abs() > 20e3 && (d - actual).abs() < width) {
                 return;
             }
-            if !self.sightings.again(key, time) {
+            let ppm = if known { f.cfo_hz / nominal * 1e6 } else { 0.0 };
+            let s = Sighting { key, at_s: time, hz: actual, frame_s: f.frame_s, count: 0 };
+            if !self.sightings.again(s, ppm) {
                 return;
             }
         }
@@ -945,6 +1020,7 @@ impl SearchStack for NrSearch {
         t.candidates = Some(found.candidates);
         t.rate_hz = cap.rate;
         self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db);
+        self.sweep_open = found.sweep_open;
         let base = if cap.centre_known() { cap.centre_hz } else { 0.0 };
         self.decoded_hz = found
             .cells
@@ -961,13 +1037,23 @@ impl SearchStack for NrSearch {
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
+        // A cell listed by its sync alone that the searches of its raster point no longer show.
+        let now = cap.end_time;
+        t.cells.retain(|r| {
+            let c = r.record;
+            let searched = found.searched.iter().any(|&(hz, scs)| scs == c.ssb_scs_khz && (hz - c.frequency_hz).abs() < 5e3);
+            r.favourite || c.mib.is_some() || !searched || now - r.seen.last_s <= SYNC_ONLY_KEPT_S
+        });
         self.partial = partial_reason(t, cap.end_time, cap.rate);
     }
     fn found_cells(found: &NrSearchOut) -> usize {
         found.cells.len()
     }
     fn sync_seen(&self, found: &NrSearchOut) -> bool {
-        !found.cells.is_empty() || found.best_pss_db >= self.searcher.min_pss_db
+        !found.cells.is_empty() || found.best_pss_db >= self.searcher.min_pss_db || found.sweep_open
+    }
+    fn sweep_open(&self) -> bool {
+        self.sweep_open
     }
     fn quiet_reason(&self) -> Option<String> {
         self.quiet.clone()

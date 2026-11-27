@@ -532,6 +532,11 @@ pub trait SearchStack: Send + 'static {
     fn sync_seen(&self, found: &Self::Found) -> bool {
         Self::found_cells(found) > 0
     }
+    /// Whether the captures on this centre have not yet searched all of its frequencies (a bounded search takes them in
+    /// turn): the tuned frequency is not left for want of a cell meanwhile.
+    fn sweep_open(&self) -> bool {
+        false
+    }
     /// Why the newest capture showed no cell, for people ("no LTE carrier on this frequency"). None when it showed one or
     /// the stack does not say.
     fn quiet_reason(&self) -> Option<String> {
@@ -945,7 +950,7 @@ impl<M: SearchStack> SearchDecoder<M> {
                 let longest_s = self.stack.band_search().map_or(0.0, |c| c.dwell_s);
                 // A frequency the stack moved to for a cell gets the longest time even without a sync signal.
                 let wait = !sync && self.staying_hz.is_none();
-                if wait || self.time_s - since >= longest_s {
+                if wait || (self.time_s - since >= longest_s && !self.stack.sweep_open()) {
                     self.start_search(rate, Tuned::Skip);
                 }
             }

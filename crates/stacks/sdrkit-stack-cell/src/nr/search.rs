@@ -48,6 +48,10 @@ pub struct NrFound {
     pub mib: Option<(Mib, u8, bool)>,
     /// The strongest SSB's DMRS index and whether it was sure.
     pub dmrs_index: (u8, bool),
+    /// How far the PBCH DMRS of the PCI and that index match the blocks over the DMRS of other PCIs, in robust standard
+    /// deviations, on the blocks at the final carrier offset; infinite when the MIB decoded. A found cell scores at least
+    /// [`DMRS_Z_LEAST`].
+    pub dmrs_z: f64,
     /// Beams (SSB index, RSRP).
     pub beams: Vec<Beam>,
     /// Lmax of a decoded cell (from the decode, else the band's usual Lmax).
@@ -68,6 +72,9 @@ pub struct NrFound {
     pub anchor: f64,
     /// The index of the SSB of `anchor`.
     pub anchor_ssb: u8,
+    /// The signal time of the start of the half frame of the block, modulo [`SSB_PERIOD_S`], seconds: the same for every
+    /// capture of a cell, but for the drift of the radio clock.
+    pub frame_s: f64,
     /// The try to receive SIB1 in this capture, when one was made.
     pub sib1: Option<Sib1Result>,
 }
@@ -83,7 +90,30 @@ pub struct NrSearchOut {
     pub candidates: usize,
     /// The strongest PSS correlation of the capture over its mean, dB, whether over the threshold or not.
     pub best_pss_db: f64,
+    /// The raster points searched: radio frequency (the offset from the centre when the centre is not known), Hz, and SSB
+    /// spacing, kHz.
+    pub searched: Vec<(f64, u32)>,
+    /// Whether raster points of this capture are left that no capture on this centre has searched yet (a bounded search
+    /// takes them in turn): a capture without a sync signal does not show that the centre has none.
+    pub sweep_open: bool,
 }
+
+impl NrFound {
+    /// Whether the find is an SS/PBCH block: its MIB decoded, or its SSS and its PBCH DMRS stand far over those of other
+    /// cells ([`SYNC_ONLY_SIGNIFICANCE`], [`DMRS_Z_LEAST`]).
+    pub fn is_block(&self) -> bool {
+        self.mib.is_some() || (self.significance >= SYNC_ONLY_SIGNIFICANCE && self.dmrs_z >= DMRS_Z_LEAST)
+    }
+}
+
+/// The SSB period that a cell has for initial access, seconds (3GPP TS 38.213 clause 4.1).
+pub const SSB_PERIOD_S: f64 = 0.02;
+/// The least N_ID1 significance of a block without a MIB.
+pub const SYNC_ONLY_SIGNIFICANCE: f64 = 6.0;
+/// The least PBCH DMRS significance ([`NrFound::dmrs_z`]) of a block without a MIB. A burst of traffic that passes the PSS
+/// and the SSS matches the DMRS of its PCI no better than those of other PCIs; a block that passes the SSS matches its own
+/// far better.
+pub const DMRS_Z_LEAST: f64 = 7.0;
 
 /// The NR searcher.
 pub struct NrSearcher {
@@ -110,8 +140,10 @@ pub struct NrSearcher {
     /// The raster points where cells were found: radio frequency, Hz, SSB spacing, kHz, the signal time of the newest
     /// find, and whether a MIB was decoded there since the point is followed.
     found_at: Vec<(f64, u32, f64, bool)>,
-    /// The next of the other raster points searched while cells are followed.
+    /// The next of the other raster points searched while cells are followed, or of all of them while none is.
     turn: usize,
+    /// Which candidates of the centre a capture on it has searched.
+    swept: Vec<bool>,
     /// The radio centre of the newest capture, Hz.
     centre_hz: f64,
 }
@@ -148,6 +180,7 @@ impl Default for NrSearcher {
             bounded: false,
             found_at: Vec::new(),
             turn: 0,
+            swept: Vec::new(),
             centre_hz: f64::NAN,
         }
     }
@@ -430,7 +463,7 @@ impl NrSearcher {
                         }
                     }
                     None => {
-                        if f.mib.is_some() || f.significance >= 6.0 {
+                        if f.is_block() {
                             out.push(f);
                         }
                     }
@@ -589,21 +622,7 @@ impl NrSearcher {
         let pci = 3 * nid1 + pk.nid2;
         // The SSB index from the DMRS.
         let dres = dmrs_res(pci);
-        let mut dm = [0f64; 8];
-        for (ib, d) in dm.iter_mut().enumerate() {
-            let r = dmrs(pci, ib as u8);
-            for g in &grids {
-                for l in 1..4 {
-                    let mut s = Complex32::new(0.0, 0.0);
-                    for (m, &(k, ll)) in dres.iter().enumerate() {
-                        if ll == l {
-                            s += g[l][k] * r[m].conj();
-                        }
-                    }
-                    *d += s.norm() as f64;
-                }
-            }
-        }
+        let dm = dmrs_scores(&grids, pci, &dres);
         let mut order: Vec<usize> = (0..8).collect();
         order.sort_by(|&a, &b| dm[b].total_cmp(&dm[a]));
         let ibar = order[0] as u8;
@@ -706,6 +725,14 @@ impl NrSearcher {
                 }
             }
         }
+        // Without a MIB, blocks whose DMRS fit no better than those of other cells hold no SS/PBCH block.
+        let dmrs_z = match mib {
+            Some(_) => f64::INFINITY,
+            None => dmrs_significance(&grids, pci, &dres, dmrs_scores(&grids, pci, &dres)[ibar as usize]),
+        };
+        if dmrs_z < DMRS_Z_LEAST {
+            return None;
+        }
         let np = grids.len() as f64;
         let (rsrp, rssi, noise) = (rsrp / np, rssi / np, noise_t / np);
         // Lmax: 8 when the DMRS index was 4 or more with the Lmax-8 descrambling, 4 when it was 4 or more with the Lmax-4 one,
@@ -729,6 +756,9 @@ impl NrSearcher {
             Some((_, ib, l8)) if !*l8 && *ib >= 4 => ib & 3,
             _ => ibar,
         };
+        let anchor = places[0] + shift * step;
+        let block_s = useful_start(scs, self.pattern_of(c).first_symbol(ibar as usize & 7)) as f64 / rate;
+        let frame_s = (cap.start_time() + anchor / fs - block_s).rem_euclid(SSB_PERIOD_S);
         let beams = if mib.is_some() || sure {
             vec![Beam {
                 ssb: ssb_index,
@@ -744,10 +774,12 @@ impl NrSearcher {
             significance,
             mib,
             dmrs_index: (ibar, sure),
+            dmrs_z,
             beams,
             lmax,
-            anchor: places[0] + shift * step,
+            anchor,
             anchor_ssb: ssb_index,
+            frame_s,
             sib1: None,
             rsrp_dbfs: 10.0 * rsrp.max(1e-30).log10(),
             rsrq_db: 10.0 * (20.0 * rsrp / rssi.max(1e-30)).max(1e-30).log10(),
@@ -885,6 +917,49 @@ fn coarse_significance(fft: &mut Fft, x: &[Complex32], scs: u32, pk: &Peak) -> f
     nid1_of(&es, pk.nid2).1
 }
 
+/// The PBCH DMRS score of each i_SSB_bar (0 to 7) of cell `pci` on `grids`: the magnitude of the correlation with the DMRS
+/// in each DMRS symbol of each block, summed. `dres` are the DMRS resource elements of `pci`.
+fn dmrs_scores(grids: &[SsbGrid], pci: u16, dres: &[(usize, usize)]) -> [f64; 8] {
+    let mut dm = [0f64; 8];
+    for (ib, d) in dm.iter_mut().enumerate() {
+        let r = dmrs(pci, ib as u8);
+        for g in grids {
+            let mut s = [Complex32::new(0.0, 0.0); 4];
+            for (m, &(k, l)) in dres.iter().enumerate() {
+                s[l] += g[l][k] * r[m].conj();
+            }
+            *d += s[1..].iter().map(|v| v.norm() as f64).sum::<f64>();
+        }
+    }
+    dm
+}
+
+/// The other cells whose DMRS scores stand for blocks without the DMRS of a cell in [`dmrs_significance`].
+const DMRS_NULL_CELLS: u16 = 16;
+
+/// How far the DMRS score `best` of cell `pci` ([`dmrs_scores`]) stands over the scores of the DMRS of
+/// [`DMRS_NULL_CELLS`] other PCIs on the same resource elements (all eight indices each): over their median, in robust
+/// standard deviations (1.4826 times the median absolute deviation), so that a neighbour cell among them on the same
+/// blocks does not raise the spread. A real SS/PBCH block scores far over them; a burst of traffic that passed the PSS
+/// and the SSS scores like them.
+fn dmrs_significance(grids: &[SsbGrid], pci: u16, dres: &[(usize, usize)], best: f64) -> f64 {
+    let mut v: Vec<f64> = Vec::with_capacity(8 * DMRS_NULL_CELLS as usize);
+    for k in 1..=DMRS_NULL_CELLS {
+        // A step of 4 keeps PCI mod 4, so the DMRS lie on the same resource elements.
+        let other = (pci + 4 * k) % 1008;
+        v.extend(dmrs_scores(grids, other, dres));
+    }
+    let median = |v: &mut [f64]| {
+        v.sort_by(f64::total_cmp);
+        let n = v.len();
+        0.5 * (v[(n - 1) / 2] + v[n / 2])
+    };
+    let mid = median(&mut v);
+    let mut dev: Vec<f64> = v.iter().map(|x| (x - mid).abs()).collect();
+    let sd = 1.4826 * median(&mut dev);
+    (best - mid) / sd.max(1e-30)
+}
+
 /// The N_ID1 of blocks with the PSS of `nid2`, from the SSS against the PSS of each block on the 127 subcarriers (`es`):
 /// the N_ID1 whose SSS fits them best, and how far its score stands over the mean of the others, in their standard
 /// deviations.
@@ -976,20 +1051,33 @@ fn channel(
 }
 
 impl NrSearcher {
-    /// The candidates of `cands` that a capture ending at `now` searches: all of them, or, when the search is bounded and
-    /// cells were found at this centre within [`FOLLOW_S`], [`FOLLOWED_PER_CAPTURE`] raster points of those cells and
-    /// [`OTHERS_PER_CAPTURE`] others, in turn. While a cell with a MIB is followed, the raster points of cells seen by
-    /// their sync only count as others: such a cell is often the block of the decoded cell seen from a raster point
-    /// beside it, and must not take the turn of the decoded cell.
+    /// The candidates of `cands` that a capture ending at `now` searches: all of them, or, when the search is bounded, as
+    /// many as later captures search: when cells were found at this centre within [`FOLLOW_S`], [`FOLLOWED_PER_CAPTURE`]
+    /// raster points of those cells and [`OTHERS_PER_CAPTURE`] others, in turn; else that many of all the raster points,
+    /// in turn from the first (the tuned frequency) on a new centre. While a cell with a MIB is followed, the raster points
+    /// of cells seen by their sync only count as others: such a cell is often the block of the decoded cell seen from a
+    /// raster point beside it, and must not take the turn of the decoded cell.
     fn searched(&mut self, cap: &Capture, cands: &[Cand]) -> Vec<usize> {
-        if (cap.centre_hz - self.centre_hz).abs() > 1.0 || !self.bounded {
+        let moved = (cap.centre_hz - self.centre_hz).abs() > 1.0;
+        if moved || !self.bounded {
             self.found_at.clear();
+        }
+        if moved || self.swept.len() != cands.len() {
+            self.turn = 0;
+            self.swept = vec![false; cands.len()];
         }
         self.centre_hz = cap.centre_hz;
         let now = cap.end_time;
         self.found_at.retain(|f| now >= f.2 && now - f.2 <= FOLLOW_S);
-        if self.found_at.is_empty() {
+        if !self.bounded {
             return (0..cands.len()).collect();
+        }
+        if self.found_at.is_empty() {
+            let n = (FOLLOWED_PER_CAPTURE + OTHERS_PER_CAPTURE).min(cands.len());
+            let mut pick: Vec<usize> = (0..n).map(|k| (self.turn + k) % cands.len()).collect();
+            self.turn = self.turn.wrapping_add(n);
+            pick.sort_unstable();
+            return pick;
         }
         let at = |c: &Cand| cap.centre_hz + c.offset_hz;
         let decoded = self.found_at.iter().any(|f| f.3);
@@ -1012,10 +1100,17 @@ impl NrSearcher {
     pub fn search(&mut self, cap: &Capture) -> NrSearchOut {
         self.best_db = f64::NEG_INFINITY;
         let (all, range) = candidates(cap, &self.band_order);
-        let cands: Vec<Cand> = self.searched(cap, &all).into_iter().map(|i| all[i]).collect();
+        let picked = self.searched(cap, &all);
+        for &i in &picked {
+            self.swept[i] = true;
+        }
+        let cands: Vec<Cand> = picked.into_iter().map(|i| all[i]).collect();
+        let base = if cap.centre_known() { cap.centre_hz } else { 0.0 };
         let mut out = NrSearchOut {
             gscn_range: range,
             candidates: all.len(),
+            searched: cands.iter().map(|c| (base + c.offset_hz, c.scs)).collect(),
+            sweep_open: self.swept.contains(&false),
             ..Default::default()
         };
         // A clock error learned from a decoded cell moves each raster point by its error and narrows the carrier offset

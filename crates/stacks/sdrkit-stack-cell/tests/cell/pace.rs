@@ -662,9 +662,9 @@ fn nr_follows_a_strong_cell_with_bursts_at_12_msps_in_real_time() {
 }
 
 /// The recording of a live n5 cell at 12 Msps (PCI 897, 505-01, a strong cell on a carrier with bursts of traffic) fed
-/// live, again and again, with the Australian settings on its centre: its operator shows within 5 s, and from then on
-/// nothing is dropped or skipped for 20 s, with less than half a second of processor time for a second of signal. Skipped
-/// when the recording is not on this machine.
+/// live, again and again, with the Australian settings on its centre: its operator shows within 5 s, nothing is dropped
+/// from the first sample on, and nothing is dropped or skipped for 20 s more, with less than half a second of processor
+/// time for a second of signal. Skipped when the recording is not on this machine.
 #[test]
 #[ignore]
 fn nr_auto_follows_the_recording_of_a_live_cell_without_drops() {
@@ -679,6 +679,8 @@ fn nr_auto_follows_the_recording_of_a_live_cell_without_drops() {
     report("on a recording, first", &NR, &first);
     assert_eq!(value(Owner::results(&rx), "with_sib1"), Some(1.0), "{first:?} {:?}", Owner::results(&rx).status().summary);
     assert_eq!(first.centre, hz, "{first:?}");
+    // The first search is bounded as the later ones are: the input waiting meanwhile fits the helper's backlog.
+    assert!(first.dropped == 0.0 || machine_is_full(), "{first:?}");
     let (p, kept_up) = follows(&mut rx, rate, hz, 20.0, &mut gen);
     report("on a recording", &NR, &p);
     assert!(kept_up, "{p:?}");
@@ -689,4 +691,39 @@ fn nr_auto_follows_the_recording_of_a_live_cell_without_drops() {
     let read: Vec<&J> = cs.iter().filter(|c| c["sib1"].is_object()).collect();
     assert_eq!(read.len(), 1, "{cs:#?}");
     assert_eq!((&read[0]["pci"], &read[0]["sib1"]["networks"][0]["plmn"]), (&J::from(897), &J::from("505-01")), "{}", read[0]);
+}
+
+/// The n28 cell of NR scene 1 at 12 Msps, 3 MHz over the centre, among the last raster points that a bounded search
+/// takes in turn, fed live with the Australian settings in auto: the stack stays on the centre until its raster points
+/// are all searched, lists the cell with its operator, and drops nothing from the start.
+#[test]
+#[ignore]
+fn nr_auto_finds_a_cell_on_a_late_raster_point_without_leaving() {
+    use sdrkit_stack_cell::nr::gen::{scene, NrGenOptions, NrGenerator};
+    let rate = 12e6;
+    let (ssb_hz, mut scene_cells) = scene(1);
+    let centre = ssb_hz - 3e6;
+    scene_cells[0].offset_hz = 3e6;
+    let x = impaired(NrGenerator::new(rate, scene_cells, NrGenOptions::default()), &snr(15.0), 1.0);
+    let probe = sdrkit_stack_cell::decoder::Capture::new(vec![Complex32::default(); 1000], rate, centre, 0.0);
+    let (keys, _) = australia(&NR);
+    let keys: Vec<(&str, J)> = keys.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
+    let order: Vec<u16> = keys
+        .iter()
+        .find(|(k, _)| *k == "band_order")
+        .and_then(|(_, v)| v.as_str())
+        .map(|s| s.split_whitespace().filter_map(|b| b.parse().ok()).collect())
+        .unwrap_or_default();
+    let (cands, _) = sdrkit_stack_cell::nr::search::candidates(&probe, &order);
+    let at = cands.iter().position(|c| (c.offset_hz - 3e6).abs() < 5e3 && c.scs == 15).expect("the cell's raster point");
+    assert!(3 * at >= 2 * cands.len(), "raster point {at} of {}", cands.len());
+    let mut rx = stack_graph(&NR, &keys);
+    rx.configure(&InputInfo::new(rate, centre, centre)).unwrap();
+    let p = paced(&mut rx, rate, centre, 6.0, true, cycle(x));
+    report("on a late raster point", &NR, &p);
+    assert_eq!((p.centre, p.retunes), (centre, 0), "{p:?}");
+    assert!(p.dropped == 0.0 || machine_is_full(), "{p:?}");
+    rx.finish(&mut Output::default());
+    let cs = cells(&state(&rx));
+    assert!(cs.iter().any(|c| c["pci"] == 222 && c["sib1"].is_object()), "{cs:#?}");
 }
