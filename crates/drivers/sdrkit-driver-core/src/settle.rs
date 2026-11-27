@@ -121,6 +121,22 @@ impl SettleGate {
         }
     }
 
+    /// Retune number `seq` runs: no sample is its first one until it ends ([`SettleGate::mark`]).
+    pub fn moving(&mut self, seq: u64) {
+        self.marked = None;
+        self.until = Some((seq, u64::MAX));
+    }
+
+    /// A retune waits for its first sample: the samples of the last write that it did not find were captured before it.
+    pub fn before_move(&self) -> bool {
+        self.marked.is_some() || self.until.is_some()
+    }
+
+    /// A change of the radio runs now ([`SettleGate::begin_change`]).
+    pub fn changing(&self) -> bool {
+        self.changing > 0
+    }
+
     /// Retune number `seq` ended at `at`.
     pub fn mark(&mut self, seq: u64, at: Instant, settle: Settle) {
         self.until = None;
@@ -450,6 +466,18 @@ mod tests {
         g.step(at, at, settle(5, 500_000));
         g.hold(false);
         assert_eq!(write(&mut g), Some(205_000));
+    }
+
+    #[test]
+    fn no_sample_is_the_first_one_of_a_retune_while_it_runs() {
+        let mut g = SettleGate::new(RATE);
+        run(&mut g, 0, 100_000);
+        g.moving(1);
+        assert!(g.before_move());
+        assert_eq!(run(&mut g, 0, 300_000), None);
+        g.mark(1, g.epoch + Duration::from_millis(305), settle(5, 500_000));
+        assert_eq!(run(&mut g, 0, 400_000), Some((1, 310_000)));
+        assert!(!g.before_move());
     }
 
     #[test]

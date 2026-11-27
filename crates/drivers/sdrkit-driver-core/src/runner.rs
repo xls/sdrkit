@@ -307,6 +307,19 @@ impl Sink {
         }
     }
 
+    /// The place in the next write of `n` samples of the first sample of the retune that waits, if it lies in that write
+    /// or before it (0) and no change of the radio runs: the samples from there on were captured at the new frequency.
+    /// It is asked before the write, after [`Sink::arrived`].
+    pub fn move_in(&self, n: usize) -> Option<usize> {
+        let (at, direct) = self.arrived.unwrap_or_else(|| (Instant::now(), true));
+        let gate = self.settle();
+        if gate.changing() {
+            return None;
+        }
+        let k = gate.clone().write(at, n as u64, direct).moved?.1;
+        usize::try_from(k).ok()
+    }
+
     /// The radio still settles after a change (a held gain that searches), or no longer: the samples of the writes that
     /// follow are left out while it does, for at most 1 s ([`SettleGate::hold`]).
     pub fn settling(&mut self, on: bool) {

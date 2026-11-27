@@ -4,6 +4,11 @@
 //! `SDRKIT_RADIO=<address> SDRKIT_STRONG=<MHz> SDRKIT_EMPTY=<MHz> cargo test --release -p sdrkit-driver-registry --test
 //! settle_time -- --ignored --nocapture`. `SDRKIT_RATE` (Msps, default 2.4) and `SDRKIT_GAIN` (dB, default the automatic
 //! gain of the radio) are optional.
+//!
+//! A hop run: `SDRKIT_HOPS=<MHz>,<MHz>,...` (in place of the strong and empty frequencies) visits the frequencies in turn,
+//! `SDRKIT_HOP_COUNT` times (default 24) for `SDRKIT_DWELL` ms each (default 600). Per hop it reports the time from the
+//! first sample at the new frequency until the samples that pass stay within 1 dB of the level the hop settles at, the
+//! samples left out later in the hop, and how steady the level that passes is.
 
 use sdrkit_core::net::StdNet;
 use sdrkit_core::{Clock, Complex32, MemStorage, Owner, SettingSet, Value, Values};
@@ -32,6 +37,22 @@ struct Seen {
     start: Option<(u64, u64)>,
     /// The arrival of the first sample after that stretch, and the place of the level reading it begins.
     first: Option<(Instant, u64)>,
+    /// Each stretch of samples without a gap: its place in the ring and in the signal.
+    segments: Vec<(u64, u64)>,
+    /// The first sample of each retune, by its number, as a place in the ring.
+    moved: Vec<(u64, u64)>,
+    /// The stretches that the engine leaves out, as places in the ring.
+    unsettled: Vec<(u64, u64)>,
+}
+
+impl Seen {
+    /// The place in the signal of the place `at` in the ring.
+    fn signal(&self, at: u64) -> u64 {
+        let k = self.segments.partition_point(|s| s.0 <= at);
+        self.segments
+            .get(k.saturating_sub(1))
+            .map_or(at, |s| s.1 + (at - s.0))
+    }
 }
 
 fn level_db(x: &[Complex32]) -> f32 {
@@ -50,8 +71,13 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
     let Some(address) = env("SDRKIT_RADIO") else {
         return;
     };
-    let strong = mhz("SDRKIT_STRONG").expect("SDRKIT_STRONG");
-    let empty = mhz("SDRKIT_EMPTY");
+    let hops: Vec<f64> = env("SDRKIT_HOPS")
+        .map(|s| s.split(',').filter_map(|m| m.trim().parse::<f64>().ok()).map(|m| m * 1e6).collect())
+        .unwrap_or_default();
+    let hop_count = env("SDRKIT_HOP_COUNT").and_then(|s| s.parse::<usize>().ok()).unwrap_or(24);
+    let dwell = env("SDRKIT_DWELL").and_then(|s| s.parse::<u64>().ok()).unwrap_or(600);
+    let strong = hops.first().copied().or_else(|| mhz("SDRKIT_STRONG")).expect("SDRKIT_STRONG");
+    let empty = mhz("SDRKIT_EMPTY").filter(|_| hops.is_empty());
     let rate = mhz("SDRKIT_RATE").unwrap_or(2.4e6);
     let gain = env("SDRKIT_GAIN").and_then(|s| s.parse::<f64>().ok());
     let key = match address.strip_prefix("usb:") {
@@ -87,6 +113,7 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
     }
     let mut radio = kind.open(&address, &v).expect("the radio opens");
     let (w, mut r) = ring(RING_CAPACITY, radio.sample_type());
+    let stats = r.stats();
     let t0 = Instant::now();
     let started = radio.start(w).expect("the stream starts");
     let rate = started.rate_hz;
@@ -105,9 +132,7 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 let at = Instant::now();
                 let mut s = seen.lock().unwrap();
                 if s.start.is_none() {
-                    if let Some(u) = r.stats().unsettled(0) {
-                        s.start = u.to.map(|to| (u.from, to));
-                    }
+                    s.start = s.unsettled.first().copied();
                 }
                 if let (None, Some((_, to))) = (s.first, s.start) {
                     if r.position() + n as u64 > to {
@@ -119,6 +144,10 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 let mut gaps = r.take_gaps(n);
                 gaps.push(sdrkit_driver_core::Gap::lost_at(n, 0));
                 for g in gaps {
+                    let ring_at = r.position();
+                    if s.segments.last().is_none_or(|x| x.1 - x.0 != pos - ring_at) {
+                        s.segments.push((ring_at, pos));
+                    }
                     let k = r.read_iq(&mut buf[..g.at - done]);
                     for part in buf[..k].chunks(PART) {
                         s.levels.push((pos, level_db(part)));
@@ -128,6 +157,18 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                     pos += g.lost;
                 }
                 s.arrivals.push((at, pos));
+                let st = r.stats();
+                let m = st.moves();
+                if m.found > 0 && s.moved.last().is_none_or(|x| x.0 != m.found) {
+                    s.moved.push((m.found, m.at));
+                }
+                // From the end of the last stretch seen, so that none is passed over.
+                let q = s.unsettled.last().map_or(0, |u| u.1);
+                if let Some(to) = st.unsettled(q).and_then(|u| u.to.map(|to| (u.from, to))) {
+                    if s.unsettled.last() != Some(&to) {
+                        s.unsettled.push(to);
+                    }
+                }
             }
         })
     };
@@ -143,6 +184,18 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 .unwrap();
             tunes.push((f, Instant::now(), began));
             std::thread::sleep(Duration::from_millis(400));
+        }
+    }
+    // The hops: (frequency, number of the retune, end of the request).
+    let mut hopped = Vec::new();
+    if hops.len() > 1 {
+        for k in 0..hop_count {
+            let f = hops[(k + 1) % hops.len()];
+            radio
+                .apply(RadioSetting::Centre.id(), &Value::Hz(f))
+                .unwrap();
+            hopped.push((f, stats.moves().begun, Instant::now()));
+            std::thread::sleep(Duration::from_millis(dwell));
         }
     }
     stop.store(true, Ordering::Release);
@@ -270,4 +323,96 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
             t[n - 1]
         );
     }
+    // The place in the signal of the sample captured at `t`.
+    let at = |t: Instant| ((t.duration_since(t0).as_secs_f64() - delay) * rate).max(0.0) as u64;
+    let hopped: Vec<(f64, u64, u64)> = hopped.iter().map(|&(f, seq, end)| (f, seq, at(end))).collect();
+    report_hops(&s, &hopped, rate);
+}
+
+/// Per hop (frequency, number of the retune, place in the signal of the end of the request): the time from the end of the
+/// request to the first sample at the new frequency, from there until the samples that pass stay within 1 dB of the level
+/// the hop settles at, how far the level that passes strays from it, and the samples left out later in the hop.
+fn report_hops(s: &Seen, hopped: &[(f64, u64, u64)], rate: f64) {
+    if hopped.is_empty() {
+        return;
+    }
+    let left: Vec<(u64, u64)> = s.unsettled.iter().map(|&(a, b)| (s.signal(a), s.signal(b))).collect();
+    let end = s.levels.last().map_or(0, |l| l.0);
+    let win = ((rate * 0.001) as u64).max(1);
+    let (mut lost, mut strays, mut later_all) = (Vec::new(), Vec::new(), 0.0);
+    let mut firsts = Vec::new();
+    for (i, &(f, seq, asked)) in hopped.iter().enumerate() {
+        let found = |q: u64| s.moved.iter().find(|m| m.0 >= q).map(|m| s.signal(m.1));
+        let Some(m) = found(seq) else {
+            println!("to {:.3} MHz: no first sample found", f / 1e6);
+            continue;
+        };
+        let to = hopped.get(i + 1).and_then(|h| found(h.1)).unwrap_or(end).max(m);
+        // The first sample that passes.
+        let mut p = m;
+        while let Some(u) = left.iter().find(|u| u.0 <= p && p < u.1) {
+            p = u.1;
+        }
+        // The levels of 1 ms of passed samples each.
+        let mut wins: Vec<(u64, Vec<f32>)> = Vec::new();
+        for &(at, l) in s.levels.iter().filter(|(at, _)| *at >= p && *at < to) {
+            if left.iter().any(|u| u.0 <= at && at < u.1) {
+                continue;
+            }
+            let k = (at - p) / win;
+            match wins.last_mut() {
+                Some(w) if w.0 == k => w.1.push(l),
+                _ => wins.push((k, vec![l])),
+            }
+        }
+        let meds: Vec<(u64, f32)> = wins.into_iter().map(|(k, mut v)| (k, median(&mut v))).collect();
+        if meds.len() < 4 {
+            println!("to {:.3} MHz: too little passed", f / 1e6);
+            continue;
+        }
+        let mut tail: Vec<f32> = meds[meds.len() / 2..].iter().map(|x| x.1).collect();
+        let settled = median(&mut tail);
+        let steady = (0..meds.len())
+            .find(|&k| meds[k..].iter().all(|x| (x.1 - settled).abs() <= 1.0))
+            .map_or(to, |k| p + meds[k].0 * win);
+        let ms = |n: u64| n as f64 / rate * 1e3;
+        let stray = meds.iter().map(|x| (x.1 - settled).abs()).fold(0.0f32, f32::max);
+        let later: u64 = left
+            .iter()
+            .filter(|u| u.0 >= p && u.1 <= to)
+            .map(|u| u.1 - u.0)
+            .sum();
+        let first = (m as f64 - asked as f64) / rate * 1e3;
+        firsts.push(first);
+        println!(
+            "to {:.3} MHz: {settled:.1} dB, first sample {first:.1} ms after the request, passes {:.1} ms and steady {:.1} ms after it, level within {stray:.1} dB, {:.1} ms left out later",
+            f / 1e6,
+            ms(p - m),
+            ms(steady - m),
+            ms(later)
+        );
+        lost.push(ms(steady - m));
+        strays.push(stray);
+        later_all += ms(later);
+    }
+    if lost.is_empty() {
+        return;
+    }
+    let n = lost.len();
+    let mut l = lost.clone();
+    l.sort_by(f64::total_cmp);
+    let worst = strays.iter().copied().fold(0.0f32, f32::max);
+    let mut st = strays.clone();
+    firsts.sort_by(f64::total_cmp);
+    println!(
+        "first sample after the request: median {:.1} ms, largest {:.1} ms",
+        firsts[firsts.len() / 2],
+        firsts[firsts.len() - 1]
+    );
+    println!(
+        "{n} hops: steady after median {:.1} ms, largest {:.1} ms; level within median {:.1} dB, largest {worst:.1} dB; {later_all:.0} ms left out later in all",
+        l[n / 2],
+        l[n - 1],
+        median(&mut st)
+    );
 }

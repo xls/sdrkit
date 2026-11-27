@@ -199,7 +199,9 @@ fn every_stack_that_asks_for_host_audio_after_a_transmit_command_counts_its_chan
             asked
         });
         if wanted {
-            assert_ne!(channels(&e, &stack), 0, "{stack} asks for host audio");
+            // The counts come from a thread of the engine after its start.
+            let counted = wait_for(30.0, || (channels(&e, &stack) != 0).then_some(()));
+            assert!(counted.is_some(), "{stack} asks for host audio");
             asked.push(stack);
         }
         e.stop_session(s).unwrap();

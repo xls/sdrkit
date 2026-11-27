@@ -1177,7 +1177,13 @@ impl<M: SearchStack> SearchDecoder<M> {
                     dwell_s,
                     stop_on_lock: false,
                 });
-                self.pass = Some(Pass::new(steps.clone(), steps, dwell_s, self.time_s));
+                let mut p = Pass::new(steps.clone(), steps, dwell_s, self.time_s);
+                // The radio is on the first step already: a host reports no move to where it is.
+                if (p.steps[0].0 - self.tuned_hz).abs() <= 1.0 {
+                    p.at = Some(0);
+                    p.fresh = false;
+                }
+                self.pass = Some(p);
                 true
             }
         }

@@ -898,7 +898,10 @@ struct AutoRun {
 
 /// Plays a host in auto, live at `rate`, from `start` at the pace of the signal until `done` holds for the results and the
 /// radio centre, at most `seconds`: carrier `wide` (a 20 MHz LTE carrier) on its centre, `narrow` (a 5 MHz one) on its
-/// centre when given, noise elsewhere. The host follows hops and retunes and refuses every other rate.
+/// centre when given, noise elsewhere. The host follows hops and retunes, reports no move to the frequency the radio is on,
+/// and gives no other rate: when `answer`, it answers a
+/// request for one at once with the rate it has, at the frequency asked for; else it leaves the request unanswered.
+#[allow(clippy::too_many_arguments)]
 fn auto_run(
     rx: &mut sdrkit_graph::StackGraph,
     rate: f64,
@@ -906,6 +909,7 @@ fn auto_run(
     seconds: f64,
     wide: f64,
     narrow: Option<f64>,
+    answer: bool,
     done: impl Fn(&sdrkit_core::Results, f64) -> bool,
 ) -> AutoRun {
     use sdrkit_stack_cell::lte::gen::{scene, LteGenerator};
@@ -954,7 +958,15 @@ fn auto_run(
                     hop = None;
                     next = Some(tuned_hz);
                 }
-                HostRequest::Tune { .. } => run.tunes += 1,
+                HostRequest::Tune { freq_hz, .. } => {
+                    run.tunes += 1;
+                    if let Some(f) = freq_hz.filter(|_| answer) {
+                        hop = None;
+                        run.centre = f;
+                        step = 0.0;
+                        rx.configure(&InputInfo::new(rate, f, f)).unwrap();
+                    }
+                }
                 _ => {}
             }
         }
@@ -968,9 +980,12 @@ fn auto_run(
             }
         }
         if let Some(n) = next {
+            // As an engine does, a move to where the radio is reports nothing.
+            if n != run.centre {
+                rx.retuned(&InputInfo::new(rate, n, n));
+            }
             run.centre = n;
             step = 0.0;
-            rx.retuned(&InputInfo::new(rate, n, n));
         }
     }
     run
@@ -986,8 +1001,18 @@ fn auto_searches_on_past_a_cell_it_cannot_read() {
     assert!(steps.len() >= 3, "{steps:?}");
     let (wide, narrow) = (steps[0], steps[steps.len() - 1]);
     let settings = [("search_bands", J::from("1")), ("search_ranges", J::from("2110-2140"))];
+    // A host that answers the request for the rate with the rate it has: the same.
     let mut rx = stack_graph(&CELL, &settings);
-    let run = auto_run(&mut rx, rate, wide, 60.0, wide, Some(narrow), |r, c| {
+    let run = auto_run(&mut rx, rate, wide, 60.0, wide, Some(narrow), true, |r, c| {
+        c == narrow && value(r, "identified") == Some(1.0) && r.status().summary.starts_with("Staying on PCI 301")
+    });
+    assert_eq!((run.tunes, run.centre), (1, narrow), "{:#?}", run.statuses);
+    // The search starts on the step the radio is on, which the host does not report as a move.
+    let waits = |run: &AutoRun| run.statuses.iter().any(|s| s.contains("waiting for the radio") || s.contains("did not move"));
+    assert!(!waits(&run), "{:#?}", run.statuses);
+    // A host that does not answer.
+    let mut rx = stack_graph(&CELL, &settings);
+    let run = auto_run(&mut rx, rate, wide, 60.0, wide, Some(narrow), false, |r, c| {
         c == narrow && value(r, "identified") == Some(1.0) && r.status().summary.starts_with("Staying on PCI 301")
     });
     let r = Owner::results(&rx);
@@ -1001,9 +1026,10 @@ fn auto_searches_on_past_a_cell_it_cannot_read() {
     );
     assert!(run.statuses.iter().any(|s| s.starts_with("Searching band 1: ") && s.contains(&note)), "{:#?}", run.statuses);
     assert!(r.status().summary.starts_with("Staying on PCI 301"), "{}", r.status().summary);
+    assert_eq!(text(r, "quiet_reason"), None, "{}", r.status().summary);
     // The 20 MHz carrier alone: the pass ends on it.
     let mut rx = stack_graph(&CELL, &settings);
-    let run = auto_run(&mut rx, rate, wide, 60.0, wide, None, |r, _| {
+    let run = auto_run(&mut rx, rate, wide, 60.0, wide, None, false, |r, _| {
         r.status().summary.contains("the strongest cell found") && text(r, "quiet_reason").is_some()
     });
     let r = Owner::results(&rx);

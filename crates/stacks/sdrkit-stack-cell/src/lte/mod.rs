@@ -1375,6 +1375,14 @@ impl SearchStack for LteSearch {
         crate::bands::downlink_bands(sdrkit_data_plans::cellular::CellSystem::Lte, hz, &self.order.bands)
     }
     fn carriers(t: &LteTables) -> Vec<FoundCarrier> {
+        // The cells of one carrier share its width: a cell whose MIB is not read takes the width of another on its carrier.
+        let widths: Vec<(f64, usize)> =
+            t.cells.iter().filter_map(|r| Some((r.record.frequency_hz, r.record.mib.as_ref()?.n_rb))).collect();
+        let width = |c: &LteCell| {
+            c.mib.as_ref().map(|m| m.n_rb).or_else(|| {
+                widths.iter().find(|(hz, _)| (hz - c.frequency_hz).abs() < 50e3).map(|w| w.1)
+            })
+        };
         t.cells
             .iter()
             .filter(|r| r.record.frequency_hz > 0.0)
@@ -1387,7 +1395,7 @@ impl SearchStack for LteSearch {
                 identified: r.record.sib1.is_some(),
                 settled: r.record.sib1.is_some() || r.record.mib.as_ref().is_some_and(|m| too_wide(m.n_rb, t.rate_hz)),
                 out_of_reach: r.record.mib.as_ref().is_some_and(|m| too_wide(m.n_rb, t.rate_hz)),
-                rate_needed_hz: r.record.mib.as_ref().filter(|m| too_wide(m.n_rb, t.rate_hz)).map(|m| rate_needed(m.n_rb)),
+                rate_needed_hz: width(r.record).filter(|n| too_wide(*n, t.rate_hz)).map(rate_needed),
             })
             .collect()
     }
@@ -1743,6 +1751,30 @@ mod tests {
             }),
             ..Default::default()
         }
+    }
+
+    /// Two cells of a 20 MHz carrier at 12 Msps, the weaker without its MIB, and a 10 MHz carrier: the cells of the 20 MHz
+    /// carrier both need about 18 Msps, so neither can end a band search in auto; the cell of the 10 MHz carrier can.
+    #[test]
+    fn a_cell_without_its_mib_takes_the_width_of_its_carrier() {
+        use crate::decoder::SearchStack;
+        let mut t = LteTables { rate_hz: 12e6, ..Default::default() };
+        for (pci, hz, n_rb) in [(459, 778e6, Some(100)), (256, 778e6, None), (367, 763e6, Some(50))] {
+            let c = LteCell {
+                pci,
+                frequency_hz: hz,
+                mib: n_rb.map(|n_rb| MibOut { n_rb, ..Default::default() }),
+                ..Default::default()
+            };
+            let key = LteKey { pci, raster: (hz / 100e3).round() as i64 };
+            assert!(t.cells.upsert(&key, sdrkit_util_objects::Stamp::at(1.0), || c).is_ok());
+        }
+        let read: Vec<(String, bool, Option<f64>)> =
+            LteSearch::carriers(&t).into_iter().map(|c| (c.readable(), c.rate_needed_hz, c.row)).map(|(r, n, row)| (row, r, n)).collect();
+        assert_eq!(
+            read,
+            [("459@7780".into(), false, Some(18.06e6)), ("256@7780".into(), false, Some(18.06e6)), ("367@7630".into(), true, None)]
+        );
     }
 
     #[test]

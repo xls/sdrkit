@@ -8,6 +8,7 @@ use sdrkit_core::{Field, Hz, Results, SettingSet, Values};
 use sdrkit_driver_core::gain::{HeldGain, Meter, RULES};
 use sdrkit_driver_core::net::Abort;
 use sdrkit_driver_core::runner::{Radio, RadioStream, Sink, StreamCtx};
+use sdrkit_driver_core::settle::{Settle, SettleGate};
 use sdrkit_driver_core::{
     Capabilities, DriverError, RadioSetting, RateLimits, AGC, BANDWIDTH, BIAS_TEE, CENTRE, GAIN,
     RATE, RATE_EXACT,
@@ -135,95 +136,26 @@ impl Default for Mark {
     }
 }
 
-/// Decides which bytes after a retune were sampled before the tuner settled. It maps each byte position of the
-/// stream to the time it was sampled: position / byte rate + the least delay seen between that time and the arrival of
-/// a transfer (the delay may rise by 1 ms per second, for clock drift and lost samples). After a retune at T it drops
-/// every byte sampled before T + 5 ms, also those of transfers that were complete before the retune but read after
-/// it; while the retune runs it drops every byte. At most `cap` bytes are dropped for one retune.
-#[derive(Clone, Debug)]
-pub struct SettleGate {
-    epoch: Instant,
-    byte_rate: f64,
-    pos: u64,
-    delay: Option<f64>,
-    last: f64,
-    pending: Option<Instant>,
-    until: Option<u64>,
-    dropped: usize,
-    cap: usize,
+/// The gap after a retune at `rate_hz`: the samples sampled until [`SETTLE`] after its end, at most those of the queued
+/// transfers and one more, and those of [`SETTLE`].
+fn gap_settle(rate_hz: f64) -> Settle {
+    let (size, queued) = transfer_plan(rate_hz);
+    Settle {
+        after: SETTLE,
+        in_flight: ((queued + 1) * size / 2) as u64,
+    }
 }
 
-/// How fast the delay estimate of [`SettleGate`] may rise, in seconds per second.
-const DELAY_RISE: f64 = 1e-3;
-
-impl SettleGate {
-    /// A gate for a stream that started at `epoch` with `byte_rate` bytes per second; it drops at most `cap` bytes
-    /// per retune.
-    pub fn new(epoch: Instant, byte_rate: f64, cap: usize) -> SettleGate {
-        SettleGate {
-            epoch,
-            byte_rate: byte_rate.max(1.0),
-            pos: 0,
-            delay: None,
-            last: 0.0,
-            pending: None,
-            until: None,
-            dropped: 0,
-            cap,
-        }
-    }
-
-    /// A retune begins: every byte is dropped until it ends.
-    pub fn begin(&mut self) {
-        if self.until.is_none() {
-            self.dropped = 0;
-        }
-        self.until = Some(u64::MAX);
-        self.pending = None;
-    }
-
-    /// A retune ended at `at`.
-    pub fn mark(&mut self, at: Instant) {
-        self.pending = Some(at);
-    }
-
-    /// The bytes to drop from the start of the next transfer, of `len` bytes, read at `now`. An even count.
-    pub fn front(&mut self, now: Instant, len: usize) -> usize {
-        let t = now.saturating_duration_since(self.epoch).as_secs_f64();
-        let end = self.pos + len as u64;
-        let seen = t - end as f64 / self.byte_rate;
-        let delay = match self.delay {
-            None => seen,
-            Some(d) => (d + DELAY_RISE * (t - self.last)).min(seen),
-        };
-        (self.delay, self.last) = (Some(delay), t);
-        if let Some(at) = self.pending.take() {
-            let settled = (at + SETTLE)
-                .saturating_duration_since(self.epoch)
-                .as_secs_f64();
-            let p = ((settled - delay) * self.byte_rate).ceil().max(0.0) as u64;
-            self.until = match self.until {
-                None => {
-                    self.dropped = 0;
-                    Some(p)
-                }
-                Some(u64::MAX) => Some(p),
-                Some(u) => Some(u.max(p)),
-            };
-        }
-        let mut k = 0;
-        if let Some(p) = self.until {
-            let room = self.cap.saturating_sub(self.dropped);
-            let want = p.saturating_sub(self.pos).min(len as u64) as usize;
-            k = ((want + 1) & !1).min(len).min(room & !1);
-            self.dropped += k;
-            if end >= p || k < want {
-                self.until = None;
-            }
-        }
-        self.pos = end;
-        k
-    }
+/// The bytes to drop from the front of a transfer of `len` bytes read at `now`: those that the dongle sampled while a
+/// retune ran or before the tuner had settled after it ([`SettleGate`], in samples of two bytes).
+fn front(gate: &mut SettleGate, now: Instant, len: usize) -> usize {
+    let n = (len / 2) as u64;
+    let k = match gate.write(now, n, true).moved {
+        Some((_, k)) => k,
+        None if gate.before_move() => n,
+        None => 0,
+    };
+    (2 * k as usize).min(len)
 }
 
 /// How the gain of the tuner is set.
@@ -442,20 +374,21 @@ impl RtlRadio {
                     _ => Gain::Auto,
                 })?;
             }
-            // A held gain starts at open, after a retune and when it is switched on; it keeps the gain it held.
+            // A held gain starts at open, after a retune and when it is switched on, from a gain it held before.
             GainPlan::Held if a.gain != Some(w.gain) || retuned || !hold.active() => {
-                let from = hold
-                    .status()
-                    .map_or(HELD_START, |s| (s.gain_db * 10.0).round() as i32);
-                let set = d.set_gain(Gain::Manual(from))?.unwrap_or(from);
                 let gains = d.gains();
                 let range = (
                     f64::from(gains[0]) / 10.0,
                     f64::from(gains[gains.len() - 1]) / 10.0,
                 );
+                let centre = w.centre as f64;
+                let from = hold.start_gain(centre, f64::from(HELD_START) / 10.0, range);
+                let from = (from * 10.0).round() as i32;
+                let set = d.set_gain(Gain::Manual(from))?.unwrap_or(from);
                 let rate = d.rate_hz();
                 let (size, queued) = transfer_plan(rate);
                 hold.start(
+                    centre,
                     f64::from(set) / 10.0,
                     range,
                     rate,
@@ -550,15 +483,14 @@ impl Radio for RtlRadio {
             .device()
             .bulk_in(ENDPOINT, size, queued)
             .map_err(RtlError::from)?;
-        let byte_rate = rate * 2.0;
-        let cap = (queued + 1) * size + (byte_rate * SETTLE.as_secs_f64()) as usize;
         lock_hold(&self.hold).stream_started();
         Ok(RtlStream {
             bulk: Some(bulk),
             abort: abort.clone(),
             mark: self.mark.clone(),
             seen: self.mark.seq(),
-            gate: SettleGate::new(Instant::now(), byte_rate, cap),
+            gate: SettleGate::new(rate),
+            settle: gap_settle(rate),
             queued,
             bytes: self.bytes.clone(),
             meter: Meter::new(
@@ -740,6 +672,8 @@ pub struct RtlStream {
     mark: Arc<Mark>,
     seen: u64,
     gate: SettleGate,
+    /// The bound of the gap after one retune.
+    settle: Settle,
     queued: usize,
     bytes: Arc<AtomicU64>,
     meter: Meter,
@@ -768,26 +702,30 @@ impl RtlStream {
                     if m != self.seen {
                         self.seen = m;
                         if m % 2 == 1 {
-                            self.gate.begin();
+                            self.gate.moving(m);
                         } else {
-                            self.gate.mark(self.mark.at());
+                            self.gate.mark(m, self.mark.at(), self.settle);
                         }
+                        // The level of the samples before the retune says nothing about the new frequency.
+                        self.meter.clear();
                     }
                     last = now;
                     errors = 0;
                     self.bytes.fetch_add(data.len() as u64, Ordering::Relaxed);
-                    let k = self.gate.front(now, data.len());
+                    let k = front(&mut self.gate, now, data.len());
                     gap += k;
+                    // The level of a transfer is measured before it is written, so that a search that holds on it
+                    // lets it pass.
+                    meter_samples(&mut self.meter, &self.hold, self.rate, &data[k..], ctx);
                     if k < data.len() {
                         if gap > 0 {
                             sink.deliberate_gap((gap / 2) as u64);
                             gap = 0;
                         }
-                        // The first search of a held gain spoils the level: the samples are left out until it holds.
+                        // A search after a start spoils the level: the samples are left out until it holds.
                         sink.settling(lock_hold(&self.hold).settling());
                         sink.write(&data[k..]);
                     }
-                    meter_samples(&mut self.meter, &self.hold, self.rate, &data[k..], ctx);
                 }
                 Err(UsbError::Timeout) => {
                     if last.elapsed() >= STALL {
@@ -834,18 +772,28 @@ mod tests {
         assert_eq!(transfer_plan(3.2e6), (212_992, 16));
     }
 
-    /// Feeds transfers of 48 000 bytes (10 ms at 4.8 MB/s); transfer `k` is read at `read_ms(k)`. A retune at 52 ms.
+    /// The gap of a stream at 2.4 Msps that drops at most `cap` bytes after a retune, those of the settle time included.
+    fn gap(cap: usize) -> Settle {
+        Settle {
+            after: SETTLE,
+            in_flight: (cap / 2).saturating_sub(12_000).min(1 << 40) as u64,
+        }
+    }
+
+    /// Feeds transfers of 48 000 bytes (10 ms at 4.8 MB/s); transfer `k` is read at `read_ms(k)`. A retune ends at 52 ms;
+    /// the first read after it sees it.
     fn run(read_ms: impl Fn(u64) -> f64, cap: usize) -> Vec<usize> {
+        let mut g = SettleGate::new(2.4e6);
         let t0 = Instant::now();
         let ms = |m: f64| t0 + Duration::from_secs_f64(m / 1e3);
-        let mut g = SettleGate::new(t0, 4.8e6, cap);
+        let mut seen = false;
         (1..=10)
             .map(|k| {
                 let at = read_ms(k);
-                if at > 52.0 && at - 10.0 <= 52.0 || (k == 6 && at > 52.0) {
-                    g.mark(ms(52.0));
+                if at > 52.0 && !std::mem::replace(&mut seen, true) {
+                    g.mark(2, ms(52.0), gap(cap));
                 }
-                g.front(ms(at), 48_000)
+                front(&mut g, ms(at), 48_000)
             })
             .collect()
     }
@@ -860,19 +808,19 @@ mod tests {
     #[test]
     fn every_byte_is_dropped_while_a_retune_runs() {
         // The retune runs from 50 to 70 ms: transfers 6 and 7 go whole, transfer 8 (70 to 80 ms) loses 70 to 75 ms.
+        let mut g = SettleGate::new(2.4e6);
         let t0 = Instant::now();
         let ms = |m: f64| t0 + Duration::from_secs_f64(m / 1e3);
-        let mut g = SettleGate::new(t0, 4.8e6, usize::MAX);
         let mut out = Vec::new();
         for k in 1..=10u32 {
             let at = f64::from(k) * 10.0;
             if k == 6 {
-                g.begin();
+                g.moving(1);
             }
             if k == 8 {
-                g.mark(ms(70.0));
+                g.mark(2, ms(70.0), gap(usize::MAX));
             }
-            out.push(g.front(ms(at), 48_000));
+            out.push(front(&mut g, ms(at), 48_000));
         }
         assert_eq!(out, [0, 0, 0, 0, 0, 48_000, 48_000, 24_000, 0, 0]);
     }

@@ -1425,7 +1425,8 @@ impl IiodRadio {
             }
             // The stream cannot step while this runs (the radio is busy), so the decision and the write need no lock held.
             GainPlan::Held if restart || !lock(&hold).active() => {
-                Some(held_start_gain(lo, self.gain_range(i, lo)))
+                let range = self.gain_range(i, lo);
+                Some(lock(&hold).start_gain(lo, held_start_gain(lo, range), range))
             }
             GainPlan::Held => None,
         };
@@ -1438,7 +1439,7 @@ impl IiodRadio {
             if plan == GainPlan::Held {
                 let range = self.gain_range(i, lo);
                 let latency = self.latency();
-                lock(&hold).start(g, range, self.rate, latency);
+                lock(&hold).start(lo, g, range, self.rate, latency);
             }
         }
         let status = lock(&hold).status();
@@ -2108,8 +2109,9 @@ impl IiodStream {
     }
 
     /// Measures the level of the receivers with a held gain in the first `n` bytes of the buffer, and steps a gain when the
-    /// control asks for it and the radio is free.
-    fn measure(&mut self, n: usize, ctx: &StreamCtx) {
+    /// control asks for it and the radio is free. `moved`: the first sample of a retune is sample instant `moved` of the
+    /// buffer, so the level from there on is the one of the new frequency.
+    fn measure(&mut self, n: usize, moved: Option<usize>, ctx: &StreamCtx) {
         let IiodStream {
             holds,
             board,
@@ -2128,6 +2130,14 @@ impl IiodStream {
                 // A search measures short windows, a held gain long ones.
                 h.meter.set_window(g.window_samples(*rate));
             }
+            let raw = match moved {
+                Some(k) => {
+                    h.meter.clear();
+                    lock(&h.hold).fresh();
+                    &raw[(k * lay.stride).min(raw.len())..]
+                }
+                None => raw,
+            };
             let (meter, levels) = (&mut h.meter, &mut h.levels);
             lay.components(raw, h.rx, |i, q| {
                 if let Some(l) = meter.add(i, q) {
@@ -2157,10 +2167,12 @@ impl IiodStream {
         }
     }
 
-    fn deliver(&mut self, n: usize, sink: &mut Sink) {
+    /// Tells `sink` when the buffer arrived, and returns the sample instant of the buffer of `n` bytes at which the first
+    /// sample of a retune lies, if it lies there.
+    fn arrive(&self, n: usize, sink: &mut Sink) -> Option<usize> {
         let inst = self.lay.instants(n);
         if inst == 0 {
-            return;
+            return None;
         }
         let conn = match &self.link {
             Link2::Text { conn, .. } => conn,
@@ -2168,6 +2180,15 @@ impl IiodStream {
         };
         if let Some((at, waited)) = conn.answer_at() {
             sink.arrived(at, waited);
+        }
+        let per = if self.receivers == Receivers::Interleaved { 2 } else { 1 };
+        sink.move_in(per * inst).map(|k| k / per)
+    }
+
+    fn deliver(&mut self, n: usize, sink: &mut Sink) {
+        let inst = self.lay.instants(n);
+        if inst == 0 {
+            return;
         }
         let (raw, lay) = (&self.raw[..n], &self.lay);
         match self.receivers {
@@ -2223,10 +2244,12 @@ impl RadioStream for IiodStream {
                             seen_mask = m;
                         }
                     }
-                    // The first search of a held gain spoils the level of the samples: they are left out until it holds.
+                    // The level is measured before the buffer is written: a search after a start spoils the level of the
+                    // samples, which are left out until it holds, and a search that holds on this buffer lets it pass.
+                    let moved = self.arrive(n, sink);
+                    self.measure(n, moved, ctx);
                     sink.settling(self.holds.iter().any(|h| lock(&h.hold).settling()));
                     self.deliver(n, sink);
-                    self.measure(n, ctx);
                     if text && n < self.bytes {
                         self.lose(sink, ((self.bytes - n) / self.lay.stride.max(1)) as u64);
                     }

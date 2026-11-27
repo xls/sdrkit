@@ -1074,8 +1074,13 @@ fn level_for(gain: f64) -> f64 {
 /// A board that streams noise at `level` dBFS at 0 dB gain as fast as the link carries it, opened with the gain on automatic
 /// and started.
 fn held_board(level: f64) -> (FakeIiod, Box<dyn Source>, RingReader) {
+    held_board_at(level, true)
+}
+
+/// [`held_board`], paced to the rate unless `fast`.
+fn held_board_at(level: f64, fast: bool) -> (FakeIiod, Box<dyn Source>, RingReader) {
     let srv = FakeIiod::start(FakeOpts {
-        fast: true,
+        fast,
         ..Default::default()
     });
     *srv.board.level_dbfs.lock().unwrap() = Some(level);
@@ -1159,9 +1164,10 @@ fn a_held_gain_makes_no_step_on_a_steady_signal_and_follows_a_lasting_change() {
 }
 
 #[test]
-fn a_held_gain_does_not_step_during_a_retune_and_starts_again_after_it() {
+fn a_held_gain_does_not_step_during_a_retune_and_checks_its_gain_after_it() {
     let (srv, mut src, _r) = held_board(level_for(35.0));
     wait_hold(&srv, &mut src, 0);
+    let (before, _, _) = held(&mut src).unwrap();
     // Past the 2 s that a held gain waits after a step, so only the retune can keep it from stepping.
     let held_at = signal_s(&srv);
     assert!(wait_for(|| signal_s(&srv) > held_at + 2.5, 10.0));
@@ -1184,19 +1190,36 @@ fn a_held_gain_does_not_step_during_a_retune_and_starts_again_after_it() {
     louder.join().unwrap();
     assert!(during > 1.0, "{during:.2} s of signal during the retune");
     let log = srv.board.log();
-    assert_eq!(
-        log[n..n + 2],
-        [
-            "iio:device1 OUTPUT altvoltage0 frequency=101000000".to_string(),
-            format!("{RX} hardwaregain=43"),
-        ],
-        "the retune writes first, then the start gain"
-    );
-    // The control starts again from 43 dB and finds the gain for the stronger signal.
+    assert_eq!(log[n], "iio:device1 OUTPUT altvoltage0 frequency=101000000");
+    let kept = format!("{RX} hardwaregain={before}");
+    assert!(log[n + 1..].iter().all(|l| *l != kept), "the retune keeps the held gain: {:?}", &log[n..]);
+    // One window shows the stronger signal clipped: the control steps down to it.
     wait_hold(&srv, &mut src, 0);
     let (gain, _, steps) = held(&mut src).unwrap();
     assert!((gain - 10.0).abs() <= 3.0, "held {gain} dB");
     assert!(steps <= 4, "{steps} steps since the retune");
+    src.stop();
+}
+
+#[test]
+fn a_retune_in_the_same_band_keeps_the_held_gain_without_a_step() {
+    // Paced to the rate, so that the stream places the first sample of the retune by the time of its arrival.
+    let (srv, mut src, _r) = held_board_at(level_for(35.0), false);
+    wait_hold(&srv, &mut src, 0);
+    let (gain, _, _) = held(&mut src).unwrap();
+    let n = srv.board.log().len();
+    let mut t = tune(HELD_RATE, &[("readings_s", "0")]);
+    t.gain_db = None;
+    t.centre_hz = 150e6;
+    let from = signal_s(&srv);
+    src.retune(&t).unwrap();
+    // One window from the first sample of the retune checks the gain: it holds again with no step, long before the
+    // samples that can be in flight (0.27 s) have passed.
+    let at = wait_hold(&srv, &mut src, -1);
+    assert_eq!(held(&mut src), Some((gain, GainControl::Holding, 0)));
+    assert!(at - from < 0.15, "{:.3} s of signal to hold", at - from);
+    let log = srv.board.log();
+    assert!(log[n..].iter().all(|l| !l.contains("hardwaregain")), "{:?}", &log[n..]);
     src.stop();
 }
 

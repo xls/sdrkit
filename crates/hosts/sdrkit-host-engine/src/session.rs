@@ -13,9 +13,9 @@ use crate::transmit::{TxReport, TxSide, TX_FAILED, TX_LAST, TX_SENT};
 use sdrkit_core::publish::{field, keys};
 use sdrkit_core::{CommandError, CommandId, ConfigError};
 use sdrkit_core::{
-    Commands, Elementary, Event, EventCatalog, EventDef, Field, HostRequest, InputInfo, Operator, Output,
+    Commands, Elementary, Event, EventCatalog, EventDef, Field, HostRequest, InputInfo, LockState, Operator, Output,
     Owner, Packet, Receiver, Record, Results, ResultsDecl, Schema, Setting, SettingError,
-    SettingId, SettingSet, StackDescriptor, StreamKind, TableOperator, Value, Values,
+    SettingId, SettingSet, StackDescriptor, Status, StreamKind, TableOperator, Value, Values,
 };
 use sdrkit_graph::components::{SpectrumScale, SpectrumSize, SpectrumWindow};
 use sdrkit_graph::{FrameRule, SizeRule, SpectrumSpec};
@@ -398,9 +398,9 @@ enum Control {
     /// forgets the results of the frequency before), and the moves of the radio ordered when the tune was sent
     /// ([`Feed::moves_asked`]): the session takes the frequency at the first block that has that many.
     Tune(f64, u64, bool, u64),
-    /// A receiver in place of the one that runs, the tune offset of its stack on the input of the session, and the
-    /// number of the receiver.
-    Replace(Box<dyn Receiver>, f64, u64),
+    /// A receiver in place of the one that runs, the tune offset of its stack on the input of the session, the number of
+    /// the receiver, and the summary until its first report.
+    Replace(Box<dyn Receiver>, f64, u64, String),
     /// Work of a thread of the host on the run state. The host waits for it.
     Call(Arc<Mutex<Option<Job>>>, Ack),
     /// A recording of the record service, with the id of the stack that the session runs.
@@ -578,6 +578,8 @@ pub(crate) struct Run {
     tune_waits: VecDeque<TuneWait>,
     /// The moves of the radio that the last block fed had ([`Block::moves`]).
     moves_seen: u64,
+    /// The summary shown until the stack's first report ([`Run::show_start`]); `None` once it reported.
+    starting: Option<String>,
     /// The session took a frequency since the loop of its thread looked: the results that the stack makes of the first
     /// block there are copied for the host at once.
     tune_taken: bool,
@@ -591,6 +593,40 @@ struct TuneWait {
     forget: bool,
     /// The moves that the block must have.
     need: u64,
+}
+
+/// The summary of a session of `stack` until the stack's first report.
+fn starting_text(stack: Option<&StackDescriptor>) -> String {
+    match stack {
+        Some(d) => format!("Starting {}…", d.name),
+        None => "Starting…".into(),
+    }
+}
+
+/// Until the stack's first report, the copy `shown` of its results says that it starts: state Searching and the summary
+/// `starting`. A report is a summary, a measurement or a lock in `status`, the status of the stack.
+fn show_start(starting: &mut Option<String>, status: &Status, shown: &mut Results) {
+    let Some(text) = starting.as_deref() else {
+        return;
+    };
+    let silent = status.summary.is_empty()
+        && matches!(status.lock_state, LockState::Off | LockState::Searching)
+        && status.snr_db.is_none()
+        && status.level_dbfs.is_none()
+        && status.offset_hz.is_none();
+    if !silent {
+        *starting = None;
+        return;
+    }
+    shown.update_status(|s| {
+        let c = s.lock_state != LockState::Searching || s.summary != text;
+        if c {
+            s.lock_state = LockState::Searching;
+            s.summary.clear();
+            s.summary.push_str(text);
+        }
+        c
+    });
 }
 
 impl Run {
@@ -625,6 +661,7 @@ impl Run {
             };
         }
         let b = self.publisher.fill(self.rx.as_mut(), all || stale);
+        show_start(&mut self.starting, self.rx.results().status(), &mut b.stack.results);
         b.generation = self.generation;
         let st = &mut b.state;
         st.failed = self.failure.is_some();
@@ -728,7 +765,7 @@ impl Run {
                     }
                     self.acks.push(ack);
                 }
-                Control::Replace(mut rx, offset_hz, generation) => {
+                Control::Replace(mut rx, offset_hz, generation, starting) => {
                     give_streams(rx.as_mut(), streams);
                     // The new receiver starts at the frequency that the session has now.
                     for w in self.tune_waits.drain(..) {
@@ -739,6 +776,7 @@ impl Run {
                     self.rx = rx;
                     self.place.start(self.rx.as_mut());
                     self.generation = generation;
+                    self.starting = Some(starting);
                     self.offset_hz = offset_hz;
                     self.input = None;
                     self.failure = None;
@@ -1392,6 +1430,7 @@ impl Session {
             tune_waits: VecDeque::new(),
             tune_taken: false,
             moves_seen: 0,
+            starting: Some(starting_text(stack)),
         };
         // The host reads the receiver before the thread starts.
         let front = Mutex::default();
@@ -1572,7 +1611,7 @@ impl Session {
         c.generation += 1;
         self.link.generation.store(c.generation, Ordering::Release);
         self.link
-            .send(Control::Replace(rx, offset_hz, c.generation));
+            .send(Control::Replace(rx, offset_hz, c.generation, starting_text(stack)));
         Ok(())
     }
 
