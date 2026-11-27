@@ -4,7 +4,7 @@
 
 use crate::loss::LossDetector;
 use crate::net::Abort;
-use crate::settle::{Settle, SettleGate};
+use crate::settle::{Found, Settle, SettleGate};
 use crate::{
     Capabilities, DriverError, Link, LossReport, Polled, Retuned, RingWriter, Source, Started,
     CENTRE, RATE,
@@ -87,10 +87,19 @@ pub trait Radio: Send + 'static {
         let _ = state;
         Err(StateError::NoState)
     }
-    /// What the base needs to find the first sample after a retune ([`Settle`]). The default is
-    /// [`Settle::of_rate`].
-    fn retune_settle(&self) -> Settle {
+    /// What the base needs to leave out the samples that the radio captured while it settled after a change: a retune, a
+    /// gain, a rate, the start of a stream ([`Settle`]). The default is [`Settle::of_rate`].
+    fn settle(&self) -> Settle {
         Settle::of_rate(self.rate_hz())
+    }
+    /// [`Radio::settle`] at the start of a stream: the radio was set before the stream started, so no sample of before is
+    /// in flight, and the first [`Settle::after`] of the stream are left out. The default is [`Radio::settle`] with no
+    /// samples in flight.
+    fn start_settle(&self) -> Settle {
+        Settle {
+            in_flight: 0,
+            ..self.settle()
+        }
     }
     /// Writes `gain_db` as the manual gain of receiver `rx` for the held gain of the driver ([`crate::gain`]). The stream calls
     /// it through [`StreamCtx::write_gain`], never during a configure. The default refuses.
@@ -276,11 +285,32 @@ impl Sink {
             .arrived
             .take()
             .unwrap_or_else(|| (Instant::now(), true));
-        let found = self.settle().write(at, n as u64, direct);
-        if let Some((seq, k)) = found {
-            let stats = self.writer.stats();
-            stats.end_move(seq, stats.written() + k);
+        let before = self.writer.stats().written();
+        self.found(before, at, n, direct);
+    }
+
+    /// Writes into the ring what the gate found in a write of `n` samples after `before` samples of the ring.
+    fn found(&mut self, before: u64, at: Instant, n: usize, direct: bool) {
+        let f = self.settle().write(at, n as u64, direct);
+        if f == Found::default() {
+            return;
         }
+        let stats = self.writer.stats();
+        if let Some((seq, k)) = f.moved {
+            stats.end_move(seq, before + k);
+        }
+        if let Some(k) = f.spoiled {
+            stats.settle_from(before.saturating_add_signed(k));
+        }
+        if let Some(k) = f.steady {
+            stats.settled(before + k);
+        }
+    }
+
+    /// The radio still settles after a change (a held gain that searches), or no longer: the samples of the writes that
+    /// follow are left out while it does, for at most 1 s ([`SettleGate::hold`]).
+    pub fn settling(&mut self, on: bool) {
+        self.settle().hold(on);
     }
 
     /// Writes the whole native samples of `bytes` that fit (a live radio never waits) and returns how many were written. The rest
@@ -376,10 +406,7 @@ impl Sink {
             .arrived
             .take()
             .unwrap_or_else(|| (Instant::now(), true));
-        let found = self.settle().write(at, n as u64, direct);
-        if let Some((seq, k)) = found {
-            self.writer.stats().end_move(seq, before + k);
-        }
+        self.found(before, at, n, direct);
     }
 
     fn offered(&mut self, len: usize) {
@@ -570,6 +597,31 @@ struct Shared<R> {
 }
 
 impl<R> Shared<R> {
+    /// A change of the radio begins: the samples written from now on wait until the change ends
+    /// ([`Shared::end_change`]), and those captured while the radio settles are left out.
+    fn begin_change(&self) {
+        let ring = lock(&self.ring).clone();
+        let mut gate = lock(&self.settle);
+        gate.begin_change();
+        if let Some(r) = ring {
+            r.begin_settle();
+        }
+    }
+    /// The change that began at `began` ended now: with the settle of the radio if it was made, `None` if it failed.
+    /// `step`: a step of a held gain ([`SettleGate::step`]).
+    fn end_change(&self, began: Instant, settle: Option<Settle>, step: bool) {
+        let ring = lock(&self.ring).clone();
+        let mut gate = lock(&self.settle);
+        match settle {
+            Some(s) if step => gate.step(began, Instant::now(), s),
+            Some(s) => gate.change(began, Instant::now(), s),
+            None => {
+                if let Some(r) = ring.filter(|_| gate.change_failed()) {
+                    r.settled(r.written());
+                }
+            }
+        }
+    }
     fn now_s(&self) -> f64 {
         self.epoch.elapsed().as_secs_f64()
     }
@@ -854,7 +906,7 @@ impl<R: Radio> Source for StreamRunner<R> {
             (Some(r), Phase::Up) => {
                 drop(st);
                 r.check(tune)?;
-                sh.state().wanted = tune.clone();
+                let before = std::mem::replace(&mut sh.state().wanted, tune.clone());
                 if rate_change && !r.live_rate_change() {
                     let (tx, rx) = mpsc::channel();
                     sh.state().restart = Some(tx);
@@ -892,14 +944,24 @@ impl<R: Radio> Source for StreamRunner<R> {
                     .unwrap_or_else(std::sync::PoisonError::into_inner)
                     .clone();
                 let seq = ring.as_ref().filter(|_| moved).map(|s| s.begin_move());
+                // Every change spoils the samples captured while the radio settles: a retune also those of a held gain
+                // search that it starts again before the first one of the stream held.
+                let changed = &before != tune;
+                let began = Instant::now();
+                if changed {
+                    sh.begin_change();
+                }
                 let done = r.configure(tune, true);
+                if changed {
+                    sh.end_change(began, done.is_ok().then(|| r.settle()), false);
+                }
                 if let (Some(seq), Some(stats)) = (seq, &ring) {
                     let mut gate = sh
                         .settle
                         .lock()
                         .unwrap_or_else(std::sync::PoisonError::into_inner);
                     match &done {
-                        Ok(_) => gate.mark(seq, Instant::now(), r.retune_settle()),
+                        Ok(_) => gate.mark(seq, Instant::now(), r.settle()),
                         Err(_) if gate.failed(seq) => stats.end_move(seq, stats.written()),
                         Err(_) => {}
                     }
@@ -1126,7 +1188,13 @@ fn radio_thread<R: Radio>(
     let gain: GainWrite = Arc::new(move |rx, gain_db| {
         let sh = weak.upgrade()?;
         let mut slot = sh.slot.try_lock().ok()?;
-        slot.as_mut().map(|r| r.write_held_gain(rx, gain_db))
+        let r = slot.as_mut()?;
+        // A step of the gain spoils the samples captured while the radio settles on it.
+        let began = Instant::now();
+        sh.begin_change();
+        let done = r.write_held_gain(rx, gain_db);
+        sh.end_change(began, done.is_ok().then(|| r.settle()), true);
+        Some(done)
     });
     let ctx = StreamCtx {
         stopping: sh.stopping.clone(),
@@ -1146,6 +1214,12 @@ fn radio_thread<R: Radio>(
         }
         let rate = sh.state().rate;
         sink.settle().restart(rate);
+        // The samples captured before the radio settled at the start of the stream are left out.
+        let settle = lock(&sh.slot)
+            .as_ref()
+            .map_or_else(|| Settle::of_rate(rate), R::start_settle);
+        sh.begin_change();
+        sink.settle().started(Instant::now(), settle);
         let result = stream.run(&mut sink, &ctx);
         // The old stream closes its connection before anything else goes to the radio: a connection left open and unread
         // would hold the radio's buffer for a client that no longer reads it. Then the abort lets go of its handles on it.
@@ -1433,6 +1507,91 @@ mod tests {
         fn readings(&mut self, results: &mut Results) {
             results.fields_mut().set(&TEMP, 41.5);
         }
+    }
+
+    /// A radio at 1 Msps whose stream writes blocks of 1000 samples in real time. The first five come while its held gain
+    /// searches, 16 dB low.
+    struct Paced {
+        centre: Hz,
+    }
+
+    struct PacedStream;
+
+    impl RadioStream for PacedStream {
+        fn run(&mut self, sink: &mut Sink, ctx: &StreamCtx) -> Result<(), DriverError> {
+            let t0 = Instant::now();
+            for k in 0u32.. {
+                if ctx.stopping() || sink.closed() {
+                    return Ok(());
+                }
+                let next = t0 + Duration::from_millis(u64::from(k));
+                std::thread::sleep(next.saturating_duration_since(Instant::now()));
+                sink.settling(k < 5);
+                sink.write(&[if k < 5 { 20 } else { 127 }; 2000]);
+            }
+            Ok(())
+        }
+    }
+
+    impl Radio for Paced {
+        type Stream = PacedStream;
+        fn configure(&mut self, v: &Values, _: bool) -> Result<String, DriverError> {
+            self.centre = v.get(&CENTRE);
+            Ok(String::new())
+        }
+        fn stream(&mut self, _: &Arc<Abort>) -> Result<PacedStream, DriverError> {
+            Ok(PacedStream)
+        }
+        fn close(&mut self) {}
+        fn rate_hz(&self) -> Hz {
+            1e6
+        }
+        fn centre_hz(&self) -> Hz {
+            self.centre
+        }
+        fn capabilities(&self) -> Capabilities {
+            Capabilities::default()
+        }
+        fn sample_type(&self) -> SampleType {
+            SampleType::Cs8
+        }
+        fn settle(&self) -> Settle {
+            Settle {
+                after: Duration::from_millis(5),
+                in_flight: 100_000,
+            }
+        }
+    }
+
+    #[test]
+    fn the_samples_of_the_first_gain_search_and_of_a_gain_change_are_marked_as_unsettled() {
+        let opener: Opener<Paced> = Arc::new(|_, _, _| Ok(Paced { centre: 0.0 }));
+        let mut v = values();
+        v.set(RadioSetting::Rate.id(), &Value::Hz(1e6)).unwrap();
+        let mut r = StreamRunner::open(quick(), opener, &v).unwrap();
+        let (w, rd) = crate::ring(1 << 20, SampleType::Cs8);
+        let stats = rd.stats();
+        r.start(w).unwrap();
+        // The five blocks of the search are spoiled, and only those.
+        wait_for(|| stats.written() >= 20_000);
+        let start = stats.unsettled(0);
+        assert_eq!(
+            start,
+            Some(crate::Unsettled {
+                from: 0,
+                to: Some(5000)
+            })
+        );
+        // A change of the gain spoils the samples from its start until 5 ms after its end.
+        let before = stats.written();
+        v.set(RadioSetting::Gain.id(), &Value::F64(12.0)).unwrap();
+        r.apply(&v).unwrap();
+        wait_for(|| stats.unsettled(5000).is_some_and(|u| u.to.is_some()));
+        let u = stats.unsettled(5000).unwrap();
+        let to = u.to.unwrap();
+        assert!(u.from >= before && to >= u.from + 4000, "{u:?} after {before}");
+        assert!(to <= u.from + 106_000, "{u:?}");
+        r.stop();
     }
 
     fn opener(plan: &Arc<Plan>) -> Opener<Fake> {

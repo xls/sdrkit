@@ -541,6 +541,36 @@ fn settle_move(
     true
 }
 
+/// Leaves out the samples of `reader` that the radio captured while it settled after a change other than a retune: a
+/// gain, a rate, another setting, the start of the stream ([`RingStats::unsettled`]). Returns `None` if it left samples
+/// out or waits for the radio to settle, else how many samples may pass before the next such stretch. Before the first
+/// block (`first`) the samples left out are no gap: the stack has had no sample before them.
+fn settle_change(reader: &mut RingReader, feed: &Feed, left_out: &mut LeftOut, first: bool) -> Option<usize> {
+    let pos = reader.position();
+    let Some(u) = reader.stats().unsettled(pos) else {
+        return Some(usize::MAX);
+    };
+    if pos < u.from {
+        return Some(usize::try_from(u.from - pos).unwrap_or(usize::MAX));
+    }
+    let n = match u.to {
+        None if !feed.live() => {
+            std::thread::sleep(Duration::from_millis(1));
+            return None;
+        }
+        None => reader.available(),
+        Some(to) => usize::try_from(to - pos)
+            .unwrap_or(usize::MAX)
+            .min(reader.available()),
+    };
+    if first {
+        LeftOut::default().leave(reader, n);
+    } else {
+        left_out.leave(reader, n);
+    }
+    None
+}
+
 /// The samples that the thread of a radio left out since the last block it passed: those that it dropped on purpose and
 /// those that the driver marked, by kind.
 #[derive(Default)]
@@ -590,10 +620,14 @@ impl LeftOut {
 ///
 /// At a move of the radio to another centre ([`Move`]), in a hop or not, the samples before the first one that the radio
 /// captured at the new centre are left out. The first block after it has the new centre, counts the move
-/// ([`crate::feed::Block::moves`]) and starts with a gap made on purpose of all that was left out.
+/// ([`crate::feed::Block::moves`]) and starts with a gap made on purpose of all that was left out. The samples that the
+/// radio captured while it settled after another change (a gain, a rate, the start of the stream) are left out in the
+/// same way, with no move counted.
 fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool, hop: &Steps<'_>) {
     let mut rate_changes = tuning.rate_changes.load(Ordering::Acquire);
     let mut left_out = LeftOut::default();
+    // A block has gone to the feed.
+    let mut passed = false;
     let live = feed.live();
     while !stop.load(Ordering::Acquire) {
         drop_former_rate(&mut reader, tuning, &mut rate_changes);
@@ -614,10 +648,13 @@ fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool,
         if settle_move(&mut reader, feed, hop.moves, &mut left_out) {
             continue;
         }
+        let Some(steady) = settle_change(&mut reader, feed, &mut left_out, !passed) else {
+            continue;
+        };
         let phase = hop.gate.phase();
         let limit = match phase {
-            Phase::Off => BLOCK,
-            Phase::Step { left } => usize::try_from(left).unwrap_or(BLOCK).min(BLOCK),
+            Phase::Off => BLOCK.min(steady),
+            Phase::Step { left } => usize::try_from(left).unwrap_or(BLOCK).min(BLOCK).min(steady),
             Phase::Held => {
                 if feed.live() {
                     let n = reader.available();
@@ -656,6 +693,7 @@ fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool,
                 .sum();
             reader.read_iq(&mut iq[..n])
         });
+        passed |= matches!(sent, Ok(n) if n > 0);
         if let (Phase::Step { .. }, Ok(n)) = (phase, sent) {
             // The samples that the radio or its link lost inside the step are signal time of the dwell too.
             if hop.gate.passed(n as u64 + lost) {
@@ -802,5 +840,65 @@ mod tests {
         assert_eq!(block.gaps(), [left_out]);
         assert!(rx.try_recv().is_err());
         assert_eq!(gate.phase(), Phase::Off);
+    }
+
+    #[test]
+    fn the_samples_that_the_radio_captured_while_it_settled_do_not_reach_the_stack() {
+        let (mut w, r) = ring(1 << 16, sdrkit_graph::stream::SampleType::Cf32);
+        let stats = r.stats();
+        let (low, good, spoiled) = (
+            Complex32::new(0.158, 0.0),
+            Complex32::new(1.0, 0.0),
+            Complex32::new(3.0, 0.0),
+        );
+        // The stream starts while the held gain searches: its first three blocks are 16 dB low.
+        stats.begin_settle();
+        for _ in 0..3 {
+            assert_eq!(w.write_iq(&[low; 1024]), 1024);
+        }
+        stats.settled(3072);
+        assert_eq!(w.write_iq(&[good; 2000]), 2000);
+        // A gain change: 500 samples of the gain before were in flight, then 300 while the radio settled.
+        stats.begin_settle();
+        stats.settle_from(5572);
+        assert_eq!(w.write_iq(&[good; 500]), 500);
+        assert_eq!(w.write_iq(&[spoiled; 300]), 300);
+        stats.settled(5872);
+        assert_eq!(w.write_iq(&[good; 1000]), 1000);
+        drop(w);
+        let catalog = Arc::new(sdrkit_graph::Catalog::default());
+        let feed = Arc::new(Feed::new(
+            true,
+            catalog,
+            sdrkit_graph::RunContext::default(),
+        ));
+        let (tx, rx) = std::sync::mpsc::sync_channel(8);
+        assert!(feed.subscribe(crate::feed::Sub {
+            session: 1,
+            tx,
+            dropped: Arc::default(),
+            demand: Arc::default(),
+            queue: Arc::default(),
+            steers: true,
+        }));
+        let tuning = Tuning::default();
+        tuning.set(1e6, 100e6);
+        let (gate, wake) = (HopGate::default(), Condvar::new());
+        let moves = Mutex::default();
+        let steps = Steps {
+            gate: &gate,
+            wake: &wake,
+            moves: &moves,
+        };
+        pump(r, &feed, &tuning, &AtomicBool::new(false), &steps);
+        let (mut samples, mut left_out) = (Vec::new(), Vec::new());
+        while let Ok(block) = rx.try_recv() {
+            left_out.extend(block.gaps().iter().map(|g| (samples.len(), g.lost, g.deliberate)));
+            samples.extend_from_slice(block.samples());
+        }
+        // The stretch of the start comes before the first block: it is no gap.
+        assert_eq!(samples, [good; 3500]);
+        assert_eq!(left_out, [(2500, 300, true)]);
+        assert_eq!(feed.moves_done(), 0);
     }
 }

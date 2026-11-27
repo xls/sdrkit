@@ -25,4 +25,5 @@ sdrkit-driver-rtlusb = { path = "../sdrkit-driver-rtlusb" }
 sdrkit-driver-hackrf = { path = "../sdrkit-driver-hackrf" }
 
 [dev-dependencies]
-sdrkit-driver-usb = { path = "../sdrkit-driver-usb", features = ["fake"] }
+sdrkit-core = { path = "../../framework/sdrkit-core", features = ["std-net"] }
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb", features = ["fake", "nusb"] }

@@ -93,8 +93,10 @@ const SHORT_WINDOWS: u32 = 2;
 /// the jitter of the network and of the reader.
 const LATE_ALLOWANCE: Duration = Duration::from_millis(100);
 /// After the write of the LO returns, the receive chain takes this long until its samples are those of the new frequency;
-/// it holds the time from the last sample of a buffer to the first byte of its answer too.
-const RETUNE_SETTLE: Duration = Duration::from_millis(5);
+/// it holds the time from the last sample of a buffer to the first byte of its answer too. Measured on an AD9361 board at
+/// 4 Msps by the level step between a station and an empty channel: 7 ms median, 22 ms at most over 24 steps; 25 ms
+/// leaves a margin of 3 ms.
+const RETUNE_SETTLE: Duration = Duration::from_millis(25);
 /// How long a reading of the link counts. The link to a board across Wi-Fi changes from second to second, so an older
 /// reading says nothing about it.
 const LIVE_FRESH: Duration = Duration::from_secs(5);
@@ -1819,7 +1821,7 @@ impl Radio for IiodRadio {
 
     /// The write of the LO returns when the synthesiser has locked. The samples of the kernel buffers and of the buffers
     /// on the link were captured before; in the ring, an interleaved pair of receivers counts twice.
-    fn retune_settle(&self) -> Settle {
+    fn settle(&self) -> Settle {
         Settle {
             after: RETUNE_SETTLE,
             in_flight: self.latency() * (self.ring_rate() / self.rate.max(1.0)).round().max(1.0) as u64,
@@ -1861,6 +1863,14 @@ impl IiodRadio {
             None
         };
         let full = lay.full_scale();
+        for h in &self.holds {
+            let mut h = lock(h);
+            h.stream_started();
+            if !shared {
+                // The buffer is new: every sample in it was captured after the gain was written.
+                h.fresh();
+            }
+        }
         let holds = self
             .holds
             .iter()
@@ -2278,6 +2288,8 @@ impl RadioStream for IiodStream {
                             seen_mask = m;
                         }
                     }
+                    // The first search of a held gain spoils the level of the samples: they are left out until it holds.
+                    sink.settling(self.holds.iter().any(|h| lock(&h.hold).settling()));
                     self.deliver(n, sink);
                     self.measure(n, ctx);
                     if text && n < self.bytes {

@@ -73,6 +73,22 @@ pub struct RingStats {
     moves_begun: AtomicU64,
     /// The number of the last retune whose first sample is known, and the samples written before that sample.
     moved: Mutex<(u64, u64)>,
+    /// The stretches that changes of the radio spoiled and the reader has not passed, the oldest first.
+    unsettled: Mutex<VecDeque<Unsettled>>,
+    unsettled_count: AtomicU64,
+}
+
+/// The stretches that the ring keeps ([`RingStats::begin_settle`]); an older one goes.
+const MAX_UNSETTLED: usize = 8;
+
+/// A stretch of samples captured while the radio settled after a change other than a retune: a gain, a rate, another
+/// setting, the start of the stream ([`RingStats::unsettled`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Unsettled {
+    /// The place ([`RingReader::position`]) of its first sample.
+    pub from: u64,
+    /// The place of the first sample after it; `None` while the radio settles.
+    pub to: Option<u64>,
 }
 
 /// The retunes of the source of a ring ([`RingStats::moves`]).
@@ -107,6 +123,8 @@ impl RingStats {
             dc_from: AtomicU64::new(0),
             moves_begun: AtomicU64::new(0),
             moved: Mutex::new((0, 0)),
+            unsettled: Mutex::new(VecDeque::new()),
+            unsettled_count: AtomicU64::new(0),
         }
     }
     /// The source begins a retune of a radio that streams. Returns the number of the retune. The source says where the
@@ -121,6 +139,47 @@ impl RingStats {
         if seq > m.0 {
             *m = (seq, at);
         }
+    }
+    /// The radio begins to settle after a change: the samples from those written now on are spoiled until
+    /// [`RingStats::settled`]. A stretch that has not ended goes on.
+    pub fn begin_settle(&self) {
+        let at = self.written();
+        let mut u = self.unsettled.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if u.back().is_some_and(|s| s.to.is_none()) {
+            return;
+        }
+        if u.len() >= MAX_UNSETTLED {
+            u.pop_front();
+        }
+        u.push_back(Unsettled { from: at, to: None });
+        self.unsettled_count.store(u.len() as u64, Ordering::Release);
+    }
+    /// The stretch that has not ended starts at `from`, if that is later than where it starts now.
+    pub fn settle_from(&self, from: u64) {
+        let mut u = self.unsettled.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(s) = u.back_mut().filter(|s| s.to.is_none()) {
+            s.from = s.from.max(from);
+        }
+    }
+    /// The stretch that has not ended ends before the sample at `to`.
+    pub fn settled(&self, to: u64) {
+        let mut u = self.unsettled.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(s) = u.back_mut().filter(|s| s.to.is_none()) {
+            s.to = Some(to.max(s.from));
+        }
+    }
+    /// The first stretch that a change spoiled that ends after the place `pos`, if any. Stretches before `pos` are
+    /// forgotten. It takes no lock while there is none.
+    pub fn unsettled(&self, pos: u64) -> Option<Unsettled> {
+        if self.unsettled_count.load(Ordering::Acquire) == 0 {
+            return None;
+        }
+        let mut u = self.unsettled.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        while u.front().is_some_and(|s| s.to.is_some_and(|to| to <= pos)) {
+            u.pop_front();
+        }
+        self.unsettled_count.store(u.len() as u64, Ordering::Release);
+        u.front().copied()
     }
     /// The retunes of the source.
     pub fn moves(&self) -> Moves {

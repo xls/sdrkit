@@ -43,7 +43,9 @@ pub const DIRECT_BELOW_HZ: f64 = 24e6;
 const POLL: Duration = Duration::from_millis(50);
 /// No data for this long ends the stream.
 const STALL: Duration = Duration::from_secs(3);
-/// The settle time after a retune.
+/// The settle time after a retune, from the end of the configure call. Measured on a dongle at 2.4 Msps by the
+/// level step between a station and an empty channel: the level is the new one 3 ms after the call at most, over 24
+/// steps; 5 ms leaves a margin of 2 ms.
 const SETTLE: Duration = Duration::from_millis(5);
 
 /// The size of one bulk transfer and the number of transfers in flight for the rate `rate_hz`: about 32 ms per
@@ -459,6 +461,10 @@ impl RtlRadio {
                     rate,
                     (queued * size / 2) as u64,
                 );
+                // The stream leaves out the samples of before a retune, and the transfers of a new stream are new.
+                if retuned {
+                    hold.fresh();
+                }
             }
             _ => {}
         }
@@ -546,6 +552,7 @@ impl Radio for RtlRadio {
             .map_err(RtlError::from)?;
         let byte_rate = rate * 2.0;
         let cap = (queued + 1) * size + (byte_rate * SETTLE.as_secs_f64()) as usize;
+        lock_hold(&self.hold).stream_started();
         Ok(RtlStream {
             bulk: Some(bulk),
             abort: abort.clone(),
@@ -656,6 +663,15 @@ impl Radio for RtlRadio {
         }
     }
 
+    /// The tuner settles in [`SETTLE`]; the samples of the queued transfers are in flight.
+    fn settle(&self) -> sdrkit_driver_core::Settle {
+        let (size, queued) = transfer_plan(self.rate_hz());
+        sdrkit_driver_core::Settle {
+            after: SETTLE,
+            in_flight: (queued * size / 2) as u64,
+        }
+    }
+
     fn write_held_gain(&mut self, _rx: usize, gain_db: f64) -> Result<(), DriverError> {
         let d = self.dev.as_mut().ok_or(DriverError::NotNow {
             state: sdrkit_driver_core::Doing::Closed,
@@ -758,6 +774,8 @@ impl RtlStream {
                             sink.deliberate_gap((gap / 2) as u64);
                             gap = 0;
                         }
+                        // The first search of a held gain spoils the level: the samples are left out until it holds.
+                        sink.settling(lock_hold(&self.hold).settling());
                         sink.write(&data[k..]);
                     }
                     meter_samples(&mut self.meter, &self.hold, &data[k..], ctx);

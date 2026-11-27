@@ -190,6 +190,8 @@ pub struct HeldGain {
     peak_to_mean_db: f64,
     /// The mean of the last window, against which a step is seen.
     last_mean_dbfs: f64,
+    /// The first search of the stream has not held yet ([`HeldGain::settling`]).
+    first: bool,
 }
 
 impl Default for HeldGain {
@@ -215,6 +217,7 @@ impl HeldGain {
             wait: Wait::None,
             peak_to_mean_db: rules.peak_to_mean_db,
             last_mean_dbfs: FLOOR_DBFS,
+            first: false,
         }
     }
 
@@ -240,9 +243,30 @@ impl HeldGain {
         self.peak_to_mean_db = self.rules.peak_to_mean_db;
     }
 
+    /// A stream starts: its first search, also one that a retune starts again before it holds, is
+    /// [`HeldGain::settling`].
+    pub fn stream_started(&mut self) {
+        self.first = self.active && self.state == GainControl::Searching;
+    }
+
+    /// Every sample that the meter takes from now on was captured after the gain was written (a new stream, or a driver
+    /// that leaves out the samples of before a retune): a search that has not stepped measures the next window.
+    pub fn fresh(&mut self) {
+        if self.active && self.steps == 0 && matches!(self.wait, Wait::For(_)) {
+            self.wait = Wait::None;
+        }
+    }
+
+    /// The first search of the stream runs: the level of the samples is not yet the one the control holds. Later searches
+    /// spoil only the samples around each step.
+    pub fn settling(&self) -> bool {
+        self.active && self.first
+    }
+
     /// Turns the control off (manual gain, or the AGC of the radio).
     pub fn stop(&mut self) {
         self.active = false;
+        self.first = false;
     }
 
     /// The control runs.
@@ -290,6 +314,8 @@ impl HeldGain {
                     moved >= need
                 };
                 if seen || *left <= l.samples {
+                    // A step that does not show leaves the level as it was: the search no longer spoils it.
+                    self.first &= seen;
                     self.wait = Wait::None;
                 } else {
                     *left -= l.samples;
@@ -346,6 +372,7 @@ impl HeldGain {
     }
 
     fn hold(&mut self) {
+        self.first = false;
         self.state = GainControl::Holding;
         self.out = 0;
         self.wait = Wait::None;
@@ -362,6 +389,10 @@ impl HeldGain {
         self.gain_db = gain_db;
         self.steps += 1;
         self.since_step = 0;
+        // A step to a limit of the gain is the last one the search can make: the level after it is the one it holds.
+        if gain_db <= self.range.0 || gain_db >= self.range.1 {
+            self.first = false;
+        }
     }
 
     /// The driver could not write the proposed gain: the control waits ten windows and looks again.

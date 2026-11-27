@@ -183,7 +183,8 @@ fn start_asks_and_the_tone_goes_out(
 ) -> f64 {
     assert!(!ever_wanted(e, s, 0.3), "wanted before start");
     let begin = Instant::now();
-    assert!(invoke(e, s, "start"), "start refused");
+    // The session has no input until the radio settled after its start: a start before it is refused.
+    wait_for(T, || invoke(e, s, "start").then_some(())).expect("start refused");
     wait_for(T, || wanted(e, s).then_some(())).expect("wanted after start");
     let delay = begin.elapsed().as_secs_f64();
 

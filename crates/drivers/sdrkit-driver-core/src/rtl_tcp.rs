@@ -704,15 +704,16 @@ impl RtlRadio {
     }
 }
 
-/// The time that a server takes to tune after a frequency command: the transfers to the tuner of a dongle, about 40 ms,
-/// and the way of the command.
+/// The time that a server takes to tune after a frequency command: the transfers to the tuner of a dongle and the way of
+/// the command. Measured on a dongle over USB: the transfers of a retune take 29 ms (up to 120 ms on a loaded machine)
+/// and the tuner settles within 5 ms of them; 60 ms leaves a margin of 26 ms over the usual case.
 const TUNE_TAKES: Duration = Duration::from_millis(60);
 
 impl Radio for RtlRadio {
     type Stream = RtlStream;
 
     /// The server sends no answer to a command: the tuner is taken as settled [`TUNE_TAKES`] after the command went out.
-    fn retune_settle(&self) -> crate::Settle {
+    fn settle(&self) -> crate::Settle {
         crate::Settle {
             after: TUNE_TAKES,
             ..crate::Settle::of_rate(self.rate_hz())
