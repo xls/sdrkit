@@ -231,8 +231,13 @@ fn join(files: Vec<(String, PlanFile)>) -> PlanFile {
     out
 }
 
-/// Reads plan files given as (file name, text), in name order (see [`Plans::from_files`]).
-fn parse_files(files: &[(String, String)]) -> Result<Vec<(String, PlanFile)>, PlanError> {
+/// Reads plan files given as (file name, text), in name order, without checking them (see [`Plans::from_files`] and
+/// [`Plans::from_parsed`]).
+///
+/// # Errors
+///
+/// [`PlanError::Invalid`] for a file that does not have its format, or the [`PlanError`] of a CSV file that cannot be read.
+pub fn parse_files(files: &[(String, String)]) -> Result<Vec<(String, PlanFile)>, PlanError> {
     let mut sorted: Vec<&(String, String)> = files.iter().collect();
     sorted.sort_by(|a, b| a.0.cmp(&b.0));
     let mut parsed = Vec::with_capacity(sorted.len());
@@ -291,7 +296,15 @@ impl Plans {
     ///
     /// [`PlanError::Invalid`] with every problem of every file, or the [`PlanError`] of a CSV file that cannot be read.
     pub fn from_files(files: &[(String, String)]) -> Result<Plans, PlanError> {
-        let parsed = parse_files(files)?;
+        Plans::from_parsed(parse_files(files)?)
+    }
+
+    /// As [`Plans::from_files`], for files that [`parse_files`] has read.
+    ///
+    /// # Errors
+    ///
+    /// [`PlanError::Invalid`] with every problem of every file.
+    pub fn from_parsed(parsed: Vec<(String, PlanFile)>) -> Result<Plans, PlanError> {
         let known = Known {
             countries: parsed
                 .iter()

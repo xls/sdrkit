@@ -1969,7 +1969,7 @@ fn a_garbled_answer_ends_the_stream_and_nothing_more_is_written_on_it() {
     let (w, mut r) = ring(1 << 22, SampleType::Cs16);
     src.start(w).unwrap();
     assert!(!read_n(&mut r, 1000, 3.0).is_empty());
-    // After the probe at the start, one request is on its way at a time: none is sent ahead of the garbled answer.
+    // One request is on its way at a time: none is sent ahead of the garbled answer.
     std::thread::sleep(Duration::from_millis(1500));
     let opened = *srv.board.streams.lock().unwrap();
     srv.board.garble_next.store(true, Ordering::SeqCst);

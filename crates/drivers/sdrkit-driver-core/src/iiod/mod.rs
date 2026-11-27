@@ -81,8 +81,6 @@ const SHORT: f64 = 0.9;
 const OWN_BUFFER_WAIT: Duration = Duration::from_secs(3);
 /// How long a buffer left behind counts as ours after our stream ended.
 const OWN_BUFFER_RECENT: Duration = Duration::from_secs(10);
-/// The longest time the kernel buffers fill before the timing at the start of a stream reads them.
-const PROBE_FILL_MAX: Duration = Duration::from_millis(400);
 /// The start of a stream that the watch does not judge: a start, a retune or a change of stack delivers a little short
 /// for a moment, which says nothing about the link.
 const WATCH_SETTLE: Duration = Duration::from_millis(1500);
@@ -113,12 +111,6 @@ fn round2(x: f64) -> f64 {
     (x * scale).round() / scale
 }
 
-/// What queued buffers that came at `bps` bytes a second say of a link, for a stream that needs `need_bps`: `true` when the
-/// link carries no more than that (they came faster than the rate, or the link held them below it), `false` when they came
-/// at the rate (the link carries at least that).
-fn timed_at_most(bps: f64, need_bps: f64) -> bool {
-    bps > 1.2 * need_bps || bps < SHORT * need_bps
-}
 
 sdrkit_core::choice_enum! {
     /// The gain mode of the AD936x ([`GAIN_MODE`]).
@@ -1853,7 +1845,7 @@ impl Radio for IiodRadio {
 
 impl IiodRadio {
     /// The stream over `link`, of buffers of `samples`. A stream on a `shared` buffer (another client's) learns nothing about the
-    /// link; a text stream on a board across a network times the queued buffers at its start ([`Probe`]).
+    /// link.
     fn make_stream(&mut self, link: Link2, samples: usize, lay: Layout, shared: bool) -> IiodStream {
         lock(&self.board).rx_streaming = true;
         self.streamed = true;
@@ -1887,15 +1879,6 @@ impl IiodRadio {
             .collect();
         let learns = !shared && !self.default_address && !is_local(&self.host);
         let need_bps = self.rate * lay.stride as f64;
-        let probe = (learns && matches!(link, Link2::Text { .. }) && self.kbuffers >= 4 && self.rate > 0.0).then(|| {
-            let fill = Duration::from_secs_f64(f64::from(self.kbuffers - 1) * samples as f64 / self.rate);
-            Probe {
-                fill: fill.min(PROBE_FILL_MAX),
-                left: self.kbuffers - 1,
-                bytes: 0,
-                from: None,
-            }
-        });
         // A new stream starts with no shortfall: one of the stream before, at another rate, is gone.
         lock(&self.board).link_short = None;
         IiodStream {
@@ -1910,7 +1893,6 @@ impl IiodRadio {
             need_bps,
             queued: u64::from(self.kbuffers) * samples as u64,
             rate: self.rate,
-            probe,
             watch: Watch::default(),
             dev: self.facts.rx.clone(),
             want: self.want.clone(),
@@ -1940,18 +1922,6 @@ enum Link2 {
         open: bool,
     },
     Binary(BinaryRx),
-}
-
-/// The timing of the buffers that the kernel queued while the stream started: they come as fast as the link carries them.
-struct Probe {
-    /// How long the kernel buffers fill before the first read.
-    fill: Duration,
-    /// Answers still to read.
-    left: u32,
-    /// Bytes after the first answer.
-    bytes: u64,
-    /// The end of the first answer.
-    from: Option<Instant>,
 }
 
 /// The watch on what arrives: bytes in the current window, and the part of the rate last warned about.
@@ -1997,7 +1967,6 @@ pub struct IiodStream {
     queued: u64,
     /// The radio's rate.
     rate: Hz,
-    probe: Option<Probe>,
     watch: Watch,
     dev: Device,
     want: Vec<(usize, usize)>,
@@ -2012,9 +1981,8 @@ pub struct IiodStream {
 
 impl IiodStream {
     /// Reads one buffer into `raw`: the bytes, and the mask they carry when the server said. Unless `stopping`, the next request
-    /// goes out before this buffer is converted (two while the probe runs, so the link never waits for a request).
+    /// goes out before this buffer is converted.
     fn refill(&mut self, stopping: bool) -> Result<(usize, Option<Vec<u32>>), IioError> {
-        let ahead = if self.probe.is_some() { 2 } else { 1 };
         match &mut self.link {
             Link2::Text { conn, dev, .. } => {
                 if conn.owed() == 0 {
@@ -2022,7 +1990,7 @@ impl IiodStream {
                 }
                 let r = conn.recv_buffer(self.bytes, &mut self.raw);
                 if r.is_ok() && !stopping {
-                    while conn.owed() < ahead {
+                    while conn.owed() < 1 {
                         conn.send_readbuf(dev, self.bytes)?;
                     }
                 }
@@ -2059,38 +2027,6 @@ impl IiodStream {
             bps: shown,
             at: Instant::now(),
         });
-    }
-
-    /// Times one answer of `n` bytes for the probe; at its end, keeps what the link carried.
-    fn probe_step(&mut self, n: usize, ctx: &StreamCtx) {
-        let Some(p) = &mut self.probe else {
-            return;
-        };
-        let now = Instant::now();
-        match p.from {
-            None => p.from = Some(now),
-            Some(_) => p.bytes += n as u64,
-        }
-        p.left = p.left.saturating_sub(1);
-        if p.left > 0 {
-            return;
-        }
-        let secs = p.from.map_or(0.0, |f| (now - f).as_secs_f64());
-        let bytes = p.bytes as f64;
-        self.probe = None;
-        if secs <= 0.0 || bytes <= 0.0 {
-            return;
-        }
-        let bps = bytes / secs;
-        // Queued buffers that came no faster than the rate say only that the link carries the rate. A timing at the start
-        // of a stream is for the log only: it limits nothing.
-        let at_most = timed_at_most(bps, self.need_bps);
-        ctx.notices.log(format!(
-            "PlutoSDR {}: the link carried {:.1} MB/s at the start of the stream{}",
-            self.label,
-            bps / 1e6,
-            if at_most { "" } else { " (the rate of the stream, or more)" }
-        ));
     }
 
     /// Adds `n` bytes to the watch, which judges windows of [`WATCH_WINDOW`] after the first [`WATCH_SETTLE`] of the stream,
@@ -2179,12 +2115,18 @@ impl IiodStream {
             board,
             raw,
             lay,
+            rate,
             ..
         } = self;
         let raw = &raw[..n - n % lay.stride.max(1)];
         for h in holds {
-            if !lock(&h.hold).active() {
-                continue;
+            {
+                let g = lock(&h.hold);
+                if !g.active() {
+                    continue;
+                }
+                // A search measures short windows, a held gain long ones.
+                h.meter.set_window(g.window_samples(*rate));
             }
             let (meter, levels) = (&mut h.meter, &mut h.levels);
             lay.components(raw, h.rx, |i, q| {
@@ -2252,13 +2194,6 @@ impl RadioStream for IiodStream {
         // A text READBUF that fails or ends early: the server does not send the rest of that request again, so its samples are
         // lost. A failed block answer of the binary protocol carries no data and skips none.
         let text = matches!(self.link, Link2::Text { .. });
-        if let Some(p) = &self.probe {
-            // The kernel buffers fill while nothing is read; then they come as fast as the link carries them.
-            let end = Instant::now() + p.fill;
-            while Instant::now() < end && !ctx.stopping() {
-                std::thread::sleep(Duration::from_millis(5).min(end.saturating_duration_since(Instant::now())));
-            }
-        }
         loop {
             if ctx.stopping() {
                 return Ok(());
@@ -2295,18 +2230,13 @@ impl RadioStream for IiodStream {
                     if text && n < self.bytes {
                         self.lose(sink, ((self.bytes - n) / self.lay.stride.max(1)) as u64);
                     }
-                    if self.probe.is_some() {
-                        self.probe_step(n, ctx);
-                    } else {
-                        self.watch(n, sink, ctx);
-                    }
+                    self.watch(n, sink, ctx);
                 }
                 // A whole answer that carried no samples: the framing holds, the next request may go.
                 Ok(_) | Err(IioError::Errno(_)) => {
                     if text {
                         self.lose(sink, (self.bytes / self.lay.stride.max(1)) as u64);
                     }
-                    self.probe = None;
                     self.watch(0, sink, ctx);
                     failures += 1;
                     if failures > MAX_REFILL_FAILURES {

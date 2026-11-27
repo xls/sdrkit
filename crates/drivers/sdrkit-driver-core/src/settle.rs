@@ -428,6 +428,31 @@ mod tests {
     }
 
     #[test]
+    fn a_search_that_holds_with_its_step_ends_the_stretch_where_the_step_lands() {
+        let mut g = SettleGate::new(RATE);
+        let t0 = g.epoch;
+        g.begin_change();
+        g.change(t0, t0, settle(0, 0));
+        g.hold(true);
+        // Writes of 10 000 samples that arrive 30 ms after the capture of their last sample.
+        let write = |g: &mut SettleGate| {
+            let start = g.pos;
+            let at = t0 + Duration::from_secs_f64((start + 10_000) as f64 / RATE) + Duration::from_millis(30);
+            g.write(at, 10_000, true).steady.map(|k| start + k)
+        };
+        while g.pos < 200_000 {
+            assert_eq!(write(&mut g), None);
+        }
+        // The search steps at 0.23 s on the clock of the arrivals and holds at once: the sample captured 5 ms after the step
+        // is number 205 000.
+        let at = t0 + Duration::from_millis(230);
+        g.begin_change();
+        g.step(at, at, settle(5, 500_000));
+        g.hold(false);
+        assert_eq!(write(&mut g), Some(205_000));
+    }
+
+    #[test]
     fn a_failed_change_ends_its_stretch_where_the_stream_is() {
         let mut g = SettleGate::new(RATE);
         g.begin_change();

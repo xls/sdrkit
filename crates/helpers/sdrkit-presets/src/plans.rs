@@ -9,10 +9,8 @@
 //! starts: such a stack has a plan only in a group of its own, whose id starts with the stack id (`fanet_au`), or in a
 //! plan in the CSV or plan JSON form that names it.
 
-use crate::data::{io_error, read_text};
 use crate::error::DataError;
 use crate::preset::PlanChannel;
-use sdrkit_data_plans::data::{self, Known};
 use sdrkit_data_plans::{
     api, band_channels, format_frequency, io, Band, BandGroup, ChannelPlan, CountryEntry, PlanFile,
     PlanKind, Presets, RegionEntry,
@@ -116,77 +114,40 @@ impl PlanSet {
         self.groups.iter()
     }
 
-    /// Reads every `.json` and `.csv` file of `dir`, in the order of their names, and checks each plan file.
-    pub(crate) fn load(dir: &Path) -> Result<PlanSet, DataError> {
-        let mut paths: Vec<_> = std::fs::read_dir(dir)
-            .map_err(|e| io_error(dir, e))?
-            .flatten()
-            .map(|e| e.path())
-            .filter(|p| p.is_file())
-            .collect();
-        paths.sort();
+    /// The plan set of the files of `dir`: `texts` as (file name, text) in name order, and `parsed`, the same files as
+    /// [`sdrkit_data_plans::registry::parse_files`] read them. The files are checked as one set where the store is made
+    /// ([`crate::lookup::load_plans`]).
+    pub(crate) fn of(dir: &Path, texts: &[(String, String)], parsed: &[(String, PlanFile)]) -> Result<PlanSet, DataError> {
         let mut set = PlanSet::default();
-        let mut files: Vec<(String, PlanFile)> = Vec::new();
-        for path in &paths {
+        for (name, text) in texts {
             let format = |reason: String| DataError::Format {
-                path: path.clone(),
+                path: dir.join(name),
                 reason,
             };
-            let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("plan");
-            match path.extension().and_then(|e| e.to_str()) {
-                Some("json") => {
-                    let text = read_text(path)?;
-                    if api::is_plan_file(&text) {
-                        let name = path.display().to_string();
-                        let file = data::parse(&name, &text)
-                            .map_err(|e| format(format!("{}: {}", e.path, e.reason)))?;
-                        files.push((name, file));
-                    } else {
-                        let plans = io::from_json(&text).map_err(|e| format(e.to_string()))?;
-                        set.lists.extend(plans.into_iter().map(|plan| ListPlan {
-                            plan,
-                            bands: Vec::new(),
-                        }));
-                    }
-                }
-                Some("csv") => {
-                    let text = read_text(path)?;
-                    let plan =
-                        io::from_csv(&text, stem, stem).map_err(|e| format(e.to_string()))?;
-                    let mut bands = csv_bands(&text);
+            match name.rsplit_once('.') {
+                Some((stem, "csv")) => {
+                    let plan = io::from_csv(text, stem, stem).map_err(|e| format(e.to_string()))?;
+                    let mut bands = csv_bands(text);
                     if bands.len() != plan.channels.len() {
                         bands.clear();
                     }
                     set.lists.push(ListPlan { plan, bands });
                 }
-                _ => {}
+                _ if api::is_plan_file(text) => {
+                    for (_, f) in parsed.iter().filter(|(n, _)| n == name) {
+                        set.groups.extend(f.groups.iter().cloned());
+                        set.countries.extend(f.countries.iter().cloned());
+                        set.regions.extend(f.regions.iter().cloned());
+                    }
+                }
+                _ => {
+                    let plans = io::from_json(text).map_err(|e| format(e.to_string()))?;
+                    set.lists.extend(plans.into_iter().map(|plan| ListPlan {
+                        plan,
+                        bands: Vec::new(),
+                    }));
+                }
             }
-        }
-        // Each file is checked on its own, and may name the groups and the countries of the other files.
-        for (i, one) in files.iter().enumerate() {
-            let others = || files.iter().enumerate().filter(move |(j, _)| *j != i);
-            let known = Known {
-                groups: others()
-                    .flat_map(|(_, (_, f))| f.groups.iter().map(|g| g.id.clone()))
-                    .collect(),
-                countries: others()
-                    .flat_map(|(_, (_, f))| f.countries.iter().map(|c| c.code.clone()))
-                    .collect(),
-            };
-            if let Some(e) = data::check(std::slice::from_ref(one), &known)
-                .into_iter()
-                .next()
-            {
-                return Err(DataError::Format {
-                    path: e.file.into(),
-                    reason: format!("{}: {}", e.path, e.reason),
-                });
-            }
-        }
-        for (_, f) in files {
-            set.groups.extend(f.groups);
-            set.countries.extend(f.countries);
-            set.regions.extend(f.regions);
         }
         Ok(set)
     }
@@ -391,5 +352,32 @@ impl PlanSet {
                 channels,
             })
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use sdrkit_data_plans::data::{self, Known};
+    use std::path::Path;
+
+    #[test]
+    fn each_plan_file_of_the_data_folder_passes_the_check_against_the_others() {
+        let dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data/plans"));
+        let texts = crate::lookup::plan_texts(dir).unwrap();
+        let files: Vec<_> = sdrkit_data_plans::registry::parse_files(&texts)
+            .unwrap()
+            .into_iter()
+            .filter(|(name, _)| texts.iter().any(|(n, t)| n == name && sdrkit_data_plans::api::is_plan_file(t)))
+            .collect();
+        assert!(!files.is_empty());
+        for (i, one) in files.iter().enumerate() {
+            let others = || files.iter().enumerate().filter(move |(j, _)| *j != i);
+            let known = Known {
+                groups: others().flat_map(|(_, (_, f))| f.groups.iter().map(|g| g.id.clone())).collect(),
+                countries: others().flat_map(|(_, (_, f))| f.countries.iter().map(|c| c.code.clone())).collect(),
+            };
+            let errors = data::check(std::slice::from_ref(one), &known);
+            assert!(errors.is_empty(), "{}: {:?}", one.0, errors.first());
+        }
     }
 }

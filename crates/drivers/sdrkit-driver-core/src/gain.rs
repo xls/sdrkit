@@ -1,8 +1,9 @@
 //! The held automatic gain of a driver. The driver keeps the radio in manual gain and runs this control on the level of the
-//! samples it reads: it chooses the gain that puts the peak [`RULES`] `target_peak_dbfs` below full scale, steps once, waits
-//! until the step shows in the samples, and then holds. It moves again only when the level stays outside a wide window for a
-//! set time, and never sooner than a set time after its last step. The clock is the count of samples, so a backlog or a fast
-//! test source keeps the same timing.
+//! samples it reads: it measures short windows, sets the gain that puts the peak [`RULES`] `target_peak_dbfs` below full
+//! scale, and holds. A window that clipped gives no peak: the control steps down, waits until the step shows, and measures
+//! again. A held gain moves again only when the level stays outside a wide window for a set time, and never sooner than a
+//! set time after its last step. The clock is the count of samples, so a backlog or a fast test source keeps the same
+//! timing.
 
 use sdrkit_core::publish::field;
 use sdrkit_core::Field;
@@ -20,14 +21,16 @@ pub struct HoldRules {
     pub out_for_s: f64,
     /// ... and no sooner than this after the last step, in s.
     pub min_interval_s: f64,
-    /// The length of one measurement window, in s.
+    /// The length of one measurement window while the gain is held, in s.
     pub window_s: f64,
+    /// The length of one measurement window while the control searches, in s.
+    pub search_window_s: f64,
     /// The peak-to-mean ratio taken for a clipped window before the control has measured one, in dB.
     pub peak_to_mean_db: f64,
 }
 
 /// The rules of every driver: peak at -10 dBFS (within 3 dB after a search), hold while the peak stays within 6 dB of it,
-/// move after 0.5 s outside, at most once in 2 s, windows of 100 ms.
+/// move after 0.5 s outside, at most once in 2 s, windows of 100 ms; a search measures windows of 10 ms.
 pub const RULES: HoldRules = HoldRules {
     target_peak_dbfs: -10.0,
     search_tolerance_db: 3.0,
@@ -35,6 +38,7 @@ pub const RULES: HoldRules = HoldRules {
     out_for_s: 0.5,
     min_interval_s: 2.0,
     window_s: 0.1,
+    search_window_s: 0.01,
     peak_to_mean_db: 13.0,
 };
 
@@ -97,6 +101,8 @@ pub struct Level {
 
 /// The lowest level that a window reports, in dBFS (a window of zeros).
 const FLOOR_DBFS: f64 = -150.0;
+/// The fewest samples of a search window: a peak needs enough of them at a low rate.
+const SEARCH_WINDOW_MIN: u64 = 4096;
 
 /// Peak, mean and clipping of the I and Q components over windows of a set number of samples.
 #[derive(Clone, Debug)]
@@ -122,6 +128,11 @@ impl Meter {
             sum_sq: 0.0,
             clipped: 0,
         }
+    }
+
+    /// From now on, windows of `window` samples. A window that has already that many samples ends at the next sample.
+    pub fn set_window(&mut self, window: u64) {
+        self.window = window.max(1);
     }
 
     /// Adds one sample. It returns the level when the sample completes a window.
@@ -182,7 +193,7 @@ pub struct HeldGain {
     range: (f64, f64),
     state: GainControl,
     steps: u64,
-    window: u64,
+    rate: f64,
     latency: u64,
     since_step: u64,
     out: u64,
@@ -192,6 +203,8 @@ pub struct HeldGain {
     last_mean_dbfs: f64,
     /// The first search of the stream has not held yet ([`HeldGain::settling`]).
     first: bool,
+    /// The proposed gain came from a window that did not clip.
+    exact: bool,
 }
 
 impl Default for HeldGain {
@@ -210,7 +223,7 @@ impl HeldGain {
             range: (0.0, 0.0),
             state: GainControl::Searching,
             steps: 0,
-            window: 1,
+            rate: 0.0,
             latency: 0,
             since_step: 0,
             out: 0,
@@ -218,28 +231,37 @@ impl HeldGain {
             peak_to_mean_db: rules.peak_to_mean_db,
             last_mean_dbfs: FLOOR_DBFS,
             first: false,
+            exact: false,
         }
     }
 
-    /// The samples of one window at `rate_hz`.
+    /// The samples of one window at `rate_hz`: a short one while the control searches, a long one while it holds.
     pub fn window_samples(&self, rate_hz: f64) -> u64 {
-        samples(rate_hz, self.rules.window_s).max(1)
+        match self.state {
+            GainControl::Searching => samples(rate_hz, self.rules.search_window_s).max(SEARCH_WINDOW_MIN),
+            GainControl::Holding => samples(rate_hz, self.rules.window_s).max(1),
+        }
+    }
+
+    /// The samples of the window that the control measures now, at the rate of [`HeldGain::start`].
+    fn window(&self) -> u64 {
+        self.window_samples(self.rate)
     }
 
     /// Starts the control (at open and after a retune): the radio was set to `gain_db`, of `range` (lowest, highest) in dB, at
     /// `rate_hz`. `latency` is the samples that can be in flight between the radio and the meter; the control waits for them
-    /// before it measures, and after each step.
+    /// before it measures, and at most for them and one window after a step.
     pub fn start(&mut self, gain_db: f64, range: (f64, f64), rate_hz: f64, latency: u64) {
         self.active = true;
         self.gain_db = gain_db;
         self.range = range;
         self.state = GainControl::Searching;
         self.steps = 0;
-        self.window = self.window_samples(rate_hz);
+        self.rate = rate_hz;
         self.latency = latency;
         self.since_step = 0;
         self.out = 0;
-        self.wait = Wait::For(latency + self.window);
+        self.wait = Wait::For(latency + self.window());
         self.peak_to_mean_db = self.rules.peak_to_mean_db;
     }
 
@@ -329,9 +351,8 @@ impl HeldGain {
                 let r = &self.rules;
                 let off = l.clipped || (l.peak_dbfs - r.target_peak_dbfs).abs() > r.hold_window_db;
                 self.out = if off { self.out + l.samples } else { 0 };
-                let rate = self.window as f64 / r.window_s;
-                if self.out >= samples(rate, r.out_for_s)
-                    && self.since_step >= samples(rate, r.min_interval_s)
+                if self.out >= samples(self.rate, r.out_for_s)
+                    && self.since_step >= samples(self.rate, r.min_interval_s)
                 {
                     self.state = GainControl::Searching;
                     self.search(l)
@@ -342,7 +363,9 @@ impl HeldGain {
         }
     }
 
-    /// The gain that puts the peak of `l` at the target, or a hold if the peak is close enough or the gain is at its limit.
+    /// The gain that puts the peak of `l` at the target, or a hold if the peak is close enough or the gain is at its limit. A
+    /// window that did not clip gives the error in dB, and so the gain: the control holds once it is written
+    /// ([`HeldGain::stepped`]).
     fn search(&mut self, l: &Level) -> Option<f64> {
         if !l.clipped {
             self.peak_to_mean_db = (l.peak_dbfs - l.mean_dbfs).clamp(3.0, 20.0);
@@ -368,6 +391,7 @@ impl HeldGain {
             self.hold();
             return None;
         }
+        self.exact = !l.clipped;
         Some(want)
     }
 
@@ -378,26 +402,30 @@ impl HeldGain {
         self.wait = Wait::None;
     }
 
-    /// The driver wrote `gain_db`, the gain that [`HeldGain::feed`] proposed. The control waits until the step shows in the mean,
-    /// or for twice the samples in flight and five windows.
+    /// The driver wrote `gain_db`, the gain that [`HeldGain::feed`] proposed. A gain from a window that did not clip is held at
+    /// once; the samples in flight are not measured. After another step the control waits until the step shows in the mean, or
+    /// for the samples in flight and one window.
     pub fn stepped(&mut self, gain_db: f64) {
-        self.wait = Wait::Step {
-            expect_db: gain_db - self.gain_db,
-            before_dbfs: self.last_mean_dbfs,
-            left: 2 * self.latency + 5 * self.window,
-        };
+        let expect_db = gain_db - self.gain_db;
         self.gain_db = gain_db;
         self.steps += 1;
         self.since_step = 0;
         // A step to a limit of the gain is the last one the search can make: the level after it is the one it holds.
-        if gain_db <= self.range.0 || gain_db >= self.range.1 {
-            self.first = false;
+        let last = std::mem::take(&mut self.exact) || gain_db <= self.range.0 || gain_db >= self.range.1;
+        if last {
+            self.hold();
         }
+        self.wait = Wait::Step {
+            expect_db,
+            before_dbfs: self.last_mean_dbfs,
+            left: self.latency + self.window(),
+        };
     }
 
     /// The driver could not write the proposed gain: the control waits ten windows and looks again.
     pub fn not_stepped(&mut self) {
-        self.wait = Wait::For(10 * self.window);
+        self.exact = false;
+        self.wait = Wait::For(10 * self.window());
     }
 
 }
@@ -484,6 +512,47 @@ mod tests {
     }
 
     #[test]
+    fn an_unclipped_window_gives_the_gain_in_one_step_and_a_clipped_one_in_two() {
+        // 30 dB too weak: one step, held at once.
+        let mut g = HeldGain::default();
+        g.start(40.0, (0.0, 73.0), RATE, 0);
+        g.stream_started();
+        g.fresh();
+        assert_eq!(g.feed(&at(-40.0)), Some(70.0));
+        g.stepped(70.0);
+        let s = g.status().unwrap();
+        assert_eq!((s.state, s.steps, g.settling()), (GainControl::Holding, 1, false));
+        // 30 dB too strong: the clipped window gives too small a step; the window in which it shows is not measured, the
+        // next one gives the gain.
+        let mut g = HeldGain::default();
+        g.start(40.0, (0.0, 73.0), RATE, 0);
+        g.stream_started();
+        g.fresh();
+        let input = |gain: f64| 20.0 + gain - 40.0;
+        assert_eq!(g.feed(&at(input(40.0))), Some(18.0));
+        g.stepped(18.0);
+        assert!(g.settling());
+        assert_eq!(g.feed(&at(input(18.0))), None);
+        assert_eq!(g.feed(&at(input(18.0))), Some(10.0));
+        g.stepped(10.0);
+        let s = g.status().unwrap();
+        assert_eq!((s.state, s.steps, g.settling()), (GainControl::Holding, 2, false));
+        assert!((input(10.0) + 10.0).abs() < 0.5);
+    }
+
+    #[test]
+    fn a_search_measures_short_windows_and_a_held_gain_long_ones() {
+        let mut g = HeldGain::default();
+        g.start(40.0, (0.0, 73.0), RATE, 0);
+        assert_eq!(g.window_samples(RATE), 10_000);
+        // At a low rate a search window keeps enough samples for a peak.
+        assert_eq!(g.window_samples(250e3), SEARCH_WINDOW_MIN);
+        g.fresh();
+        assert_eq!(g.feed(&at(-10.0)), None);
+        assert_eq!(g.window_samples(RATE), 100_000);
+    }
+
+    #[test]
     fn a_meter_measures_peak_mean_and_clipping() {
         let mut m = Meter::new(4, 2048);
         assert_eq!(m.add(1024, 0), None);
@@ -497,5 +566,8 @@ mod tests {
             m.add(2047, -2048);
         }
         assert!(m.add(0, 0).unwrap().clipped);
+        m.set_window(2);
+        assert_eq!(m.add(0, 0), None);
+        assert!(m.add(0, 0).is_some());
     }
 }

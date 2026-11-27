@@ -569,6 +569,7 @@ impl Radio for RtlRadio {
                 128,
             ),
             hold: self.hold.clone(),
+            rate,
         })
     }
 
@@ -700,29 +701,35 @@ fn lock_hold(h: &Mutex<HeldGain>) -> std::sync::MutexGuard<'_, HeldGain> {
     h.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
-/// Meters the samples of `data` for the held gain `hold` and writes the gain it proposes through the runner. Nothing is
-/// allocated unless a write fails.
-fn meter_samples(meter: &mut Meter, hold: &Mutex<HeldGain>, data: &[u8], ctx: &StreamCtx) {
-    if !lock_hold(hold).active() {
-        return;
+/// Meters the samples of `data`, of a stream at `rate`, for the held gain `hold` and writes the gain it proposes through the
+/// runner. Nothing is allocated unless a write fails.
+fn meter_samples(meter: &mut Meter, hold: &Mutex<HeldGain>, rate: f64, data: &[u8], ctx: &StreamCtx) {
+    {
+        let h = lock_hold(hold);
+        if !h.active() {
+            return;
+        }
+        meter.set_window(h.window_samples(rate));
     }
     for iq in data.as_chunks::<2>().0 {
         let Some(level) = meter.add(i32::from(iq[0]) - 128, i32::from(iq[1]) - 128) else {
             continue;
         };
-        let Some(want) = lock_hold(hold).feed(&level) else {
-            continue;
-        };
-        match ctx.write_gain(0, want) {
-            Some(Ok(())) => lock_hold(hold).stepped(want),
-            Some(Err(e)) => {
-                lock_hold(hold).not_stepped();
-                ctx.notices.log(format!(
-                    "RTL-SDR: the gain of {want} dB was not written: {e}"
-                ));
+        let want = lock_hold(hold).feed(&level);
+        if let Some(want) = want {
+            match ctx.write_gain(0, want) {
+                Some(Ok(())) => lock_hold(hold).stepped(want),
+                Some(Err(e)) => {
+                    lock_hold(hold).not_stepped();
+                    ctx.notices.log(format!(
+                        "RTL-SDR: the gain of {want} dB was not written: {e}"
+                    ));
+                }
+                None => lock_hold(hold).not_stepped(),
             }
-            None => lock_hold(hold).not_stepped(),
         }
+        // A search measures short windows, a held gain long ones.
+        meter.set_window(lock_hold(hold).window_samples(rate));
     }
 }
 
@@ -737,6 +744,8 @@ pub struct RtlStream {
     bytes: Arc<AtomicU64>,
     meter: Meter,
     hold: Arc<Mutex<HeldGain>>,
+    /// The rate of the stream.
+    rate: f64,
 }
 
 impl RtlStream {
@@ -778,7 +787,7 @@ impl RtlStream {
                         sink.settling(lock_hold(&self.hold).settling());
                         sink.write(&data[k..]);
                     }
-                    meter_samples(&mut self.meter, &self.hold, &data[k..], ctx);
+                    meter_samples(&mut self.meter, &self.hold, self.rate, &data[k..], ctx);
                 }
                 Err(UsbError::Timeout) => {
                     if last.elapsed() >= STALL {

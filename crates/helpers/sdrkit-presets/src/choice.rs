@@ -138,11 +138,13 @@ impl Data {
     ///
     /// The list of the regions, one [`RegionChoice::line`] a line, if it does not have the code.
     pub fn region(&self, code: &str) -> Result<Region, String> {
-        let regions = self.regions();
         let code = code.trim().to_ascii_uppercase();
+        // The test of [`Data::regions`], for this code alone.
+        let listed = self.store.country_rows().any(|c| c.code == code) && !self.plan_ids(&code).is_empty();
         match Region::new(&code) {
-            Ok(r) if regions.iter().any(|c| c.code == code) => Ok(r),
-            _ => Err(regions
+            Ok(r) if listed => Ok(r),
+            _ => Err(self
+                .regions()
                 .iter()
                 .map(RegionChoice::line)
                 .collect::<Vec<_>>()

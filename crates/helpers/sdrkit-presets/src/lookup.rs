@@ -4,6 +4,7 @@
 
 use crate::data::{io_error, read_text, Data};
 use crate::error::DataError;
+use crate::plans::PlanSet;
 use sdrkit_core::Choice as _;
 use sdrkit_data_plans::api::{self, PlanFormat};
 use sdrkit_data_plans::{ChannelPlan, Direction, Place, PlanKind, Plans};
@@ -108,8 +109,8 @@ fn channel_hit(plan: &ChannelPlan, name: &str, hz: f64, width_hz: f64, score: f6
     }
 }
 
-/// The plan files of `dir` as one store: every `.json` and `.csv` file, checked as one set.
-pub(crate) fn load_store(dir: &Path) -> Result<Plans, DataError> {
+/// The `.json` and `.csv` files of `dir` as (file name, text), in name order.
+pub(crate) fn plan_texts(dir: &Path) -> Result<Vec<(String, String)>, DataError> {
     let mut files = Vec::new();
     for entry in std::fs::read_dir(dir)
         .map_err(|e| io_error(dir, e))?
@@ -122,10 +123,21 @@ pub(crate) fn load_store(dir: &Path) -> Result<Plans, DataError> {
             files.push((name.to_owned(), read_text(&path)?));
         }
     }
-    Plans::from_files(&files).map_err(|e| DataError::Format {
+    files.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(files)
+}
+
+/// The plan files of `dir`, read once: the plan set of the presets and the store, whose files are checked as one set.
+pub(crate) fn load_plans(dir: &Path) -> Result<(PlanSet, Plans), DataError> {
+    let texts = plan_texts(dir)?;
+    let format = |e: sdrkit_data_plans::PlanError| DataError::Format {
         path: dir.to_owned(),
         reason: e.to_string(),
-    })
+    };
+    let parsed = sdrkit_data_plans::registry::parse_files(&texts).map_err(format)?;
+    let set = PlanSet::of(dir, &texts, &parsed)?;
+    let store = Plans::from_parsed(parsed).map_err(format)?;
+    Ok((set, store))
 }
 
 impl Data {

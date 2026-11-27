@@ -281,8 +281,7 @@ impl Data {
     pub fn open(folder: impl AsRef<Path>) -> Result<Data, DataError> {
         let folder = folder.as_ref().to_owned();
         std::fs::read_dir(&folder).map_err(|e| io_error(&folder, e))?;
-        let plans = PlanSet::load(&folder.join("plans"))?;
-        let store = crate::lookup::load_store(&folder.join("plans"))?;
+        let (plans, store) = crate::lookup::load_plans(&folder.join("plans"))?;
         let newest = newest_in(&folder, 3);
         Ok(Data {
             folder,

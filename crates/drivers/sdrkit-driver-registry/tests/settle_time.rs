@@ -28,6 +28,10 @@ fn mhz(key: &str) -> Option<f64> {
 struct Seen {
     levels: Vec<(u64, f32)>,
     arrivals: Vec<(Instant, u64)>,
+    /// The stretch of the start that the engine leaves out, in samples of the ring, once its end is known.
+    start: Option<(u64, u64)>,
+    /// The arrival of the first sample after that stretch, and the place of the level reading it begins.
+    first: Option<(Instant, u64)>,
 }
 
 fn level_db(x: &[Complex32]) -> f32 {
@@ -100,6 +104,16 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 }
                 let at = Instant::now();
                 let mut s = seen.lock().unwrap();
+                if s.start.is_none() {
+                    if let Some(u) = r.stats().unsettled(0) {
+                        s.start = u.to.map(|to| (u.from, to));
+                    }
+                }
+                if let (None, Some((_, to))) = (s.first, s.start) {
+                    if r.position() + n as u64 > to {
+                        s.first = Some((at, pos + (to.saturating_sub(r.position()))));
+                    }
+                }
                 // A gap is signal time: the samples after it are later by its length.
                 let mut done = 0usize;
                 let mut gaps = r.take_gaps(n);
@@ -157,6 +171,38 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
         }
     }
     println!("start (ms:dB): {line}");
+    // What the engine passes on: the first sample after the stretch of the start, and the level from it on.
+    if let (Some((from, to)), Some((at, p))) = (s.start, s.first) {
+        let mut m: Vec<f32> = Vec::new();
+        for k in 0..20u64 {
+            let mut v: Vec<f32> = s
+                .levels
+                .iter()
+                .filter(|(x, _)| *x >= p + k * step && *x < p + (k + 1) * step)
+                .map(|x| x.1)
+                .collect();
+            if !v.is_empty() {
+                m.push(median(&mut v));
+            }
+        }
+        let (lo, hi) = m.iter().fold((f32::MAX, f32::MIN), |(a, b), &x| (a.min(x), b.max(x)));
+        // The parts of the first 10 ms against the level of the next 0.5 s.
+        let mut all = m.clone();
+        let settled = median(&mut all);
+        let worst = s
+            .levels
+            .iter()
+            .filter(|(x, _)| *x >= p && *x < p + (rate * 0.01) as u64)
+            .map(|x| (x.1 - settled).abs())
+            .fold(0.0f32, f32::max);
+        println!(
+            "first sample to the stack {:.0} ms after the start; left out {:.0} ms of signal; level over the next 0.5 s \
+             within {:.1} dB; the parts of its first 10 ms within {worst:.1} dB of it",
+            at.duration_since(t0).as_secs_f64() * 1e3,
+            (to - from) as f64 / rate * 1e3,
+            hi - lo
+        );
+    }
     // The settle time of each retune: from the end of the request to the capture of the first part within 1 dB of the
     // level that the new frequency settles at (2 dB on a noise floor).
     let place = |t: Instant| ((t.duration_since(t0).as_secs_f64() - delay) * rate).max(0.0) as u64;
