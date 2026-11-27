@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.6. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.7. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 6
+    public static let minor = 7
 }
 
 /// The result fields of `ble`.
@@ -807,6 +807,8 @@ public struct WifiFields {
     public var acks: Int64
     /// Block Ack frames and requests since the last clear.
     public var blockAcks: Int64
+    /// What is not decoded, and why: the frames that the sample rate leaves out, or the work that the decoder sheds while live input comes faster than it works. None while everything is decoded.
+    public var quietReason: String?
 
     init(_ c: sdrkit_wifi_fields) {
         networks = c.networks
@@ -869,6 +871,7 @@ public struct WifiFields {
         cts = c.cts
         acks = c.acks
         blockAcks = c.block_acks
+        quietReason = c.has_quiet_reason ? sdrkitText(c.quiet_reason) : nil
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.

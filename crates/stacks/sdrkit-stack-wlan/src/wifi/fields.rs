@@ -4,9 +4,10 @@
 //! counters and the decoded fields leave in the order the chains found them, so the output is the same for every number of
 //! helpers.
 //!
-//! With live input a data field is skipped and counted as [`Undecoded::Busy`] when every slot of the window is in use, or, with
-//! no helpers, when the chain is more than [`BEHIND_S`](super::BEHIND_S) of work behind its input. With a recording or a test
-//! signal nothing is skipped: the chain waits for a slot and drains the window at the end of each piece.
+//! With live input a data field is skipped and counted as [`Undecoded::Busy`] when every slot of the window is in use, when
+//! the decoder sheds data ([`Shed::Data`](super::shed::Shed)), or, with no helpers, when the chain is more than
+//! [`BEHIND_S`](super::BEHIND_S) of work behind its input. With a recording or a test signal nothing is skipped: the chain
+//! waits for a slot and drains the window at the end of each piece.
 
 use super::{mpdu, PhyKind, PpduCounters, WifiMpdu};
 use crate::wifi::plan::Band;
@@ -168,8 +169,8 @@ impl Fields {
         }
     }
 
-    /// A decodable data field of PPDU `v`, heard at `time_s` on `channel`. `behind` says the chain is behind its input, which
-    /// skips the field when the input is live and there are no helpers.
+    /// A decodable data field of PPDU `v`, heard at `time_s` on `channel`. With `skip` and live input the field is counted as
+    /// busy and not decoded.
     pub fn field(
         &mut self,
         v: &PpduView<'_>,
@@ -177,9 +178,9 @@ impl Fields {
         time_s: f64,
         channel: u32,
         band: Option<Band>,
-        behind: bool,
+        skip: bool,
     ) {
-        if self.live && (self.helpers() == 0 && behind) {
+        if self.live && skip {
             self.note(plan.info, Undecoded::Busy);
             return;
         }
@@ -312,7 +313,7 @@ mod tests {
         let mut c = chain();
         let mut out = Vec::new();
         for p in x.chunks(65_536) {
-            c.run(p, 1.0, &mut out, &mut fields);
+            c.run(p, 1.0, &mut out, &mut fields, false);
             fields.flush(true);
             out.append(&mut fields.ready);
         }
@@ -485,7 +486,7 @@ mod tests {
         let mut c = chain();
         let mut out = Vec::new();
         for p in x.chunks(65_536) {
-            c.run(p, 1.0, &mut out, &mut fields);
+            c.run(p, 1.0, &mut out, &mut fields, false);
             fields.flush(false);
             out.append(&mut fields.ready);
         }

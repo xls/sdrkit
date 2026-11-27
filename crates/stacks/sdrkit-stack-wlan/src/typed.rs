@@ -1264,6 +1264,10 @@ pub struct WifiFields<'a> {
     /// Block Ack frames and requests since the last clear.
     #[field(label = "Block Acks")]
     pub block_acks: i64,
+    /// What is not decoded, and why: the frames that the sample rate leaves out, or the work that the decoder sheds while
+    /// live input comes faster than it works. None while everything is decoded.
+    #[field(label = "What is left out")]
+    pub quiet_reason: Option<&'a str>,
 }
 
 /// A row of the networks of `wifi`. The row key is the BSSID.
@@ -2312,13 +2316,16 @@ const ADDED_4_6: &[&str] = &[
     "shape.BletrackerFields.quiet_reason",
 ];
 
+/// What version 4.7 added: what `wifi` leaves out.
+const ADDED_4_7: &[&str] = &["shape.WifiFields.quiet_reason"];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 6)
+        Described::new("wlan", 4, 7)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2366,6 +2373,7 @@ pub fn family() -> &'static Described {
             .added(4, 4, ADDED_4_4)
             .added(4, 5, ADDED_4_5)
             .added(4, 6, ADDED_4_6)
+            .added(4, 7, ADDED_4_7)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()

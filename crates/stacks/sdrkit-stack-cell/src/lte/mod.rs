@@ -13,7 +13,8 @@ pub mod search;
 use crate::bands::{apply_mfbi, band_choice, earfcn_to_mhz, lte_band, nearest_earfcn, BandChoice};
 use crate::decoder::{
     build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, RowSync, SearchConfig,
-    SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
+    FrequencyList, MoveGuard, SearchStack, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
+    SEARCH_FIRST,
 };
 use crate::typed::{
     CellBandRow, CellCarrierRow, CellDetailRow, CellFields, CellInterCarrierRow, CellNeighbourRow, CellOperatorRow,
@@ -893,6 +894,8 @@ sdrkit_core::settings! {
         BandSearch = BAND_SEARCH,
         /// The bands a band search covers.
         SearchBands = SEARCH_BANDS,
+        /// The known carriers that a band search visits first.
+        SearchFirst = SEARCH_FIRST,
         /// The least time on each radio centre of a band search.
         SearchDwell = SEARCH_DWELL,
     }
@@ -960,6 +963,8 @@ pub struct LteSearch {
     quiet: Option<String>,
     /// The cells seen by their synchronisation signals only, not yet listed.
     sightings: Sightings<LteKey>,
+    /// The cells of samples of the old centre after a move of the radio.
+    moves: MoveGuard,
     /// Why the cells of the newest capture are read only in part (the operator needs a wider capture).
     partial: Option<String>,
     /// The carrier centre and the sample rate that would read the system information of the newest such cell, Hz.
@@ -978,6 +983,7 @@ impl Default for LteSearch {
             scan: SearchConfig::new(),
             quiet: None,
             sightings: Sightings::default(),
+            moves: MoveGuard::default(),
             partial: None,
             wanted: None,
         }
@@ -1065,6 +1071,9 @@ impl LteSearch {
         log: &mut Log<Self>,
     ) {
         let time = cap.end_time;
+        if self.moves.late(cap, u64::from(f.pci), f.cand.offset_hz + f.cfo_hz) {
+            return;
+        }
         let known = cap.centre_known();
         let actual = cap.centre_hz + f.cand.offset_hz + f.cfo_hz;
         let (earfcn, nominal) = if known {
@@ -1215,6 +1224,7 @@ impl SearchStack for LteSearch {
             LteSetting::BandOrder => self.order = Self::band_list(id, v, &BAND_ORDER)?,
             LteSetting::BandSearch => self.scan.mode = BAND_SEARCH.read(id, v)?,
             LteSetting::SearchBands => self.scan.bands = Self::band_list(id, v, &SEARCH_BANDS)?,
+            LteSetting::SearchFirst => self.scan.first = FrequencyList::read(id, SEARCH_FIRST.read(id, v)?)?,
             LteSetting::SearchDwell => self.scan.dwell_s = SEARCH_DWELL.read(id, v)?,
         }
         Ok(())
@@ -1242,6 +1252,7 @@ impl SearchStack for LteSearch {
             (LteSetting::BandOrder, Value::Text(self.order.text.clone())),
             (LteSetting::BandSearch, self.scan.mode_value()),
             (LteSetting::SearchBands, Value::Text(self.scan.bands.text.clone())),
+            (LteSetting::SearchFirst, Value::Text(self.scan.first.text.clone())),
             (LteSetting::SearchDwell, Value::F64(self.scan.dwell_s)),
         ])
     }
@@ -1276,6 +1287,7 @@ impl SearchStack for LteSearch {
         let partial = partial_reason(&found, cap.rate, base);
         self.wanted = partial.as_ref().filter(|_| cap.centre_known()).map(|p| (p.1, p.2));
         self.partial = partial.map(|p| p.0);
+        self.moves.begin(cap);
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
@@ -1297,6 +1309,9 @@ impl SearchStack for LteSearch {
     }
     fn search_steps(&self, band: u16, rate: f64) -> Vec<f64> {
         crate::scan::lte_steps(band, rate)
+    }
+    fn band_order(&self) -> &[u16] {
+        &self.order.bands
     }
     fn bands_at(&self, hz: f64) -> Vec<u16> {
         crate::bands::downlink_bands(sdrkit_data_plans::cellular::CellSystem::Lte, hz, &self.order.bands)

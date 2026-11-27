@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.6. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.7. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 6
+#define SDRKIT_WLAN_VERSION_MINOR 7
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -1001,6 +1001,10 @@ typedef struct sdrkit_wifi_fields {
   int64_t acks;
   // Block Ack frames and requests since the last clear.
   int64_t block_acks;
+  // True if `quiet_reason` holds a value.
+  bool has_quiet_reason;
+  // What is not decoded, and why: the frames that the sample rate leaves out, or the work that the decoder sheds while live input comes faster than it works. None while everything is decoded.
+  sdrkit_string quiet_reason;
 } sdrkit_wifi_fields;
 
 // The options of `band` of `sdrkit_wifi_network_row`.
@@ -2948,7 +2952,7 @@ static inline int32_t sdrkit_wifi_set_psc_only(SDRKIT_HANDLE handle, bool value)
   return sdrkit_typed_setting_set_bool(handle, "psc_only", value);
 }
 
-// The setting "channels_24" (2.4 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
+// The setting "channels_24" (2.4 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first.
 static inline int32_t sdrkit_wifi_get_channels_24(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_24", value);
 }
@@ -2956,7 +2960,7 @@ static inline int32_t sdrkit_wifi_set_channels_24(SDRKIT_HANDLE handle, sdrkit_s
   return sdrkit_typed_setting_set_string(handle, "channels_24", value);
 }
 
-// The setting "channels_5" (5 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
+// The setting "channels_5" (5 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first.
 static inline int32_t sdrkit_wifi_get_channels_5(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_5", value);
 }
@@ -2964,7 +2968,7 @@ static inline int32_t sdrkit_wifi_set_channels_5(SDRKIT_HANDLE handle, sdrkit_st
   return sdrkit_typed_setting_set_string(handle, "channels_5", value);
 }
 
-// The setting "channels_6" (6 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
+// The setting "channels_6" (6 GHz channels) of the stack "wifi". Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first.
 static inline int32_t sdrkit_wifi_get_channels_6(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_6", value);
 }
@@ -3409,7 +3413,7 @@ static inline int32_t sdrkit_espnow_set_dwell_ms(SDRKIT_HANDLE handle, double va
   return sdrkit_typed_setting_set_f64(handle, "dwell_ms", value);
 }
 
-// The setting "channels_24" (2.4 GHz channels) of the stack "espnow". Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.
+// The setting "channels_24" (2.4 GHz channels) of the stack "espnow". Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first.
 static inline int32_t sdrkit_espnow_get_channels_24(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "channels_24", value);
 }

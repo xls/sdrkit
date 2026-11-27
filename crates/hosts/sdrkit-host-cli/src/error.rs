@@ -1,6 +1,6 @@
 //! The one error of the tool and its exit code.
 
-use sdrkit_core::{CommandError, StorageError, ValueKind};
+use sdrkit_core::{CommandError, StorageError};
 use sdrkit_graph::GraphError;
 use sdrkit_host_engine::EngineError;
 
@@ -103,16 +103,14 @@ pub enum CliError {
         /// The text given.
         text: String,
     },
-    /// The text is not a value of the kind of the setting or argument.
-    #[error("`{text}` is not a value of `{key}` (kind {kind:?}{forms})")]
+    /// The text is not a value of the setting or argument: `7 is not one of 2.4, 5, 6 for setting "Band" (band)`.
+    #[error("{text} is not {forms} for {name}")]
     BadValue {
-        /// The key of the setting or argument.
-        key: String,
+        /// The setting or argument, by its label and key: `setting "Band" (band)`.
+        name: String,
         /// The text given.
         text: String,
-        /// The kind it must have.
-        kind: ValueKind,
-        /// The forms or choices it can take.
+        /// What it takes: `one of 2.4, 5, 6`, `a number`.
         forms: String,
     },
     /// The owner exists only while `run` runs.

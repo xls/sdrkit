@@ -35,7 +35,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:nr
 | `not_barred` | Leave out barred cells | yes or no | false |  |  |
 | `band_order` | Band order | text | empty |  | Band numbers taken first where bands overlap ("1 3 7"); the other bands follow in band number order. |
 | `band_search` | Band search | choice | `auto` | `auto` (When nothing is found), `survey` (Always (survey)), `off` (Never) | When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never. |
-| `search_bands` | Bands searched | text | empty |  | Band numbers to search, in order ("28 5 3"). Empty: the band of the tuned frequency, else the nearest band. |
+| `search_bands` | Bands searched | text | empty |  | Band numbers to search, in order ("28 5 3"). Empty: the bands of the band order (the bands of the country), else the band of the tuned frequency, else the nearest band. |
+| `search_first` | Searched first | text (MHz) | empty |  | Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none. |
 | `search_dwell_s` | Time per step | number (s) | 0.5 | 0.1 to 10 | The least time on each radio centre of a band search; longer when one capture takes longer to search. |
 
 Advanced settings. The owner works without any of them set.
@@ -96,12 +97,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything decoded so far. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
-| `search` | Search the bands |  |  | Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass. |
+| `search` | Search the bands |  |  | Steps the radio over the raster of the bands of the setting search_bands (empty: the bands of the band order, else the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass. |
 | `stay` | Stay on a cell | `row` (text, required) |  | Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found. |
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.7. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.8. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -294,6 +295,7 @@ Struct `FoundCellEvent`. A cell found or identified by a search stack.
 | `symbol_phase` | `sdrkit_nr_get_symbol_phase` | `sdrkit_nr_set_symbol_phase` |
 | `band_search` | `sdrkit_nr_get_band_search` | `sdrkit_nr_set_band_search` |
 | `search_bands` | `sdrkit_nr_get_search_bands` | `sdrkit_nr_set_search_bands` |
+| `search_first` | `sdrkit_nr_get_search_first` | `sdrkit_nr_set_search_first` |
 | `search_dwell_s` | `sdrkit_nr_get_search_dwell_s` | `sdrkit_nr_set_search_dwell_s` |
 
 ### Settings of the test signal generator

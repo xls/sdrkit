@@ -10,6 +10,7 @@ pub mod frames;
 pub mod gen;
 pub mod mac;
 pub mod plan;
+pub mod shed;
 pub mod stations;
 pub mod table;
 
@@ -25,6 +26,7 @@ use sdrkit_core::{
     SettingSet, StackConfig, StackDescriptor, Tuning, Values,
 };
 use fields::Fields;
+use shed::{Shed, Shedder};
 use sdrkit_graph::{
     no_values, Catalog, Decoder, DecoderComponent, Format, Graph, GraphBuilder, GraphError, InOrder, Item,
     Kind, Outbox, Port, Registry, RunContext, StackGraph, Timed,
@@ -50,6 +52,7 @@ pub const CHAIN_RATE_HZ: f64 = 20e6;
 const BEHIND_S: f64 = 0.05;
 /// The width each channel filter keeps flat, Hz (the OFDM tones span 16.6 MHz).
 const CHAIN_WIDTH_HZ: f64 = 17e6;
+
 
 sdrkit_core::choice_enum! {
     /// The PHY a frame came on.
@@ -305,6 +308,8 @@ pub struct WifiStats {
     pub channel_offset_hz: f64,
     /// The input rate, Hz.
     pub rate_hz: f64,
+    /// What the decoder leaves out because live input came faster than it works.
+    pub shed: Shed,
 }
 
 impl Item for WifiStats {
@@ -420,8 +425,16 @@ impl Chain {
     }
 
     /// Runs a piece of input. `share` is the part of the processor time this chain may use: 1 over the chains running. DSSS
-    /// frames go to `out`; the OFDM frames and data fields go to `fields`, which lets them out in order.
-    fn run(&mut self, x: &[Complex32], share: f64, out: &mut Vec<Timed<WifiMpdu>>, fields: &mut Fields) {
+    /// frames go to `out`; the OFDM frames and data fields go to `fields`, which lets them out in order. With `shed_data`
+    /// and live input the HT and VHT data fields are counted as busy and not decoded.
+    fn run(
+        &mut self,
+        x: &[Complex32],
+        share: f64,
+        out: &mut Vec<Timed<WifiMpdu>>,
+        fields: &mut Fields,
+        shed_data: bool,
+    ) {
         if matches!(self.rx, Rx::Dsss(_)) {
             self.run_dsss(x);
             out.append(&mut self.found);
@@ -435,8 +448,9 @@ impl Chain {
         match &mut self.rx {
             Rx::Dsss(_) => {}
             Rx::Ofdm(r, dec) => {
-                // With live input and no helpers, a chain more than BEHIND_S behind the signal counts data fields as busy.
-                let behind = self.behind_s >= BEHIND_S;
+                // With live input, a chain with no helpers that is more than BEHIND_S behind the signal counts data fields as
+                // busy, and so does a decoder that sheds data.
+                let skip = shed_data || (fields.helpers() == 0 && self.behind_s >= BEHIND_S);
                 let started = std::time::Instant::now();
                 let signal_s = self.buf.len() as f64 / out_rate * share;
                 let fields = std::cell::RefCell::new(fields);
@@ -463,7 +477,7 @@ impl Chain {
                             true
                         }
                         Read::Data(plan) => {
-                            fields.borrow_mut().field(v, plan, at(v.sample), channel, band, behind);
+                            fields.borrow_mut().field(v, plan, at(v.sample), channel, band, skip);
                             true
                         }
                     },
@@ -531,6 +545,11 @@ pub struct WifiDecoder {
     input: u64,
     level: IntervalLevel,
     out: Vec<Timed<WifiMpdu>>,
+    /// The input format of the chains, for a rebuild when the shed level changes.
+    format: Option<Format>,
+    shedder: Shedder,
+    /// The shed level that the chains are built for.
+    shed: Shed,
 }
 
 impl WifiDecoder {
@@ -570,6 +589,7 @@ impl WifiDecoder {
     fn run_chains(&mut self, x: &[Complex32]) {
         self.out.clear();
         let share = 1.0 / self.chains.len().max(1) as f64;
+        let shed_data = self.shed == Shed::Data;
         let dsss = self.chains.iter().filter(|c| matches!(c.rx, Rx::Dsss(_))).count();
         match self.dsss_jobs.as_mut() {
             // Several DSSS chains run on the helper threads and come back in the order of the chains; the OFDM chains follow
@@ -613,12 +633,12 @@ impl WifiDecoder {
                 self.back.append(&mut self.chains);
                 std::mem::swap(&mut self.chains, &mut self.back);
                 for c in &mut self.chains[dsss..] {
-                    c.run(x, share, &mut self.out, &mut self.fields);
+                    c.run(x, share, &mut self.out, &mut self.fields, shed_data);
                 }
             }
             _ => {
                 for c in &mut self.chains {
-                    c.run(x, share, &mut self.out, &mut self.fields);
+                    c.run(x, share, &mut self.out, &mut self.fields, shed_data);
                 }
             }
         }
@@ -645,6 +665,7 @@ impl WifiDecoder {
             channel: self.channel,
             channel_offset_hz: self.channel_offset,
             rate_hz: self.rate,
+            shed: self.shed,
         };
         Timed {
             time: time_s,
@@ -652,7 +673,26 @@ impl WifiDecoder {
         }
     }
 
+    /// Sets the shed level: the chains are built again when the level adds or removes the neighbour channels.
+    fn set_shed(&mut self, level: Shed) {
+        let rebuild = (level == Shed::Nothing) != (self.shed == Shed::Nothing);
+        self.shed = level;
+        if let (true, Some(f)) = (rebuild, self.format.clone()) {
+            self.rebuild(&f);
+        }
+    }
+
+    /// Counts a piece of live input that held `signal_s` of signal and took `work_s`, and sheds or takes back work.
+    fn worked(&mut self, work_s: f64, signal_s: f64) {
+        let level = self.shedder.step(work_s, signal_s);
+        if level != self.shed {
+            self.set_shed(level);
+        }
+    }
+
     fn rebuild(&mut self, f: &Format) {
+        self.format = Some(f.clone());
+        let neighbours = self.shed == Shed::Nothing;
         let (d, o, _) = self.counters();
         self.kept_dsss = d;
         self.kept_ofdm = o;
@@ -681,8 +721,8 @@ impl WifiDecoder {
             let mut dsss = vec![(offset, width, out, ch)];
             // Every other 2.4 GHz channel whose main lobe reaches far enough into the capture: the part of the lobe inside
             // still despreads, as below the OFDM rate.
-            if band == Some(Band::G2) && centre > 0.0 {
-                for (off, c) in neighbours(centre, rate, ch) {
+            if neighbours && band == Some(Band::G2) && centre > 0.0 {
+                for (off, c) in self::neighbours(centre, rate, ch) {
                     let half = 0.5 * rate - off.abs();
                     if half >= 0.5 * MIN_RATE_HZ {
                         dsss.push((off, (1.7 * half).min(0.89 * DSSS_LOW_RATE_HZ), DSSS_LOW_RATE_HZ, c));
@@ -715,26 +755,31 @@ impl WifiDecoder {
         if offsets.is_empty() {
             offsets.push((offset, ch));
         }
+        // The channel nearest the signal offset comes first: it is the one that stays when the neighbours are shed.
+        let nearest = offsets
+            .iter()
+            .enumerate()
+            .min_by(|a, b| (a.1 .0 - offset).abs().total_cmp(&(b.1 .0 - offset).abs()))
+            .map_or(0, |(i, _)| i);
+        offsets.swap(0, nearest);
         // On 2.4 GHz, also every other channel whose 16.6 MHz of OFDM tones lie wholly inside the capture.
         if band == Some(Band::G2) && centre > 0.0 {
-            for (off, c) in neighbours(centre, rate, ch) {
+            for (off, c) in self::neighbours(centre, rate, ch) {
                 if plan::inside((centre + off) / 1e6, centre / 1e6, rate) {
                     offsets.push((off, c));
                 }
             }
         }
-        for (off, c) in offsets {
+        if !neighbours {
+            offsets.truncate(1);
+        }
+        for (k, (off, c)) in offsets.into_iter().enumerate() {
             let r = Rx::Ofdm(Box::new(ofdm::OfdmReceiver::new()), Box::new(PpduDecoder::new()));
-            self.chains.extend(Chain::new(
-                rate,
-                off,
-                CHAIN_WIDTH_HZ,
-                CHAIN_RATE_HZ,
-                r,
-                t0,
-                band,
-                c,
-            ));
+            let chain = Chain::new(rate, off, CHAIN_WIDTH_HZ, CHAIN_RATE_HZ, r, t0, band, c);
+            self.chains.extend(chain.map(|mut c| {
+                c.neighbour = k > 0;
+                c
+            }));
         }
     }
 }
@@ -840,11 +885,21 @@ impl Decoder for WifiDecoder {
         });
         self.fields.ready = ready;
         self.fields.ppdu = ppdu;
+        // What a live run shed is taken back: the new input may be a recording.
+        self.shedder = Shedder::default();
+        if self.shed != Shed::Nothing {
+            self.set_shed(Shed::Nothing);
+        }
     }
     fn process(&mut self, x: &[Complex32], first: u64, out: &mut Outbox) {
         self.input = first + x.len() as u64;
         self.level.push(x);
+        // Only live input sheds work: a recording waits for the decoder.
+        let started = self.fields.live.then(std::time::Instant::now);
         self.run_chains(x);
+        if let Some(t) = started {
+            self.worked(t.elapsed().as_secs_f64(), x.len() as f64 / self.rate.max(1.0));
+        }
         out.items::<WifiMpdu>(0).append(&mut self.out);
         let stats = self.stats();
         out.items::<WifiStats>(1).push(stats);
@@ -1051,7 +1106,7 @@ mod tests {
     fn run_all(c: &mut Chain, fields: &mut Fields, x: &[Complex32], piece: usize) -> Vec<Timed<WifiMpdu>> {
         let mut out = Vec::new();
         for p in x.chunks(piece) {
-            c.run(p, 1.0, &mut out, fields);
+            c.run(p, 1.0, &mut out, fields, false);
             fields.flush(!fields.live);
             out.append(&mut fields.ready);
         }
@@ -1170,6 +1225,102 @@ mod tests {
         let (got, _) =
             heard_around_channel_6(40e6, &[(15e6, Dsss), (-5e6, Ofdm), (5e6, Ofdm), (15e6, Ofdm)]);
         assert_eq!(got, [(1, PhyKind::Dsss, 9), (2, PhyKind::Ofdm, 5), (3, PhyKind::Ofdm, 7)]);
+    }
+
+    /// A decoder on channel 6 at 20 Msps with live input, and 30 ms of beacons: DSSS on channels 5, 6 and 7, non-HT OFDM at 6 and
+    /// at 54 Mbit/s and one HT PPDU on channel 6. The tag of each frame is its place in this list, from 1.
+    fn live_on_channel_6() -> (WifiDecoder, Vec<Complex32>) {
+        use gen::Phy::{Dsss, Ofdm};
+        use sdrkit_core::Generator;
+        let mut frames: Vec<gen::GenFrame> = [(-5e6, Dsss), (0.0, Dsss), (5e6, Dsss), (0.0, Ofdm), (0.0, Ofdm)]
+            .iter()
+            .enumerate()
+            .map(|(i, &(at, phy))| {
+                let mut f = gen::GenFrame::new(mpdu(60, i as u8 + 1), phy).gap(1e-3);
+                f.position_hz = at;
+                f
+            })
+            .collect();
+        frames[4] = frames[4].clone().ofdm_rate(ofdm::Rate::R54);
+        let mut g = gen::WifiGenerator::new(gen::WifiGenParams {
+            rate_hz: 20e6,
+            frames,
+            looped: false,
+            ..Default::default()
+        });
+        let mut x = vec![Complex32::default(); 600_000];
+        g.generate(&mut x);
+        let mut ht = Vec::new();
+        ht::build_ppdu(&mpdu(100, 6), Mcs(2), false, 0x21, PilotPattern::Fixed, &mut ht);
+        x.extend(padded(&[ht]));
+        let mut dec = WifiDecoder::default();
+        dec.fields.live = true;
+        dec.configure(&Format::iq(20e6, 2437e6, 2437e6)).unwrap();
+        (dec, x)
+    }
+
+    /// The tags and channels of the frames that `dec` takes from `x`.
+    fn tags(dec: &mut WifiDecoder, x: &[Complex32]) -> Vec<(u8, u32)> {
+        let mut got = Vec::new();
+        for p in x.chunks(65_536) {
+            dec.input += p.len() as u64;
+            dec.run_chains(p);
+            got.extend(dec.out.drain(..).map(|m| (m.value.bytes[15], m.value.channel)));
+        }
+        dec.fields.flush(true);
+        got.extend(dec.fields.ready.drain(..).map(|m| (m.value.bytes[15], m.value.channel)));
+        got.sort_unstable();
+        got.dedup();
+        got
+    }
+
+    #[test]
+    fn a_decoder_behind_live_input_sheds_neighbours_then_data_and_takes_them_back() {
+        let (mut dec, x) = live_on_channel_6();
+        let all = [(1, 5), (2, 6), (3, 7), (4, 6), (5, 6), (6, 6)];
+        assert_eq!(tags(&mut dec, &x), all);
+        assert_eq!((dec.shed, dec.channels_at_once()), (Shed::Nothing, 3));
+        // Work that takes twice the signal time: the chains next to the tuned channel go first. The chain of the tuned
+        // channel still despreads the DSSS frames 5 MHz off, and gives them its own channel.
+        dec.worked(0.4, 0.2);
+        assert_eq!((dec.shed, dec.channels_at_once()), (Shed::Neighbours, 1));
+        assert_eq!(tags(&mut dec, &x), [(1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6)]);
+        // Still behind: the HT data field is left out and counted; the DSSS and non-HT frames of the tuned channel, the
+        // beacons among them, stay.
+        dec.worked(0.4, 0.2);
+        assert_eq!(dec.shed, Shed::Data);
+        assert_eq!(tags(&mut dec, &x), [(1, 6), (2, 6), (3, 6), (4, 6), (5, 6)]);
+        assert_eq!(dec.fields.ppdu.not_decoded_for(Undecoded::Busy), 1);
+        assert_eq!(dec.stats().value.shed, Shed::Data);
+        // Light work for the hold time, twice: everything is decoded again.
+        for _ in 0..2 {
+            for _ in 0..(shed::HOLD_S + 2.0) as usize * 10 {
+                dec.worked(0.01, 0.1);
+            }
+        }
+        assert_eq!(dec.shed, Shed::Nothing);
+        assert_eq!(tags(&mut dec, &x), all);
+    }
+
+    #[test]
+    fn a_recording_sheds_nothing_however_slow_the_work() {
+        use sdrkit_graph::Outbox;
+        let (mut dec, x) = live_on_channel_6();
+        dec.fields.live = false;
+        let mut out = Outbox::new(&[Kind::typed::<WifiMpdu>(), Kind::typed::<WifiStats>()]);
+        let mut first = 0;
+        for p in x.chunks(65_536) {
+            dec.process(p, first, &mut out);
+            first += p.len() as u64;
+        }
+        assert_eq!((dec.shed, dec.shedder), (Shed::Nothing, Shedder::default()));
+        assert_eq!(dec.channels_at_once(), 3);
+        // A decoder that shed while live takes everything back when its input becomes a recording.
+        dec.fields.live = true;
+        dec.worked(0.4, 0.2);
+        assert_eq!((dec.shed, dec.channels_at_once()), (Shed::Neighbours, 1));
+        dec.attach(&RunContext::default());
+        assert_eq!((dec.shed, dec.shedder, dec.channels_at_once()), (Shed::Nothing, Shedder::default(), 3));
     }
 
     #[test]

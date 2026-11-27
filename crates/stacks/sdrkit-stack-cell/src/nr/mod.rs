@@ -12,7 +12,7 @@ pub mod sib1;
 use crate::bands::{coreset0, hz_to_gscn, nr_band_of};
 use crate::decoder::{
     build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, SearchConfig, SearchStack,
-    Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
+    FrequencyList, MoveGuard, Sightings, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL, SEARCH_FIRST,
 };
 use crate::decoder::RowSync;
 use crate::typed::{
@@ -549,6 +549,8 @@ pub struct NrSearch {
     sightings: Sightings<NrKey>,
     /// The SSB frequencies of the decoded cells of the newest capture, Hz (absolute when the centre is known).
     decoded_hz: Vec<f64>,
+    /// The cells of samples of the old centre after a move of the radio.
+    moves: MoveGuard,
 }
 
 impl Default for NrSearch {
@@ -564,6 +566,7 @@ impl Default for NrSearch {
             quiet: None,
             sightings: Sightings::default(),
             decoded_hz: Vec::new(),
+            moves: MoveGuard::default(),
         }
     }
 }
@@ -617,6 +620,9 @@ impl NrSearch {
         *log.decoded += f.pbch_ok as u64;
         *log.failed += (f.pbch_tried - f.pbch_ok) as u64;
         if f.mib.is_none() && f.significance < 6.0 {
+            return;
+        }
+        if self.moves.late(cap, u64::from(f.pci) | u64::from(f.cand.scs) << 16, f.cand.offset_hz) {
             return;
         }
         let known = cap.centre_known();
@@ -848,6 +854,7 @@ impl SearchStack for NrSearch {
             }
             NrSetting::BandSearch => self.scan.mode = BAND_SEARCH.read(id, v)?,
             NrSetting::SearchBands => self.scan.bands = BandList::read(id, SEARCH_BANDS.read(id, v)?)?,
+            NrSetting::SearchFirst => self.scan.first = FrequencyList::read(id, SEARCH_FIRST.read(id, v)?)?,
             NrSetting::SearchDwell => self.scan.dwell_s = SEARCH_DWELL.read(id, v)?,
         }
         Ok(())
@@ -870,6 +877,7 @@ impl SearchStack for NrSearch {
             (NrSetting::SymbolPhase, Value::Bool(self.searcher.symbol_phase)),
             (NrSetting::BandSearch, self.scan.mode_value()),
             (NrSetting::SearchBands, Value::Text(self.scan.bands.text.clone())),
+            (NrSetting::SearchFirst, Value::Text(self.scan.first.text.clone())),
             (NrSetting::SearchDwell, Value::F64(self.scan.dwell_s)),
         ])
     }
@@ -882,6 +890,7 @@ impl SearchStack for NrSearch {
     fn merge(&mut self, t: &mut NrTables, cap: &Capture, found: NrSearchOut, log: &mut Log<Self>) {
         t.gscn_range = found.gscn_range;
         t.candidates = Some(found.candidates);
+        self.moves.begin(cap);
         self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db);
         let base = if cap.centre_known() { cap.centre_hz } else { 0.0 };
         self.decoded_hz = found
@@ -911,6 +920,9 @@ impl SearchStack for NrSearch {
     }
     fn search_steps(&self, band: u16, rate: f64) -> Vec<f64> {
         crate::scan::nr_steps(band, rate)
+    }
+    fn band_order(&self) -> &[u16] {
+        &self.order.bands
     }
     fn bands_at(&self, hz: f64) -> Vec<u16> {
         crate::bands::downlink_bands(sdrkit_data_plans::cellular::CellSystem::Nr, hz, &self.order.bands)
@@ -1016,6 +1028,8 @@ sdrkit_core::settings! {
         BandSearch = BAND_SEARCH,
         /// The bands a band search covers.
         SearchBands = SEARCH_BANDS,
+        /// The known carriers that a band search visits first.
+        SearchFirst = SEARCH_FIRST,
         /// The least time on each radio centre of a band search.
         SearchDwell = SEARCH_DWELL,
     }

@@ -104,6 +104,18 @@ fn a_bad_value_names_the_forms() {
 }
 
 #[test]
+fn a_bad_choice_names_the_setting_by_its_label() {
+    let choices = vec![
+        sdrkit_core::ChoiceDecl::new("2.4", "2.4 GHz"),
+        sdrkit_core::ChoiceDecl::new("5", "5 GHz"),
+        sdrkit_core::ChoiceDecl::new("6", "6 GHz"),
+    ];
+    let decl = sdrkit_core::FieldDecl::with_choices("band", "Band", choices);
+    let e = sdrkit_cli::text::parse_value(&decl, "7").unwrap_err();
+    assert_eq!(e.to_string(), "7 is not one of 2.4, 5, 6 for setting \"Band\" (band)");
+}
+
+#[test]
 fn call_runs_a_command_of_the_engine_and_prints_its_reply() {
     let (code, out, err) = sdrkit(&["call", "engine", "state.save", "--json"]);
     assert_eq!(code, 0, "{err}");

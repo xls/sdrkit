@@ -14,6 +14,7 @@ mod lte;
 mod modes;
 mod nbiot;
 mod nr;
+mod pace;
 mod railway_cir;
 mod rates;
 mod search;

@@ -481,10 +481,9 @@ pub fn call(
             let decl = rec.decl().field(fid).cloned().ok_or_else(unknown)?;
             let value = text::parse_value(&decl, v)?;
             rec.set_value(fid, &value).map_err(|_| CliError::BadValue {
-                key: k.to_owned(),
+                name: format!("argument \"{}\" ({k})", decl.label),
                 text: v.to_owned(),
-                kind: decl.kind,
-                forms: String::new(),
+                forms: "a value it takes".to_owned(),
             })?;
         }
         let reply = sdrkit_host_engine::EngineError::invoke(o, id, &rec)?;

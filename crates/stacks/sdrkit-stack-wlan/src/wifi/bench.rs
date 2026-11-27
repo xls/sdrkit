@@ -113,7 +113,7 @@ fn busy_with(seconds: f64, helpers: usize) -> BenchResult {
     let mut out = Vec::new();
     let mut pass = |c: &mut Chain, out: &mut Vec<_>| {
         for b in x.chunks(65_536) {
-            c.run(b, 1.0, out, &mut fields);
+            c.run(b, 1.0, out, &mut fields, false);
             fields.flush(true);
             out.append(&mut fields.ready);
         }
@@ -194,7 +194,7 @@ mod keep_up {
                         if due > now {
                             std::thread::sleep(std::time::Duration::from_secs_f64(due - now));
                         }
-                        c.run(b, 1.0, &mut out, &mut fields);
+                        c.run(b, 1.0, &mut out, &mut fields, false);
                         fields.flush(false);
                         out.append(&mut fields.ready);
                         fed += b.len();

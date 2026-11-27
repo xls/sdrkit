@@ -132,6 +132,113 @@ fn nr_band_search_finds_and_stays() {
     assert!((stayed.unwrap() - cell_hz).abs() < 10e3, "{stayed:?} for {cell_hz}");
 }
 
+/// A known carrier of the setting `search_first` is the first step of the search, at its own centre; in auto the search
+/// stays on its cell there and visits no other step.
+#[test]
+fn a_known_carrier_is_searched_first() {
+    let (cell_hz, _) = scene(1);
+    // 1900 MHz lies outside n28: left out.
+    let first = format!("{} 1900", cell_hz / 1e6);
+    let mut rx = stack_graph(&NR, &[("search_bands", J::from("28")), ("search_first", J::from(first.as_str()))]);
+    let centre = 760e6;
+    rx.configure(&InputInfo::new(12e6, centre, centre).recording()).unwrap();
+    command(&mut rx, "search");
+    let mut out = Output::default();
+    rx.feed(&noise(12e6, 0.01, 0.01, 2), &mut out);
+    let hop = out.requests.iter().find_map(|q| match q {
+        HostRequest::Hop { channels, .. } => Some(channels.clone()),
+        _ => None,
+    });
+    let hop = hop.expect("a hop");
+    assert_eq!(hop[0], cell_hz, "{hop:?}");
+    assert_eq!(hop.len(), sdrkit_stack_cell::scan::nr_steps(28, 12e6).len() + 1);
+    // The radio moves there: the cell is found and the search stays on it.
+    rx.retuned(&InputInfo::new(12e6, cell_hz, cell_hz).recording());
+    out.clear();
+    rx.feed(&n28_from(cell_hz, 0.3), &mut out);
+    assert_eq!(cells_of(&rx), [222]);
+    assert!(out.requests.iter().any(|q| matches!(q, HostRequest::Retune { tuned_hz, .. } if *tuned_hz == cell_hz)), "{:?}", out.requests);
+}
+
+/// The n28 cell of scene 1 as a radio centred at `centre` sees it at 12 Msps, `seconds` long at 15 dB SNR; only noise
+/// when the SSB is not whole in the capture.
+fn n28_from(centre: f64, seconds: f64) -> Vec<Complex32> {
+    let rate = 12e6;
+    let (cell_hz, cells) = scene(1);
+    let mut keys = snr(15.0);
+    keys.push(("gen_offset_hz", J::from(cell_hz - centre)));
+    let mut x = impaired(NrGenerator::new(rate, cells, NrGenOptions::default()), &keys, seconds);
+    if (cell_hz - centre).abs() > rate / 2.0 - 2.2e6 {
+        x = noise(rate, seconds, 0.01, 5);
+    }
+    x
+}
+
+/// The frequencies of the rows of the cells table.
+fn cell_freqs(rx: &sdrkit_graph::StackGraph) -> Vec<f64> {
+    cells(&state(rx)).iter().filter_map(|c| c["frequency_hz"].as_f64()).collect()
+}
+
+/// One SSB seen from two radio centres that both hold it is one cell at its own frequency.
+#[test]
+fn nr_one_ssb_seen_from_two_centres_is_one_cell() {
+    let (cell_hz, _) = scene(1);
+    let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
+    let (a, b) = (cell_hz - 3e6, cell_hz + 3e6);
+    rx.configure(&InputInfo::new(12e6, a, a).recording()).unwrap();
+    rx.feed(&n28_from(a, 0.4), &mut Output::default());
+    rx.retuned(&InputInfo::new(12e6, b, b).recording());
+    rx.feed(&n28_from(b, 0.4), &mut Output::default());
+    rx.finish(&mut Output::default());
+    assert_eq!(cells_of(&rx), [222]);
+    let f = cell_freqs(&rx);
+    assert!((f[0] - cell_hz).abs() < 10e3, "{f:?} for {cell_hz}");
+}
+
+/// A network radio still sends samples of the old centre for a short time after it moved. A cell in them is not listed a
+/// second time at the new centre, at the old offset from it.
+#[test]
+fn nr_samples_of_the_old_centre_after_a_move_give_no_second_cell() {
+    let (cell_hz, _) = scene(1);
+    let mut rx = stack_graph(&NR, &[("band_search", J::from("off"))]);
+    // Two neighbouring steps of a band search at 12 Msps: the cell is 1.48 MHz above the first and outside the second.
+    let a = cell_hz - 1.48e6;
+    let b = a + 7.2e6;
+    rx.configure(&InputInfo::new(12e6, a, a).recording()).unwrap();
+    rx.feed(&n28_from(a, 0.5), &mut Output::default());
+    rx.retuned(&InputInfo::new(12e6, b, b).recording());
+    let late = n28_from(a, 0.2);
+    rx.feed(&late, &mut Output::default());
+    rx.feed(&n28_from(b, 0.4), &mut Output::default());
+    rx.finish(&mut Output::default());
+    assert_eq!(cells_of(&rx), [222], "{:?}", cell_freqs(&rx));
+    let f = cell_freqs(&rx);
+    assert!((f[0] - cell_hz).abs() < 10e3, "{f:?} for {cell_hz}");
+}
+
+/// The same for LTE: a 1.4 MHz carrier 2 MHz above the old centre, and samples of the old centre after a move of 10 MHz.
+#[test]
+fn lte_samples_of_the_old_centre_after_a_move_give_no_second_cell() {
+    let rate = 12e6;
+    let c = sdrkit_stack_cell::lte::gen::scene(2, None);
+    let cell_hz = sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
+    let (a, b) = (cell_hz - 2e6, cell_hz + 8e6);
+    let from_a = |seconds: f64| {
+        let mut keys = snr(20.0);
+        keys.push(("gen_offset_hz", J::from(2e6)));
+        impaired(sdrkit_stack_cell::lte::gen::LteGenerator::new(rate, c.clone(), Default::default()), &keys, seconds)
+    };
+    let mut rx = stack_graph(&CELL, &[("band_search", J::from("off"))]);
+    rx.configure(&InputInfo::new(rate, a, a).recording()).unwrap();
+    rx.feed(&from_a(0.6), &mut Output::default());
+    assert_eq!(cells_of(&rx), [7], "the cell at the old centre");
+    rx.retuned(&InputInfo::new(rate, b, b).recording());
+    rx.feed(&from_a(0.25), &mut Output::default());
+    rx.feed(&noise(rate, 0.5, 0.01, 4), &mut Output::default());
+    rx.finish(&mut Output::default());
+    assert_eq!(cells_of(&rx), [7], "{:?}", cell_freqs(&rx));
+}
+
 fn cells_of(rx: &sdrkit_graph::StackGraph) -> Vec<i64> {
     cells(&state(rx)).iter().filter_map(|c| c["pci"].as_i64()).collect()
 }
@@ -167,6 +274,53 @@ fn a_quiet_live_frequency_starts_the_search() {
         } else {
             assert!(hops.is_empty(), "{hops:?}");
         }
+    }
+}
+
+/// A start in Australia without a setting of its own: the host sets the country's band order, and the band search of a
+/// quiet live frequency steps through every band of that order, in that order.
+#[test]
+fn a_default_start_in_australia_searches_the_bands_of_the_country() {
+    let data = sdrkit_presets::Data::open(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data")).unwrap();
+    let au = sdrkit_presets::Region::new("AU").unwrap();
+    let rate = 12e6;
+    for (desc, want, steps) in [
+        (&CELL, &[28u16, 5, 26, 8, 3, 1, 7, 40][..], sdrkit_stack_cell::scan::lte_steps as fn(u16, f64) -> Vec<f64>),
+        (&NR, &[5, 28, 78, 1, 3, 7, 8, 40][..], sdrkit_stack_cell::scan::nr_steps),
+    ] {
+        let p = data.preset(desc.id, &au, &sdrkit_presets::Options::default()).unwrap();
+        let extra: Vec<(&str, J)> = p
+            .settings
+            .iter()
+            .map(|(k, v)| match v {
+                sdrkit_core::Value::Text(t) => (k.as_str(), J::from(t.as_str())),
+                other => panic!("{k}: {other:?}"),
+            })
+            .collect();
+        let order = &p.settings.iter().find(|(k, _)| k == "band_order").expect("a band order").1;
+        let mut rx = stack_graph(desc, &extra);
+        rx.configure(&InputInfo::new(rate, p.frequency_hz, p.frequency_hz)).unwrap();
+        let mut out = Output::default();
+        let mut hop = None;
+        for i in 0..1000 {
+            std::thread::sleep(std::time::Duration::from_millis(10));
+            rx.feed(&noise(rate, 0.01, 0.05, i), &mut out);
+            hop = hop.or(out.requests.iter().find_map(|q| match q {
+                HostRequest::Hop { channels, .. } => Some(channels.clone()),
+                _ => None,
+            }));
+            out.clear();
+            if hop.is_some() {
+                break;
+            }
+        }
+        let hop = hop.unwrap_or_else(|| panic!("{}: no band search ({order:?})", desc.id));
+        // Every step of each band of the order is in the hop, which starts on the first band.
+        for b in want {
+            let missing: Vec<f64> = steps(*b, rate).into_iter().filter(|c| !hop.iter().any(|h| (h - c).abs() < 1.0)).collect();
+            assert!(missing.is_empty(), "{}: band {b} misses {missing:?}", desc.id);
+        }
+        assert_eq!(hop[0], steps(want[0], rate)[0], "{}: the first band first", desc.id);
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.7. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.8. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 7
+#define SDRKIT_CELL_VERSION_MINOR 8
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -2789,7 +2789,7 @@ static inline int32_t sdrkit_cell_remove(SDRKIT_HANDLE handle, const sdrkit_cell
   return sdrkit_typed_command(handle, "remove", "cell.SearchRemoveArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "search" (Search the bands) of the stack "cell" on the session of `handle`. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+// Runs the command "search" (Search the bands) of the stack "cell" on the session of `handle`. Steps the radio over the raster of the bands of the setting search_bands (empty: the bands of the band order, else the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
 static inline int32_t sdrkit_cell_search(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "search", NULL, NULL, NULL, NULL, 0);
 }
@@ -2925,12 +2925,20 @@ static inline int32_t sdrkit_cell_set_band_search(SDRKIT_HANDLE handle, sdrkit_c
   return sdrkit_typed_setting_set_enum(handle, "band_search", (int32_t)value);
 }
 
-// The setting "search_bands" (Bands searched) of the stack "cell". Band numbers to search, in order ("28 5 3"). Empty: the band of the tuned frequency, else the nearest band.
+// The setting "search_bands" (Bands searched) of the stack "cell". Band numbers to search, in order ("28 5 3"). Empty: the bands of the band order (the bands of the country), else the band of the tuned frequency, else the nearest band.
 static inline int32_t sdrkit_cell_get_search_bands(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "search_bands", value);
 }
 static inline int32_t sdrkit_cell_set_search_bands(SDRKIT_HANDLE handle, sdrkit_string value) {
   return sdrkit_typed_setting_set_string(handle, "search_bands", value);
+}
+
+// The setting "search_first" (Searched first) of the stack "cell". Unit: MHz. Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none.
+static inline int32_t sdrkit_cell_get_search_first(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "search_first", value);
+}
+static inline int32_t sdrkit_cell_set_search_first(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "search_first", value);
 }
 
 // The setting "search_dwell_s" (Time per step) of the stack "cell". Unit: s. The least time on each radio centre of a band search; longer when one capture takes longer to search.
@@ -3033,7 +3041,7 @@ static inline int32_t sdrkit_nr_remove(SDRKIT_HANDLE handle, const sdrkit_cell_s
   return sdrkit_typed_command(handle, "remove", "cell.SearchRemoveArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "search" (Search the bands) of the stack "nr" on the session of `handle`. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+// Runs the command "search" (Search the bands) of the stack "nr" on the session of `handle`. Steps the radio over the raster of the bands of the setting search_bands (empty: the bands of the band order, else the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
 static inline int32_t sdrkit_nr_search(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "search", NULL, NULL, NULL, NULL, 0);
 }
@@ -3137,12 +3145,20 @@ static inline int32_t sdrkit_nr_set_band_search(SDRKIT_HANDLE handle, sdrkit_nr_
   return sdrkit_typed_setting_set_enum(handle, "band_search", (int32_t)value);
 }
 
-// The setting "search_bands" (Bands searched) of the stack "nr". Band numbers to search, in order ("28 5 3"). Empty: the band of the tuned frequency, else the nearest band.
+// The setting "search_bands" (Bands searched) of the stack "nr". Band numbers to search, in order ("28 5 3"). Empty: the bands of the band order (the bands of the country), else the band of the tuned frequency, else the nearest band.
 static inline int32_t sdrkit_nr_get_search_bands(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "search_bands", value);
 }
 static inline int32_t sdrkit_nr_set_search_bands(SDRKIT_HANDLE handle, sdrkit_string value) {
   return sdrkit_typed_setting_set_string(handle, "search_bands", value);
+}
+
+// The setting "search_first" (Searched first) of the stack "nr". Unit: MHz. Frequencies of known carriers, MHz, that a band search visits first, each at its own centre ("884.45 763"); a frequency outside the bands searched is left out. In auto the search stays on the first cell it finds. Empty: none.
+static inline int32_t sdrkit_nr_get_search_first(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "search_first", value);
+}
+static inline int32_t sdrkit_nr_set_search_first(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "search_first", value);
 }
 
 // The setting "search_dwell_s" (Time per step) of the stack "nr". Unit: s. The least time on each radio centre of a band search; longer when one capture takes longer to search.

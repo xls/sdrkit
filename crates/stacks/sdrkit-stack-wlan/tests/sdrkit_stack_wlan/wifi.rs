@@ -1069,6 +1069,13 @@ fn channel_band_and_hop_ask_the_host() {
     let h = hops(&fed.requests);
     assert_eq!(h.len(), 1);
     assert_eq!((h[0].0[0], h[0].0.contains(&5180e6)), (5745e6, true));
+    // A channel list set before the first samples starts no hop over the band of the settings: the radio is on 5 GHz, and
+    // the hop goes over its 5 GHz list from the tuned channel.
+    let lists = [("channels_24", Value::Text("1 6 11".into())), ("channels_5", Value::Text("36 40 149".into()))];
+    let mut r = wifi::receiver(&config(WifiSetting::schema(), &lists)).unwrap();
+    r.configure(&InputInfo::new(20e6, 5200e6, 5200e6)).unwrap();
+    let fed = feed(&mut r, &quiet, 200_000);
+    assert_eq!(hops(&fed.requests), [(vec![5200e6, 5745e6, 5180e6], 0.13)]);
     // Band 5 with the 2.4 GHz default channel is not refused: the band's first channel is asked for, then the hop.
     let mut r = wifi::receiver(&config(WifiSetting::schema(), &[("band", Value::Text("5".into()))])).unwrap();
     r.configure(&InputInfo::new(20e6, 2437e6, 2437e6)).unwrap();
@@ -1079,7 +1086,12 @@ fn channel_band_and_hop_ask_the_host() {
         }
         q => panic!("{q:?}"),
     }
-    // With the hop off a channel is asked for alone; a number the band lacks takes its first channel.
+    // With the hop off from the start the radio stays where the host tuned it, on any band. A channel is then asked for
+    // alone; a number the band lacks takes its first channel.
+    let mut r = rx();
+    set(&mut r, "hop", Value::Bool(false)).unwrap();
+    r.configure(&InputInfo::new(20e6, 5180e6, 5180e6)).unwrap();
+    assert!(feed(&mut r, &quiet, 200_000).requests.is_empty());
     let mut r = rx();
     set(&mut r, "hop", Value::Bool(false)).unwrap();
     r.configure(&InputInfo::new(20e6, 2437e6, 2437e6)).unwrap();
@@ -1094,8 +1106,80 @@ fn channel_band_and_hop_ask_the_host() {
             q => panic!("{q:?}"),
         })
         .collect();
-    // Turning the hop off asks for the channel set; then 11, then the band's first channel for 36.
-    assert_eq!(tuned, [2437e6, 2462e6, 2412e6]);
+    // Channel 11, then the band's first channel for 36.
+    assert_eq!(tuned, [2462e6, 2412e6]);
+}
+
+/// A hop whose dwell is shorter than the clock of the graph: each retune starts the clock again, and the results still come
+/// out as the frames are decoded, with the status and the channel being heard.
+#[test]
+fn a_hop_with_a_short_dwell_shows_its_results_and_the_channel_while_it_runs() {
+    let x = signal(WifiGenParams::default(), &snr(20.0), 1, 0.6, 0);
+    let mut r = rx();
+    let at = |ch: u32| {
+        let hz = (2407.0 + 5.0 * f64::from(ch)) * 1e6;
+        InputInfo::new(20e6, hz, hz).recording()
+    };
+    r.configure(&at(6)).unwrap();
+    assert_eq!(Owner::results(&r).status().lock_state, sdrkit_core::LockState::Off);
+    let mut out = sdrkit_core::Output::default();
+    let mut hops = Vec::new();
+    // 0.1 s on each channel; the clock of the graph is 0.25 s.
+    for (i, dwell) in x.chunks(2_000_000).enumerate() {
+        let ch = [6, 7, 8][i % 3];
+        if i > 0 {
+            r.retuned(&at(ch));
+        }
+        for p in dwell.chunks(65_536) {
+            out.clear();
+            r.feed(p, &mut out);
+        }
+        let res = Owner::results(&r);
+        hops.push((res.status().lock_state, num(res, "channel"), rows(res, "networks").len()));
+        if i >= 3 {
+            assert!(res.status().summary.starts_with(&format!("hopping, on channel {ch}: ")), "{}", res.status().summary);
+        }
+    }
+    use sdrkit_core::LockState::Locked;
+    // The first network shows with the first piece of samples, before any tick of the clock.
+    assert_eq!((hops[0].0, hops[0].1), (Locked, Some(6.0)));
+    assert!(hops[0].2 >= 1);
+    assert_eq!(hops[1].1, Some(7.0));
+    assert_eq!(hops[5], (Locked, Some(8.0), 3));
+}
+
+/// On 5 GHz a beacon that names another channel than the tuned one is the copy of a wider network, and is left out. While
+/// the radio hops, the first samples of a dwell can be of the channel before: the beacon is then taken, on the channel it
+/// names.
+#[test]
+fn a_beacon_that_names_another_channel_is_taken_while_the_radio_hops() {
+    let p = WifiGenParams {
+        frames: scene_56(Band::G5, 36),
+        ..WifiGenParams::default()
+    };
+    let x = signal(p, &snr(25.0), 1, 0.6, 0);
+    let at = |ch: u32| InputInfo::new(20e6, (5000.0 + 5.0 * f64::from(ch)) * 1e6, (5000.0 + 5.0 * f64::from(ch)) * 1e6).recording();
+    let heard = |hop: bool| {
+        let mut r = rx();
+        r.configure(&at(40)).unwrap();
+        let mut out = sdrkit_core::Output::default();
+        for (i, dwell) in x.chunks(2_000_000).enumerate() {
+            if hop && i > 0 {
+                r.retuned(&at([40, 44][i % 2]));
+            }
+            for p in dwell.chunks(65_536) {
+                out.clear();
+                r.feed(p, &mut out);
+            }
+        }
+        r.finish(&mut out);
+        let res = Owner::results(&r);
+        let channels: Vec<f64> = rows(res, "networks").iter().map(|n| cnum(n, &N::CHANNEL)).collect();
+        (channels, num(res, "duplicate_frames").unwrap() > 0.0)
+    };
+    assert_eq!(heard(false), (vec![], true));
+    let (channels, _) = heard(true);
+    assert!(!channels.is_empty() && channels.iter().all(|&c| c == 36.0), "{channels:?}");
 }
 
 /// The channel lists of two domains of the data file give the hop list of each band, with and without the DFS channels.
@@ -1111,18 +1195,25 @@ fn the_hop_lists_of_two_domains() {
             r.configure(&InputInfo::new(20e6, 2437e6, 2437e6)).unwrap();
             set(&mut r, "psc_only", Value::Bool(false)).unwrap();
             set(&mut r, "hop", Value::Bool(true)).unwrap();
+            // The hop of the tuned band is asked for with the first samples, from the tuned channel; the hop of a band
+            // that the band setting asks for, at once.
+            let mut requests = Vec::new();
+            let mut out = sdrkit_core::Output::default();
+            r.feed(&vec![Complex32::default(); 200_000], &mut out);
+            requests.append(&mut out.requests);
             for band in ["5", "6"] {
                 set(&mut r, "band", Value::Text(band.into())).unwrap();
             }
-            let fed = feed(&mut r, &vec![Complex32::default(); 200_000], 200_000);
-            let hops: Vec<Vec<f64>> = fed
-                .requests
+            requests.append(&mut feed(&mut r, &vec![Complex32::default(); 200_000], 200_000).requests);
+            let mut hops: Vec<Vec<f64>> = requests
                 .iter()
                 .filter_map(|q| match q {
                     sdrkit_core::HostRequest::Hop { channels, .. } => Some(channels.clone()),
                     _ => None,
                 })
                 .collect();
+            assert_eq!(hops[0][0], 2437e6);
+            hops[0].sort_by(f64::total_cmp);
             let want = |b: &str, band: Band| -> Vec<f64> {
                 let row = rows
                     .iter()
@@ -1408,15 +1499,30 @@ fn below_20_msps_the_dsss_beacons_of_2_4_ghz_are_received_and_the_status_says_wh
             .unwrap();
         feed(&mut r, &y, 65536);
         assert_eq!(rows(Owner::results(&r), "networks").len(), 3, "{rate}");
-        assert!(
-            Owner::results(&r)
-                .status()
-                .summary
-                .contains("only 802.11b DSSS frames are received"),
-            "{}",
-            Owner::results(&r).status().summary
-        );
+        // One result says what the rate leaves out, and the status line repeats it.
+        let want = "below 20 Msps only 802.11b DSSS frames are received";
+        let res = Owner::results(&r);
+        let said = match value(res, "quiet_reason") {
+            Some(Value::Text(t)) => t.as_str(),
+            v => panic!("{v:?}"),
+        };
+        assert!(said.starts_with(want), "{rate}: {said}");
+        assert!(res.status().summary.contains(said), "{}", res.status().summary);
     }
+    // At 20 Msps nothing is left out. On 5 GHz below 20 Msps nothing is received, and the result says so.
+    let mut r = rx();
+    r.configure(&InputInfo::new(20e6, 2437e6, 2437e6).recording()).unwrap();
+    feed(&mut r, &x[..200_000], 65536);
+    assert_eq!(value(Owner::results(&r), "quiet_reason"), None);
+    let mut r = rx();
+    r.configure(&InputInfo::new(12.5e6, 5180e6, 5180e6).recording()).unwrap();
+    feed(&mut r, &x[..200_000], 65536);
+    assert_eq!(
+        value(Owner::results(&r), "quiet_reason"),
+        Some(&Value::Text(
+            "below 20 Msps nothing is received in this band: OFDM (802.11a/g/n/ac/ax) needs 20 Msps".into()
+        ))
+    );
     // The stack's own test signal at the least rate.
     let y = signal(
         WifiGenParams {

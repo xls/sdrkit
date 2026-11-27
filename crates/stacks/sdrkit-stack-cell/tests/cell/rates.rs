@@ -25,11 +25,15 @@ fn lte_signal(rate: f64) -> (f64, Vec<Complex32>) {
     (centre, impaired(g, &snr(25.0), 0.3))
 }
 
-/// Configures `rx` for `input`, as the engine does when the radio's rate changes, and feeds `x` in radio-sized pieces.
+/// Configures `rx` for `input`, as the engine does when the radio's rate changes, and feeds `x` in radio-sized pieces; live
+/// pieces at about the pace of the signal, as a radio gives them.
 fn feed(rx: &mut StackGraph, input: InputInfo, x: &[Complex32]) -> Result<(), String> {
     rx.configure(&input).map_err(|e| e.to_string())?;
     let mut out = Output::default();
     for p in x.chunks(65536) {
+        if input.live {
+            std::thread::sleep(std::time::Duration::from_secs_f64(p.len() as f64 / input.rate_hz));
+        }
         rx.feed(p, &mut out);
         out.clear();
     }

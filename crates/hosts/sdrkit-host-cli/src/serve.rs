@@ -104,11 +104,10 @@ fn host_port(text: &str) -> Result<(String, u16), CliError> {
 /// The choice of `E` with the key `key`.
 fn choice<E: Choice>(key: &str, what: &str) -> Result<E, CliError> {
     E::from_key(key).ok_or_else(|| CliError::BadValue {
-        key: what.to_owned(),
+        name: format!("`{what}`"),
         text: key.to_owned(),
-        kind: sdrkit_core::ValueKind::Choice,
         forms: format!(
-            ": {}",
+            "one of {}",
             E::CHOICES
                 .iter()
                 .map(|c| c.key.to_string())

@@ -71,38 +71,37 @@ pub fn key_value(text: &str) -> Result<(&str, &str), CliError> {
 /// [`CliError::BadValue`] with the forms or the choices that the field takes.
 pub fn parse_value(decl: &FieldDecl, text: &str) -> Result<Value, CliError> {
     let bad = |forms: String| CliError::BadValue {
-        key: decl.key.to_string(),
+        name: format!("setting \"{}\" ({})", decl.label, decl.key),
         text: text.to_owned(),
-        kind: decl.kind,
         forms,
     };
     let number = || text.trim().parse::<f64>().ok().filter(|v| v.is_finite());
     let v = match decl.kind {
-        ValueKind::Flags => return Err(bad(": a flag set is a result, not an input".into())),
+        ValueKind::Flags => return Err(bad("an input: a flag set is a result".into())),
         ValueKind::Bool => match text.to_ascii_lowercase().as_str() {
             "yes" | "true" | "on" | "1" => Value::Bool(true),
             "no" | "false" | "off" | "0" => Value::Bool(false),
-            _ => return Err(bad(": yes or no".into())),
+            _ => return Err(bad("yes or no".into())),
         },
         ValueKind::I64 => Value::I64(
             text.trim()
                 .parse()
-                .map_err(|_| bad(": a whole number".into()))?,
+                .map_err(|_| bad("a whole number".into()))?,
         ),
-        ValueKind::F64 => Value::F64(number().ok_or_else(|| bad(": a number".into()))?),
+        ValueKind::F64 => Value::F64(number().ok_or_else(|| bad("a number".into()))?),
         ValueKind::Text => Value::Text(text.to_owned()),
         ValueKind::Hz => {
-            Value::Hz(parse_hz(text, Bare::Hz).map_err(|_| bad(": 919.875M, 48k, 250000".into()))?)
+            Value::Hz(parse_hz(text, Bare::Hz).map_err(|_| bad("a frequency (919.875M, 48k, 250000)".into()))?)
         }
-        ValueKind::Time => Value::Time(number().ok_or_else(|| bad(": seconds since 1970".into()))?),
+        ValueKind::Time => Value::Time(number().ok_or_else(|| bad("a time in seconds since 1970".into()))?),
         ValueKind::Duration => {
-            Value::Duration(parse_duration(text).ok_or_else(|| bad(": 30, 30s, 5min, 2h".into()))?)
+            Value::Duration(parse_duration(text).ok_or_else(|| bad("a length of time (30, 30s, 5min, 2h)".into()))?)
         }
         ValueKind::Position => {
             let pos = text.split_once(',').and_then(|(a, b)| {
                 Some((a.trim().parse::<f64>().ok()?, b.trim().parse::<f64>().ok()?))
             });
-            let (lat, lon) = pos.ok_or_else(|| bad(": LAT,LON in degrees".into()))?;
+            let (lat, lon) = pos.ok_or_else(|| bad("a position (LAT,LON in degrees)".into()))?;
             Value::Position { lat, lon }
         }
         ValueKind::Choice => {
@@ -121,16 +120,16 @@ pub fn parse_value(decl: &FieldDecl, text: &str) -> Result<Value, CliError> {
                 Some(i) => Value::Choice(i),
                 None => {
                     let keys: Vec<&str> = decl.choices.iter().map(|c| c.key.as_ref()).collect();
-                    return Err(bad(format!(": one of {}", keys.join(", "))));
+                    return Err(bad(format!("one of {}", keys.join(", "))));
                 }
             }
         }
         ValueKind::Bytes => {
             let mut out = Vec::new();
-            decode_into(text, Alphabet::default(), &mut out).map_err(|_| bad(": base64".into()))?;
+            decode_into(text, Alphabet::default(), &mut out).map_err(|_| bad("base64 bytes".into()))?;
             Value::Bytes(Arc::from(out))
         }
-        ValueKind::Any => return Err(bad(": this field takes its kind from its row".into())),
+        ValueKind::Any => return Err(bad("an input: this field takes its kind from its row".into())),
     };
     Ok(v)
 }

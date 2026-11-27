@@ -30,9 +30,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:wi
 | `hop` | Hop | yes or no | true |  | Asks the host to step through the hop list of the band it is tuned to, from the tuned channel. |
 | `dwell_ms` | Dwell | number (ms) | 130 | 110 to 2000 |  |
 | `psc_only` | 6 GHz: preferred scanning channels only | yes or no | true |  |  |
-| `channels_24` | 2.4 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
-| `channels_5` | 5 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
-| `channels_6` | 6 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
+| `channels_24` | 2.4 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first. |
+| `channels_5` | 5 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first. |
+| `channels_6` | 6 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first. |
 | `filter_text` | Filter | text | empty |  | Shows only the networks whose SSID, BSSID, vendor or security holds this text. |
 | `min_level_dbfs` | Level above | number (dBFS) | -120 | -120 to 0 |  |
 | `open_only` | Open only | yes or no | false |  |  |
@@ -109,6 +109,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `cts` | CTS | whole number |
 | `acks` | ACKs | whole number |
 | `block_acks` | Block Acks | whole number |
+| `quiet_reason` | What is left out | text |
 | `rx.dropped` | Dropped | whole number |
 
 ## Result tables
@@ -130,7 +131,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.6. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.7. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -202,6 +203,7 @@ Struct `WifiFields`. The result fields of `wifi`.
 | `cts` | whole number | always | 1.0 | CTS frames since the last clear. |
 | `acks` | whole number | always | 1.0 | ACK frames since the last clear. |
 | `block_acks` | whole number | always | 1.0 | Block Ack frames and requests since the last clear. |
+| `quiet_reason` | text | optional | 4.7 | What is not decoded, and why: the frames that the sample rate leaves out, or the work that the decoder sheds while live input comes faster than it works. None while everything is decoded. |
 
 ### Table `networks`
 
@@ -348,9 +350,29 @@ Advanced settings. The owner works without any of them set.
 
 - From 20 Msps the stack receives everything it decodes: DSSS, non-HT OFDM, and HT and VHT PPDUs with one spatial stream
   at 20 MHz. From 43.5 Msps a 5 or 6 GHz capture is split into its 20 MHz channels.
-- From 4 Msps to 20 Msps only the 802.11b (DSSS) frames of 2.4 GHz are received. The status line says so. Nothing is
-  received in the 5 and 6 GHz bands at these rates.
+- From 4 Msps to 20 Msps only the 802.11b (DSSS) frames of 2.4 GHz are received. Nothing is received in the 5 and 6 GHz
+  bands at these rates. The result `quiet_reason` and the status line say so.
 - On a busy channel the HT and VHT data fields can cost more processor time than the signal lasts. When an OFDM channel
   falls more than 50 ms behind its input, the stack stops decoding the data fields of HT and VHT PPDUs until it has
   caught up. Those PPDUs are counted from their signal fields in `ppdu_not_decoded_busy`; their MPDUs (and so their
   stations and frame counts) are missing. Non-HT frames, beacons among them, are always decoded.
+
+## Live input that comes faster than the decoder works
+
+The decoder measures the time each piece of live input takes against the signal time it holds. When the work is more
+than 0.15 s behind, it sheds work in a fixed order, and `quiet_reason` says what is left out:
+
+1. The chains on the channels next to the tuned one.
+2. The HT and VHT data fields of the tuned channel (counted in `ppdu_not_decoded_busy`).
+
+The DSSS and non-HT frames of the tuned channel, beacons and probe responses among them, are always decoded. After 5 s
+in which the work takes less than 45 % of the signal time, one step is taken back; when that step is shed again at
+once, the next try comes after twice the time, up to 80 s. A recording or a test signal sheds nothing.
+
+## Hop
+
+With `hop` on, the stack asks the host to step through the hop list of the band the radio is tuned to, from the tuned
+channel. The hop is asked for when the first samples tell the band, so a radio tuned to 5 GHz hops on 5 GHz. With
+`hop` off from the start the radio stays where the host tuned it. On 5 GHz without a list the channels 36 to 48 and
+149 to 165 come first, then the radar detection channels, then 169 to 177. The results come out at least every 0.25 s
+of signal whatever the dwell, and the status line names the channel being heard.

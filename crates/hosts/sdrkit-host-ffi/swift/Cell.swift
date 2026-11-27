@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.7. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.8. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 7
+    public static let minor = 8
 }
 
 /// The result fields of `railway_cir`.
@@ -2797,7 +2797,7 @@ public enum CellCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Search the bands. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+    /// Search the bands. Steps the radio over the raster of the bands of the setting search_bands (empty: the bands of the band order, else the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
     public static func cellSearch(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
         let code = sdrkit_cell_search(handle)
         return sdrkitResult(code)
@@ -2827,7 +2827,7 @@ public enum CellCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Search the bands. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+    /// Search the bands. Steps the radio over the raster of the bands of the setting search_bands (empty: the bands of the band order, else the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
     public static func nrSearch(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
         let code = sdrkit_nr_search(handle)
         return sdrkitResult(code)
@@ -3120,6 +3120,15 @@ public enum CellSettings {
     public static func setCellSearchBands(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_bands", $0) })
     }
+    /// Searched first.
+    public static func cellSearchFirst(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "search_first", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setCellSearchFirst(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_first", $0) })
+    }
     /// Time per step.
     public static func cellSearchDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
         var v: Double = 0
@@ -3242,6 +3251,15 @@ public enum CellSettings {
     }
     public static func setNrSearchBands(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_bands", $0) })
+    }
+    /// Searched first.
+    public static func nrSearchFirst(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "search_first", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrSearchFirst(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_first", $0) })
     }
     /// Time per step.
     public static func nrSearchDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

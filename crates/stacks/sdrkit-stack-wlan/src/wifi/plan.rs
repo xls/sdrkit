@@ -211,12 +211,27 @@ pub fn channels_in_capture(band: Band, c_mhz: f64, rate: f64) -> Vec<u32> {
 /// The 2.4 GHz channels that every region permits.
 pub const WORLDWIDE_24: std::ops::RangeInclusive<u32> = 1..=11;
 
-/// The hop list of a band: the channels of `channels` that are valid in the band, or, when `channels` is empty, every channel
-/// of the band (on 2.4 GHz the channels of [`WORLDWIDE_24`]); on 6 GHz only the preferred scanning channels when `psc_only`
-/// is set.
+/// Whether a 5 GHz channel needs radar detection (5250 to 5350 and 5470 to 5730 MHz): few access points use these.
+pub fn dfs(band: Band, ch: u32) -> bool {
+    band == Band::G5 && (52..=144).contains(&ch)
+}
+
+/// The 5 GHz channels in the order of a hop without a list: 36 to 48 and 149 to 165, where most access points are, then the
+/// radar detection channels, then 169 to 177.
+pub fn default_5() -> Vec<u32> {
+    let mut v = all_channels(Band::G5);
+    v.sort_by_key(|&c| (u8::from(dfs(Band::G5, c)) + 2 * u8::from(c > 165), c));
+    v
+}
+
+/// The hop list of a band: the channels of `channels` that are valid in the band, in their order, or, when `channels` is
+/// empty, the channels of the band (on 2.4 GHz the channels of [`WORLDWIDE_24`], on 5 GHz in the order of [`default_5`]); on
+/// 6 GHz only the preferred scanning channels when `psc_only` is set.
 pub fn hop_list(band: Band, channels: &[u32], psc_only: bool) -> Vec<u32> {
     let listed: Vec<u32> = if channels.is_empty() && band == Band::G2 {
         WORLDWIDE_24.collect()
+    } else if channels.is_empty() && band == Band::G5 {
+        default_5()
     } else if channels.is_empty() {
         all_channels(band)
     } else {
@@ -321,6 +336,11 @@ mod tests {
         assert_eq!(channels_in_capture(Band::G5, 5180.0, 25e6).len(), 1);
         assert!(channels_in_capture(Band::G6, 5975.0, 80e6).len() >= 3);
         assert_eq!(hop_list(Band::G6, &[], true).len(), 15);
+        // Without a list the 5 GHz hop takes the channels without radar detection first.
+        let five = hop_list(Band::G5, &[], true);
+        assert_eq!(five[..9], [36, 40, 44, 48, 149, 153, 157, 161, 165]);
+        assert_eq!((five[9], five[24], &five[25..]), (52, 144, &[169, 173, 177][..]));
+        assert_eq!(five.len(), all_channels(Band::G5).len());
         assert_eq!(
             hop_list(Band::G5, &[36, 52, 1, 149], false),
             vec![36, 52, 149]

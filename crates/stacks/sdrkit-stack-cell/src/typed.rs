@@ -275,8 +275,8 @@ pub const SEARCH_STAY_ROW: Argument<field::Text> = Argument::new(sdrkit_core::pu
 
 /// Starts a band search now.
 pub const SEARCH_START: sdrkit_core::Command = sdrkit_core::Command::new("search", "Search the bands").help(
-    "Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and \
-     lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.",
+    "Steps the radio over the raster of the bands of the setting search_bands (empty: the bands of the band order, else \
+     the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.",
 );
 
 /// Ends a band search and stays on one cell.
@@ -1918,7 +1918,7 @@ pub static NR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey",
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 7)
+        Family::new("cell", 1, 8)
             .added(
                 1,
                 1,
@@ -2101,6 +2101,8 @@ pub fn family() -> &'static Family {
                     "nr.command.stay",
                 ],
             )
+            // Version 1.8: the known carriers that a band search visits first.
+            .added(1, 8, &["cell.setting.search_first", "nr.setting.search_first"])
             .shared_source(
                 "decoder",
                 &["cell", "nr", "nbiot", "gsmr", "umts", "cdma2000", "tdscdma"],

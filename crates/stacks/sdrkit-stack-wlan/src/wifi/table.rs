@@ -6,6 +6,7 @@ use super::mac::{WifiGeneration, WifiSecurity,
 };
 use super::plan::{centre_mhz, hop_list, parse_channels, valid, wide_centre_mhz, Band};
 use super::stations::{Heard, Stations};
+use super::shed::Shed;
 use super::{DsssCounters, OfdmCounters, PhyKind, PpduCounters, WifiMpdu, WifiStats};
 use crate::report::{mac_text, push_history, remove_older_rows, wall};
 use crate::typed::{
@@ -36,6 +37,9 @@ pub const NETWORK_CAP: usize = 300;
 pub const LOG_CAP: usize = 400;
 /// A frame heard within this time keeps the lock state on, s.
 pub const ACTIVE_S: f64 = 5.0;
+/// The longest signal time between two publishes, s. The clock of the graph starts again at each retune, so a hop with a
+/// shorter dwell has no clock tick. A change of the channel is published at once.
+pub const PUBLISH_S: f64 = 0.25;
 /// New networks that get a line in the text log.
 const NEW_NETWORK_LINES: usize = 30;
 
@@ -91,7 +95,7 @@ pub const PSC_ONLY: Setting<field::Bool> = Setting::new(
 );
 /// The help of the channel list settings.
 const CHANNELS_HELP: &str =
-    "Channel numbers apart by spaces or commas (\"1 6 11\"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits.";
+    "Channel numbers apart by spaces or commas (\"1 6 11\"), in the order of the hop. Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits; on 5 GHz channels 36 to 48 and 149 to 165 first.";
 /// The 2.4 GHz channels of the hop list.
 pub const CHANNELS_24: Setting<field::Text> =
     Setting::new("channels_24", "2.4 GHz channels", "", "").help(CHANNELS_HELP);
@@ -521,6 +525,11 @@ pub struct NetworkTable {
     live: bool,
     clock: Clock,
     configured: bool,
+    /// The signal time of the last publish, s.
+    published_s: f64,
+    /// The channel of the last stats, and the signal time when it last changed, s.
+    heard_channel: u32,
+    channel_changed_s: Option<f64>,
     /// Text buffers of the station rows, kept so a publish allocates nothing.
     texts: [String; 3],
 }
@@ -573,6 +582,9 @@ impl Default for NetworkTable {
             live: false,
             clock: Clock::fixed(0.0),
             configured: false,
+            published_s: 0.0,
+            heard_channel: 0,
+            channel_changed_s: None,
             texts: Default::default(),
         }
     }
@@ -611,10 +623,32 @@ impl BandSum {
     }
 }
 
+/// What the decoder does not read at `rate_hz` in `band`, or what it sheds; `None` when it reads everything it can.
+fn left_out(rate_hz: f64, band: Option<Band>, shed: Shed) -> Option<&'static str> {
+    if let Some(text) = shed.text() {
+        return Some(text);
+    }
+    if rate_hz <= 0.0 || rate_hz >= super::OFDM_RATE_HZ * 0.999_999 {
+        None
+    } else if matches!(band, None | Some(Band::G2)) {
+        Some("below 20 Msps only 802.11b DSSS frames are received: OFDM (802.11a/g/n/ac/ax) needs 20 Msps")
+    } else {
+        Some("below 20 Msps nothing is received in this band: OFDM (802.11a/g/n/ac/ax) needs 20 Msps")
+    }
+}
+
 impl NetworkTable {
+    /// True while the channel of the input changes as a hop does: the host serves the hop.
+    fn hopping(&self) -> bool {
+        // Three dwells, and at least a second: a retune takes the radio some time.
+        let recent = (3.0 * self.dwell_ms / 1e3).max(1.0);
+        self.hop && self.channel_changed_s.is_some_and(|t| self.now_s - t <= recent)
+    }
+
     /// Takes a good MPDU: the counters, the network row and the log.
     pub fn take(&mut self, m: &WifiMpdu) {
         let now = m.time_s;
+        let hopping = self.hopping();
         let c = &mut self.counters;
         c.snr_db = match (c.snr_db, m.snr_db) {
             (None, Some(s)) => Some(s),
@@ -647,7 +681,9 @@ impl NetworkTable {
             return;
         };
         self.stations.access_point(b.bssid);
-        if is_duplicate(&b, m.band, m.channel) {
+        // While the radio hops, the first samples of a dwell can still be of the channel before: a frame that names another
+        // channel is then taken as heard there, not as the copy of a wider network on this channel.
+        if is_duplicate(&b, m.band, m.channel) && !hopping {
             c.dup_frames += 1;
             return;
         }
@@ -809,6 +845,8 @@ impl NetworkTable {
     /// Publishes the results now.
     pub fn publish(&mut self) {
         let now = self.now_s;
+        self.published_s = now;
+        let hopping = self.hopping();
         let st = self.stats;
         let d = st.dsss.since(self.base_dsss);
         let o = st.ofdm.since(self.base_ofdm);
@@ -827,35 +865,28 @@ impl NetworkTable {
         status.offset_hz = c.last_good_s.map(|_| c.offset_hz);
         status.summary.clear();
         // Writing to a String cannot fail.
+        let _ = match (hopping, st.channel) {
+            (_, 0) => Ok(()),
+            (true, ch) => write!(status.summary, "hopping, on channel {ch}: "),
+            (false, ch) => write!(status.summary, "channel {ch}: "),
+        };
         let _ = if nets > 0 {
             write!(status.summary, "{nets} networks, {} beacons", c.beacons)
-        } else if st.channel != 0 {
-            write!(status.summary, "listening on channel {}", st.channel)
         } else {
             write!(status.summary, "listening for beacons")
         };
         if !self.stations.is_empty() {
             let _ = write!(status.summary, ", {} stations", self.stations.len());
         }
-        if st.rate_hz > 0.0 && st.rate_hz < super::OFDM_RATE_HZ * 0.999_999 {
-            let msps = st.rate_hz / 1e6;
-            let _ = if matches!(st.band, None | Some(Band::G2)) {
-                write!(
-                    status.summary,
-                    "; at {msps:.1} Msps only 802.11b DSSS frames are received, OFDM (802.11a/g/n/ac/ax) needs 20 Msps"
-                )
-            } else {
-                write!(
-                    status.summary,
-                    "; nothing is received at {msps:.1} Msps in this band: OFDM needs 20 Msps"
-                )
-            };
+        let quiet_reason = left_out(st.rate_hz, st.band, st.shed);
+        if let Some(text) = quiet_reason {
+            let _ = write!(status.summary, "; {text}");
         }
         let busy = pp.not_decoded_for(sdrkit_proto_wlan_phy::ppdu::Undecoded::Busy);
         if busy > 0 {
             let _ = write!(
                 status.summary,
-                "; {busy} HT and VHT data fields skipped: the decoder could not keep up with the busy channel"
+                "; {busy} HT and VHT data fields skipped: the decoder could not keep up"
             );
         }
         let skipped: u64 = pp.not_decoded.iter().sum::<u64>() - busy;
@@ -944,6 +975,7 @@ impl NetworkTable {
             cts: fc.cts as i64,
             acks: fc.acks as i64,
             block_acks: fc.block_acks as i64,
+            quiet_reason,
         });
         for (i, (&rate, &n)) in RATES.iter().zip(&c.ofdm_rates).enumerate() {
             if n > 0 {
@@ -1070,6 +1102,12 @@ impl NetworkTable {
     }
 
     fn request_hop(&mut self) {
+        // Before the first samples the band of the radio is not known, and a hop over the band of the settings would take
+        // the radio away from where the host tuned it. The hop is asked for when the band is known (`follow_tuning`).
+        if self.stats.band.is_none() && self.band_asked.is_none() {
+            self.hop_band = None;
+            return;
+        }
         let mut channels = self.hop_channels();
         // The same hop again is not asked for.
         if self.hop_band == Some(self.band) && channels == self.hop_sent && !self.hop_dwell_changed {
@@ -1148,6 +1186,9 @@ impl Component for NetworkTable {
         self.base_dsss = DsssCounters::default();
         self.base_ofdm = OfdmCounters::default();
         self.base_ppdu = PpduCounters::default();
+        self.published_s = 0.0;
+        self.heard_channel = 0;
+        self.channel_changed_s = None;
         Ok(vec![Format::new(Kind::typed::<HostRequest>(), 0.0)])
     }
 
@@ -1157,11 +1198,20 @@ impl Component for NetworkTable {
     }
 
     fn process(&mut self, io: &mut Io) {
+        let mut moved = false;
         for s in io.items::<WifiStats>(1) {
             self.stats = s.value;
             self.now_s = self.now_s.max(s.value.time_s);
             if s.value.level_dbfs.is_some() {
                 self.level_dbfs = s.value.level_dbfs;
+            }
+            if s.value.channel != self.heard_channel {
+                // The first channel is where the stack started, not a step of a hop.
+                if self.heard_channel != 0 {
+                    self.channel_changed_s = Some(s.value.time_s);
+                }
+                self.heard_channel = s.value.channel;
+                moved = true;
             }
         }
         for m in io.items::<WifiMpdu>(0) {
@@ -1175,7 +1225,8 @@ impl Component for NetworkTable {
                 value: r,
             });
         }
-        if io.tick() {
+        // A new channel shows at once.
+        if io.tick() || moved || self.now_s - self.published_s >= PUBLISH_S {
             self.publish();
         }
     }
@@ -1215,7 +1266,9 @@ impl Component for NetworkTable {
                     if on {
                         self.hop_sent.clear();
                         self.request_hop();
-                    } else {
+                    } else if self.stats.band.is_some() {
+                        // The hop stops on the channel of the setting. Before the first samples the radio stays where
+                        // the host tuned it.
                         self.request_channel();
                     }
                 }

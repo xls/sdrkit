@@ -542,11 +542,18 @@ impl Output {
     }
 }
 
+/// A rate as a refusal names what to ask for: `4 Msps`, `2.048 Msps`, `250 ksps`.
+fn msps(hz: Hz) -> String {
+    let (v, unit) = if hz >= 1e6 { (hz / 1e6, "Msps") } else { (hz / 1e3, "ksps") };
+    let t = format!("{v:.3}");
+    format!("{} {unit}", t.trim_end_matches('0').trim_end_matches('.'))
+}
+
 /// Why a receiver or a component cannot work with its input and settings.
 #[derive(Clone, Debug, PartialEq, thiserror::Error)]
 pub enum ConfigError {
     /// The sample rate is below what the stack needs.
-    #[error("the stack needs at least {need} samples a second, the input gives {got}")]
+    #[error("the stack needs at least {need} samples a second, the input gives {got}: ask for {} or more", msps(*need))]
     RateTooLow {
         /// The lowest rate, Hz.
         need: Hz,
@@ -554,7 +561,7 @@ pub enum ConfigError {
         got: Hz,
     },
     /// The sample rate is above what the stack can take.
-    #[error("the stack takes at most {max} samples a second, the input gives {got}")]
+    #[error("the stack takes at most {max} samples a second, the input gives {got}: ask for {} or less", msps(*max))]
     RateTooHigh {
         /// The highest rate, Hz.
         max: Hz,
