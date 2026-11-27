@@ -25,6 +25,7 @@ use sdrkit_algo_dsp::fft::Fft;
 use sdrkit_algo_dsp::meter::power_to_db as db10;
 use sdrkit_algo_dsp::nco::Nco;
 use sdrkit_algo_dsp::resample::{FractionalResampler, Resampler};
+use sdrkit_algo_dsp::window::Window;
 use sdrkit_core::command::{Command, CommandSet};
 use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::Published;
@@ -131,6 +132,8 @@ pub struct ChannelMeter {
     centre_mhz: f64,
     fft: Fft,
     win: Vec<f32>,
+    /// `NFFT` times the sum of the squared window: the bin powers over it sum to the power of the input in dBFS terms.
+    norm: f64,
     buf: Vec<Complex32>,
     work: Vec<Complex32>,
     acc: Vec<f64>,
@@ -168,9 +171,13 @@ impl Default for ChannelMeter {
             fs: 20e6,
             centre_mhz: 0.0,
             fft: Fft::forward(NFFT),
-            win: (0..NFFT)
-                .map(|i| (0.5 - 0.5 * (TAU * i as f64 / NFFT as f64).cos()) as f32)
-                .collect(),
+            win: Window::Hann.coefficients(NFFT),
+            norm: NFFT as f64
+                * Window::Hann
+                    .periodic(NFFT)
+                    .iter()
+                    .map(|w| w * w)
+                    .sum::<f64>(),
             buf: Vec::with_capacity(NFFT),
             work: vec![Complex32::default(); NFFT],
             acc: vec![0.0; NFFT],
@@ -203,9 +210,9 @@ impl ChannelMeter {
 
     fn judge(&mut self, dt: f64, now_s: f64) {
         let n = NFFT;
-        let p: Vec<f64> = (0..n)
-            .map(|k| self.acc[(k + n / 2) % n] / self.n_acc.max(1) as f64)
-            .collect();
+        // The power of each bin, dBFS terms: a full-scale carrier sums to 1 over its bins.
+        let scale = 1.0 / (self.n_acc.max(1) as f64 * self.norm);
+        let p: Vec<f64> = (0..n).map(|k| self.acc[(k + n / 2) % n] * scale).collect();
         // The noise floor: 15th percentile of the central 80 % of bins x 1.15; falls at once, rises at most 0.2 dB a second.
         let mut c: Vec<f64> = p[n / 10..n - n / 10].to_vec();
         c.sort_by(|a, b| a.total_cmp(b));
@@ -223,8 +230,8 @@ impl ChannelMeter {
             |hz: f64| ((hz / bin_hz).round() as i64 + n as i64 / 2).clamp(0, n as i64 - 1) as usize;
         let window = |off_hz: f64| -> (f64, f64, f64) {
             let (a, b) = (k_of(off_hz - 5e6), k_of(off_hz + 5e6));
-            let pw: f64 = p[a..=b].iter().sum::<f64>() / 1.5;
-            let fl = self.floor[a] * (b - a + 1) as f64 / 1.5;
+            let pw: f64 = p[a..=b].iter().sum::<f64>();
+            let fl = self.floor[a] * (b - a + 1) as f64;
             let mut num = 0.0;
             let mut den = 0.0;
             for k in a..=b {

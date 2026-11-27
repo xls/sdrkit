@@ -3,6 +3,7 @@
 mod common;
 
 mod acceptance;
+mod ais_crc;
 mod ais_fit;
 mod ais_vector;
 mod atis_vector;

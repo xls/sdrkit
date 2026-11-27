@@ -111,7 +111,7 @@ const NOT_USED: &[(&str, &str, &str)] = &[
         "CDR is the digital radio system of China",
     ),
     ("mpt1327", "US JP", "MPT 1327 is the trunking standard of the United Kingdom and the countries that followed it; it is not deployed in the United States or Japan"),
-    ("opensky", "DE GB JP", "OpenSky is a United States trunking product; it is not deployed in these countries"),
+    ("opensky", "AU DE GB JP", "OpenSky is a United States trunking product; it is not deployed in these countries"),
     ("dvb_terrestrial", "US JP", "the TV standard of the country in plans/countries.json is ATSC or ISDB-T"),
     ("isdbtsb", "AU US DE GB", "ISDB-T and its one-segment service are the TV system of Japan and South America"),
     ("dvbc2", "AU JP", "the countries of plans/countries.json list cable TV as absent"),
@@ -140,13 +140,7 @@ const NOT_USED: &[(&str, &str, &str)] = &[
 ];
 
 /// The gaps that are still to fill: the stack and the countries of the table where it has no known frequency.
-const OPEN: &[(&str, &str)] = &[
-    ("ltr", "AU DE GB JP"),
-    ("edacs", "AU DE GB JP"),
-    ("opensky", "AU"),
-    ("gsc", "AU DE GB JP"),
-    ("scada", "AU DE GB JP"),
-];
+const OPEN: &[(&str, &str)] = &[];
 
 fn data() -> Data {
     Data::open(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data")).expect("the data folder")

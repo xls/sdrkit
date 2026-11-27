@@ -228,8 +228,7 @@ fn ais_test_signal_decodes_where_the_session_listens() {
         configure(rx.as_mut(), rate, tuned, tuned);
         let _ = run(rx.as_mut(), &x, 8192);
         let (ok, bad) = (count(rx.results(), "frames_ok"), count(rx.results(), "frames_bad"));
-        // Off 162.0 MHz a start inside a long burst can fail its CRC once; the frame itself decodes.
-        assert!(ok > 40 && bad * 20 <= ok, "at {tuned} Hz: {ok} frames, {bad} bad");
+        assert!(ok > 40 && bad == 0, "at {tuned} Hz: {ok} frames, {bad} bad");
         assert!(count(rx.results(), "stations") > 3, "at {tuned} Hz");
     }
 }

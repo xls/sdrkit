@@ -1,0 +1,178 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "gsc_au",
+      "name": "GSC paging, Australia (VHF land mobile 148 to 150.05 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 148 to 150.05 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Land mobile 148 to 150.05 MHz",
+          "service": "land_mobile",
+          "start_hz": 148000000.0,
+          "end_hz": 150050000.0,
+          "modes": [
+            "gsc"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 148006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack gsc; the paging allocation of the country; use of GSC there is not confirmed (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "gsc_de",
+      "name": "GSC paging, Germany (466 MHz paging channels)",
+      "kind": "other",
+      "source": {
+        "publisher": "BNetzA",
+        "title": "Frequenzplan, Cityruf paging channels near 466 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Paging 466 MHz",
+          "service": "land_mobile",
+          "start_hz": 465900000.0,
+          "end_hz": 466300000.0,
+          "modes": [
+            "gsc"
+          ],
+          "modulation": "nfm",
+          "channels": [
+            {
+              "name": "Cityruf 466.075 MHz",
+              "centre_hz": 466075000.0,
+              "width_hz": 25000
+            },
+            {
+              "name": "Cityruf 466.175 MHz",
+              "centre_hz": 466175000.0,
+              "width_hz": 25000
+            },
+            {
+              "name": "Cityruf 466.230 MHz",
+              "centre_hz": 466230000.0,
+              "width_hz": 25000
+            }
+          ],
+          "note": "stack gsc; the paging allocation of the country; use of GSC there is not confirmed (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "gsc_gb",
+      "name": "GSC paging, United Kingdom (VHF 153 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "Ofcom",
+        "title": "UK Frequency Allocation Table, land mobile paging",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "VHF paging 153 MHz",
+          "service": "land_mobile",
+          "start_hz": 153000000.0,
+          "end_hz": 153100000.0,
+          "modes": [
+            "gsc"
+          ],
+          "modulation": "nfm",
+          "channels": [
+            {
+              "name": "Paging 153.025 MHz (unconfirmed)",
+              "centre_hz": 153025000.0,
+              "width_hz": 12500
+            }
+          ],
+          "note": "stack gsc; the paging allocation of the country; use of GSC there is not confirmed (unconfirmed)"
+        }
+      ]
+    },
+    {
+      "id": "gsc_jp",
+      "name": "GSC paging, Japan (429 MHz specified low-power band)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T67, specified low-power radio station for telemeter, telecontrol and data transmission, 429 MHz band",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Specified low power 429 MHz",
+          "service": "short_range",
+          "start_hz": 429175000.0,
+          "end_hz": 429737500.0,
+          "modes": [
+            "gsc"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 429175000.0,
+            "step_hz": 12500
+          },
+          "note": "stack gsc; the paging allocation of the country; use of GSC there is not confirmed (unconfirmed)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "gsc_au"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "gsc_de"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "gsc_gb"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "gsc_jp"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

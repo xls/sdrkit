@@ -409,6 +409,24 @@ fn p1_p2_p3_p4_fpv() {
     });
 }
 
+/// The level of the tuned channel is the power of the input in dBFS: a carrier at -20 dBFS reads -20 dBFS.
+#[test]
+fn p10_level_is_the_input_level_in_dbfs() {
+    let p = FpvGenParams {
+        amplitude: 0.1,
+        deviation_hz: 4e6,
+        ..Default::default()
+    };
+    let rate = p.rate_hz;
+    let mut g = FpvGenerator::new(p);
+    let mut rx = fpv_receiver();
+    rx.configure(&InputInfo::new(rate, 5806e6, 5806e6)).unwrap();
+    feed(&mut g, &mut rx, 1.0);
+    let res = Owner::results(&rx);
+    let level = res.fields().at(&FpvFields::LEVEL_DBFS).unwrap();
+    assert!((level + 20.0).abs() <= 1.0, "level {level} dBFS");
+}
+
 #[test]
 fn p5_scan_builds_the_table() {
     // Transmitters on R5 (5806) and A8 (5725); the receiver visits the scan centres of the 5.8 GHz plan.

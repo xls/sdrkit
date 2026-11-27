@@ -172,6 +172,10 @@ pub struct AisDecoded {
     pub frames: Vec<Frame>,
     /// A frame failed its FCS and nothing was decoded.
     pub bad: bool,
+    /// The start and the end of the burst's core, seconds of input.
+    pub core_s: (f64, f64),
+    /// The mean power of the core.
+    pub power: f64,
 }
 impl Item for AisDecoded {
     const KIND: &'static str = "ais.decoded";
@@ -407,7 +411,8 @@ impl ChannelFilter {
         } else {
             (7.5e3, 15e3)
         };
-        let d = fir::lowpass(PAIR_RATE, (9.5e3f64).max(pass + 1.5e3), 38e3, 60.0)
+        // The other channel of the pair lies 50 kHz away and folds into the passband at 48 kHz: 100 dB keeps it out.
+        let d = fir::lowpass(PAIR_RATE, (9.5e3f64).max(pass + 1.5e3), 38e3, 100.0)
             .expect("the filter settings are valid");
         let c = fir::lowpass(demod::RATE, pass, stop, 60.0).expect("the filter settings are valid");
         (d, c)
@@ -608,13 +613,25 @@ impl Component for BurstDecoder {
         let bursts = io.items::<AisBurst>(0);
         for b in bursts {
             self.opts.noise_scale = 1.0;
-            let r = self.dec.decode(&b.value.0, &self.opts);
+            let c = &b.value.0;
+            let r = self.dec.decode(c, &self.opts);
+            let (a, e) = c.core;
+            let power = c.samples[a..e]
+                .iter()
+                .map(|s| f64::from(s.norm_sqr()))
+                .sum::<f64>()
+                / e.saturating_sub(a).max(1) as f64;
             io.items_out::<AisDecoded>(0).push(Timed {
                 time: b.time,
                 value: AisDecoded {
                     channel: self.index as u8,
                     frames: r.frames,
                     bad: r.bad,
+                    core_s: (
+                        (c.first + a as u64) as f64 / demod::RATE,
+                        (c.first + e as u64) as f64 / demod::RATE,
+                    ),
+                    power,
                 },
             });
         }
@@ -650,7 +667,21 @@ pub struct MessageLayer {
     seq: u8,
     pending: Vec<Timed<AisDecoded>>,
     ready: Vec<Timed<AisDecoded>>,
+    /// Bursts with frames lately released: channel, core start and end (seconds), power.
+    heard: Vec<(u8, f64, f64, f64)>,
     ticks: u64,
+}
+
+/// A failed burst this far (40 dB) under a decoded burst on the other channel of its pair, at the same time, is that burst's
+/// spill into the channel (its own edges and what the filters let through), not a frame of its own.
+const SPILL_RATIO: f64 = 1e4;
+
+/// True if the failed burst `d` lies under a much stronger burst with frames on the other channel of its pair, in `heard`.
+fn spill(d: &AisDecoded, heard: &[(u8, f64, f64, f64)]) -> bool {
+    let (a, e) = d.core_s;
+    heard
+        .iter()
+        .any(|&(ch, s, t, p)| ch == d.channel ^ 1 && s < e && a < t && p >= SPILL_RATIO * d.power)
 }
 
 impl Component for MessageLayer {
@@ -673,6 +704,7 @@ impl Component for MessageLayer {
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.pending.clear();
+        self.heard.clear();
         self.ticks = 0;
         Ok(vec![
             Format::new(Kind::typed::<AisFrame>(), 0.0),
@@ -707,6 +739,20 @@ impl Component for MessageLayer {
                 .total_cmp(&b.time)
                 .then(a.value.channel.cmp(&b.value.channel))
         });
+        // The bursts with frames a failed one is checked against: those of the last two seconds and those still waiting.
+        self.heard.retain(|h| h.2 > now - 2.0);
+        for d in self.ready.iter().chain(&self.pending) {
+            let v = &d.value;
+            if !v.frames.is_empty()
+                && !self
+                    .heard
+                    .iter()
+                    .any(|h| (h.0, h.1) == (v.channel, v.core_s.0))
+            {
+                self.heard
+                    .push((v.channel, v.core_s.0, v.core_s.1, v.power));
+            }
+        }
         for d in std::mem::take(&mut self.ready) {
             let ch = CHANNELS[d.value.channel as usize].0;
             let bad = |io: &mut Io, time| {
@@ -718,7 +764,7 @@ impl Component for MessageLayer {
                 })
             };
             if d.value.frames.is_empty() {
-                if d.value.bad {
+                if d.value.bad && !spill(&d.value, &self.heard) {
                     bad(io, d.time);
                 }
                 continue;

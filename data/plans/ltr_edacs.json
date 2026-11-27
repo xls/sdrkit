@@ -1,0 +1,248 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "lm_trunk_au",
+      "name": "Trunked land mobile, Australia (UHF 450 to 520 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 403 to 520 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "UHF land mobile 450 to 520 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 520000000.0,
+          "modes": [
+            "ltr",
+            "edacs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stacks ltr and edacs; the land mobile allocation in which trunked systems are licensed; the channels of one system are not public; use of the system in the country is not confirmed (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "lm_trunk_r1",
+      "name": "Trunked land mobile, Europe (VHF and UHF land mobile)",
+      "kind": "other",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "Land mobile bands 146 to 174 MHz and 450 to 470 MHz (ERC Report 25, the European Common Allocation Table)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "VHF land mobile 146 to 174 MHz",
+          "service": "land_mobile",
+          "start_hz": 146000000.0,
+          "end_hz": 174000000.0,
+          "modes": [
+            "ltr",
+            "edacs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 146006250.0,
+            "step_hz": 12500
+          },
+          "note": "stacks ltr and edacs; the land mobile allocation in which trunked systems are licensed; the channels of one system are not public; use of the system in the country is not confirmed (unconfirmed edges)"
+        },
+        {
+          "name": "UHF land mobile 450 to 470 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 470000000.0,
+          "modes": [
+            "ltr",
+            "edacs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stacks ltr and edacs; the land mobile allocation in which trunked systems are licensed; the channels of one system are not public; use of the system in the country is not confirmed (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "lm_trunk_jp",
+      "name": "Trunked land mobile, Japan (UHF 450 to 470 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "MIC",
+        "title": "Frequency Assignment Plan, land mobile 335.4 to 470 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "UHF land mobile 450 to 470 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 470000000.0,
+          "modes": [
+            "ltr",
+            "edacs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stacks ltr and edacs; the land mobile allocation in which trunked systems are licensed; the channels of one system are not public; use of the system in the country is not confirmed (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "ltr_au",
+      "name": "LTR trunking, Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 403 to 520 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "lm_trunk_au"
+      ]
+    },
+    {
+      "id": "ltr_r1",
+      "name": "LTR trunking, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "Land mobile bands 146 to 174 MHz and 450 to 470 MHz (ERC Report 25, the European Common Allocation Table)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "lm_trunk_r1"
+      ]
+    },
+    {
+      "id": "ltr_jp",
+      "name": "LTR trunking, Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "MIC",
+        "title": "Frequency Assignment Plan, land mobile 335.4 to 470 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "lm_trunk_jp"
+      ]
+    },
+    {
+      "id": "edacs_au",
+      "name": "EDACS trunking, Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 403 to 520 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "lm_trunk_au"
+      ]
+    },
+    {
+      "id": "edacs_r1",
+      "name": "EDACS trunking, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "Land mobile bands 146 to 174 MHz and 450 to 470 MHz (ERC Report 25, the European Common Allocation Table)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "lm_trunk_r1"
+      ]
+    },
+    {
+      "id": "edacs_jp",
+      "name": "EDACS trunking, Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "MIC",
+        "title": "Frequency Assignment Plan, land mobile 335.4 to 470 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "include": [
+        "lm_trunk_jp"
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "ltr_au",
+        "edacs_au"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "ltr_r1",
+        "edacs_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "ltr_r1",
+        "edacs_r1"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "ltr_jp",
+        "edacs_jp"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

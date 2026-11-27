@@ -1,0 +1,180 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "scada_au",
+      "name": "SCADA radio, Australia (UHF land mobile 450 to 520 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Australian Radiofrequency Spectrum Plan 2021, 403 to 520 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "UHF land mobile 450 to 520 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 520000000.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; licensed telemetry data radios; the channels of one utility are not public (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "scada_de",
+      "name": "SCADA radio, Germany (UHF land mobile 450 to 470 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "BNetzA",
+        "title": "Frequenzplan, nichtöffentlicher mobiler Landfunk 450 to 470 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "UHF land mobile 450 to 470 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000.0,
+          "end_hz": 470000000.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 450006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; licensed telemetry data radios; the channels of one utility are not public (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "scada_gb",
+      "name": "SCADA radio, United Kingdom (scanning telemetry)",
+      "kind": "other",
+      "source": {
+        "publisher": "Ofcom",
+        "title": "Scanning telemetry, 457.5 to 458.5 MHz paired with 463 to 464 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Scanning telemetry 457.5 to 458.5 MHz",
+          "service": "land_mobile",
+          "start_hz": 457500000.0,
+          "end_hz": 458500000.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 457506250.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; licensed telemetry data radios; the channels of one utility are not public (unconfirmed edges)"
+        },
+        {
+          "name": "Scanning telemetry 463 to 464 MHz",
+          "service": "land_mobile",
+          "start_hz": 463000000.0,
+          "end_hz": 464000000.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 463006250.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; licensed telemetry data radios; the channels of one utility are not public (unconfirmed edges)"
+        }
+      ]
+    },
+    {
+      "id": "scada_jp",
+      "name": "SCADA radio, Japan (429 MHz specified low-power band)",
+      "kind": "other",
+      "source": {
+        "publisher": "ARIB",
+        "title": "STD-T67, specified low-power radio station for telemeter, telecontrol and data transmission, 429 MHz band",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read",
+      "bands": [
+        {
+          "name": "Specified low power 429 MHz",
+          "service": "short_range",
+          "start_hz": 429175000.0,
+          "end_hz": 429737500.0,
+          "modes": [
+            "scada"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "raster": {
+            "first_hz": 429175000.0,
+            "step_hz": 12500
+          },
+          "note": "stack scada; licensed telemetry data radios; the channels of one utility are not public (unconfirmed edges)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "scada_au"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "scada_de"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "scada_gb"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "scada_jp"
+      ],
+      "unverified_reason": "the bands are from memory of the national rules and plans (unconfirmed); no regulator table was read"
+    }
+  ]
+}

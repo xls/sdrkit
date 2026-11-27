@@ -261,6 +261,37 @@ sdrkit_core::choice_enum! {
     }
 }
 
+/// The core of what `x` holds: where its power (a 48-sample mean) stands clearly above `floor` and within 8 dB of its peak;
+/// `None` when that is 100 samples or less.
+fn strong_core(x: &[Complex32], floor: f64) -> Option<(usize, usize)> {
+    const W: usize = 48;
+    let boxed = |f: &mut dyn FnMut(usize, f64)| {
+        let mut acc = 0.0f64;
+        for i in 0..x.len() {
+            acc += f64::from(x[i].norm_sqr());
+            if i >= W {
+                acc -= f64::from(x[i - W].norm_sqr());
+            }
+            if i + 1 >= W {
+                f(i + 1 - W / 2, acc / W as f64);
+            }
+        }
+    };
+    let mut peak = 0.0f64;
+    boxed(&mut |_, p| peak = peak.max(p));
+    let thr = (3.0 * floor).max(0.16 * peak);
+    let (mut c0, mut c1) = (None, 0usize);
+    boxed(&mut |i, p| {
+        if p > thr {
+            if c0.is_none() {
+                c0 = Some(i);
+            }
+            c1 = i;
+        }
+    });
+    c0.filter(|&c| c1 > c + 100).map(|c| (c, c1))
+}
+
 /// A decoded frame.
 #[derive(Clone, Debug, Default)]
 pub struct Frame {
@@ -843,7 +874,12 @@ impl Decoder {
         } else {
             1
         };
-        for layer in 0..layers {
+        // A cut that starts on another burst's spill (far weaker) and holds a burst later: the strong part, tried once if
+        // the whole cut fails.
+        let mut strong =
+            strong_core(x, cut.floor).filter(|c| c.0 > core.0 + 48 || c.1 + 48 < core.1);
+        let mut layer = 0;
+        while layer < layers {
             // A remainder's carrier comes from the squared signal's lines: the mean frequency of what is left leans on the data and
             // on the edges of the cancelled burst.
             let f0 = if layer > 0 {
@@ -903,6 +939,10 @@ impl Decoder {
                 }
             }
             let Some((tau, fc)) = found else {
+                if let (0, Some(c)) = (layer, strong.take()) {
+                    core = c;
+                    continue;
+                }
                 break;
             };
             let bits = self.frame.clone();
@@ -991,36 +1031,11 @@ impl Decoder {
             for i in w.a..w.e.min(n) {
                 x[i] -= w.buf[i];
             }
-            // The remainder's core: where its power (a 48-sample mean) stands clearly above the floor and within 8 dB of its peak.
-            const W: usize = 48;
-            let boxed = |x: &[Complex32], f: &mut dyn FnMut(usize, f64)| {
-                let mut acc = 0.0f64;
-                for i in 0..x.len() {
-                    acc += f64::from(x[i].norm_sqr());
-                    if i >= W {
-                        acc -= f64::from(x[i - W].norm_sqr());
-                    }
-                    if i + 1 >= W {
-                        f(i + 1 - W / 2, acc / W as f64);
-                    }
-                }
-            };
-            let mut peak = 0.0f64;
-            boxed(x, &mut |_, p| peak = peak.max(p));
-            let thr = (3.0 * floor).max(0.16 * peak);
-            let (mut c0, mut c1) = (None, 0usize);
-            boxed(x, &mut |i, p| {
-                if p > thr {
-                    if c0.is_none() {
-                        c0 = Some(i);
-                    }
-                    c1 = i;
-                }
-            });
-            match c0 {
-                Some(c) if c1 > c + 100 => core = (c, c1),
-                _ => break,
+            match strong_core(x, floor) {
+                Some(c) => core = c,
+                None => break,
             }
+            layer += 1;
         }
         res
     }

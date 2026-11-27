@@ -162,7 +162,7 @@ fn pictures_and_reports_are_pinned() {
         (
             "fpv pal",
             Box::new(|| fpv_pin(FpvGenParams::default(), false, 1.2)),
-            (28, 0x6bd34d74195dac60, 0xa85fc30aa3e43e75),
+            (28, 0x6bd34d74195dac60, 0xfd3ff39daa096ef8),
             "PAL false",
         ),
         (
@@ -177,7 +177,7 @@ fn pictures_and_reports_are_pinned() {
                     1.2,
                 )
             }),
-            (33, 0x9717d2e821ee06a7, 0xdbc66cab7669befd),
+            (33, 0x9717d2e821ee06a7, 0x9c2fbca539a9d9fe),
             "NTSC false",
         ),
     ];
