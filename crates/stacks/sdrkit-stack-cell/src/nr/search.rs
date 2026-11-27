@@ -107,8 +107,9 @@ pub struct NrSearcher {
     clock: Option<(f64, f64)>,
     /// Whether a capture searches the raster points of the cells found and only [`OTHERS_PER_CAPTURE`] others, in turn.
     pub bounded: bool,
-    /// The raster points where cells were found: radio frequency, Hz, SSB spacing, kHz, and the signal time of the newest find.
-    found_at: Vec<(f64, u32, f64)>,
+    /// The raster points where cells were found: radio frequency, Hz, SSB spacing, kHz, the signal time of the newest
+    /// find, and whether a MIB was decoded there since the point is followed.
+    found_at: Vec<(f64, u32, f64, bool)>,
     /// The next of the other raster points searched while cells are followed.
     turn: usize,
     /// The radio centre of the newest capture, Hz.
@@ -406,7 +407,11 @@ impl NrSearcher {
         );
         let peaks = self.pss_peaks(&x, scs, c.range_hz);
         let mut out: Vec<NrFound> = Vec::new();
+        let mut fft = self.plans.forward(128);
         for pk in peaks {
+            if coarse_significance(&mut fft, &x, scs, &pk) < COARSE_SIGNIFICANCE {
+                continue;
+            }
             if let Some(f) = self.examine(cap, c, &pk) {
                 match out.iter_mut().find(|o| o.pci == f.pci) {
                     Some(o) => {
@@ -566,43 +571,17 @@ impl NrSearcher {
         }
         // SSB grids (the SSB starts one symbol prefix before the PSS useful part).
         let ssb_start = |pl: f64| pl / step + shift - 18.0;
-        let mut grids: Vec<[[Complex32; 240]; 4]> = Vec::new();
+        let mut grids: Vec<SsbGrid> = Vec::new();
         for &pl in &places {
             grids.push(self.ssb_grid(cap, c.offset_hz + cfo, scs, ssb_start(pl)));
         }
-        let pss_seq = pss(pk.nid2);
         // N_ID1.
-        let mut scores = vec![0f64; 336];
+        let pss_seq = pss(pk.nid2);
         let es: Vec<Vec<Complex32>> = grids
             .iter()
-            .map(|g| {
-                (0..127)
-                    .map(|i| g[2][56 + i] * (g[0][56 + i] * pss_seq[i]).conj())
-                    .collect()
-            })
+            .map(|g| (0..127).map(|i| g[2][56 + i] * (g[0][56 + i] * pss_seq[i]).conj()).collect())
             .collect();
-        for (nid1, sc) in scores.iter_mut().enumerate() {
-            let s = sss(nid1 as u16, pk.nid2);
-            for e in &es {
-                let v: Complex32 = e.iter().zip(&s).map(|(a, b)| a * *b).sum();
-                *sc += v.norm() as f64;
-            }
-        }
-        let (bi, &bv) = scores
-            .iter()
-            .enumerate()
-            .max_by(|a, b| a.1.total_cmp(b.1))
-            .expect("the score table has one entry per identity");
-        let others: Vec<f64> = scores
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| *i != bi)
-            .map(|(_, v)| *v)
-            .collect();
-        let mean = others.iter().sum::<f64>() / others.len() as f64;
-        let sd =
-            (others.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / others.len() as f64).sqrt();
-        let significance = (bv - mean) / sd.max(1e-30);
+        let (bi, significance) = nid1_of(&es, pk.nid2);
         if significance < 4.5 {
             return None;
         }
@@ -865,6 +844,66 @@ impl NrSearcher {
     }
 }
 
+/// The resource elements of one SS/PBCH block: 4 symbols of 240 subcarriers.
+type SsbGrid = [[Complex32; 240]; 4];
+
+/// The least N_ID1 significance at the timing and carrier offset of a PSS peak for the peak to be searched further: below
+/// the 4.5 that the fine search needs, since a block that is not yet aligned scores lower.
+const COARSE_SIGNIFICANCE: f64 = 4.0;
+
+/// The N_ID1 significance ([`nid1_of`]) of PSS peak `pk` in the detection signal `x` (128 samples a symbol, the 127
+/// subcarriers of the PSS and the SSS), at the timing and the carrier offset of the peak as they are. A peak that shows no
+/// N_ID1 there is no SS/PBCH block: a burst of a strong carrier passes the PSS threshold too. The look costs a small part
+/// of the fine search.
+fn coarse_significance(fft: &mut Fft, x: &[Complex32], scs: u32, pk: &Peak) -> f64 {
+    let rate = 128.0 * f64::from(scs) * 1e3;
+    let period = (0.02 * rate) as usize;
+    let pss_seq = pss(pk.nid2);
+    // A symbol is 128 samples after a prefix of 9; the window starts 2 samples early in both symbols, which their product
+    // does not see.
+    let mut symbol = |at: usize, buf: &mut [Complex32]| {
+        for (i, b) in buf.iter_mut().enumerate() {
+            let n = (at + i).wrapping_sub(2);
+            let a = -TAU * pk.cfo * n as f64 / rate;
+            *b = x.get(n).copied().unwrap_or_default() * Complex32::new(a.cos() as f32, a.sin() as f32);
+        }
+        fft.process(buf);
+    };
+    let mut es: Vec<Vec<Complex32>> = Vec::new();
+    let (mut p, mut s) = ([Complex32::default(); 128], [Complex32::default(); 128]);
+    let mut at = pk.pos;
+    while (at as f64) + 0.002 * rate < x.len() as f64 {
+        symbol(at, &mut p);
+        symbol(at + 2 * 137, &mut s);
+        // Subcarrier i of the 127 is bin i - 64.
+        es.push((0..127).map(|i| s[(i + 64) % 128] * (p[(i + 64) % 128] * pss_seq[i]).conj()).collect());
+        at += period;
+    }
+    if es.is_empty() {
+        return 0.0;
+    }
+    nid1_of(&es, pk.nid2).1
+}
+
+/// The N_ID1 of blocks with the PSS of `nid2`, from the SSS against the PSS of each block on the 127 subcarriers (`es`):
+/// the N_ID1 whose SSS fits them best, and how far its score stands over the mean of the others, in their standard
+/// deviations.
+fn nid1_of(es: &[Vec<Complex32>], nid2: u16) -> (usize, f64) {
+    let mut scores = [0f64; 336];
+    for (sc, s) in scores.iter_mut().zip(sss_table(nid2)) {
+        for e in es {
+            let v: Complex32 = e.iter().zip(s).map(|(a, b)| a * *b).sum();
+            *sc += v.norm() as f64;
+        }
+    }
+    let (bi, &bv) =
+        scores.iter().enumerate().max_by(|a, b| a.1.total_cmp(b.1)).expect("the score table has one entry per identity");
+    let n = (scores.len() - 1) as f64;
+    let mean = (scores.iter().sum::<f64>() - bv) / n;
+    let var = (scores.iter().map(|v| (v - mean).powi(2)).sum::<f64>() - (bv - mean).powi(2)) / n;
+    (bi, (bv - mean) / var.sqrt().max(1e-30))
+}
+
 // Channel estimate from the DMRS: smoothed over neighbours, interpolated along frequency per symbol (not across the gap of
 // symbol 2); noise from the residual.
 fn channel(
@@ -939,7 +978,9 @@ fn channel(
 impl NrSearcher {
     /// The candidates of `cands` that a capture ending at `now` searches: all of them, or, when the search is bounded and
     /// cells were found at this centre within [`FOLLOW_S`], [`FOLLOWED_PER_CAPTURE`] raster points of those cells and
-    /// [`OTHERS_PER_CAPTURE`] others, in turn.
+    /// [`OTHERS_PER_CAPTURE`] others, in turn. While a cell with a MIB is followed, the raster points of cells seen by
+    /// their sync only count as others: such a cell is often the block of the decoded cell seen from a raster point
+    /// beside it, and must not take the turn of the decoded cell.
     fn searched(&mut self, cap: &Capture, cands: &[Cand]) -> Vec<usize> {
         if (cap.centre_hz - self.centre_hz).abs() > 1.0 || !self.bounded {
             self.found_at.clear();
@@ -951,7 +992,9 @@ impl NrSearcher {
             return (0..cands.len()).collect();
         }
         let at = |c: &Cand| cap.centre_hz + c.offset_hz;
-        let followed = |c: &Cand| self.found_at.iter().any(|f| f.1 == c.scs && (f.0 - at(c)).abs() < 5e3);
+        let decoded = self.found_at.iter().any(|f| f.3);
+        let followed =
+            |c: &Cand| self.found_at.iter().any(|f| f.3 == decoded && f.1 == c.scs && (f.0 - at(c)).abs() < 5e3);
         let (mine, others): (Vec<usize>, Vec<usize>) = (0..cands.len()).partition(|&i| followed(&cands[i]));
         let mut pick: Vec<usize> = Vec::new();
         for k in 0..FOLLOWED_PER_CAPTURE.min(mine.len()) {
@@ -976,7 +1019,8 @@ impl NrSearcher {
             ..Default::default()
         };
         // A clock error learned from a decoded cell moves each raster point by its error and narrows the carrier offset
-        // searched to 2 ppm about it: fewer offsets to try, so a raster point costs about a third.
+        // searched to 2 ppm about it: fewer offsets to try (one alone where 2 ppm is under a quarter of the spacing), so a
+        // raster point costs a third or less.
         let clock = self.clock.filter(|(_, t)| (cap.end_time - t).abs() <= CLOCK_KEPT_S).map(|(ppm, _)| ppm);
         for c in &cands {
             let mut s = *c;
@@ -984,7 +1028,7 @@ impl NrSearcher {
             if let (Some(ppm), true, Some(hz)) = (clock, cap.centre_known(), c.gscn.and_then(gscn_to_hz)) {
                 moved = ppm * 1e-6 * hz;
                 s.offset_hz += moved;
-                s.range_hz = (f64::from(c.scs) * 500.0).max(2e-6 * hz);
+                s.range_hz = 2e-6 * hz;
             }
             for mut f in self.search_candidate(cap, &s) {
                 f.cand = *c;
@@ -1004,8 +1048,10 @@ impl NrSearcher {
         }
         for f in &out.cells {
             let hz = cap.centre_hz + f.cand.offset_hz;
-            self.found_at.retain(|x| !(x.1 == f.cand.scs && (x.0 - hz).abs() < 5e3));
-            self.found_at.push((hz, f.cand.scs, cap.end_time));
+            let same = |x: &(f64, u32, f64, bool)| x.1 == f.cand.scs && (x.0 - hz).abs() < 5e3;
+            let decoded = f.mib.is_some() || self.found_at.iter().any(|x| same(x) && x.3);
+            self.found_at.retain(|x| !same(x));
+            self.found_at.push((hz, f.cand.scs, cap.end_time, decoded));
         }
         // The clock error of the radio, from the strongest decoded cell on a known raster point.
         if cap.centre_known() {

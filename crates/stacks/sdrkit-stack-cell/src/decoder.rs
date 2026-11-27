@@ -748,6 +748,9 @@ pub struct SearchDecoder<M: SearchStack> {
     pass: Option<Pass>,
     /// Requests to the host that wait for the next input.
     requests: Vec<HostRequest>,
+    /// Whether the host runs a hop that this stack asked for: set by a hop request, cleared by a retune request, which
+    /// ends the hop at the host.
+    hop_asked: bool,
     /// Captures in a row without a cell since the last change of frequency.
     quiet: u32,
     /// Signal time of the start of the first capture without a listed cell since one was seen or the frequency changed,
@@ -816,6 +819,7 @@ impl<M: SearchStack> SearchDecoder<M> {
             forgot_s: f64::NEG_INFINITY,
             pass: None,
             requests: Vec::new(),
+            hop_asked: false,
             quiet: 0,
             quiet_since: None,
             tuned_s: 0.0,
@@ -969,6 +973,7 @@ impl<M: SearchStack> SearchDecoder<M> {
                     // The hop is held on the step: the result can come when the radio has moved on, so it moves back.
                     p.longer = Some((i, cap.start_time()));
                     self.looked = false;
+                    self.hop_asked = false;
                     self.requests.push(HostRequest::retune(
                         p.steps[i].0,
                         "band search: a sync signal, searched longer",
@@ -1047,11 +1052,20 @@ impl<M: SearchStack> SearchDecoder<M> {
         p.moved_s = self.time_s;
         p.fresh = true;
         let channels = p.steps[j..].iter().chain(&p.steps[..j]).map(|s| s.0).collect();
+        self.hop_asked = true;
         self.requests.push(HostRequest::Hop {
             channels,
             dwell_s,
             stop_on_lock: false,
         });
+    }
+
+    /// Ends the hop that the host runs for this stack, when a band search ends without a move of its own: the host hops
+    /// until a retune, so the stack asks for one to the frequency that the radio is on.
+    fn end_hop(&mut self) {
+        if std::mem::take(&mut self.hop_asked) && self.tuned_hz > 0.0 {
+            self.requests.push(HostRequest::retune(self.tuned_hz, "band search: ended"));
+        }
     }
 
     /// The band search without a move for too long: the host refused the hop or ended it. The search ends, and says so.
@@ -1060,6 +1074,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         let look_s = self.stack.band_search().map_or(0.0, |c| c.look_s);
         if p.longer.is_none() && self.time_s - p.moved_s > STUCK_DWELLS * p.dwell_s + look_s {
             self.pass = None;
+            self.end_hop();
             self.refused_s = Some(self.time_s);
             self.changed = true;
         }
@@ -1156,6 +1171,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         match steps.len() {
             0 => {
                 self.pass = None;
+                self.end_hop();
                 false
             }
             1 => {
@@ -1166,12 +1182,16 @@ impl<M: SearchStack> SearchDecoder<M> {
                 }
                 if (steps[0].0 - self.tuned_hz).abs() > 1.0 {
                     self.staying_hz = Some(steps[0].0);
+                    self.hop_asked = false;
                     self.requests
                         .push(HostRequest::retune(steps[0].0, "band search: one capture covers the band"));
+                } else {
+                    self.end_hop();
                 }
                 true
             }
             _ => {
+                self.hop_asked = true;
                 self.requests.push(HostRequest::Hop {
                     channels: steps.iter().map(|s| s.0).collect(),
                     dwell_s,
@@ -1238,6 +1258,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         self.quiet = 0;
         self.staying_hz = Some(c.frequency_hz);
         self.stayed = Some(c.name.clone());
+        self.hop_asked = false;
         self.requests.push(HostRequest::retune(
             c.frequency_hz,
             &format!("band search: stays on {}", c.name),
@@ -1281,6 +1302,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         pass.before_s = before_s;
         pass.added = added;
         pass.moved_s = self.time_s;
+        self.hop_asked = true;
         self.requests.push(HostRequest::Hop {
             channels: pass.steps.iter().map(|s| s.0).collect(),
             dwell_s,
@@ -1305,8 +1327,9 @@ impl<M: SearchStack> SearchDecoder<M> {
         let want = self.hop_dwell();
         let Some(pass) = self.pass.as_mut() else { return };
         let Some(i) = pass.steps.iter().position(|(c, _)| (c - tuned).abs() <= 1.0) else {
-            // Someone else tuned the radio: the search ends.
+            // Someone else tuned the radio, or a move of an older hop came late: the search ends where the radio is.
             self.pass = None;
+            self.end_hop();
             return;
         };
         // A second report of the same step is no move.

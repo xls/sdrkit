@@ -46,6 +46,14 @@ pub fn sss(nid1: u16, nid2: u16) -> [f32; 127] {
     d
 }
 
+/// The SSS of every N_ID1 (336 rows) for `nid2`, made once: a cell search scores all of them for every sync peak.
+pub fn sss_table(nid2: u16) -> &'static [[f32; 127]] {
+    static T: std::sync::OnceLock<Vec<[f32; 127]>> = std::sync::OnceLock::new();
+    let t = T.get_or_init(|| (0..3u16).flat_map(|n2| (0..336u16).map(move |n1| sss(n1, n2))).collect());
+    let at = 336 * usize::from(nid2.min(2));
+    &t[at..at + 336]
+}
+
 /// The PBCH DMRS (144 values) of cell `pci` for i_SSB_bar `ibar`.
 pub fn dmrs(pci: u16, ibar: u8) -> [Complex32; 144] {
     let c_init = (1u32 << 11) * (ibar as u32 + 1) * (pci as u32 / 4 + 1)

@@ -524,6 +524,27 @@ fn a_search_the_radio_does_not_follow_ends() {
     let s = Owner::results(&rx).status().summary.clone();
     assert!(s.contains("did not move"), "{s}");
     assert!(!s.contains("Searching"), "{s}");
+    // The search that ended takes its hop back: the newest request is a retune to where the radio is.
+    assert!(matches!(seen.last(), Some(HostRequest::Retune { tuned_hz, .. }) if *tuned_hz == 800e6), "{seen:?}");
+}
+
+/// A move of the radio to a frequency that is no step of the band search ends the search, and the stack ends its hop:
+/// it asks for a retune to the frequency that the radio is on, once.
+#[test]
+fn a_search_that_ends_on_a_move_ends_its_hop() {
+    let rate = 7.68e6;
+    let mut rx = stack_graph(&NR, &[("search_bands", J::from("28"))]);
+    rx.configure(&InputInfo::new(rate, 800e6, 800e6).recording()).unwrap();
+    command(&mut rx, "search");
+    let (seen, _) = host_on_noise(&mut rx, rate, 800e6, 0.3, false);
+    assert!(matches!(seen.last(), Some(HostRequest::Hop { .. })), "{seen:?}");
+    assert!(value(Owner::results(&rx), "search_steps").is_some());
+    let other = 801.23e6;
+    rx.retuned(&InputInfo::new(rate, other, other).recording());
+    let (seen, _) = host_on_noise(&mut rx, rate, other, 0.3, false);
+    assert_eq!(value(Owner::results(&rx), "search_steps"), None);
+    assert_eq!(seen.len(), 1, "{seen:?}");
+    assert!(matches!(&seen[0], HostRequest::Retune { tuned_hz, .. } if *tuned_hz == other), "{seen:?}");
 }
 
 /// The text of the results field `key` of `rx`.

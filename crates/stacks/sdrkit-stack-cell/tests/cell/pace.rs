@@ -86,6 +86,8 @@ struct Paced {
     pass_s: Option<f64>,
     /// The radio centre at the end, Hz.
     centre: f64,
+    /// The longest signal time for which the host hopped while the stack showed no band search, seconds.
+    hop_left_s: f64,
 }
 
 /// Feeds `rx` the pieces that `next(centre)` gives (a block each) at the pace of the signal for `seconds`, as a
@@ -119,6 +121,7 @@ fn paced_until(
     let (mut lost, mut total) = (0usize, 0usize);
     let mut hop: Option<(Vec<f64>, f64, usize)> = None;
     let mut step_s = 0.0;
+    let mut hop_left_s = 0.0;
     while p.fed_s < seconds {
         let x = next(centre);
         let piece_s = x.len() as f64 / rate;
@@ -173,6 +176,13 @@ fn paced_until(
             }
         }
         out.clear();
+        // A search that ended takes its hop back with the next input.
+        if hop.is_some() && value(Owner::results(&*rx), "search_steps").is_none() {
+            hop_left_s += piece_s;
+            p.hop_left_s = p.hop_left_s.max(hop_left_s);
+        } else {
+            hop_left_s = 0.0;
+        }
         if !follow {
             continue;
         }
@@ -197,6 +207,7 @@ fn paced_until(
         }
     }
     p.centre = centre;
+    assert!(p.hop_left_s < 0.5, "the host hops after the band search ended: {p:?}");
     p.lost = lost as f64 / total.max(1) as f64;
     p.dropped = value(Owner::results(&*rx), "dropped").unwrap_or(0.0);
     p.skipped = value(Owner::results(&*rx), "skipped").unwrap_or(0.0);
@@ -600,4 +611,82 @@ fn a_cell_found_live_is_searched_longer_and_the_pass_goes_on() {
     assert!(cs[0]["sib1"].is_object(), "{}", cs[0]);
     // Each step once, and for each step searched longer the stay and the hop again from the next step.
     assert!(p.retunes <= steps.len() + 2 * p.longer + 2, "{p:?}");
+}
+
+/// One second at 12 Msps of the n28 cell of NR scene 1 as a strong cell of a carrier with little traffic shows on the
+/// air: the blocks and the SIB1 35 dB over the noise, and short bursts of other transmissions of the carrier, which pass
+/// the PSS threshold as the blocks do. Returns the radio centre and the samples.
+fn nr_cell_with_bursts() -> (f64, Vec<Complex32>) {
+    use sdrkit_stack_cell::nr::gen::{scene, NrGenOptions, NrGenerator};
+    let rate = 12e6;
+    let (hz, scene_cells) = scene(1);
+    let quiet = NrGenOptions { load: false, ..Default::default() };
+    let mut x = impaired(NrGenerator::new(rate, scene_cells, quiet), &snr(35.0), 1.0);
+    let power = x.iter().map(|v| f64::from(v.norm_sqr())).sum::<f64>() / x.len() as f64;
+    let mut r = sdrkit_algo_sim::rng::Rng::new(11);
+    // A burst of half a millisecond in every 2.5 ms.
+    let (every, len) = ((2.5e-3 * rate) as usize, (0.5e-3 * rate) as usize);
+    for (i, v) in x.iter_mut().enumerate() {
+        if i % every >= every - len {
+            *v += r.complex_normal(BURST_POWER * power);
+        }
+    }
+    (hz, x)
+}
+
+/// The power of the bursts of [`nr_cell_with_bursts`] over the mean power of the cell's own signal.
+const BURST_POWER: f64 = 4.0;
+
+/// A strong NR cell with bursts of its carrier ([`nr_cell_with_bursts`]) at 12 Msps, fed live with the default settings:
+/// each burst shows sync peaks that are no block, and each costs a look. Once the cell is read, nothing is dropped or
+/// skipped for 20 s, and the process needs less than half a second of processor time for a second of signal.
+#[test]
+#[ignore]
+fn nr_follows_a_strong_cell_with_bursts_at_12_msps_in_real_time() {
+    let rate = 12e6;
+    let (hz, x) = nr_cell_with_bursts();
+    let mut rx = stack_graph(&NR, &[]);
+    rx.configure(&InputInfo::new(rate, hz, hz)).unwrap();
+    let mut gen = cycle(x);
+    let first = paced(&mut rx, rate, hz, 3.0, true, &mut gen);
+    assert_eq!(value(Owner::results(&rx), "with_sib1"), Some(1.0), "{first:?} {:?}", Owner::results(&rx).status().summary);
+    let (p, kept_up) = follows(&mut rx, rate, hz, 20.0, &mut gen);
+    report("on a strong cell with bursts", &NR, &p);
+    assert_eq!(p.lost, 0.0, "{p:?}");
+    assert!(kept_up, "{p:?}");
+    assert_eq!(p.skipped, 0.0, "{p:?}");
+    assert!(p.cpu.is_none_or(|c| c < 0.5), "{p:?}");
+    rx.finish(&mut Output::default());
+    let cs = cells(&state(&rx));
+    assert!(cs.iter().any(|c| c["pci"] == 222 && c["sib1"].is_object()), "{cs:#?}");
+}
+
+/// The recording of a live n5 cell at 12 Msps (PCI 897, 505-01, a strong cell on a carrier with bursts of traffic) fed
+/// live, again and again, with the Australian settings on its centre: its operator shows within 5 s, and from then on
+/// nothing is dropped or skipped for 20 s, with less than half a second of processor time for a second of signal. Skipped
+/// when the recording is not on this machine.
+#[test]
+#[ignore]
+fn nr_auto_follows_the_recording_of_a_live_cell_without_drops() {
+    let Some(rec) = crate::search::live_recording("sdrkit_nr_884.450MHz_12Msps_20261127-161307") else { return };
+    let (rate, hz) = (rec.rate_hz, rec.centre_hz);
+    let (keys, _) = australia(&NR);
+    let keys: Vec<(&str, J)> = keys.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
+    let mut rx = stack_graph(&NR, &keys);
+    rx.configure(&InputInfo::new(rate, hz, hz)).unwrap();
+    let mut gen = cycle(rec.samples);
+    let first = paced(&mut rx, rate, hz, 5.0, true, &mut gen);
+    report("on a recording, first", &NR, &first);
+    assert_eq!(value(Owner::results(&rx), "with_sib1"), Some(1.0), "{first:?} {:?}", Owner::results(&rx).status().summary);
+    assert_eq!(first.centre, hz, "{first:?}");
+    let (p, kept_up) = follows(&mut rx, rate, hz, 20.0, &mut gen);
+    report("on a recording", &NR, &p);
+    assert!(kept_up, "{p:?}");
+    assert_eq!((p.skipped, p.retunes), (first.skipped, 0), "{p:?}");
+    assert!(p.cpu.is_none_or(|c| c < 0.5), "{p:?}");
+    rx.finish(&mut Output::default());
+    let cs = cells(&state(&rx));
+    let read: Vec<&J> = cs.iter().filter(|c| c["sib1"].is_object()).collect();
+    assert_eq!(read.len(), 1, "{cs:#?}");
+    assert_eq!((&read[0]["pci"], &read[0]["sib1"]["networks"][0]["plmn"]), (&J::from(897), &J::from("505-01")), "{}", read[0]);
 }
