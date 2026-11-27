@@ -3,8 +3,9 @@
 //!
 //! The thread of the radio counts the dwell in samples, so a step lasts its dwell of signal time at any load and pace. At
 //! the end of a step it passes no more samples and wakes the control thread, which tunes the session to the next
-//! frequency through its operator ([`Shared::tune_to`]). The samples that the radio wrote until the new centre was in force
-//! are left out as one gap made on purpose: the stacks of the radio are told of it, and nobody counts it as lost.
+//! frequency through its operator ([`Shared::tune_to`]). The samples that the radio captured until it had settled on the
+//! new centre ([`crate::radio::Move`]) are left out as one gap made on purpose: the stacks of the radio are told of it,
+//! and nobody counts it as lost. The step starts at the first sample of the new centre.
 
 use crate::feed::lock;
 use crate::radio::Radio;
@@ -24,12 +25,12 @@ pub(crate) enum Phase {
     },
     /// The step is over, or the radio is about to move: no sample passes until the radio has moved.
     Held,
-    /// The radio has moved: the samples before the place `at` of the ring are left out, then a step of `dwell_s`
-    /// seconds starts, or the hop ends if there is no dwell.
+    /// The radio was told to move: when the thread of the radio has reached the first sample of the move, a step of
+    /// `dwell_s` seconds starts, or the hop ends if there is no dwell.
     Moved {
-        /// The place in the ring ([`sdrkit_driver_core::RingReader::position`]) of the first sample at the new
-        /// frequency.
-        at: u64,
+        /// The moves of the radio ordered so far ([`crate::feed::Feed::moves_asked`]): the step starts when the thread
+        /// of the radio has done them all.
+        moves: u64,
         /// The dwell of the step, seconds of signal. `None` for the last move of a hop.
         dwell_s: Option<f64>,
     },
@@ -68,10 +69,10 @@ impl HopGate {
         self.set(Phase::Held);
     }
 
-    /// The radio moved: the samples before ring place `at` are left out, then a step of `dwell_s` starts, or the hop
-    /// ends if there is no dwell.
-    pub(crate) fn moved(&self, at: u64, dwell_s: Option<f64>) {
-        self.set(Phase::Moved { at, dwell_s });
+    /// The radio was told to move, `moves` times so far: at the first sample of the last move a step of `dwell_s`
+    /// starts, or the hop ends if there is no dwell.
+    pub(crate) fn moved(&self, moves: u64, dwell_s: Option<f64>) {
+        self.set(Phase::Moved { moves, dwell_s });
     }
 
     /// Ends the hop: the samples pass again.
@@ -84,11 +85,11 @@ impl HopGate {
         self.phase() == Phase::Held
     }
 
-    /// The thread of the radio reached ring place `at` of [`Phase::Moved`]: a step of `samples` starts, or the hop
-    /// ends for `None`. Does nothing if the phase changed meanwhile.
-    pub(crate) fn start_step(&self, at: u64, samples: Option<u64>) {
+    /// The thread of the radio reached the first sample of move `moves` of [`Phase::Moved`]: a step of `samples`
+    /// starts, or the hop ends for `None`. Does nothing if the phase changed meanwhile.
+    pub(crate) fn start_step(&self, moves: u64, samples: Option<u64>) {
         let mut p = lock(&self.phase);
-        if matches!(*p, Phase::Moved { at: a, .. } if a == at) {
+        if matches!(*p, Phase::Moved { moves: m, .. } if m == moves) {
             *p = match samples {
                 None => Phase::Off,
                 Some(0) => Phase::Held,
@@ -118,14 +119,6 @@ impl HopGate {
         let _ = self
             .moved
             .wait_timeout_while(p, timeout, |p| *p == Phase::Held);
-    }
-
-    /// The stream of the radio started again in a new ring: a place of the old ring counts from the start of the new one.
-    pub(crate) fn restarted(&self) {
-        let mut p = lock(&self.phase);
-        if let Phase::Moved { dwell_s, .. } = *p {
-            *p = Phase::Moved { at: 0, dwell_s };
-        }
     }
 }
 
@@ -235,8 +228,7 @@ impl Shared {
         };
         radio.hop.hold();
         let r = tune();
-        let at = radio.owner.lock().ring_written();
-        radio.hop.moved(at, None);
+        radio.hop.moved(radio.feed.moves_asked(), None);
         r
     }
 
@@ -309,12 +301,11 @@ impl Shared {
     }
 
     /// Tunes the session of `h` to the channel of its step while the samples of the radio wait, then lets them pass from
-    /// the first sample that the radio wrote after the move. The caller holds `hop_moves`.
+    /// the first sample that the radio captured at the new centre. The caller holds `hop_moves`.
     fn hop_to(&self, radio: &Radio, h: &Hop) -> Result<(), EngineError> {
         radio.hop.hold();
-        self.tune_to(h.session, h.channels[h.step])?;
-        let at = radio.owner.lock().ring_written();
-        radio.hop.moved(at, Some(h.dwell_s));
+        self.tune_step(h.session, h.channels[h.step])?;
+        radio.hop.moved(radio.feed.moves_asked(), Some(h.dwell_s));
         Ok(())
     }
 }
@@ -329,34 +320,24 @@ mod tests {
         assert_eq!(g.phase(), Phase::Off);
         assert!(!g.passed(10), "no step runs");
         g.hold();
-        g.moved(500, Some(0.25));
-        // A place of another move does not start the step.
-        g.start_step(400, Some(100));
+        g.moved(5, Some(0.25));
+        // Another move does not start the step.
+        g.start_step(4, Some(100));
         assert_eq!(
             g.phase(),
             Phase::Moved {
-                at: 500,
+                moves: 5,
                 dwell_s: Some(0.25)
             }
         );
-        g.start_step(500, Some(100));
+        g.start_step(5, Some(100));
         assert!(!g.passed(60));
         assert_eq!(g.phase(), Phase::Step { left: 40 });
         assert!(g.passed(40));
         assert!(g.held());
-        // The stream starts again in a new ring during a move: the place counts from its start.
-        g.moved(9_000, Some(0.25));
-        g.restarted();
-        assert_eq!(
-            g.phase(),
-            Phase::Moved {
-                at: 0,
-                dwell_s: Some(0.25)
-            }
-        );
-        // The last move ends the hop once its place is reached.
-        g.moved(700, None);
-        g.start_step(700, None);
+        // The last move ends the hop once its first sample is reached.
+        g.moved(7, None);
+        g.start_step(7, None);
         assert_eq!(g.phase(), Phase::Off);
     }
 }

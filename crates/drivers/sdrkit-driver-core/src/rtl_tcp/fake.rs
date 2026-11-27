@@ -18,6 +18,10 @@ pub struct FakeOpts {
     pub drop_first_after: Option<Duration>,
     /// Connections after the first get no greeting and no samples.
     pub mute_after_first: bool,
+    /// The samples have the magnitude [`level_of`] of the frequency of the tuner, and a frequency command takes effect
+    /// this long after it arrives: the samples of that time are those of the frequency before. The server looks for
+    /// commands before each piece of samples that it makes, so no sample of the time after a command misses it.
+    pub tune_takes: Option<Duration>,
 }
 
 impl Default for FakeOpts {
@@ -27,6 +31,53 @@ impl Default for FakeOpts {
             own_rate: None,
             drop_first_after: None,
             mute_after_first: false,
+            tune_takes: None,
+        }
+    }
+}
+
+/// The magnitude of the samples of a server with [`FakeOpts::tune_takes`] while its tuner is at `hz`: 0.1 at 100 MHz and
+/// 0.05 more for each MHz above, to the nearest value of an 8-bit sample.
+pub fn level_of(hz: f64) -> f32 {
+    (f32::from(level_step(hz)) + 0.5) / 128.0
+}
+
+/// The distance of the I part from the middle of its range, in steps, for [`level_of`].
+fn level_step(hz: f64) -> u8 {
+    let level = 0.1 + (hz - 100e6) / 1e6 * 0.05;
+    (level * 128.0 - 0.5).round().clamp(0.0, 127.0) as u8
+}
+
+/// The tuner of a server with [`FakeOpts::tune_takes`]: the frequency in effect, and the one that takes effect after
+/// a count of bytes more.
+#[derive(Default)]
+struct Tuner {
+    hz: f64,
+    next: Option<(usize, f64)>,
+}
+
+impl Tuner {
+    /// A frequency command for `hz` arrived: it takes effect after `bytes` more bytes.
+    fn command(&mut self, hz: f64, bytes: usize) {
+        if let Some((_, hz)) = self.next.take() {
+            self.hz = hz;
+        }
+        self.next = Some((bytes & !1, hz));
+    }
+
+    /// `n` bytes are made: returns the frequency of the first `k` of them, `k`, and the frequency of the others.
+    fn make(&mut self, n: usize) -> (f64, usize, f64) {
+        let old = self.hz;
+        match self.next {
+            Some((left, hz)) if left <= n => {
+                (self.hz, self.next) = (hz, None);
+                (old, left, hz)
+            }
+            Some((left, hz)) => {
+                self.next = Some((left - n, hz));
+                (old, n, old)
+            }
+            None => (old, n, old),
         }
     }
 }
@@ -131,16 +182,67 @@ fn serve(mut s: Box<dyn Conn>, seen: &Arc<Seen>, o: &FakeOpts, first: bool, stop
     let rate = Arc::new(Mutex::new(o.own_rate.unwrap_or(0.0)));
     let mut r = s.try_clone().unwrap();
     let (rate2, seen2, obey) = (rate.clone(), seen.clone(), o.own_rate.is_none());
-    std::thread::spawn(move || {
-        let mut c = [0u8; 5];
-        while r.read_exact(&mut c).is_ok() {
+    let mut tuner = Tuner::default();
+    // With a tuner, this thread reads the commands itself between the pieces of samples.
+    let mut commands = Vec::new();
+    if o.tune_takes.is_some() {
+        let _ = r.set_read_timeout(Some(Duration::from_millis(5)));
+    } else {
+        std::thread::spawn(move || {
+            let mut c = [0u8; 5];
+            while r.read_exact(&mut c).is_ok() {
+                let v = u32::from_be_bytes([c[1], c[2], c[3], c[4]]);
+                seen2.cmds.lock().unwrap().push((c[0], v));
+                if obey && c[0] == cmd::RATE {
+                    *rate2.lock().unwrap() = f64::from(v);
+                }
+            }
+        });
+        return stream(s, o, first, stop, &rate, None);
+    }
+    let takes = o.tune_takes.unwrap_or_default();
+    let mut read = move |tuner: &mut Tuner, rate: &Mutex<f64>| -> bool {
+        let mut b = [0u8; 64];
+        match r.read(&mut b) {
+            Ok(0) => return false,
+            Ok(k) => commands.extend_from_slice(&b[..k]),
+            Err(_) => {}
+        }
+        while commands.len() >= 5 {
+            let c: Vec<u8> = commands.drain(..5).collect();
             let v = u32::from_be_bytes([c[1], c[2], c[3], c[4]]);
-            seen2.cmds.lock().unwrap().push((c[0], v));
+            seen.cmds.lock().unwrap().push((c[0], v));
+            if c[0] == cmd::FREQ {
+                let bytes = (takes.as_secs_f64() * *rate.lock().unwrap() * 2.0) as usize;
+                tuner.command(f64::from(v), bytes);
+            }
             if obey && c[0] == cmd::RATE {
-                *rate2.lock().unwrap() = f64::from(v);
+                *rate.lock().unwrap() = f64::from(v);
             }
         }
-    });
+        true
+    };
+    let rate3 = rate.clone();
+    let mut tuned = move |n: usize| -> Option<(f64, usize, f64)> {
+        read(&mut tuner, &rate3).then(|| tuner.make(n))
+    };
+    stream(s, o, first, stop, &rate, Some(&mut tuned));
+}
+
+/// What [`stream`] asks before it makes a piece of `n` bytes: the frequency of the first bytes, their count and the
+/// frequency of the others. `None` ends the connection. The call waits up to 5 ms for a command.
+type Tuned<'a> = &'a mut dyn FnMut(usize) -> Option<(f64, usize, f64)>;
+
+/// Sends the samples of one connection at the rate `rate` until the connection or the server ends. Without `tuned`
+/// the bytes count up.
+fn stream(
+    mut s: Box<dyn Conn>,
+    o: &FakeOpts,
+    first: bool,
+    stop: &AtomicBool,
+    rate: &Mutex<f64>,
+    mut tuned: Option<Tuned<'_>>,
+) {
     let start = Instant::now();
     let mut epoch = (start, 0.0f64);
     let mut sent: u64 = 0;
@@ -161,15 +263,39 @@ fn serve(mut s: Box<dyn Conn>, seen: &Arc<Seen>, o: &FakeOpts, first: bool, stop
         let due = (epoch.0.elapsed().as_secs_f64() * r * 2.0) as u64;
         if due > sent {
             let n = (due - sent).min(1 << 20) as usize;
-            for b in &mut buf[..n] {
-                *b = k;
-                k = k.wrapping_add(1);
+            if let Some(tuned) = tuned.as_mut() {
+                let Some((old, from, new)) = tuned(n) else {
+                    return;
+                };
+                for (i, b) in buf[..n].iter_mut().enumerate() {
+                    let step = level_step(if i < from { old } else { new });
+                    // I goes up and down by the level around the middle, so the samples have no DC part; Q stays there.
+                    let at = sent as usize + i;
+                    let up = (at / 2).is_multiple_of(2);
+                    *b = match (at.is_multiple_of(2), up) {
+                        (true, true) => 128 + step,
+                        (true, false) => 127 - step,
+                        (false, _) => 128,
+                    };
+                }
+            } else {
+                for b in &mut buf[..n] {
+                    *b = k;
+                    k = k.wrapping_add(1);
+                }
             }
             if s.write_all(&buf[..n]).is_err() {
                 return;
             }
             sent += n as u64;
+        } else if let Some(tuned) = tuned.as_mut() {
+            if tuned(0).is_none() {
+                return;
+            }
+            continue;
         }
-        std::thread::sleep(Duration::from_millis(5));
+        if tuned.is_none() {
+            std::thread::sleep(Duration::from_millis(5));
+        }
     }
 }

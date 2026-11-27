@@ -2234,8 +2234,11 @@ impl Shared {
                     },
                     None => Ok(Held::none()),
                 };
+                // The session takes a new frequency at the first sample of the move of the radio, if one follows: the
+                // radio is told first.
                 let (r, before, after) = {
                     let mut c = s.owner();
+                    c.hold_tunes();
                     let before = tuned(&*c);
                     let r = if signal.is_some() {
                         f(&mut SignalGuard {
@@ -2260,6 +2263,7 @@ impl Shared {
                         self.log(format!("{}: {e}", session_key(id)));
                     }
                 }
+                lock(&s.control).release_tunes();
                 // A setting of the stack that gives the sample rate may have changed.
                 if let Err(e) = self.follow_rate(&s) {
                     self.log(format!("{}: {e}", session_key(id)));

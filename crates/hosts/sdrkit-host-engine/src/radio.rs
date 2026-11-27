@@ -61,6 +61,20 @@ impl Tuning {
 }
 
 
+/// A move of a radio that streams to another centre, until the thread of the radio has reached its first sample. The
+/// thread passes no sample while a move waits: the samples that the radio captured before it settled are left out.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Move {
+    /// The radio is being told.
+    Ordered,
+    /// The radio took the centre. With `seq`, the driver finds the first sample of its retune of that number
+    /// ([`RingStats::moves`]); else the first sample is the one after `floor` samples of the ring.
+    Taken { seq: Option<u64>, floor: u64 },
+}
+
+/// The moves of one radio that wait, the oldest first.
+pub(crate) type Moves = Arc<Mutex<VecDeque<Move>>>;
+
 /// An open radio as an owner, with its own queue of events.
 pub(crate) struct RadioOwner {
     radio: OpenRadio,
@@ -76,6 +90,8 @@ pub(crate) struct RadioOwner {
     rate_given_back: Arc<AtomicBool>,
     /// Shared with [`Radio::hop`].
     hop: Arc<HopGate>,
+    /// The moves that the thread of the radio has not reached.
+    moves: Moves,
     /// Wakes the control thread at the end of a step of a hop.
     wake: Arc<Condvar>,
     /// The counters of the ring of the stream that runs.
@@ -129,6 +145,7 @@ impl Radio {
             auto_rate: Arc::clone(&auto_rate),
             rate_given_back: Arc::clone(&rate_given_back),
             hop: Arc::clone(&hop),
+            moves: Moves::default(),
             wake,
             ring: None,
         };
@@ -171,7 +188,9 @@ impl RadioOwner {
         self.feed.set_queue(samples / BLOCK);
         let (writer, reader) = ring(samples, self.radio.sample_type());
         self.ring = Some(reader.stats());
-        self.hop.restarted();
+        // A new ring holds samples of the new centre only: no move waits.
+        crate::feed::lock(&self.moves).clear();
+        self.feed.moves_done_to(self.feed.moves_asked());
         let started = self.radio.start(writer)?;
         self.tuning.set(started.rate_hz, started.centre_hz);
         let stop = Arc::new(AtomicBool::new(false));
@@ -181,6 +200,7 @@ impl RadioOwner {
             Arc::clone(&self.feed),
         );
         let (hop, wake) = (Arc::clone(&self.hop), Arc::clone(&self.wake));
+        let moves = Arc::clone(&self.moves);
         let thread = std::thread::Builder::new()
             .name("sdrkit-radio".into())
             .spawn(move || {
@@ -192,6 +212,7 @@ impl RadioOwner {
                     &Steps {
                         gate: &hop,
                         wake: &wake,
+                        moves: &moves,
                     },
                 )
             })
@@ -260,10 +281,49 @@ impl RadioOwner {
         self.tuning.get()
     }
 
-    /// The samples that the radio wrote into the ring of its stream so far: the place in the ring of the next sample
-    /// that it writes.
-    pub(crate) fn ring_written(&self) -> u64 {
-        self.ring.as_ref().map_or(0, |r| r.written())
+    /// Marks the start of a step of a hop in which the radio stays at its centre, as a move that takes no time: the
+    /// samples that the radio wrote so far are left out, and the next block counts the move, so a session takes the
+    /// frequency of the step at that block.
+    pub(crate) fn mark_step(&mut self) {
+        let Some(ring) = self.ring.as_ref().filter(|_| self.pump.is_some()) else {
+            return;
+        };
+        let mut moves = crate::feed::lock(&self.moves);
+        moves.push_back(Move::Taken {
+            seq: None,
+            floor: ring.written(),
+        });
+        self.feed.move_asked();
+    }
+
+    /// Applies `value` to setting `id` of the radio. A new centre of a radio that streams is a move: the thread of the
+    /// radio passes no sample from the order until the first sample that the radio captured at the new centre, which
+    /// the driver finds ([`RingStats::moves`]) or, for a source with no samples in flight, is the next one written.
+    fn apply_radio(&mut self, id: SettingId, value: &Value) -> Result<(), SettingError> {
+        let centre = self.radio.schema().id(sdrkit_driver_core::CENTRE.field.key) == Ok(id);
+        let ring = self.ring.clone().filter(|_| centre && self.pump.is_some());
+        let Some(ring) = ring else {
+            let r = self.radio.apply(id, value);
+            self.sync();
+            return r;
+        };
+        let before = (self.tuning.get().1, ring.moves().begun);
+        crate::feed::lock(&self.moves).push_back(Move::Ordered);
+        let r = self.radio.apply(id, value);
+        self.sync();
+        let mut moves = crate::feed::lock(&self.moves);
+        if self.tuning.get().1.to_bits() == before.0.to_bits() {
+            // The radio stays where it is.
+            moves.pop_back();
+        } else if let Some(m) = moves.back_mut() {
+            let begun = ring.moves().begun;
+            *m = Move::Taken {
+                seq: (begun > before.1).then_some(begun),
+                floor: ring.written(),
+            };
+            self.feed.move_asked();
+        }
+        r
     }
 
     /// The transmit settings of the radio, if it can transmit.
@@ -300,8 +360,7 @@ impl RadioOwner {
         let Some(v) = self.radio.values().and_then(|v| v.value(id)).cloned() else {
             return;
         };
-        let _ = self.radio.apply(id, &v);
-        self.sync();
+        let _ = self.apply_radio(id, &v);
     }
 
     /// True while the host leaves the rate of the radio on Automatic. The engine then sets the rate that the stack of
@@ -376,8 +435,7 @@ impl RadioOwner {
         };
         let id = EngineError::id_of(self.radio.schema(), key)?;
         let checked = self.radio.schema().check(id, &value);
-        let r = checked.and_then(|()| self.radio.apply(id, &value));
-        self.sync();
+        let r = checked.and_then(|()| self.apply_radio(id, &value));
         r.map_err(|e| EngineError::setting(self.radio.schema(), e))
     }
 
@@ -405,8 +463,7 @@ impl Owner for RadioOwner {
             self.rate_given_back.store(true, Ordering::Release);
             return Ok(());
         }
-        let r = self.radio.apply(id, value);
-        self.sync();
+        let r = self.apply_radio(id, value);
         if rate && r.is_ok() {
             self.auto_rate.store(false, Ordering::Release);
             self.rate_given_back.store(false, Ordering::Release);
@@ -440,6 +497,48 @@ fn drop_former_rate(reader: &mut RingReader, tuning: &Tuning, seen: &mut u64) {
 struct Steps<'a> {
     gate: &'a HopGate,
     wake: &'a Condvar,
+    moves: &'a Mutex<VecDeque<Move>>,
+}
+
+/// Leaves out the samples of `reader` before the first sample of the oldest move that waits. Returns false if no move
+/// waits: the samples pass. A move whose first sample is reached is counted as done in `feed`.
+fn settle_move(
+    reader: &mut RingReader,
+    feed: &Feed,
+    moves: &Mutex<VecDeque<Move>>,
+    left_out: &mut LeftOut,
+) -> bool {
+    let Some(front) = crate::feed::lock(moves).front().copied() else {
+        return false;
+    };
+    let at = match front {
+        Move::Ordered => None,
+        Move::Taken { seq: None, floor } => Some(floor),
+        Move::Taken { seq: Some(seq), .. } => {
+            let m = reader.stats().moves();
+            (m.found >= seq).then_some(m.at)
+        }
+    };
+    let Some(at) = at else {
+        if feed.live() {
+            let n = reader.available();
+            left_out.leave(reader, n);
+        } else {
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        return true;
+    };
+    let ahead = usize::try_from(at.saturating_sub(reader.position())).unwrap_or(usize::MAX);
+    let n = ahead.min(reader.available());
+    left_out.leave(reader, n);
+    if n == ahead {
+        let mut moves = crate::feed::lock(moves);
+        moves.pop_front();
+        feed.moves_done_to(
+            feed.moves_asked() - moves.iter().filter(|m| **m != Move::Ordered).count() as u64,
+        );
+    }
+    true
 }
 
 /// The samples that the thread of a radio left out since the last block it passed: those that it dropped on purpose and
@@ -487,8 +586,11 @@ impl LeftOut {
 ///
 /// During a hop ([`crate::hop`]) a step passes the samples of its dwell and no more, then signals the control thread and
 /// passes nothing until the radio has moved: a live radio's samples are dropped meanwhile, those of another source wait in
-/// the ring. The samples before the first one at the new frequency are left out, and the first block of the step starts
-/// with a gap made on purpose of all that was left out.
+/// the ring.
+///
+/// At a move of the radio to another centre ([`Move`]), in a hop or not, the samples before the first one that the radio
+/// captured at the new centre are left out. The first block after it has the new centre, counts the move
+/// ([`crate::feed::Block::moves`]) and starts with a gap made on purpose of all that was left out.
 fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool, hop: &Steps<'_>) {
     let mut rate_changes = tuning.rate_changes.load(Ordering::Acquire);
     let mut left_out = LeftOut::default();
@@ -509,6 +611,9 @@ fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool,
         if !live && !feed.wait_for_reader(tuning.get(), Duration::from_millis(50)) {
             continue;
         }
+        if settle_move(&mut reader, feed, hop.moves, &mut left_out) {
+            continue;
+        }
         let phase = hop.gate.phase();
         let limit = match phase {
             Phase::Off => BLOCK,
@@ -522,20 +627,18 @@ fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool,
                 }
                 continue;
             }
-            Phase::Moved { at, dwell_s } => {
-                let ahead =
-                    usize::try_from(at.saturating_sub(reader.position())).unwrap_or(usize::MAX);
-                let n = ahead.min(reader.available());
-                left_out.leave(&mut reader, n);
-                if n == ahead {
+            Phase::Moved { moves, dwell_s } => {
+                // The thread is at the first sample of the move: the step starts here.
+                if feed.moves_done() >= moves {
                     let rate = tuning.get().0;
                     hop.gate
-                        .start_step(at, dwell_s.map(|d| (d * rate).round() as u64));
+                        .start_step(moves, dwell_s.map(|d| (d * rate).round() as u64));
                 }
                 continue;
             }
         };
         let (rate, centre) = tuning.get();
+        let mut lost = 0;
         // A live feed counts a session that is behind; another feed waits for it. Neither returns an error.
         let sent = feed.deliver_gaps(rate, centre, false, |iq, gaps| {
             if iq.len() != BLOCK {
@@ -544,11 +647,18 @@ fn pump(mut reader: RingReader, feed: &Feed, tuning: &Tuning, stop: &AtomicBool,
             left_out.put(gaps);
             // The gaps are counted from the next read: take those of the samples that this read returns.
             let n = reader.available().min(limit);
+            let from = gaps.len();
             gaps.extend(reader.take_gaps(n));
+            lost = gaps[from..]
+                .iter()
+                .filter(|g| !g.deliberate)
+                .map(|g| g.lost)
+                .sum();
             reader.read_iq(&mut iq[..n])
         });
         if let (Phase::Step { .. }, Ok(n)) = (phase, sent) {
-            if hop.gate.passed(n as u64) {
+            // The samples that the radio or its link lost inside the step are signal time of the dwell too.
+            if hop.gate.passed(n as u64 + lost) {
                 hop.wake.notify_all();
             }
         }
@@ -618,13 +728,79 @@ mod tests {
         drop(w);
         // The writer is gone: the loop ends when the ring is empty.
         let (gate, wake) = (HopGate::default(), Condvar::new());
+        let moves = Mutex::default();
         let steps = Steps {
             gate: &gate,
             wake: &wake,
+            moves: &moves,
         };
         pump(r, &feed, &tuning, &AtomicBool::new(false), &steps);
         let block = rx.try_recv().unwrap();
         assert_eq!(block.samples().len(), 1500);
         assert_eq!(block.gaps(), [sdrkit_driver_core::Gap::lost_at(1000, 4096)]);
+    }
+    #[test]
+    fn the_samples_before_the_first_one_of_a_move_are_left_out_and_the_block_counts_the_move() {
+        let (mut w, r) = ring(1 << 16, sdrkit_graph::stream::SampleType::Cf32);
+        let stats = r.stats();
+        // 1000 samples of the centre before, then the radio is told to move: 1500 more of them were in flight.
+        assert_eq!(w.write_iq(&[Complex32::new(1.0, 0.0); 2500]), 2500);
+        let seq = stats.begin_move();
+        let catalog = Arc::new(sdrkit_graph::Catalog::default());
+        let feed = Arc::new(Feed::new(
+            true,
+            catalog,
+            sdrkit_graph::RunContext::default(),
+        ));
+        let (tx, rx) = std::sync::mpsc::sync_channel(8);
+        assert!(feed.subscribe(crate::feed::Sub {
+            session: 1,
+            tx,
+            dropped: Arc::default(),
+            demand: Arc::default(),
+            queue: Arc::default(),
+            steers: true,
+        }));
+        let tuning = Tuning::default();
+        tuning.set(48e3, 101e6);
+        let moves = Mutex::new(VecDeque::from([Move::Taken {
+            seq: Some(seq),
+            floor: 1000,
+        }]));
+        feed.move_asked();
+        let (gate, wake) = (HopGate::default(), Condvar::new());
+        gate.hold();
+        gate.moved(feed.moves_asked(), None);
+        let steps = Steps {
+            gate: &gate,
+            wake: &wake,
+            moves: &moves,
+        };
+        let stop = Arc::new(AtomicBool::new(false));
+        let done = {
+            let (feed, stop) = (Arc::clone(&feed), Arc::clone(&stop));
+            std::thread::spawn(move || {
+                // The driver has not found the first sample: nothing passes.
+                std::thread::sleep(Duration::from_millis(100));
+                assert_eq!(feed.moves_done(), 0);
+                // The driver marks the place, then writes the samples of the new centre.
+                stats.end_move(seq, 2500);
+                assert_eq!(w.write_iq(&[Complex32::new(2.0, 0.0); 700]), 700);
+                drop(w);
+                stop
+            })
+        };
+        pump(r, &feed, &tuning, &stop, &steps);
+        done.join().unwrap();
+        let block = rx.try_recv().unwrap();
+        assert_eq!(block.samples(), [Complex32::new(2.0, 0.0); 700]);
+        assert_eq!((block.centre_hz, block.moves), (101e6, 1));
+        let left_out = sdrkit_driver_core::Gap {
+            deliberate: true,
+            ..sdrkit_driver_core::Gap::lost_at(0, 2500)
+        };
+        assert_eq!(block.gaps(), [left_out]);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(gate.phase(), Phase::Off);
     }
 }

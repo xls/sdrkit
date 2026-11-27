@@ -4,6 +4,7 @@
 
 use crate::loss::LossDetector;
 use crate::net::Abort;
+use crate::settle::{Settle, SettleGate};
 use crate::{
     Capabilities, DriverError, Link, LossReport, Polled, Retuned, RingWriter, Source, Started,
     CENTRE, RATE,
@@ -85,6 +86,11 @@ pub trait Radio: Send + 'static {
     fn restore_state(&mut self, state: &StateBlob) -> Result<(), StateError> {
         let _ = state;
         Err(StateError::NoState)
+    }
+    /// What the base needs to find the first sample after a retune ([`Settle`]). The default is
+    /// [`Settle::of_rate`].
+    fn retune_settle(&self) -> Settle {
+        Settle::of_rate(self.rate_hz())
     }
     /// Writes `gain_db` as the manual gain of receiver `rx` for the held gain of the driver ([`crate::gain`]). The stream calls
     /// it through [`StreamCtx::write_gain`], never during a configure. The default refuses.
@@ -216,6 +222,10 @@ impl StreamCtx {
 pub struct Sink {
     writer: RingWriter,
     loss: Arc<Mutex<LossDetector>>,
+    settle: Arc<Mutex<SettleGate>>,
+    /// When the samples of the next write arrived and whether the radio sent them at once, if the stream said
+    /// ([`Sink::arrived`]).
+    arrived: Option<(Instant, bool)>,
     notices: Notices,
     epoch: Instant,
     offered: u64,
@@ -227,6 +237,7 @@ impl Sink {
     fn new(
         writer: RingWriter,
         loss: Arc<Mutex<LossDetector>>,
+        settle: Arc<Mutex<SettleGate>>,
         notices: Notices,
         epoch: Instant,
         advice: &'static str,
@@ -234,11 +245,41 @@ impl Sink {
         Sink {
             writer,
             loss,
+            settle,
+            arrived: None,
             notices,
             epoch,
             offered: 0,
             advice,
             last_warn: None,
+        }
+    }
+
+    fn settle(&self) -> MutexGuard<'_, SettleGate> {
+        self.settle
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    /// The samples of the next write arrived at `at` (the first byte of a buffer that the radio sends whole). `direct`:
+    /// the stream waited for them, so the radio sent them when it had captured the last of them; else they waited in
+    /// the radio or on the link for a time that the stream does not know. Without this call, the write counts as
+    /// direct at its own time.
+    pub fn arrived(&mut self, at: Instant, direct: bool) {
+        self.arrived = Some((at, direct));
+    }
+
+    /// A write of `n` samples follows: if the first sample of a retune is among them or before them, its place is marked
+    /// in the ring ([`crate::ring::RingStats::end_move`]).
+    fn coming(&mut self, n: usize) {
+        let (at, direct) = self
+            .arrived
+            .take()
+            .unwrap_or_else(|| (Instant::now(), true));
+        let found = self.settle().write(at, n as u64, direct);
+        if let Some((seq, k)) = found {
+            let stats = self.writer.stats();
+            stats.end_move(seq, stats.written() + k);
         }
     }
 
@@ -249,6 +290,7 @@ impl Sink {
         if n == 0 {
             return 0;
         }
+        self.coming(n);
         let k = self.writer.write(bytes);
         self.offered(n);
         k
@@ -263,6 +305,7 @@ impl Sink {
         if n == 0 {
             return 0;
         }
+        self.coming(n);
         let k = self.writer.write_with(n, fill);
         self.offered(n);
         k
@@ -279,8 +322,12 @@ impl Sink {
         spare: &mut [u8],
         read: impl FnOnce(&mut [u8]) -> std::io::Result<usize>,
     ) -> std::io::Result<usize> {
+        let before = self.writer.stats().written();
         let got = self.writer.receive(max, spare, read)?;
         if got.samples > 0 {
+            // A read that took all it could hold may have left bytes behind: its samples waited for an unknown time.
+            self.arrived = Some((Instant::now(), !got.full));
+            self.came(before, got.samples);
             self.offered(got.samples);
         }
         Ok(got.bytes)
@@ -299,6 +346,7 @@ impl Sink {
         mut read: impl FnMut(&mut [u8]) -> std::io::Result<usize>,
     ) -> std::io::Result<()> {
         let (mut left, mut samples) = (n, 0);
+        let before = self.writer.stats().written();
         let result = loop {
             if left == 0 {
                 break Ok(());
@@ -315,9 +363,23 @@ impl Sink {
         };
         self.writer.discard_part();
         if result.is_ok() && samples > 0 {
+            self.came(before, samples);
             self.offered(samples);
         }
         result
+    }
+
+    /// [`Sink::coming`] for a write whose size was not known before it: `n` samples were written after `before`
+    /// samples of the ring.
+    fn came(&mut self, before: u64, n: usize) {
+        let (at, direct) = self
+            .arrived
+            .take()
+            .unwrap_or_else(|| (Instant::now(), true));
+        let found = self.settle().write(at, n as u64, direct);
+        if let Some((seq, k)) = found {
+            self.writer.stats().end_move(seq, before + k);
+        }
     }
 
     fn offered(&mut self, len: usize) {
@@ -331,6 +393,7 @@ impl Sink {
         if let Some(l) = found {
             // The samples that the clock says did not come leave a gap at the place where they were found: the reader marks
             // a discontinuity, and the stack does not take the samples around it for one stretch.
+            self.settle().pass(l.samples);
             self.writer.mark_gap(l.samples);
             let quiet = self
                 .last_warn
@@ -363,6 +426,7 @@ impl Sink {
             return;
         }
         self.offered += samples;
+        self.settle().pass(samples);
         self.loss
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -378,6 +442,7 @@ impl Sink {
             return;
         }
         self.offered += samples;
+        self.settle().pass(samples);
         self.writer.mark_deliberate_gap(samples);
     }
 
@@ -491,6 +556,8 @@ struct Shared<R> {
     stream_abort: Mutex<Arc<Abort>>,
     notices: Notices,
     loss: Arc<Mutex<LossDetector>>,
+    /// Finds the first sample of a retune in the stream.
+    settle: Arc<Mutex<SettleGate>>,
     /// The loss detector's clock.
     epoch: Instant,
     link_down: AtomicU64,
@@ -621,6 +688,7 @@ impl<R: Radio> StreamRunner<R> {
         };
         let shared = Arc::new(Shared {
             loss: Arc::new(Mutex::new(LossDetector::new(radio.rate_hz()))),
+            settle: Arc::new(Mutex::new(SettleGate::new(radio.rate_hz()))),
             slot: Mutex::new(Some(radio)),
             state: Mutex::new(state),
             stopping: Arc::new(AtomicBool::new(false)),
@@ -721,6 +789,10 @@ impl<R: Radio> Source for StreamRunner<R> {
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .restarted(st.rate);
+            // A new ring counts its retunes from the start: one that waited in the ring before is gone.
+            *sh.settle
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner) = SettleGate::new(st.rate);
             s
         };
         let stats = sink.stats();
@@ -731,6 +803,7 @@ impl<R: Radio> Source for StreamRunner<R> {
         let sink = Sink::new(
             sink,
             sh.loss.clone(),
+            sh.settle.clone(),
             sh.notices.clone(),
             sh.epoch,
             self.cfg.advice,
@@ -811,7 +884,27 @@ impl<R: Radio> Source for StreamRunner<R> {
                     }
                     return res.map(Retuned::Live);
                 }
-                let note = r.configure(tune, true)?;
+                // A change of the centre is a retune: the stream finds its first sample.
+                let moved = (tune.get(&CENTRE) - r.centre_hz()).abs() > 0.0;
+                let ring = sh
+                    .ring
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .clone();
+                let seq = ring.as_ref().filter(|_| moved).map(|s| s.begin_move());
+                let done = r.configure(tune, true);
+                if let (Some(seq), Some(stats)) = (seq, &ring) {
+                    let mut gate = sh
+                        .settle
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
+                    match &done {
+                        Ok(_) => gate.mark(seq, Instant::now(), r.retune_settle()),
+                        Err(_) if gate.failed(seq) => stats.end_move(seq, stats.written()),
+                        Err(_) => {}
+                    }
+                }
+                let note = done?;
                 // A retune or a change of gain moves the DC offset.
                 if let Some(stats) = sh
                     .ring
@@ -823,7 +916,14 @@ impl<R: Radio> Source for StreamRunner<R> {
                 }
                 let mut st = sh.state();
                 st.asked_rate = tune.get(&RATE);
+                let before_rate = st.rate;
                 (st.rate, st.centre) = (r.rate_hz(), r.centre_hz());
+                if (st.rate - before_rate).abs() > 0.0 {
+                    sh.settle
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .restart(st.rate);
+                }
                 sh.loss
                     .lock()
                     .unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -1044,6 +1144,8 @@ fn radio_thread<R: Radio>(
         if !std::mem::take(&mut first_stream) {
             crate::dc::follow(&sink.writer.stats(), &sh.state().wanted);
         }
+        let rate = sh.state().rate;
+        sink.settle().restart(rate);
         let result = stream.run(&mut sink, &ctx);
         // The old stream closes its connection before anything else goes to the radio: a connection left open and unread
         // would hold the radio's buffer for a client that no longer reads it. Then the abort lets go of its handles on it.

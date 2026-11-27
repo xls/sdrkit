@@ -214,7 +214,9 @@ impl BinaryRx {
     /// then queues that block again at once, before the data is converted. Returns the bytes read. An errno is the server's: the
     /// block has been queued again, so the stream continues.
     pub fn recv(&mut self, out: &mut Vec<u8>) -> Result<usize, IioError> {
+        let asked = std::time::Instant::now();
         let h = self.header()?;
+        self.conn.answer_began(asked);
         if h.client == 0 || h.client > self.blocks {
             if h.code > 0 {
                 self.discard(h.code as usize)?;

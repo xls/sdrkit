@@ -69,6 +69,22 @@ pub struct RingStats {
     dc_epoch: AtomicU64,
     /// The samples written before the last restart of the DC estimate.
     dc_from: AtomicU64,
+    /// The retunes that the source began.
+    moves_begun: AtomicU64,
+    /// The number of the last retune whose first sample is known, and the samples written before that sample.
+    moved: Mutex<(u64, u64)>,
+}
+
+/// The retunes of the source of a ring ([`RingStats::moves`]).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Moves {
+    /// The retunes that the source began.
+    pub begun: u64,
+    /// The number of the last retune whose first sample is known. Lower than `begun` while the radio settles.
+    pub found: u64,
+    /// The place in the ring ([`RingReader::position`]) of the first sample of retune `found`. It can lie ahead of the
+    /// samples written.
+    pub at: u64,
 }
 
 impl RingStats {
@@ -89,7 +105,29 @@ impl RingStats {
             dc_on: AtomicBool::new(false),
             dc_epoch: AtomicU64::new(0),
             dc_from: AtomicU64::new(0),
+            moves_begun: AtomicU64::new(0),
+            moved: Mutex::new((0, 0)),
         }
+    }
+    /// The source begins a retune of a radio that streams. Returns the number of the retune. The source says where the
+    /// retune takes effect with [`RingStats::end_move`]; a source that calls neither has no samples of the frequency
+    /// before in flight.
+    pub fn begin_move(&self) -> u64 {
+        self.moves_begun.fetch_add(1, Ordering::AcqRel) + 1
+    }
+    /// The first sample of retune `seq`, and of every retune before it, is the one after `at` samples written.
+    pub fn end_move(&self, seq: u64, at: u64) {
+        let mut m = self.moved.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if seq > m.0 {
+            *m = (seq, at);
+        }
+    }
+    /// The retunes of the source.
+    pub fn moves(&self) -> Moves {
+        // `begun` is read first: a retune that it counts is never taken as found by a number read later.
+        let begun = self.moves_begun.load(Ordering::Acquire);
+        let (found, at) = *self.moved.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        Moves { begun, found: found.min(begun), at }
     }
     /// Makes [`RingReader::read_iq`] remove the DC offset of the samples, or stop doing so.
     pub fn set_dc_removal(&self, on: bool) {
@@ -211,6 +249,8 @@ pub(crate) struct Received {
     pub bytes: usize,
     /// Whole samples offered to the ring, written or dropped.
     pub samples: usize,
+    /// The read filled what it was given: more bytes may have waited behind them.
+    pub full: bool,
 }
 
 /// The radio's end of the ring.
@@ -371,6 +411,7 @@ impl RingWriter {
                 return Ok(Received {
                     bytes: n,
                     samples: whole / size,
+                    full: n == want,
                 });
             }
         }
@@ -385,6 +426,7 @@ impl RingWriter {
         Ok(Received {
             bytes: n,
             samples: whole / size,
+            full: n == want,
         })
     }
 

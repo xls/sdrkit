@@ -14,6 +14,7 @@ use crate::net::Abort;
 use crate::rate::{self, LinkKind};
 use crate::gain::{HeldGain, HoldStatus, Level, Meter};
 use crate::runner::{Notices, Radio, RadioStream, Sink, StreamCtx};
+use crate::settle::Settle;
 use crate::{
     fmt_m, own_id, Capabilities, DriverDescriptor, DriverError, Protocol, RadioSetting, RateLimits,
     RingWriter, Source, SourceDriver, StreamFormat, StreamLayout, TxLimits, AGC, BANDWIDTH, CENTRE,
@@ -91,6 +92,9 @@ const SHORT_WINDOWS: u32 = 2;
 /// as lost:
 /// the jitter of the network and of the reader.
 const LATE_ALLOWANCE: Duration = Duration::from_millis(100);
+/// After the write of the LO returns, the receive chain takes this long until its samples are those of the new frequency;
+/// it holds the time from the last sample of a buffer to the first byte of its answer too.
+const RETUNE_SETTLE: Duration = Duration::from_millis(5);
 /// How long a reading of the link counts. The link to a board across Wi-Fi changes from second to second, so an older
 /// reading says nothing about it.
 const LIVE_FRESH: Duration = Duration::from_secs(5);
@@ -1813,6 +1817,15 @@ impl Radio for IiodRadio {
         false
     }
 
+    /// The write of the LO returns when the synthesiser has locked. The samples of the kernel buffers and of the buffers
+    /// on the link were captured before; in the ring, an interleaved pair of receivers counts twice.
+    fn retune_settle(&self) -> Settle {
+        Settle {
+            after: RETUNE_SETTLE,
+            in_flight: self.latency() * (self.ring_rate() / self.rate.max(1.0)).round().max(1.0) as u64,
+        }
+    }
+
     fn status(&self) -> String {
         let what = match self.receivers {
             Receivers::One => "",
@@ -2196,6 +2209,13 @@ impl IiodStream {
         let inst = self.lay.instants(n);
         if inst == 0 {
             return;
+        }
+        let conn = match &self.link {
+            Link2::Text { conn, .. } => conn,
+            Link2::Binary(b) => b.conn(),
+        };
+        if let Some((at, waited)) = conn.answer_at() {
+            sink.arrived(at, waited);
         }
         let (raw, lay) = (&self.raw[..n], &self.lay);
         match self.receivers {

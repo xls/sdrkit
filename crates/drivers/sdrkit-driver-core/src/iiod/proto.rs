@@ -151,6 +151,10 @@ static NEXT_CONN: AtomicU32 = AtomicU32::new(1);
 /// The most bytes read in one call while a deadline runs, so that the deadline is looked at between pieces.
 const PIECE: usize = 64 << 10;
 
+/// A read that takes at least this long for the first bytes of a buffer answer waited for the server: the answer was not
+/// on its way before.
+const ANSWER_WAIT: Duration = Duration::from_millis(1);
+
 /// One connection to iiod.
 ///
 /// It keeps the framing of the text protocol: a command is written only when every answer has been read, except a `READBUF`,
@@ -167,6 +171,8 @@ pub struct IiodConn {
     timeout: Duration,
     /// The connection number in the trace, when the trace is on.
     id: Option<u32>,
+    /// When the first bytes of the last buffer answer came, and whether the connection waited for them.
+    answer_at: Option<(Instant, bool)>,
 }
 
 impl IiodConn {
@@ -202,6 +208,7 @@ impl IiodConn {
             torn: false,
             timeout,
             id,
+            answer_at: None,
         };
         c.trace('+', &format!("{:?}", c.sock.peer_addr()));
         Ok(c)
@@ -236,6 +243,19 @@ impl IiodConn {
     /// True when the framing is lost: nothing may be written on the connection.
     pub fn torn(&self) -> bool {
         self.torn
+    }
+
+    /// When the first bytes of the last buffer answer came: the server sends a buffer when it is full, so every sample
+    /// of the answer was captured before then. With true, the connection waited for them: the server had no full
+    /// buffer before, and the last sample of the answer was captured just then.
+    pub fn answer_at(&self) -> Option<(Instant, bool)> {
+        self.answer_at
+    }
+
+    /// Notes that the first bytes of a buffer answer came now, after a wait for them since `asked`.
+    pub(crate) fn answer_began(&mut self, asked: Instant) {
+        let now = Instant::now();
+        self.answer_at = Some((now, now.duration_since(asked) >= ANSWER_WAIT));
     }
 
     /// The `READBUF` answers that the server still owes.
@@ -479,7 +499,11 @@ impl IiodConn {
         let mut mask = None;
         while got < bytes {
             self.left(deadline)?;
+            let asked = Instant::now();
             let k = self.status_raw()? as usize;
+            if got == 0 {
+                self.answer_began(asked);
+            }
             if k == 0 {
                 break;
             }

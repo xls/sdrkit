@@ -36,6 +36,8 @@ pub(crate) struct Block {
     gaps: Vec<Gap>,
     /// When the feed sent the block.
     pub(crate) sent: Option<std::time::Instant>,
+    /// The moves of the radio of the feed ([`Feed::move_asked`]) whose first sample is in this block or came before it.
+    pub(crate) moves: u64,
 }
 
 impl Block {
@@ -206,6 +208,10 @@ pub(crate) struct Feed {
     waits: AtomicBool,
     /// Deliveries do not wait: the source of the feed stops.
     no_wait: AtomicBool,
+    /// The moves of the radio of the feed to another centre that were ordered, and those whose first sample the thread
+    /// of the radio has reached.
+    moves_asked: AtomicU64,
+    moves_done: AtomicU64,
 }
 
 /// What became of a block that the feed offered to a session.
@@ -237,6 +243,8 @@ impl Feed {
             room: Condvar::new(),
             waits: AtomicBool::new(false),
             no_wait: AtomicBool::new(false),
+            moves_asked: AtomicU64::new(0),
+            moves_done: AtomicU64::new(0),
             live,
             catalog,
             ctx,
@@ -244,6 +252,27 @@ impl Feed {
             problem: Mutex::new(None),
             centre: Arc::default(),
         }
+    }
+
+    /// A move of the radio of the feed to another centre is ordered. Returns the count of the moves ordered.
+    pub(crate) fn move_asked(&self) -> u64 {
+        self.moves_asked.fetch_add(1, Ordering::AcqRel) + 1
+    }
+
+    /// The moves ordered so far. A session takes a new frequency at the first block that has this many
+    /// ([`Block::moves`]).
+    pub(crate) fn moves_asked(&self) -> u64 {
+        self.moves_asked.load(Ordering::Acquire)
+    }
+
+    /// The moves whose first sample the thread of the radio has reached.
+    pub(crate) fn moves_done(&self) -> u64 {
+        self.moves_done.load(Ordering::Acquire)
+    }
+
+    /// The thread of the radio reached the first sample of every move ordered up to `asked`: the next block has it.
+    pub(crate) fn moves_done_to(&self, asked: u64) {
+        self.moves_done.fetch_max(asked, Ordering::AcqRel);
     }
 
     pub(crate) fn live(&self) -> bool {
@@ -440,6 +469,7 @@ impl Feed {
         block.len = n.min(block.iq.len());
         block.rate_hz = rate_hz;
         block.centre_hz = centre_hz;
+        block.moves = self.moves_done();
         if block.len == 0 {
             return Ok(0);
         }

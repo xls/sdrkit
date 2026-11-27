@@ -452,7 +452,7 @@ impl Shared {
             }
         }
         if let (Some(hz), fresh) = to {
-            self.tune(id, hz, fresh)?;
+            self.tune(id, hz, fresh, false)?;
         }
         Ok(())
     }
@@ -493,26 +493,46 @@ impl Shared {
     /// Tunes session `id` to `hz`: its operator listens there, the session follows, and the radio does what the operator
     /// then demands ([`Shared::move_radio`]).
     pub(crate) fn tune_to(&self, id: SessionId, hz: f64) -> Result<(), EngineError> {
-        self.tune(id, hz, false)
+        self.tune(id, hz, false, false)
+    }
+
+    /// [`Shared::tune_to`] for a step of a hop of the radio that the session reads: if the radio stays where it is,
+    /// the session still takes the frequency in step with the samples, at the first block after those that the radio
+    /// wrote so far ([`crate::radio::RadioOwner::mark_step`]).
+    pub(crate) fn tune_step(&self, id: SessionId, hz: f64) -> Result<(), EngineError> {
+        self.tune(id, hz, false, true)
     }
 
     /// [`Shared::tune_to`]. With `fresh`, the stack forgets the results of the frequency before and the session shows
-    /// none of them until the stack has taken the change, also when `hz` is the frequency that the session has.
-    fn tune(&self, id: SessionId, hz: f64, fresh: bool) -> Result<(), EngineError> {
+    /// none of them until the stack has taken the change, also when `hz` is the frequency that the session has. With
+    /// `step`, the change is a step of a hop ([`Shared::tune_step`]).
+    fn tune(&self, id: SessionId, hz: f64, fresh: bool, step: bool) -> Result<(), EngineError> {
         let s = self
             .session(id)
             .ok_or(EngineError::NoSuchOwner(OwnerRef::Session(id)))?;
+        // The session takes the frequency at the first sample of the move of the radio, if one follows: the radio is
+        // told first.
         {
             let mut c = lock(&s.control);
             c.operator.set_frequency(hz);
-            if fresh {
-                c.tune_fresh(hz)?;
-            } else {
-                c.tune(hz)?;
+            c.hold_tunes();
+            let tuned = if fresh { c.tune_fresh(hz) } else { c.tune(hz) };
+            if tuned.is_err() {
+                c.release_tunes();
+            }
+            tuned?;
+        }
+        let asked = s.link.feed.moves_asked();
+        let moved = self
+            .drop_stack_rate(&s)
+            .and_then(|()| self.move_radio(id, &s));
+        if let (true, Input::Radio(r)) = (step && s.link.feed.moves_asked() == asked, s.input) {
+            if let Some(radio) = self.radio(r) {
+                radio.owner.lock().mark_step();
             }
         }
-        self.drop_stack_rate(&s)?;
-        self.move_radio(id, &s)
+        lock(&s.control).release_tunes();
+        moved
     }
 
     /// Carries out what the operator of session `s` demands of the radio that the session reads, while the radio streams.
@@ -594,8 +614,7 @@ impl Shared {
     /// # Errors
     ///
     /// [`EngineError::Config`] with [`ConfigError::RateTooLow`] if no rate of the radio, or the rate that the host
-    /// set, is enough for the stack; [`EngineError::LinkTooSlow`] if the link to the radio carries less than the least rate
-    /// of `stack`. The radio is left as it was then.
+    /// set, is enough for the stack. The radio is left as it was then.
     pub(crate) fn prepare_radio(
         &self,
         r: crate::RadioId,
@@ -651,8 +670,7 @@ impl Shared {
     /// # Errors
     ///
     /// [`EngineError::Config`] with [`ConfigError::RateTooLow`]: the least rate of the stack, and the rate that the
-    /// host set or the highest rate of the radio. [`EngineError::LinkTooSlow`]: the link carries less than the least rate
-    /// of the stack; nothing is written to the radio.
+    /// host set or the highest rate of the radio; nothing is written to the radio.
     fn set_radio_rate(
         o: &mut crate::radio::RadioOwner,
         want_hz: f64,

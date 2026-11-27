@@ -394,9 +394,10 @@ pub enum Input {
 
 enum Control {
     Set(SettingId, Value),
-    /// The frequency, the number of this retune of the session, and true if the host ordered it: the receiver then
-    /// forgets the results of the frequency before.
-    Tune(f64, u64, bool),
+    /// The frequency, the number of this retune of the session, true if the host ordered it (the receiver then
+    /// forgets the results of the frequency before), and the moves of the radio ordered when the tune was sent
+    /// ([`Feed::moves_asked`]): the session takes the frequency at the first block that has that many.
+    Tune(f64, u64, bool, u64),
     /// A receiver in place of the one that runs, the tune offset of its stack on the input of the session, and the
     /// number of the receiver.
     Replace(Box<dyn Receiver>, f64, u64),
@@ -573,6 +574,23 @@ pub(crate) struct Run {
     dropped_seen: u64,
     /// The samples that the session lost just before the last block it fed.
     lost_before: u64,
+    /// The frequencies that the session takes at the first block of a move of its radio, in the order of the moves.
+    tune_waits: VecDeque<TuneWait>,
+    /// The moves of the radio that the last block fed had ([`Block::moves`]).
+    moves_seen: u64,
+    /// The session took a frequency since the loop of its thread looked: the results that the stack makes of the first
+    /// block there are copied for the host at once.
+    tune_taken: bool,
+}
+
+/// A change of frequency that waits for the samples it belongs to.
+#[derive(Clone, Copy, Debug)]
+struct TuneWait {
+    hz: f64,
+    number: u64,
+    forget: bool,
+    /// The moves that the block must have.
+    need: u64,
 }
 
 impl Run {
@@ -633,9 +651,38 @@ impl Run {
 
     /// Carries out the controls of `inbox`, then passes the receiver the state of the transmitter: on if the transmit
     /// switch of the engine is on and the session has a transmit stream.
+    ///
+    /// A change of frequency is taken in step with the samples: at once if the last block had the moves of the radio
+    /// that were ordered when the change was sent, else at the first block that has them ([`Run::feed`]). So the stack
+    /// is told the new frequency exactly at the first sample that the radio captured there.
     fn apply(&mut self, inbox: &mut Vec<Control>, live: bool, streams: &Arc<Streams>) {
-        self.controls(inbox, live, streams);
+        self.controls(inbox, streams);
+        if let Some(forget) = self.take_tunes(self.moves_seen) {
+            if let Some((rate, centre, _)) = self.input {
+                self.retune(rate, centre, live);
+            }
+            if forget {
+                self.rx.forget();
+            }
+        }
         self.pass_transmit(streams);
+    }
+
+    /// Takes the newest of the frequencies that wait for a block with `moves` moves or fewer as the frequency of the
+    /// session. Returns `None` if none does, else whether the stack is to forget the results of the frequency before.
+    fn take_tunes(&mut self, moves: u64) -> Option<bool> {
+        let mut forget = None;
+        while let Some(w) = self.tune_waits.front().copied() {
+            if w.need > moves {
+                break;
+            }
+            self.tune_waits.pop_front();
+            self.tune_taken = true;
+            self.tuned_hz = w.hz;
+            self.retunes = w.number;
+            forget = Some(forget.unwrap_or(false) | w.forget);
+        }
+        forget
     }
 
     fn pass_transmit(&mut self, streams: &Arc<Streams>) {
@@ -649,7 +696,7 @@ impl Run {
         streams.has_transmit() && self.transmit.load(Ordering::Acquire)
     }
 
-    fn controls(&mut self, inbox: &mut Vec<Control>, live: bool, streams: &Arc<Streams>) {
+    fn controls(&mut self, inbox: &mut Vec<Control>, streams: &Arc<Streams>) {
         for c in inbox.drain(..) {
             match c {
                 Control::Set(id, v) => {
@@ -665,15 +712,13 @@ impl Run {
                         Err(e) => self.refuse(e),
                     }
                 }
-                Control::Tune(hz, number, by_host) => {
-                    self.tuned_hz = hz;
-                    if let Some((rate, centre, _)) = self.input {
-                        self.retune(rate, centre, live);
-                    }
-                    if by_host {
-                        self.rx.forget();
-                    }
-                    self.retunes = number;
+                Control::Tune(hz, number, by_host, need) => {
+                    self.tune_waits.push_back(TuneWait {
+                        hz,
+                        number,
+                        forget: by_host,
+                        need,
+                    });
                 }
                 Control::Call(job, ack) => {
                     if let Some(job) = lock(&job).take() {
@@ -685,6 +730,10 @@ impl Run {
                 }
                 Control::Replace(mut rx, offset_hz, generation) => {
                     give_streams(rx.as_mut(), streams);
+                    // The new receiver starts at the frequency that the session has now.
+                    for w in self.tune_waits.drain(..) {
+                        (self.tuned_hz, self.retunes) = (w.hz, w.number);
+                    }
                     self.place.end(self.rx.as_mut());
                     streams.end_pictures();
                     self.rx = rx;
@@ -778,7 +827,17 @@ impl Run {
 
     /// Feeds the block `b`. `dropped` is the count of samples that the session has lost before its stack so far.
     fn feed(&mut self, b: &Block, live: bool, dropped: u64, out: &mut Output) {
+        // The first block of a move: the frequency that waited for it counts from here.
+        self.moves_seen = b.moves;
+        let forget = self.take_tunes(b.moves) == Some(true);
+        self.feed_tuned(b, live, dropped, out, forget);
+    }
+
+    fn feed_tuned(&mut self, b: &Block, live: bool, dropped: u64, out: &mut Output, forget: bool) {
         let wanted = (b.rate_hz, b.centre_hz, self.listens(b.centre_hz));
+        if forget && self.input == Some(wanted) {
+            self.rx.forget();
+        }
         if self.input != Some(wanted) {
             if self.last_failed == Some(wanted) {
                 return;
@@ -790,7 +849,7 @@ impl Run {
                     .input
                     .is_some_and(|(_, centre, _)| centre != b.centre_hz);
             self.retune(b.rate_hz, b.centre_hz, live);
-            if moved {
+            if moved || forget {
                 self.rx.forget();
             }
             if self.failure.is_some() {
@@ -950,7 +1009,12 @@ impl Link {
     /// Carries out the controls that wait, then `job`, on the calling thread, and copies the result for the host.
     fn do_here(&self, mut run: MutexGuard<'_, Run>, job: Job) {
         let mut rest = Vec::new();
+        let waits = lock(&self.inbox).taken == Taken::ByThread;
         self.take_inbox(&mut rest);
+        if !waits {
+            // No session thread feeds blocks: a frequency is taken at once.
+            run.moves_seen = u64::MAX;
+        }
         run.apply(&mut rest, self.feed.live(), &self.streams);
         job(&mut run);
         run.publish(self, true, true);
@@ -1163,6 +1227,10 @@ pub(crate) struct SessionControl {
     /// The number of the last change that the host ordered. While the receiver has taken fewer changes, its results
     /// are those of the frequency before, and the session shows none of them.
     hidden_until: u64,
+    /// A change of frequency is kept back ([`SessionControl::hold_tunes`]), and the one that is: the frequency, its
+    /// number and whether the receiver forgets.
+    tunes_held: bool,
+    held_tune: Option<(f64, u64, bool)>,
     /// The `problem_seq` of the run whose problem the results show.
     problem_seq: u64,
     /// The `problem_seq` of the transmit report whose problem the results show.
@@ -1321,6 +1389,9 @@ impl Session {
             place: Placement::new(cores),
             dropped_seen: 0,
             lost_before: 0,
+            tune_waits: VecDeque::new(),
+            tune_taken: false,
+            moves_seen: 0,
         };
         // The host reads the receiver before the thread starts.
         let front = Mutex::default();
@@ -1358,6 +1429,8 @@ impl Session {
                 results,
                 retunes: 0,
                 hidden_until: 0,
+                tunes_held: false,
+                held_tune: None,
                 problem_seq: 0,
                 tx_problem_seq: 0,
                 tx_problem: String::new(),
@@ -1593,7 +1666,7 @@ impl SessionControl {
         let id = SessionSetting::Tuned.id();
         crate::EngineError::set(&mut self.values, id, &Value::Hz(hz))?;
         self.retunes += 1;
-        self.link.send(Control::Tune(hz, self.retunes, true));
+        self.send_tune(hz, true);
         self.hidden_until = self.retunes;
         self.hidden = true;
         self.hide_receiver_results();
@@ -1608,9 +1681,36 @@ impl SessionControl {
         if changes {
             self.retunes += 1;
         }
-        self.link
-            .send(Control::Tune(hz, self.retunes, by_host && changes));
+        self.send_tune(hz, by_host && changes);
         changes
+    }
+
+    /// Sends the session thread the frequency `hz` as retune number `retunes`, with the moves of the radio ordered so
+    /// far. While the tunes are held ([`SessionControl::hold_tunes`]) it is kept.
+    fn send_tune(&mut self, hz: f64, forget: bool) {
+        if self.tunes_held {
+            let forget = forget || self.held_tune.is_some_and(|t| t.2);
+            self.held_tune = Some((hz, self.retunes, forget));
+        } else {
+            let need = self.link.feed.moves_asked();
+            self.link
+                .send(Control::Tune(hz, self.retunes, forget, need));
+        }
+    }
+
+    /// Keeps a change of frequency back until [`SessionControl::release_tunes`]: the caller may move the radio for it
+    /// first, so that the session takes the frequency at the first sample of that move.
+    pub(crate) fn hold_tunes(&mut self) {
+        self.tunes_held = true;
+    }
+
+    /// Sends the change of frequency that was kept back, with the moves of the radio ordered so far.
+    pub(crate) fn release_tunes(&mut self) {
+        self.tunes_held = false;
+        if let Some((hz, number, forget)) = self.held_tune.take() {
+            let need = self.link.feed.moves_asked();
+            self.link.send(Control::Tune(hz, number, forget, need));
+        }
     }
 
     /// Makes the results hold no result of the receiver: its fields have no value, and its tables, series, rasters,
@@ -2152,8 +2252,11 @@ pub(crate) fn run(
         }
         let counter = run.rx.results().change_counter();
         let age = last.elapsed();
+        // A hop that ends on lock reads the lock at the end of a step: what the first block of a step changed is not
+        // held back.
         let due = run.publisher.waits
             || run.values_stale
+            || (std::mem::take(&mut run.tune_taken) && counter != seen)
             || (run.place.load.seq != load_seen && age >= PUBLISH_MIN)
             || (counter != seen && age >= PUBLISH_MIN)
             || age >= PUBLISH;
@@ -2171,6 +2274,8 @@ pub(crate) fn run(
     link.ended(&mut inbox);
     {
         let mut run = lock(&link.run);
+        // No block follows: a frequency that waits is taken now.
+        run.moves_seen = u64::MAX;
         run.apply(&mut inbox, live, &link.streams);
         // The work that waits between the stages is finished, and the stage threads end.
         {

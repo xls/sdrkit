@@ -19,6 +19,7 @@ pub mod ring;
 pub mod rtl_tcp;
 pub mod runner;
 pub mod sample;
+pub mod settle;
 pub mod synth;
 pub mod ws;
 
@@ -41,7 +42,8 @@ pub use radio::{
 pub use radio::{tx_schema, TxSetting, TX_BANDWIDTH, TX_FREQUENCY, TX_POWER, TX_RATE};
 pub use radio::{BUFFER_PCT, DELIVERED_PCT, LINK_DOWN, PROBLEM, RADIO_LOST, SAMPLES, TX_OUTPUT_DBM};
 pub mod linkwatch;
-pub use ring::{ring, Gap, RingReader, RingStats, RingWriter, RING_CAPACITY};
+pub use ring::{ring, Gap, Moves, RingReader, RingStats, RingWriter, RING_CAPACITY};
+pub use settle::Settle;
 
 /// The rates a radio offers: any rate between `min_hz` and `max_hz`, or only the listed ranges if there are some.
 #[derive(Clone, Debug, Default, PartialEq)]
