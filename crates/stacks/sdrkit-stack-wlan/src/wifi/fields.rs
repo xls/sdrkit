@@ -4,10 +4,11 @@
 //! counters and the decoded fields leave in the order the chains found them, so the output is the same for every number of
 //! helpers.
 //!
-//! With live input a data field is skipped and counted as [`Undecoded::Busy`] when every slot of the window is in use, when
-//! the decoder sheds data ([`Shed::Data`](super::shed::Shed)), or, with no helpers, when the chain is more than
-//! [`BEHIND_S`](super::BEHIND_S) of work behind its input. With a recording or a test signal nothing is skipped: the chain
-//! waits for a slot and drains the window at the end of each piece.
+//! With live input a data field is skipped and counted as [`Undecoded::Busy`] when the decoder sheds data
+//! ([`Shed::Data`](super::shed::Shed)), or when the chain is more than [`BEHIND_S`](super::BEHIND_S) of work behind its
+//! input and no helper has room: there are no helpers, or every slot of the window is in use. A chain that keeps up makes
+//! room in a full window itself: it waits for the oldest field and decodes queued ones meanwhile. With a recording or a test
+//! signal nothing is skipped: the chain waits for a slot and drains the window at the end of each piece.
 
 use super::{mpdu, PhyKind, PpduCounters, WifiMpdu};
 use crate::wifi::plan::Band;
@@ -17,6 +18,8 @@ use sdrkit_proto_wlan_phy::ofdm::PpduView;
 use sdrkit_proto_wlan_phy::ppdu::{DataPlan, OwnedPpdu, Ppdu, PpduDecoder, PpduInfo, SigFields, Undecoded};
 use sdrkit_proto_wlan_phy::vht::VhtMcs;
 use std::collections::VecDeque;
+use std::sync::Arc;
+use std::time::Instant;
 
 /// The most helper threads the data fields use.
 const MAX_HELPERS: usize = 4;
@@ -117,6 +120,10 @@ pub(super) struct Fields {
     pub ppdu: PpduCounters,
     /// The samples are live: skip data fields rather than wait.
     pub live: bool,
+    /// The start of [`work_s`](Self::work_s).
+    made: Instant,
+    /// A clock that replaces the monotonic one, for tests.
+    script: Option<Arc<dyn Fn() -> f64 + Send + Sync>>,
 }
 
 impl Default for Fields {
@@ -143,12 +150,17 @@ impl Fields {
             ready: Vec::new(),
             ppdu: PpduCounters::default(),
             live,
+            made: Instant::now(),
+            script: None,
         }
     }
 
-    /// The helper threads.
-    pub fn helpers(&self) -> usize {
-        self.window.helpers()
+    /// The time of the session thread, s: the chains measure their work with it.
+    pub fn work_s(&self) -> f64 {
+        match &self.script {
+            Some(now) => now(),
+            None => self.made.elapsed().as_secs_f64(),
+        }
     }
 
     /// A non-HT frame, in order.
@@ -169,8 +181,9 @@ impl Fields {
         }
     }
 
-    /// A decodable data field of PPDU `v`, heard at `time_s` on `channel`. With `skip` and live input the field is counted as
-    /// busy and not decoded.
+    /// A decodable data field of PPDU `v`, heard at `time_s` on `channel`. With live input the field is counted as busy and
+    /// not decoded when `shed` is set, or when `behind` is set and no helper has room (module documentation).
+    #[allow(clippy::too_many_arguments)]
     pub fn field(
         &mut self,
         v: &PpduView<'_>,
@@ -178,16 +191,18 @@ impl Fields {
         time_s: f64,
         channel: u32,
         band: Option<Band>,
-        skip: bool,
+        shed: bool,
+        behind: bool,
     ) {
-        if self.live && skip {
-            self.note(plan.info, Undecoded::Busy);
-            return;
-        }
         if self.window.is_full() {
             self.flush(false);
         }
-        while !self.live && self.window.is_full() {
+        let no_room = self.window.helpers() == 0 || self.window.is_full();
+        if self.live && (shed || (behind && no_room)) {
+            self.note(plan.info, Undecoded::Busy);
+            return;
+        }
+        while self.window.is_full() {
             self.flush_one_field();
         }
         let given = self.window.give(|j| {
@@ -466,16 +481,14 @@ mod tests {
         }
     }
 
-    #[test]
-    fn a_full_window_skips_live_data_fields_and_counts_them() {
-        // Live input fed far faster than the helper decodes: the window fills, and every data field is either decoded or
-        // counted as busy. What is decoded is a part of the full result, in order.
-        let x = busy_signal();
-        let (all, full) = run(&x, 0);
+    /// The busy channel as live input through one chain with one helper, held until the input is in so that the window
+    /// stays full. The session thread's clock is scripted: each piece takes `work` times its signal time.
+    fn held_helper(x: &[Complex32], work: f64) -> (Vec<Timed<WifiMpdu>>, PpduCounters) {
+        use std::sync::{Condvar, Mutex};
+        const PIECE: usize = 65_536;
         let pool = Pool::new(1);
-        // The pool's one thread is held until the input is in: the window fills whatever the timing.
-        let gate = std::sync::Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
-        let g = std::sync::Arc::clone(&gate);
+        let gate = Arc::new((Mutex::new(false), Condvar::new()));
+        let g = Arc::clone(&gate);
         let held = pool.spawn(move || {
             let mut open = g.0.lock().unwrap();
             while !*open {
@@ -483,9 +496,17 @@ mod tests {
             }
         });
         let mut fields = Fields::new(&pool, 1, true);
+        // A chain reads the clock once before and once after a piece: each read moves it on by the work of a piece.
+        let t = Arc::new(Mutex::new(0.0f64));
+        let step = work * PIECE as f64 / CHAIN_RATE_HZ;
+        fields.script = Some(Arc::new(move || {
+            let mut t = t.lock().unwrap();
+            *t += step;
+            *t
+        }));
         let mut c = chain();
         let mut out = Vec::new();
-        for p in x.chunks(65_536) {
+        for p in x.chunks(PIECE) {
             c.run(p, 1.0, &mut out, &mut fields, false);
             fields.flush(false);
             out.append(&mut fields.ready);
@@ -495,12 +516,25 @@ mod tests {
         held.wait().unwrap();
         fields.flush(true);
         out.append(&mut fields.ready);
-        let p = fields.ppdu;
+        (out, fields.ppdu)
+    }
+
+    #[test]
+    fn one_helper_skips_live_data_fields_only_when_the_work_does_not_fit_the_signal_time() {
+        let x = busy_signal();
+        let (all, full) = run(&x, 0);
+        // The work fits: a full window does not skip, the chain decodes in its place.
+        let (got, p) = held_helper(&x, 0.5);
+        assert_eq!(p.not_decoded_for(Undecoded::Busy), 0);
+        assert!(got == all);
+        assert_eq!(p, full);
+        // The work does not fit: once the chain is behind, the fields that find the window full are skipped and counted.
+        let (got, p) = held_helper(&x, 2.0);
         let busy = p.not_decoded_for(Undecoded::Busy);
-        assert_eq!(busy, full.decoded - SLOTS_PER_HELPER as u64, "all but the window's slots are skipped");
+        assert!(busy > 0 && p.decoded > SLOTS_PER_HELPER as u64, "{busy} skipped, {} decoded", p.decoded);
         assert_eq!(p.decoded + busy, full.decoded);
         assert_eq!(p.seen, full.seen);
         let mut rest = all.iter();
-        assert!(out.iter().all(|m| rest.any(|a| a == m)), "the decoded frames keep their order");
+        assert!(got.iter().all(|m| rest.any(|a| a == m)), "the decoded frames keep their order");
     }
 }

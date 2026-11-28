@@ -48,7 +48,7 @@ const DSSS_LOW_RATE_HZ: f64 = 11e6;
 pub const WIDE_RATE_HZ: f64 = 43.5e6;
 /// The rate both receivers run at from [`OFDM_RATE_HZ`] on, Hz.
 pub const CHAIN_RATE_HZ: f64 = 20e6;
-/// The work an OFDM chain may be behind its input before it stops decoding HT and VHT data fields, s.
+/// The work an OFDM chain may be behind its input before it skips the HT and VHT data fields that no helper has room for, s.
 const BEHIND_S: f64 = 0.05;
 /// The width each channel filter keeps flat, Hz (the OFDM tones span 16.6 MHz).
 const CHAIN_WIDTH_HZ: f64 = 17e6;
@@ -426,7 +426,8 @@ impl Chain {
 
     /// Runs a piece of input. `share` is the part of the processor time this chain may use: 1 over the chains running. DSSS
     /// frames go to `out`; the OFDM frames and data fields go to `fields`, which lets them out in order. With `shed_data`
-    /// and live input the HT and VHT data fields are counted as busy and not decoded.
+    /// and live input the HT and VHT data fields are counted as busy and not decoded; a chain behind its input skips those
+    /// that no helper has room for.
     fn run(
         &mut self,
         x: &[Complex32],
@@ -448,10 +449,10 @@ impl Chain {
         match &mut self.rx {
             Rx::Dsss(_) => {}
             Rx::Ofdm(r, dec) => {
-                // With live input, a chain with no helpers that is more than BEHIND_S behind the signal counts data fields as
-                // busy, and so does a decoder that sheds data.
-                let skip = shed_data || (fields.helpers() == 0 && self.behind_s >= BEHIND_S);
-                let started = std::time::Instant::now();
+                // With live input, a chain more than BEHIND_S behind the signal skips the data fields that no helper has
+                // room for, and a decoder that sheds data skips them all. The time spent waiting for the window counts.
+                let behind = self.behind_s >= BEHIND_S;
+                let started = fields.work_s();
                 let signal_s = self.buf.len() as f64 / out_rate * share;
                 let fields = std::cell::RefCell::new(fields);
                 r.process_with(
@@ -477,12 +478,13 @@ impl Chain {
                             true
                         }
                         Read::Data(plan) => {
-                            fields.borrow_mut().field(v, plan, at(v.sample), channel, band, skip);
+                            fields.borrow_mut().field(v, plan, at(v.sample), channel, band, shed_data, behind);
                             true
                         }
                     },
                 );
-                self.behind_s = (self.behind_s + started.elapsed().as_secs_f64() - signal_s).max(0.0);
+                let work_s = fields.borrow().work_s() - started;
+                self.behind_s = (self.behind_s + work_s - signal_s).max(0.0);
             }
         }
     }
