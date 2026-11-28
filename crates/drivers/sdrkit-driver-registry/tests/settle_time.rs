@@ -11,7 +11,13 @@
 //! samples left out later in the hop, and how steady the level that passes is. The stay of a hop begins when its first
 //! sample has passed to the reader, as a hop of the engine does. Then per hop: the time from the request to that sample,
 //! the samples left out and those that never came, and the share of the nominal samples of the run that passed.
-//! `SDRKIT_TRACE=1` adds the level of each 10 ms of a hop. `SDRKIT_SET=<key>=<n>` sets a choice of the driver.
+//! `SDRKIT_TRACE=1` adds the level of each 10 ms of a hop. `SDRKIT_SET=<key>=<n>,...` sets choices (by number) and whole
+//! numbers of the driver.
+//!
+//! A steady run: `SDRKIT_STEADY=<seconds>` reads without a retune and reports the samples that never came.
+//!
+//! Every run reports the samples per write of the driver and the most writes that one read found. Over the requests it
+//! reports the samples captured before a request ended that the driver had not written yet, beyond the least delay.
 
 use sdrkit_core::net::StdNet;
 use sdrkit_core::{Clock, Complex32, MemStorage, Owner, SettingSet, Value, Values};
@@ -48,6 +54,8 @@ struct Seen {
     unsettled: Vec<(u64, u64)>,
     /// The samples that never came from the radio: the place in the signal and the count.
     gaps: Vec<(u64, u64)>,
+    /// The count of the samples written by the driver, at each read where it had grown, with the time.
+    written: Vec<(Instant, u64)>,
 }
 
 impl Seen {
@@ -117,9 +125,12 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
         v.set(RadioSetting::Gain.id(), &Value::F64(g)).unwrap();
     }
     // A setting of the driver by its key, as the number of one of its choices: `SDRKIT_SET=buffer_size=2`.
-    if let Some((key, n)) = env("SDRKIT_SET").as_deref().and_then(|s| s.split_once('=')) {
+    for (key, n) in env("SDRKIT_SET").iter().flat_map(|s| s.split(',')).filter_map(|s| s.split_once('=')) {
         let id = schema.id(key).expect("a setting of the driver");
-        v.set(id, &Value::Choice(n.parse().expect("a choice number"))).unwrap();
+        let n: i64 = n.parse().expect("a number");
+        if v.set(id, &Value::Choice(n as u16)).is_err() {
+            v.set(id, &Value::I64(n)).unwrap();
+        }
     }
     let before_open = Instant::now();
     let mut radio = kind.open(&address, &v).expect("the radio opens");
@@ -145,6 +156,10 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 }
                 let at = Instant::now();
                 let mut s = seen.lock().unwrap();
+                let w = r.stats().written();
+                if s.written.last().is_none_or(|x| x.1 != w) {
+                    s.written.push((at, w));
+                }
                 if s.start.is_none() {
                     s.start = s.unsettled.first().copied();
                 }
@@ -194,6 +209,25 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
         })
     };
     std::thread::sleep(Duration::from_millis(1500));
+    if let Some(secs) = env("SDRKIT_STEADY").and_then(|s| s.parse::<u64>().ok()) {
+        let (from, w0) = (Instant::now(), stats.written());
+        std::thread::sleep(Duration::from_secs(secs));
+        let (took, w) = (from.elapsed().as_secs_f64(), stats.written() - w0);
+        let s = seen.lock().unwrap();
+        let p0 = s.arrivals.iter().find(|a| a.0 >= from).map_or(0, |a| a.1);
+        let lost: u64 = s.gaps.iter().filter(|g| g.0 >= p0).map(|g| g.1).sum();
+        println!(
+            "steady {took:.1} s: {:.3} Msps written, {lost} never came in {} gaps, {} dropped by the reader",
+            w as f64 / took / 1e6,
+            s.gaps.iter().filter(|g| g.0 >= p0).count(),
+            stats.dropped()
+        );
+        for g in s.gaps.iter().filter(|g| g.0 >= p0).take(8) {
+            println!("  a gap of {} samples at {:.3} s", g.1, g.0 as f64 / rate);
+        }
+    }
+    // The count of the samples written by the driver when each request ended.
+    let mut flight = Vec::new();
     // The retunes: (frequency, end of the request, its start).
     let mut tunes = Vec::new();
     if let Some(empty) = empty {
@@ -204,6 +238,7 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 .apply(RadioSetting::Centre.id(), &Value::Hz(f))
                 .unwrap();
             tunes.push((f, Instant::now(), began));
+            flight.push(stats.written());
             std::thread::sleep(Duration::from_millis(400));
         }
     }
@@ -218,6 +253,7 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                 .unwrap();
             let seq = stats.moves().begun;
             hopped.push((f, seq, Instant::now(), began));
+            flight.push(stats.written());
             while passed.load(Ordering::Acquire) < seq && began.elapsed() < Duration::from_secs(3) {
                 std::thread::sleep(Duration::from_millis(1));
             }
@@ -241,6 +277,21 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
         delay * 1e3,
         opened.as_secs_f64() * 1e3
     );
+    report_writes(&s, rate);
+    // In flight at the end of each request: the sample captured then, by the least delay, against the samples written.
+    let ends = tunes.iter().map(|t| t.1).chain(hopped.iter().map(|h| h.2));
+    let mut ahead: Vec<f64> = ends
+        .zip(&flight)
+        .map(|(end, &w)| ((end.duration_since(t0).as_secs_f64() - delay) * rate - s.signal(w) as f64) / rate * 1e3)
+        .collect();
+    if !ahead.is_empty() {
+        ahead.sort_by(f64::total_cmp);
+        println!(
+            "captured and not written when a request ended, beyond the least delay: median {:.1} ms, largest {:.1} ms",
+            ahead[ahead.len() / 2],
+            ahead[ahead.len() - 1]
+        );
+    }
     // The start: the level every 25 ms over the first 2 s.
     let step = (rate * 0.025) as u64;
     let mut line = String::new();
@@ -361,6 +412,30 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
     let hopped: Vec<(f64, u64, u64)> = hopped.iter().map(|&(f, seq, end, _)| (f, seq, at(end))).collect();
     report_hops(&s, &hopped, rate);
     report_delivery(&s, &hopped, &delivery, hops_ended, rate);
+}
+
+/// The samples per write of the driver, the time between writes, and the most that waited in the ring for the reader.
+fn report_writes(s: &Seen, rate: f64) {
+    let steps: Vec<(f64, u64)> = s
+        .written
+        .windows(2)
+        .map(|w| (w[1].0.duration_since(w[0].0).as_secs_f64() * 1e3, w[1].1 - w[0].1))
+        .collect();
+    let Some(size) = steps.iter().map(|x| x.1).min() else {
+        return;
+    };
+    let mut gaps: Vec<f64> = steps.iter().map(|x| x.0).collect();
+    gaps.sort_by(f64::total_cmp);
+    let n = gaps.len();
+    println!(
+        "{size} samples per write ({:.1} ms of signal); between reads that saw a write: median {:.1} ms, 99 % {:.1} ms, \
+         largest {:.1} ms; the most written at once {} writes",
+        size as f64 / rate * 1e3,
+        gaps[n / 2],
+        gaps[n * 99 / 100],
+        gaps[n - 1],
+        steps.iter().map(|x| x.1).max().unwrap_or(0) / size.max(1)
+    );
 }
 
 /// Per hop (with the start and the end of its request): the time from the request to the arrival of the first sample

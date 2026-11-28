@@ -67,6 +67,15 @@ const DEFAULT_RATE: Hz = 2.5e6;
 const IDLE_KEEP_MAX: Hz = 5e6;
 const SMALL_BUFFER: usize = 65_536;
 const MAX_BUFFER: usize = 1_048_576;
+/// The least time of signal in a receive transfer. A transfer leaves the board when it is full, so its length is the
+/// delay of the stream; the server of the board takes about 4 ms for a transfer of any size, so shorter ones do not
+/// keep up.
+const RECEIVE_TRANSFER: Duration = Duration::from_millis(8);
+/// The smallest receive transfer of the automatic size.
+const SMALL_RECEIVE: usize = 16_384;
+/// The read requests that the stream keeps with the server. With one, the server waits for the next request after each
+/// transfer, about 5 ms on an AD9361 board; with two, a request is always there.
+const READS_AHEAD: u32 = 2;
 const CONTEXT_TIMEOUT_MS: u32 = 3000;
 const MAX_REFILL_FAILURES: u32 = 20;
 /// What gigabit Ethernet carries of sample data, in bytes per second (about 940 Mbit/s of TCP payload).
@@ -435,11 +444,20 @@ const TRACKING: [(Setting<field::Bool>, &str); 3] = [
     (BB_DC_TRACK, "bb_dc_offset_tracking_en"),
 ];
 
-/// The sample buffer size for a rate over the network: the smallest power of two holding at least 25 ms, from 65 536 to 1 048 576.
+/// The samples of a transmit buffer for a rate, and the unit that [`BUFFERS`] counts: the smallest power of two holding at
+/// least 25 ms, from 65 536 to 1 048 576.
 pub fn buffer_samples(rate_hz: Hz) -> usize {
     ((rate_hz * 0.025).ceil().max(1.0) as usize)
         .next_power_of_two()
         .clamp(SMALL_BUFFER, MAX_BUFFER)
+}
+
+/// The samples of a receive transfer for a rate: the smallest power of two holding at least 8 ms, from 16 384 to
+/// 1 048 576.
+pub fn receive_samples(rate_hz: Hz) -> usize {
+    ((rate_hz * RECEIVE_TRANSFER.as_secs_f64()).ceil().max(1.0) as usize)
+        .next_power_of_two()
+        .clamp(SMALL_RECEIVE, MAX_BUFFER)
 }
 
 /// The rate to ask for: [`RATE`] as it is if [`RATE_EXACT`] is on. Else the rate of the stack (2.5 Msps if none), kept as it is
@@ -1375,10 +1393,25 @@ impl IiodRadio {
         self.gain_range[i].unwrap_or((0.0, default_max_gain(lo)))
     }
 
+    /// The samples of a receive transfer: the size that is set, else that of the rate.
+    fn transfer(&self) -> usize {
+        self.bufsize.unwrap_or_else(|| receive_samples(self.rate))
+    }
+
+    /// The kernel buffers of the board for transfers of `samples`. [`BUFFERS`] counts transfers of 25 ms or more
+    /// ([`buffer_samples`]); shorter ones get more, up to 64, so that the board rides out the same time.
+    fn kernel_buffers(&self, samples: usize) -> u32 {
+        let whole = buffer_samples(self.rate);
+        if self.bufsize.is_some() || samples >= whole {
+            return self.kbuffers;
+        }
+        (self.kbuffers * (whole / samples.max(1)) as u32).min(64)
+    }
+
     /// The samples that can be in flight between the converter and the meter of the stream: the kernel buffers and two more.
     fn latency(&self) -> u64 {
-        let buffer = self.bufsize.unwrap_or_else(|| buffer_samples(self.rate));
-        (u64::from(self.kbuffers) + 2) * buffer as u64
+        let buffer = self.transfer();
+        (u64::from(self.kernel_buffers(buffer)) + 2) * buffer as u64
     }
 
     /// Sets the gain of receiver `i` by `plan`. `retuned`: the LO or the port changed, so a held gain starts again. `setting` and
@@ -1602,7 +1635,7 @@ impl Radio for IiodRadio {
             conn.timeout(CONTEXT_TIMEOUT_MS)?;
             Ok(conn)
         };
-        let mut samples = self.bufsize.unwrap_or_else(|| buffer_samples(self.rate));
+        let mut samples = self.transfer();
         // iiod shares one device buffer between its clients and refills it in the size of the first; a smaller buffer would get
         // only the start of each refill. When another client already streams, take at least its size.
         let rx = self.facts.rx.id.clone();
@@ -1669,7 +1702,7 @@ impl Radio for IiodRadio {
                             conn,
                             self.facts.rx_index as u8,
                             &self.mask,
-                            self.kbuffers as u16,
+                            self.kernel_buffers(samples) as u16,
                             bytes,
                         ) {
                             Ok(mut b) => {
@@ -1705,9 +1738,9 @@ impl Radio for IiodRadio {
                 }
             }
         }
-        conn.set_buffers_count(&rx, self.kbuffers)?;
+        conn.set_buffers_count(&rx, self.kernel_buffers(samples))?;
         if let Err(e) = conn.open_buffer(&rx, samples, &self.mask, false) {
-            if samples == SMALL_BUFFER {
+            if samples <= SMALL_BUFFER {
                 return Err(e.into());
             }
             samples = SMALL_BUFFER;
@@ -1892,7 +1925,7 @@ impl IiodRadio {
             known: self.known.clone(),
             learns,
             need_bps,
-            queued: u64::from(self.kbuffers) * samples as u64,
+            queued: u64::from(self.kernel_buffers(samples)) * samples as u64,
             rate: self.rate,
             watch: Watch::default(),
             dev: self.facts.rx.clone(),
@@ -1981,8 +2014,8 @@ pub struct IiodStream {
 }
 
 impl IiodStream {
-    /// Reads one buffer into `raw`: the bytes, and the mask they carry when the server said. Unless `stopping`, the next request
-    /// goes out before this buffer is converted.
+    /// Reads one buffer into `raw`: the bytes, and the mask they carry when the server said. Unless `stopping`, the next
+    /// requests go out before this buffer is converted ([`READS_AHEAD`]).
     fn refill(&mut self, stopping: bool) -> Result<(usize, Option<Vec<u32>>), IioError> {
         match &mut self.link {
             Link2::Text { conn, dev, .. } => {
@@ -1991,7 +2024,7 @@ impl IiodStream {
                 }
                 let r = conn.recv_buffer(self.bytes, &mut self.raw);
                 if r.is_ok() && !stopping {
-                    while conn.owed() < 1 {
+                    while conn.owed() < READS_AHEAD {
                         conn.send_readbuf(dev, self.bytes)?;
                     }
                 }

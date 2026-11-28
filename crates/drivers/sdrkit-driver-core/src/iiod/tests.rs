@@ -19,6 +19,13 @@ fn buffer_sizes() {
     assert_eq!(buffer_samples(10.0 * M), 262_144);
     assert_eq!(buffer_samples(20.0 * M), 524_288);
     assert_eq!(buffer_samples(61.44 * M), 1_048_576);
+    // A receive transfer holds 8 ms or more.
+    assert_eq!(receive_samples(0.521 * M), 16_384);
+    assert_eq!(receive_samples(2.4 * M), 32_768);
+    assert_eq!(receive_samples(4.0 * M), 32_768);
+    assert_eq!(receive_samples(12.0 * M), 131_072);
+    assert_eq!(receive_samples(20.0 * M), 262_144);
+    assert_eq!(receive_samples(61.44 * M), 524_288);
 }
 
 #[test]
@@ -342,11 +349,11 @@ fn opens_configures_in_order_and_streams() {
     }
     let log = srv.board.log();
     assert!(
-        log.contains(&"SET iio:device4 BUFFERS_COUNT 8".to_string()),
+        log.contains(&"SET iio:device4 BUFFERS_COUNT 16".to_string()),
         "{log:?}"
     );
     assert!(
-        log.contains(&"OPEN iio:device4 65536 00000003".to_string()),
+        log.contains(&"OPEN iio:device4 32768 00000003".to_string()),
         "{log:?}"
     );
     assert!(!log.contains(&"BINARY".to_string()));
@@ -443,7 +450,7 @@ fn live_retunes_and_a_rate_change_restarts_the_buffer() {
     };
     assert_eq!(s.rate_hz, 10.0 * M);
     assert!(
-        wait_for(|| srv.board.has("OPEN iio:device4 262144 00000003"), 3.0),
+        wait_for(|| srv.board.has("OPEN iio:device4 131072 00000003"), 3.0),
         "{:?}",
         srv.board.log()
     );
@@ -485,7 +492,7 @@ fn rx2_needs_two_receivers() {
     src.start(w).unwrap();
     let got = read_n(&mut r, 100, 3.0);
     assert!(
-        two.board.has("OPEN iio:device4 65536 0000000c"),
+        two.board.has("OPEN iio:device4 32768 0000000c"),
         "{:?}",
         two.board.log()
     );
@@ -541,7 +548,7 @@ fn a_new_antenna_takes_effect_at_the_restart_it_requests() {
         for line in [
             format!("iio:device1 INPUT {chan} gain_control_mode=manual"),
             format!("iio:device1 INPUT {chan} hardwaregain=30"),
-            format!("OPEN iio:device4 65536 {mask}"),
+            format!("OPEN iio:device4 32768 {mask}"),
         ] {
             assert!(log.contains(&line), "{line} not in {log:?}");
         }
@@ -576,7 +583,7 @@ fn a_new_iq_format_or_receiver_count_gives_the_next_stream_its_sample_type_and_l
         read_n(&mut r, 100, 3.0)[5],
         Complex32::new(5.0 / 128.0, -5.0 / 128.0)
     );
-    assert!(srv.board.has("OPEN iio:device4 65536 00000001"));
+    assert!(srv.board.has("OPEN iio:device4 32768 00000001"));
     // Back to CS16, then both receivers as two streams.
     radio.apply(format, &Value::Choice(0)).unwrap();
     let receivers = radio.schema().id(RECEIVERS.key()).unwrap();
@@ -679,7 +686,7 @@ fn both_receivers_as_two_streams_with_their_own_gains() {
     let a = read_n(&mut r1, 2000, 3.0);
     let b = read_n(&mut r2, 2000, 3.0);
     assert!(
-        srv.board.has("OPEN iio:device4 65536 0000000f"),
+        srv.board.has("OPEN iio:device4 32768 0000000f"),
         "{:?}",
         srv.board.log()
     );
@@ -798,12 +805,13 @@ fn the_binary_protocol_is_used_when_offered() {
         assert_eq!(b[i], Complex32::new(expect(2, i), expect(3, i)), "RX2 {i}");
     }
     let log = srv.board.log();
-    // cf-ad9361-lpc is the 4th device of the context (number 3); four blocks of 65536 x 8 bytes.
+    // cf-ad9361-lpc is the 4th device of the context (number 3); four buffers of 25 ms are eight blocks of
+    // 32768 x 8 bytes.
     for l in [
         "BINARY",
         "B OPEN dev3 mask f",
-        "B BLOCK 0 524288",
-        "B BLOCK 3 524288",
+        "B BLOCK 0 262144",
+        "B BLOCK 7 262144",
         "B OP 19",
     ] {
         assert!(log.contains(&l.to_string()), "{l} missing from {log:?}");
@@ -1230,7 +1238,7 @@ fn a_retune_in_the_same_band_keeps_the_held_gain_without_a_step() {
 
 /// The samples of the fake at [`HELD_RATE`] that the settle time of a retune holds, and those of one buffer.
 fn settle_and_buffer() -> (u64, u64) {
-    ((RETUNE_SETTLE.as_secs_f64() * HELD_RATE) as u64, buffer_samples(HELD_RATE) as u64)
+    ((RETUNE_SETTLE.as_secs_f64() * HELD_RATE) as u64, receive_samples(HELD_RATE) as u64)
 }
 
 /// The most samples that the paced fake may leave out after a change when the gain needs no step: those of the settle
@@ -1359,7 +1367,7 @@ fn a_withheld_buffer_counts_as_lost_and_leaves_a_gap_in_the_ring() {
     srv.board.fail_readbufs.store(2, Ordering::Relaxed);
     let gaps = read_gaps(&mut r, 600_000, 5.0);
     let withheld = srv.board.rx_withheld.load(Ordering::Relaxed);
-    assert_eq!(withheld, 2 * 65_536);
+    assert_eq!(withheld, 2 * 32_768);
     assert_eq!(gaps.iter().map(|g| g.lost).sum::<u64>(), withheld, "{gaps:?}");
     assert_eq!(src.loss().unwrap().radio_lost, withheld);
     src.stop();
@@ -1440,7 +1448,7 @@ fn tezuka_firmware_streams_cs8() {
     radio.start(w).unwrap();
     let got = read_n(&mut r, 100, 3.0);
     assert!(
-        srv.board.has("OPEN iio:device4 65536 00000001"),
+        srv.board.has("OPEN iio:device4 32768 00000001"),
         "{:?}",
         srv.board.log()
     );
@@ -2099,7 +2107,7 @@ fn a_garbled_answer_ends_the_stream_and_nothing_more_is_written_on_it() {
     let (w, mut r) = ring(1 << 22, SampleType::Cs16);
     src.start(w).unwrap();
     assert!(!read_n(&mut r, 1000, 3.0).is_empty());
-    // One request is on its way at a time: none is sent ahead of the garbled answer.
+    // One request is sent ahead of each answer ([`READS_AHEAD`]).
     std::thread::sleep(Duration::from_millis(1500));
     let opened = *srv.board.streams.lock().unwrap();
     srv.board.garble_next.store(true, Ordering::SeqCst);
@@ -2110,7 +2118,8 @@ fn a_garbled_answer_ends_the_stream_and_nothing_more_is_written_on_it() {
     );
     r.skip_all();
     assert!(!read_n(&mut r, 1000, 3.0).is_empty());
-    assert_eq!(srv.board.after_garble.load(Ordering::SeqCst), 0);
+    // The request that went out ahead of the garbled answer is all that the server read after it.
+    assert_eq!(srv.board.after_garble.load(Ordering::SeqCst), 1);
     src.stop();
 }
 
