@@ -242,8 +242,8 @@ impl RxPort {
 sdrkit_core::choice_enum! {
     /// Samples per transfer ([`BUFFER_SIZE`]).
     pub enum BufferSize {
-        /// At least 25 ms.
-        Auto = ("auto", "Auto (25 ms)"),
+        /// At least 8 ms ([`receive_samples`]).
+        Auto = ("auto", "Auto (8 ms)"),
         /// 65 536.
         S64k = ("65536", "65 536"),
         /// 131 072.
@@ -373,7 +373,7 @@ pub const BUFFERS: Setting<field::I64> = crate::form::buffers(8, 2.0, 64.0)
 /// Samples per transfer.
 pub const BUFFER_SIZE: Setting<field::Choice<BufferSize>> = crate::form::buffer_size(BufferSize::Auto)
     .restart()
-    .help("Samples per transfer. Auto holds at least 25 ms, which keeps high rates flowing over a network.");
+    .help("Samples per receive transfer. Auto takes the smallest size that holds 8 ms of signal, from 16 384 to 1 048 576 samples, and keeps more buffers on the board so that they hold as much signal as with transfers of 25 ms. A smaller transfer makes a retune faster and leaves out less signal; a larger one costs the board less processor. A size that is set uses Buffers as it is.");
 /// The protocol of the sample stream.
 pub const PROTOCOL: Setting<field::Choice<StreamProtocol>> = crate::form::protocol(StreamProtocol::Auto)
     .restart()

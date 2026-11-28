@@ -2,7 +2,7 @@
 //! the fake rtl_tcp server and a scripted dongle, each step lasts its dwell of signal time to the sample, the stack is told
 //! the centre of a step before its samples, a step is a gap made on purpose and nothing counts as lost. A second reader
 //! follows the hop and does not steer it, a share does not stop it, and the hop ends on a fixed frequency, on lock, and
-//! with its session.
+//! with its session. The rtl_tcp server of these tests is stepped by the test ([`Stepper`]), so no clock paces it.
 
 mod common;
 
@@ -15,9 +15,10 @@ use sdrkit_core::{
     SettingId, SettingSet, StackDescriptor, Transport, Value, Values,
 };
 use sdrkit_driver_core::rtl_tcp::cmd;
-use sdrkit_driver_core::rtl_tcp::fake::{FakeOpts, FakeRtl};
+use sdrkit_driver_core::rtl_tcp::fake::SteppedRtl;
 use sdrkit_host_engine::{Engine, Input, OwnerRef, RadioId, SessionId, Setup};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
+use std::time::{Duration, Instant};
 
 /// The number of the log that a probe writes.
 const TAG: Setting<field::I64> = Setting::new("tag", "Tag", "", 0).range(0.0, 1e6, 1.0);
@@ -39,14 +40,12 @@ const LOCK_HZ: Setting<field::Hz> =
     Setting::new("lock_hz", "Lock", "Hz", 0.0).range(0.0, 1e10, 0.0);
 /// The hop ends on lock.
 const STOP_ON_LOCK: Setting<field::Bool> = Setting::new("stop_on_lock", "Stop on lock", "", false);
-/// The probe takes this long over each block, so that blocks wait in its queue.
-const SLOW_MS: Setting<field::I64> = Setting::new("slow_ms", "Slow", "ms", 0).range(0.0, 1e3, 1.0);
-/// The probe takes this long over the first block after each change of the centre.
-const STALL_MS: Setting<field::I64> =
-    Setting::new("stall_ms", "Stall", "ms", 0).range(0.0, 1e3, 1.0);
-/// The probe stalls ([`STALL_MS`]) at the first block after each change of the frequency too.
-const STALL_TUNED: Setting<field::Bool> =
-    Setting::new("stall_tuned", "Stall when tuned", "", false);
+/// While the test holds the probe ([`hold`]), it waits at each block, so that blocks wait in its queue.
+const HOLD_EACH: Setting<field::Bool> = Setting::new("hold_each", "Hold at each block", "", false);
+/// While the test holds the probe, it waits at the first block after each change of the centre.
+const HOLD_MOVED: Setting<field::Bool> = Setting::new("hold_moved", "Hold when moved", "", false);
+/// The probe holds ([`HOLD_MOVED`]) at the first block after each change of the frequency too.
+const HOLD_TUNED: Setting<field::Bool> = Setting::new("hold_tuned", "Hold when tuned", "", false);
 /// The level of the samples at a centre is that of the fake rtl_tcp server, not that of the test signal.
 const RTL_LEVELS: Setting<field::Bool> =
     Setting::new("rtl_levels", "Levels of the server", "", false);
@@ -62,9 +61,9 @@ sdrkit_core::settings! {
         WidthHz = WIDTH_HZ,
         LockHz = LOCK_HZ,
         StopOnLock = STOP_ON_LOCK,
-        SlowMs = SLOW_MS,
-        StallMs = STALL_MS,
-        StallTuned = STALL_TUNED,
+        HoldEach = HOLD_EACH,
+        HoldMoved = HOLD_MOVED,
+        HoldTuned = HOLD_TUNED,
         RtlLevels = RTL_LEVELS,
     }
 }
@@ -84,6 +83,31 @@ enum Note {
 
 /// The logs of the probes, by tag.
 static LOGS: Mutex<Vec<(i64, Vec<Note>)>> = Mutex::new(Vec::new());
+/// Signalled at each note.
+static LOGGED: Condvar = Condvar::new();
+/// The tags of the probes that the test holds.
+static HELD: Mutex<Vec<i64>> = Mutex::new(Vec::new());
+/// Signalled when the test holds or frees a probe.
+static FREED: Condvar = Condvar::new();
+
+/// Holds the probe `tag` (`on`) or frees it: a held probe waits at its points of hold ([`HOLD_EACH`], [`HOLD_MOVED`]).
+fn hold(tag: i64, on: bool) {
+    let mut h = HELD.lock().unwrap();
+    h.retain(|t| *t != tag);
+    if on {
+        h.push(tag);
+    }
+    drop(h);
+    FREED.notify_all();
+}
+
+/// A point of hold of the probe `tag`: it waits while the test holds it, at most a minute.
+fn hold_point(tag: i64) {
+    let h = HELD.lock().unwrap();
+    let _ = FREED
+        .wait_timeout_while(h, Duration::from_secs(60), |h| h.contains(&tag))
+        .unwrap();
+}
 
 fn note(tag: i64, n: Note) {
     let mut logs = LOGS.lock().unwrap();
@@ -111,6 +135,44 @@ fn note(tag: i64, n: Note) {
         }
     }
     log.push(n);
+    drop(logs);
+    LOGGED.notify_all();
+}
+
+/// Waits until `f` gives a value for the log of probe `tag`, at most `timeout`, and returns it. `f` is asked at each note
+/// and every 10 ms.
+fn wait_log<T>(tag: i64, timeout: Duration, mut f: impl FnMut(&[Note]) -> Option<T>) -> Option<T> {
+    let end = Instant::now() + timeout;
+    let mut logs = LOGS.lock().unwrap();
+    loop {
+        let log = logs
+            .iter()
+            .find(|(t, _)| *t == tag)
+            .map_or(&[][..], |(_, l)| l);
+        if let Some(v) = f(log) {
+            return Some(v);
+        }
+        let left = end.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            return None;
+        }
+        logs = LOGGED
+            .wait_timeout(logs, left.min(Duration::from_millis(10)))
+            .unwrap()
+            .0;
+    }
+}
+
+/// The samples that the probe was fed and those left out before them.
+fn accounted(notes: &[Note]) -> u64 {
+    notes
+        .iter()
+        .map(|n| match *n {
+            Note::Feed { n, .. } => n,
+            Note::Gap(g) => g,
+            _ => 0,
+        })
+        .sum()
 }
 
 fn log(tag: i64) -> Vec<Note> {
@@ -151,7 +213,7 @@ impl Probe {
         }
         if input.tuned_hz != self.tuned {
             self.tuned = input.tuned_hz;
-            self.moved |= self.values.get(&STALL_TUNED);
+            self.moved |= self.values.get(&HOLD_TUNED);
             note(self.tag(), Note::Tuned(input.tuned_hz));
         }
     }
@@ -170,14 +232,7 @@ impl Receiver for Probe {
         note(self.tag(), Note::Gap(lost));
     }
     fn feed(&mut self, iq: &[Complex32], out: &mut Output) {
-        let stall = self.values.get(&STALL_MS);
-        if std::mem::take(&mut self.moved) && stall > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(stall as u64));
-        }
-        let slow = self.values.get(&SLOW_MS);
-        if slow > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(slow as u64));
-        }
+        let moved = std::mem::take(&mut self.moved);
         let level = if self.values.get(&RTL_LEVELS) {
             sdrkit_driver_core::rtl_tcp::fake::level_of(self.centre)
         } else {
@@ -241,6 +296,10 @@ impl Receiver for Probe {
             s.lock_state = state;
             changed
         });
+        // After its requests: a held probe still sends them.
+        if self.values.get(&HOLD_EACH) || (moved && self.values.get(&HOLD_MOVED)) {
+            hold_point(self.tag());
+        }
     }
 }
 
@@ -617,10 +676,10 @@ fn a_hop_with_stop_on_lock_ends_on_the_channel_where_the_stack_locks() {
     e.close_radio(r).unwrap();
 }
 
-/// The frequencies of the commands that the client sent the fake rtl_tcp server, without repeats.
-fn freq_commands(rtl: &FakeRtl) -> Vec<f64> {
+/// The frequencies of the commands that the client sent the stepped server, without repeats.
+fn freq_commands(rtl: &SteppedRtl) -> Vec<f64> {
     let mut out: Vec<f64> = Vec::new();
-    for (c, v) in rtl.cmds(0) {
+    for (c, v) in rtl.cmds() {
         if c == cmd::FREQ && out.last() != Some(&f64::from(v)) {
             out.push(f64::from(v));
         }
@@ -628,27 +687,237 @@ fn freq_commands(rtl: &FakeRtl) -> Vec<f64> {
     out
 }
 
+/// Steps a [`SteppedRtl`] for radio `r` and the probe `tag`: one block of 20 ms of signal at a time, each once the radio
+/// has read the one before. After a frequency command the next block waits until the radio reports that centre, so the
+/// retune has ended before a sample of the new frequency comes. While the probe is free, a block waits too until the probe
+/// has taken in all but 1.8 s (at most 1.6 million) of the samples sent, so that its queue never overflows; it goes on
+/// when a command comes, and when a second passes with no note of the probe, which then has taken in all that it can
+/// get. A test that holds the probe ([`Stepper::hold`]) bounds what it sends meanwhile. The samples that a move leaves out
+/// at most (0.56 s) go after a frequency command without a wait: the probe learns of them only after them.
+struct Stepper<'a> {
+    e: &'a Engine,
+    a: SessionId,
+    r: RadioId,
+    rtl: &'a SteppedRtl,
+    tag: i64,
+    /// The commands of the server seen so far.
+    seen: usize,
+    /// The samples sent.
+    sent: u64,
+    /// The frequency commands seen, in order.
+    freqs: Vec<f64>,
+    /// The samples up to which blocks go without a wait for the probe.
+    free_until: u64,
+    /// The test holds the probe.
+    held: bool,
+}
+
+impl Drop for Stepper<'_> {
+    /// Frees the probe, so that a test that fails ends.
+    fn drop(&mut self) {
+        hold(self.tag, false);
+    }
+}
+
+impl<'a> Stepper<'a> {
+    fn new(e: &'a Engine, a: SessionId, r: RadioId, rtl: &'a SteppedRtl, tag: i64) -> Self {
+        Stepper {
+            e,
+            a,
+            r,
+            rtl,
+            tag,
+            seen: 0,
+            sent: 0,
+            freqs: Vec::new(),
+            free_until: 0,
+            held: false,
+        }
+    }
+
+    /// Holds the probe (`on`) or frees it ([`hold`]).
+    fn hold(&mut self, on: bool) {
+        self.held = on;
+        hold(self.tag, on);
+    }
+
+    /// The state of the radio and the session, for a failure: connections, samples that the radio lost, samples that
+    /// the queue of the session dropped, and the log of the probe.
+    fn state(&self) -> String {
+        format!(
+            "connections {}, radio lost {}, session dropped {}, commands {:?}: {:?}",
+            self.rtl.connections(),
+            number(self.e, OwnerRef::Radio(self.r), "radio_lost"),
+            number(self.e, OwnerRef::Session(self.a), "session.dropped"),
+            self.rtl.cmds(),
+            log(self.tag)
+        )
+    }
+
+    /// Sends one block.
+    fn step(&mut self) {
+        assert!(
+            self.rtl.wait_read(Duration::from_secs(60)),
+            "the radio did not read the samples sent: {}",
+            self.state()
+        );
+        let rate = self.rtl.rate_hz().max(225e3);
+        let block = (rate * 0.02) as usize;
+        let cmds = self.rtl.cmds();
+        let new: Vec<f64> = cmds[self.seen..]
+            .iter()
+            .filter(|c| c.0 == cmd::FREQ)
+            .map(|c| f64::from(c.1))
+            .collect();
+        self.seen = cmds.len();
+        if let Some(&hz) = new.last() {
+            let (e, r) = (self.e, self.r);
+            wait_for(60.0, || {
+                (number(e, OwnerRef::Radio(r), "centre_hz") == hz).then_some(())
+            })
+            .unwrap_or_else(|| panic!("the radio did not report {hz} Hz: {}", self.state()));
+            self.freqs.extend(new);
+            self.free_until = self.sent + (0.56 * rate) as u64 + block as u64;
+        }
+        if !self.held && self.sent >= self.free_until {
+            self.wait_probe((1.8 * rate).min(1.6e6) as u64);
+        }
+        self.rtl.send(block);
+        self.sent += block as u64;
+    }
+
+    /// Waits until the probe has taken in all but `window` of the samples sent, a command comes, or a second passes
+    /// with no note of the probe.
+    fn wait_probe(&self, window: u64) {
+        let (tag, sent, seen) = (self.tag, self.sent, self.seen);
+        let command = || self.rtl.cmds().len() > seen;
+        for _ in 0..60 {
+            let at = accounted(&log(tag));
+            if sent < at + window || command() {
+                return;
+            }
+            let noted = wait_log(tag, Duration::from_secs(1), |l| {
+                (accounted(l) != at || command()).then_some(())
+            });
+            if noted.is_none() {
+                return;
+            }
+        }
+        panic!(
+            "probe {tag} took in too few of {sent} samples: {}",
+            self.state()
+        );
+    }
+
+    /// Sends blocks until `done` gives a value, and returns it.
+    fn until<T>(&mut self, mut done: impl FnMut(&Self) -> Option<T>) -> T {
+        loop {
+            if let Some(v) = done(self) {
+                return v;
+            }
+            assert!(
+                (self.sent as f64) < 600.0 * self.rtl.rate_hz().max(225e3),
+                "probe {} did not get there in 10 minutes of signal: {}",
+                self.tag,
+                self.state()
+            );
+            self.step();
+        }
+    }
+
+    /// Sends blocks until the probe has at least `n` runs of samples, and returns them.
+    fn steps(&mut self, n: usize) -> Vec<Step> {
+        let tag = self.tag;
+        self.until(|_| {
+            let s = steps(&log(tag));
+            (s.len() >= n).then_some(s)
+        })
+    }
+
+    /// Sends blocks until the last run of the probe is at `centre` with at least `samples` samples, and returns the runs.
+    fn stay(&mut self, centre: f64, samples: u64) -> Vec<Step> {
+        let tag = self.tag;
+        self.until(|_| {
+            let s = steps(&log(tag));
+            s.last()
+                .is_some_and(|l| l.centre == centre && l.samples >= samples)
+                .then_some(s)
+        })
+    }
+
+    /// Sends blocks until the probe was told that it listens to `hz`.
+    fn tuned(&mut self, hz: f64) {
+        let tag = self.tag;
+        self.until(|_| log(tag).contains(&Note::Tuned(hz)).then_some(()));
+    }
+
+    /// Sends blocks until the probe was told the centre of each frequency command: one change of the centre for each
+    /// command to a frequency other than the one before.
+    fn told_last(&mut self) {
+        let tag = self.tag;
+        self.until(|st| {
+            let mut moves = st.freqs.clone();
+            moves.dedup();
+            let told = log(tag)
+                .iter()
+                .filter(|n| matches!(n, Note::Centre(_)))
+                .count();
+            (told >= moves.len()).then_some(())
+        });
+    }
+}
+
+/// Opens the radio of the stepped server `rtl` with `radio` on the engine `e` and starts the probe `tag` with `settings`
+/// at `centre`.
+fn stepped_probe(
+    e: &Engine,
+    rtl: &SteppedRtl,
+    radio: &Values,
+    tag: i64,
+    settings: &[(&str, Value)],
+    centre: f64,
+) -> (SessionId, RadioId) {
+    let r = e.open_radio("rtl_tcp", &rtl.addr(), radio).unwrap();
+    let a = e
+        .start_stack(
+            "probe",
+            None,
+            &probe(e, tag, settings),
+            Input::Radio(r),
+            Some(centre),
+        )
+        .unwrap();
+    (a, r)
+}
+
+/// An engine on the stepped server `rtl` and the default settings of its radio.
+fn stepped_engine(rtl: &SteppedRtl) -> (Engine, Values) {
+    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
+    let radio = defaults(&e, e.find("driver.rtl_tcp").unwrap());
+    (e, radio)
+}
+
+/// Ends session `a` and closes radio `r`; the queue of the session dropped no sample.
+fn end(e: &Engine, a: SessionId, r: RadioId) {
+    assert!(e.settle(Duration::from_secs(5)));
+    assert_eq!(number(e, OwnerRef::Session(a), "session.dropped"), 0.0);
+    e.stop_session(a).unwrap();
+    e.close_session(a).unwrap();
+    e.close_radio(r).unwrap();
+}
+
 #[test]
 fn a_hop_of_the_fake_rtl_tcp_server_moves_it_in_turn_and_loses_nothing() {
-    let rtl = fake_rtl();
-    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
-    let kind = e.find("driver.rtl_tcp").unwrap();
-    let r = e
-        .open_radio("rtl_tcp", &rtl.addr(), &defaults(&e, kind))
-        .unwrap();
-    let v = probe(
-        &e,
-        31,
-        &[
-            ("channels", Value::Text("100,103,106".into())),
-            ("dwell_s", Value::F64(0.1)),
-        ],
-    );
-    let a = e
-        .start_stack("probe", None, &v, Input::Radio(r), Some(101e6))
-        .unwrap();
+    let rtl = SteppedRtl::start(Duration::ZERO);
+    let (e, radio) = stepped_engine(&rtl);
+    let settings = [
+        ("channels", Value::Text("100,103,106".into())),
+        ("dwell_s", Value::F64(0.1)),
+    ];
+    let (a, r) = stepped_probe(&e, &rtl, &radio, 31, &settings, 101e6);
+    let mut st = Stepper::new(&e, a, r, &rtl, 31);
     set(&e, a, "round", Value::I64(1));
-    let s = wait_steps(31, 6);
+    let s = st.steps(6);
     let channels = [100e6, 103e6, 106e6];
     // The dwell counts the samples at the rate that the radio reports.
     let rate = number(&e, OwnerRef::Radio(r), "rate_hz");
@@ -662,9 +931,7 @@ fn a_hop_of_the_fake_rtl_tcp_server_moves_it_in_turn_and_loses_nothing() {
         assert_eq!(*f, channels[i % 3], "{sent:?}");
     }
     nothing_lost(&e, a, r);
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
+    end(&e, a, r);
 }
 
 #[test]
@@ -696,53 +963,42 @@ fn a_hop_of_a_scripted_dongle_moves_it_in_turn_and_loses_nothing() {
     e.close_radio(r).unwrap();
 }
 
-/// A fake rtl_tcp server whose tuner takes 10 ms to move: the samples that it sends meanwhile, and those on their way,
-/// are those of the frequency before.
-fn slow_tuner() -> FakeRtl {
-    FakeRtl::start(FakeOpts {
-        tune_takes: Some(std::time::Duration::from_millis(10)),
-        ..FakeOpts::default()
-    })
-}
+/// The time that the tuner of the stepped server takes to move: the samples of that time after a frequency command, and
+/// those on their way, are those of the frequency before.
+const TUNE_TAKES: Duration = Duration::from_millis(10);
 
-/// Starts a probe with the log `tag` on the server `rtl` at 100 MHz, with `settings`, and hops it over 100, 103 and
-/// 106 MHz.
-fn hop_slow_tuner(
-    rtl: &FakeRtl,
+/// Starts a probe with the log `tag` on the stepped server `rtl` at 100 MHz, with `settings`, and hops it over 100, 103
+/// and 106 MHz once the probe has 0.3 s of samples.
+fn hop_slow_tuner<'a>(
+    e: &'a Engine,
+    rtl: &'a SteppedRtl,
+    radio: &Values,
     tag: i64,
     settings: &[(&str, Value)],
-) -> (Engine, SessionId, RadioId) {
-    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
-    let kind = e.find("driver.rtl_tcp").unwrap();
-    let r = e
-        .open_radio("rtl_tcp", &rtl.addr(), &defaults(&e, kind))
-        .unwrap();
+) -> (Stepper<'a>, SessionId, RadioId) {
     let mut all = vec![
         ("channels", Value::Text("100,103,106".into())),
         ("dwell_s", Value::F64(0.1)),
         ("rtl_levels", Value::Bool(true)),
     ];
     all.extend_from_slice(settings);
-    let a = e
-        .start_stack(
-            "probe",
-            None,
-            &probe(&e, tag, &all),
-            Input::Radio(r),
-            Some(100e6),
-        )
-        .unwrap();
+    let (a, r) = stepped_probe(e, rtl, radio, tag, &all, 100e6);
+    let mut st = Stepper::new(e, a, r, rtl, tag);
     // The first samples of the stream come before the tuner is at its first frequency.
-    std::thread::sleep(std::time::Duration::from_millis(300));
-    set(&e, a, "round", Value::I64(1));
-    (e, a, r)
+    let rate = rtl.rate_hz().max(225e3);
+    st.stay(100e6, (0.3 * rate) as u64);
+    set(e, a, "round", Value::I64(1));
+    // The probe sends the hop at its next block; the hop has begun once the radio is at its second channel.
+    st.until(|_| log(tag).contains(&Note::Centre(103e6)).then_some(()));
+    (st, a, r)
 }
 
 #[test]
 fn a_step_starts_at_the_first_sample_that_the_radio_captured_at_the_new_frequency() {
-    let rtl = slow_tuner();
-    let (e, a, r) = hop_slow_tuner(&rtl, 51, &[]);
-    let s = wait_steps(51, 8);
+    let rtl = SteppedRtl::start(TUNE_TAKES);
+    let (e, radio) = stepped_engine(&rtl);
+    let (mut st, a, r) = hop_slow_tuner(&e, &rtl, &radio, 51, &[]);
+    let s = st.steps(8);
     // The runs of the hop: from the second run on, no sample has the level of another frequency. The server sent
     // samples of the frequency before for 10 ms after each command, and none of them reached the stack.
     let first = s.iter().position(|x| x.centre == 103e6).unwrap();
@@ -752,14 +1008,12 @@ fn a_step_starts_at_the_first_sample_that_the_radio_captured_at_the_new_frequenc
         assert_eq!(step.bad, 0, "{s:?}");
     }
     assert_eq!(number(&e, OwnerRef::Radio(r), "radio_lost"), 0.0);
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
+    end(&e, a, r);
 }
 
-/// Checks the log of a probe on the server with the slow tuner: after the first run, the stack is told a new centre
-/// and the frequency of that centre together, the next samples are at that centre, and they have its level. At least
-/// `least` changes are checked.
+/// Checks the log of a probe on the stepped server: after the first run, the stack is told a new centre and the
+/// frequency of that centre together, the next samples are at that centre, and they have its level. At least `least`
+/// changes are checked.
 fn told_with_the_samples(notes: &[Note], least: usize) {
     let mut told = None;
     let mut checked = 0;
@@ -784,156 +1038,163 @@ fn told_with_the_samples(notes: &[Note], least: usize) {
     assert!(checked >= least, "{notes:?}");
 }
 
+/// Runs the hop of `st` in rounds until the probe has `runs` runs: in each, the test holds the probe until the radio has
+/// moved `moves` times and once more, then frees it until it was told the last centre. The engine moves the radio only
+/// after the dwell of a step, so the move after the last of the `moves` shows that the first sample of each is in the
+/// stream.
+fn hold_through_moves(st: &mut Stepper<'_>, moves: usize, runs: usize) {
+    let tag = st.tag;
+    while steps(&log(tag)).len() < runs {
+        st.hold(true);
+        let from = st.freqs.len();
+        st.until(|st| (st.freqs.len() > from + moves).then_some(()));
+        st.hold(false);
+        st.told_last();
+    }
+}
+
 #[test]
 fn a_stack_that_takes_two_changes_of_frequency_at_once_is_told_each_at_its_first_sample() {
-    let rtl = slow_tuner();
-    // The probe stops for 200 ms at the first block of each step: a step and its move last less, so the next two
-    // changes of frequency wait for it together.
-    let (e, a, r) = hop_slow_tuner(&rtl, 53, &[("stall_ms", Value::I64(200))]);
-    wait_steps(53, 7);
+    let rtl = SteppedRtl::start(TUNE_TAKES);
+    let (e, radio) = stepped_engine(&rtl);
+    // The probe waits at the first block of each step until the radio has moved twice more: the two changes of
+    // frequency wait for it together.
+    let (mut st, a, r) = hop_slow_tuner(&e, &rtl, &radio, 53, &[("hold_moved", Value::Bool(true))]);
+    hold_through_moves(&mut st, 2, 7);
     told_with_the_samples(&log(53), 5);
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
+    end(&e, a, r);
 }
 
 #[test]
 fn a_retune_without_a_hop_starts_at_the_first_sample_of_the_new_frequency() {
-    let rtl = slow_tuner();
-    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
-    let kind = e.find("driver.rtl_tcp").unwrap();
-    let r = e
-        .open_radio("rtl_tcp", &rtl.addr(), &defaults(&e, kind))
-        .unwrap();
-    let v = probe(&e, 54, &[("rtl_levels", Value::Bool(true))]);
-    let a = e
-        .start_stack("probe", None, &v, Input::Radio(r), Some(100e6))
-        .unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(300));
+    let rtl = SteppedRtl::start(TUNE_TAKES);
+    let (e, radio) = stepped_engine(&rtl);
+    let (a, r) = stepped_probe(
+        &e,
+        &rtl,
+        &radio,
+        54,
+        &[("rtl_levels", Value::Bool(true))],
+        100e6,
+    );
+    let mut st = Stepper::new(&e, a, r, &rtl, 54);
+    st.stay(100e6, 60_000);
     // The stack asks for 103 MHz, then the host sets 106 MHz.
     set(&e, a, "fixed_hz", Value::Hz(103e6));
-    wait_stay(54, 103e6, 20_000);
+    st.stay(103e6, 20_000);
     set(&e, a, "tuned_hz", Value::Hz(106e6));
-    let s = wait_stay(54, 106e6, 20_000);
+    let s = st.stay(106e6, 20_000);
     assert_eq!(s.len(), 3, "{s:?}");
     for step in &s[1..] {
         assert!(step.told && step.after_gap && step.bad == 0, "{s:?}");
     }
     told_with_the_samples(&log(54), 2);
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
-}
-
-/// Waits until the probe `tag` was told that it listens to `hz`.
-fn wait_tuned(tag: i64, hz: f64) {
-    wait_for(10.0, || log(tag).contains(&Note::Tuned(hz)).then_some(()))
-        .unwrap_or_else(|| panic!("probe {tag} was not told {hz} Hz: {:?}", log(tag)));
+    end(&e, a, r);
 }
 
 #[test]
 fn a_stack_request_moves_the_radio_only_when_the_capture_does_not_hold_its_width() {
-    let rtl = slow_tuner();
-    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
-    let kind = e.find("driver.rtl_tcp").unwrap();
-    let mut radio = defaults(&e, kind);
+    let rtl = SteppedRtl::start(TUNE_TAKES);
+    let (e, mut radio) = stepped_engine(&rtl);
     radio
         .set(radio.schema().id("rate").unwrap(), &Value::Hz(2.4e6))
         .unwrap();
-    let r = e.open_radio("rtl_tcp", &rtl.addr(), &radio).unwrap();
-    let v = probe(&e, 56, &[("rtl_levels", Value::Bool(true))]);
-    let a = e
-        .start_stack("probe", None, &v, Input::Radio(r), Some(100e6))
-        .unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(300));
+    let (a, r) = stepped_probe(
+        &e,
+        &rtl,
+        &radio,
+        56,
+        &[("rtl_levels", Value::Bool(true))],
+        100e6,
+    );
+    let mut st = Stepper::new(&e, a, r, &rtl, 56);
+    st.stay(100e6, 40_000);
     assert_eq!(number(&e, OwnerRef::Radio(r), "rate_hz"), 2.4e6);
     let sent = freq_commands(&rtl);
     // At 2.4 Msps the capture holds 0.96 MHz either side of the centre. A request without a width inside it, and one
     // whose width fits (100.3 MHz with 0.5 MHz), move the session only.
     set(&e, a, "fixed_hz", Value::Hz(100.2e6));
-    wait_tuned(56, 100.2e6);
+    st.tuned(100.2e6);
     set(&e, a, "width_hz", Value::Hz(0.5e6));
     set(&e, a, "fixed_hz", Value::Hz(100.3e6));
-    wait_tuned(56, 100.3e6);
-    let s = wait_stay(56, 100e6, 40_000);
+    st.tuned(100.3e6);
+    let at = steps(&log(56)).last().unwrap().samples;
+    let s = st.stay(100e6, at + 40_000);
     assert_eq!(s.len(), 1, "{s:?}");
     assert_eq!(freq_commands(&rtl), sent);
     // 100.7 MHz with 1.3 MHz reaches 1.35 MHz from the centre: the radio moves there, and the stack is told at the
     // first sample of the new centre.
     set(&e, a, "width_hz", Value::Hz(1.3e6));
     set(&e, a, "fixed_hz", Value::Hz(100.7e6));
-    let s = wait_stay(56, 100.7e6, 20_000);
+    let s = st.stay(100.7e6, 20_000);
     assert_eq!(s.len(), 2, "{s:?}");
     assert!(s[1].told && s[1].after_gap && s[1].bad == 0, "{s:?}");
     let notes = log(56);
-    let i = notes.iter().position(|n| *n == Note::Centre(100.7e6)).unwrap();
+    let i = notes
+        .iter()
+        .position(|n| *n == Note::Centre(100.7e6))
+        .unwrap();
     assert_eq!(notes.get(i + 1), Some(&Note::Tuned(100.7e6)), "{notes:?}");
     assert_eq!(freq_commands(&rtl).last(), Some(&100.7e6));
     // The host tunes inside the capture: the session listens there and the radio stays.
     let sent = freq_commands(&rtl);
     set(&e, a, "tuned_hz", Value::Hz(100.9e6));
-    wait_tuned(56, 100.9e6);
-    let s = wait_stay(56, 100.7e6, 40_000);
+    st.tuned(100.9e6);
+    let at = steps(&log(56)).last().unwrap().samples;
+    let s = st.stay(100.7e6, at + 40_000);
     assert_eq!(s.len(), 2, "{s:?}");
     assert_eq!(freq_commands(&rtl), sent);
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
+    end(&e, a, r);
 }
 
 #[test]
 fn a_stack_that_is_behind_is_told_the_new_frequency_at_its_first_sample() {
-    let rtl = slow_tuner();
-    // 16 384 samples at 2.048 Msps are 8 ms: the probe takes 12 ms over each, so blocks of a step still wait in its
-    // queue when the engine moves the radio.
-    let (e, a, r) = hop_slow_tuner(&rtl, 52, &[("slow_ms", Value::I64(12))]);
-    wait_steps(52, 8);
+    let rtl = SteppedRtl::start(TUNE_TAKES);
+    let (e, radio) = stepped_engine(&rtl);
+    // The probe waits at each block until the radio has moved: blocks of a step still wait in its queue when the
+    // engine moves the radio.
+    let (mut st, a, r) = hop_slow_tuner(&e, &rtl, &radio, 52, &[("hold_each", Value::Bool(true))]);
+    hold_through_moves(&mut st, 1, 8);
     told_with_the_samples(&log(52), 6);
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
+    end(&e, a, r);
 }
 
 #[test]
 fn a_hop_inside_one_capture_tells_each_frequency_at_the_first_sample_of_its_step() {
-    let rtl = FakeRtl::start(FakeOpts::default());
-    let e = engine_with(rtl.transport(), Arc::new(sdrkit_driver_usb::NoUsb));
-    let kind = e.find("driver.rtl_tcp").unwrap();
-    let r = e
-        .open_radio("rtl_tcp", &rtl.addr(), &defaults(&e, kind))
-        .unwrap();
-    // The channels lie 20 kHz apart: the radio stays where it is. The probe stops for 150 ms at the start of each
-    // step, longer than a step, so the blocks and the changes of frequency wait for it.
-    let v = probe(
-        &e,
-        55,
-        &[
-            ("channels", Value::Text("100,100.02,100.04".into())),
-            ("dwell_s", Value::F64(0.1)),
-            ("stall_tuned", Value::Bool(true)),
-            ("stall_ms", Value::I64(150)),
-        ],
-    );
-    let a = e
-        .start_stack("probe", None, &v, Input::Radio(r), Some(100e6))
-        .unwrap();
+    let rtl = SteppedRtl::start(Duration::ZERO);
+    let (e, radio) = stepped_engine(&rtl);
+    // The channels lie 20 kHz apart: the radio stays where it is. The probe waits at the start of each step until
+    // the radio has passed two more dwells, so the blocks and the changes of frequency wait for it.
+    let settings = [
+        ("channels", Value::Text("100,100.02,100.04".into())),
+        ("dwell_s", Value::F64(0.1)),
+        ("hold_tuned", Value::Bool(true)),
+        ("hold_moved", Value::Bool(true)),
+    ];
+    let (a, r) = stepped_probe(&e, &rtl, &radio, 55, &settings, 100e6);
+    let mut st = Stepper::new(&e, a, r, &rtl, 55);
     set(&e, a, "round", Value::I64(1));
+    let tuned = |n: &[Note]| n.iter().filter(|x| matches!(x, Note::Tuned(_))).count();
+    while tuned(&log(55)) < 7 {
+        st.hold(true);
+        let to = st.sent + 2 * dwell_at(0.1, rtl.rate_hz().max(225e3));
+        st.until(|st| (st.sent >= to).then_some(()));
+        st.hold(false);
+        let k = tuned(&log(55));
+        st.until(|_| (tuned(&log(55)) >= k + 2).then_some(()));
+    }
+    let notes = log(55);
     let rate = number(&e, OwnerRef::Radio(r), "rate_hz");
-    let notes = wait_for(30.0, || {
-        let n = log(55);
-        (n.iter().filter(|x| matches!(x, Note::Tuned(_))).count() >= 7).then_some(n)
-    })
-    .unwrap_or_else(|| panic!("the probe was told too few frequencies: {:?}", log(55)));
     // Each frequency of the hop is told once, in turn; then come the gap of the step, if samples were left out, and
     // the samples of its dwell, to the sample.
-    let tuned: Vec<usize> = (0..notes.len())
+    let told: Vec<usize> = (0..notes.len())
         .filter(|i| matches!(notes[*i], Note::Tuned(_)))
         .collect();
     let channels = [100e6, 100.02e6, 100.04e6];
     let dwell = dwell_at(0.1, rate);
-    for (k, i) in tuned[1..tuned.len() - 1].iter().enumerate() {
+    for (k, i) in told[1..told.len() - 1].iter().enumerate() {
         assert_eq!(notes[*i], Note::Tuned(channels[(k + 1) % 3]), "{notes:?}");
-        let step: Vec<&Note> = notes[i + 1..tuned[k + 2]]
+        let step: Vec<&Note> = notes[i + 1..told[k + 2]]
             .iter()
             .skip_while(|n| matches!(n, Note::Gap(_)))
             .collect();
@@ -942,7 +1203,5 @@ fn a_hop_inside_one_capture_tells_each_frequency_at_the_first_sample_of_its_step
             "{notes:?}"
         );
     }
-    e.stop_session(a).unwrap();
-    e.close_session(a).unwrap();
-    e.close_radio(r).unwrap();
+    end(&e, a, r);
 }

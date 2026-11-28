@@ -1,10 +1,15 @@
 //! A fake rtl_tcp server on a fake network, for tests: it sends the greeting, streams 8-bit samples, records the commands of
-//! each connection and can drop or mute connections.
+//! each connection and can drop or mute connections. [`SteppedRtl`] sends samples only when the test releases them.
 
 use super::{cmd, RtlTcpDriver, DEFAULT_PORT};
-use sdrkit_core::net::{Conn, FakeTransport, Transport};
+use sdrkit_core::net::{
+    Conn, Datagram, DatagramOptions, FakeTransport, Interface, Listener, NetError, Transport,
+};
+use std::collections::VecDeque;
+use std::io::{self, Read, Write};
+use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
 /// How the fake server behaves.
@@ -264,20 +269,10 @@ fn stream(
         if due > sent {
             let n = (due - sent).min(1 << 20) as usize;
             if let Some(tuned) = tuned.as_mut() {
-                let Some((old, from, new)) = tuned(n) else {
+                let Some(levels) = tuned(n) else {
                     return;
                 };
-                for (i, b) in buf[..n].iter_mut().enumerate() {
-                    let step = level_step(if i < from { old } else { new });
-                    // I goes up and down by the level around the middle, so the samples have no DC part; Q stays there.
-                    let at = sent as usize + i;
-                    let up = (at / 2).is_multiple_of(2);
-                    *b = match (at.is_multiple_of(2), up) {
-                        (true, true) => 128 + step,
-                        (true, false) => 127 - step,
-                        (false, _) => 128,
-                    };
-                }
+                fill_levels(&mut buf[..n], sent as usize, levels);
             } else {
                 for b in &mut buf[..n] {
                     *b = k;
@@ -297,5 +292,300 @@ fn stream(
         if tuned.is_none() {
             std::thread::sleep(Duration::from_millis(5));
         }
+    }
+}
+
+/// The I/Q bytes from byte number `at` of a stream on: the I part goes up and down by the level of the tuner around the
+/// middle, so the samples have no DC part; Q stays there. The first `from` bytes have the level of `old`, the others that
+/// of `new`.
+fn fill_levels(buf: &mut [u8], at: usize, (old, from, new): (f64, usize, f64)) {
+    for (i, b) in buf.iter_mut().enumerate() {
+        let step = level_step(if i < from { old } else { new });
+        let at = at + i;
+        *b = match (at.is_multiple_of(2), (at / 2).is_multiple_of(2)) {
+            (true, true) => 128 + step,
+            (true, false) => 127 - step,
+            (false, _) => 128,
+        };
+    }
+}
+
+/// A fake rtl_tcp server that the test steps: no clock paces it. A client that connects gets the greeting, then only the
+/// samples that the test releases ([`SteppedRtl::send`]). The server takes each command at the moment the client writes it.
+/// The samples have the magnitude [`level_of`] of the frequency of the tuner, and a frequency command takes effect after
+/// the samples of `tune_takes` at the rate of the last rate command: those are of the frequency before.
+pub struct SteppedRtl {
+    net: FakeTransport,
+    shared: Arc<Shared>,
+}
+
+/// The state of a [`SteppedRtl`], shared by the test and the connections of the client.
+struct Shared {
+    state: Mutex<Stepped>,
+    /// Signalled at each change of the state.
+    changed: Condvar,
+}
+
+#[derive(Default)]
+struct Stepped {
+    /// The bytes that wait for the client.
+    pending: VecDeque<u8>,
+    /// The sample bytes made on the connection.
+    made: usize,
+    /// The bytes of a command that has not fully come.
+    partial: Vec<u8>,
+    cmds: Vec<(u8, u32)>,
+    tuner: Tuner,
+    rate: f64,
+    takes: Duration,
+    /// The number of the connection that is open, from 1; 0 before the first one.
+    conn: usize,
+    /// The open connection was shut down.
+    closed: bool,
+}
+
+impl Shared {
+    fn lock(&self) -> std::sync::MutexGuard<'_, Stepped> {
+        self.state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
+impl SteppedRtl {
+    /// A server at `127.0.0.1` on the rtl_tcp port of a fake network of its own.
+    pub fn start(tune_takes: Duration) -> SteppedRtl {
+        let shared = Arc::new(Shared {
+            state: Mutex::new(Stepped {
+                takes: tune_takes,
+                ..Stepped::default()
+            }),
+            changed: Condvar::new(),
+        });
+        SteppedRtl {
+            net: FakeTransport::new(),
+            shared,
+        }
+    }
+
+    /// The address to open: host and port.
+    pub fn addr(&self) -> String {
+        format!("127.0.0.1:{DEFAULT_PORT}")
+    }
+
+    /// A transport on which a connection to [`SteppedRtl::addr`] reaches this server. Other addresses are those of the
+    /// fake network.
+    pub fn transport(&self) -> Arc<dyn Transport> {
+        Arc::new(SteppedNet {
+            net: self.net.clone(),
+            shared: self.shared.clone(),
+        })
+    }
+
+    /// The commands (byte and value) of every connection, in order.
+    pub fn cmds(&self) -> Vec<(u8, u32)> {
+        self.shared.lock().cmds.clone()
+    }
+
+    /// The number of connections made so far.
+    pub fn connections(&self) -> usize {
+        self.shared.lock().conn
+    }
+
+    /// The rate of the last rate command, samples per second.
+    pub fn rate_hz(&self) -> f64 {
+        self.shared.lock().rate
+    }
+
+    /// Waits until a client is connected and has read every byte sent, at most `timeout`. Returns false on a timeout.
+    pub fn wait_read(&self, timeout: Duration) -> bool {
+        let s = self.shared.lock();
+        let (_s, t) = self
+            .shared
+            .changed
+            .wait_timeout_while(s, timeout, |s| {
+                s.conn == 0 || s.closed || !s.pending.is_empty()
+            })
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        !t.timed_out()
+    }
+
+    /// Sends `samples` samples to the open connection: those that the tuner gives from where the stream is.
+    pub fn send(&self, samples: usize) {
+        let mut s = self.shared.lock();
+        let mut buf = vec![0u8; samples * 2];
+        let levels = s.tuner.make(buf.len());
+        fill_levels(&mut buf, s.made, levels);
+        s.made += buf.len();
+        s.pending.extend(buf);
+        drop(s);
+        self.shared.changed.notify_all();
+    }
+}
+
+/// The fake network with [`SteppedRtl`] at its address.
+struct SteppedNet {
+    net: FakeTransport,
+    shared: Arc<Shared>,
+}
+
+impl Transport for SteppedNet {
+    fn connect(
+        &self,
+        host: &str,
+        port: u16,
+        tls: bool,
+        timeout: Duration,
+    ) -> Result<Box<dyn Conn>, NetError> {
+        if host != "127.0.0.1" || port != DEFAULT_PORT || tls {
+            return self.net.connect(host, port, tls, timeout);
+        }
+        let mut s = self.shared.lock();
+        s.conn += 1;
+        s.closed = false;
+        s.made = 0;
+        s.partial.clear();
+        s.pending.clear();
+        s.pending.extend(FakeOpts::default().greeting);
+        let conn = s.conn;
+        drop(s);
+        self.shared.changed.notify_all();
+        Ok(Box::new(SteppedConn {
+            shared: self.shared.clone(),
+            conn,
+            read_timeout: Arc::new(Mutex::new(None)),
+        }))
+    }
+    fn datagram(&self, host: &str, port: u16) -> Result<Box<dyn Datagram>, NetError> {
+        self.net.datagram(host, port)
+    }
+    fn bind(&self, options: &DatagramOptions) -> Result<Box<dyn Datagram>, NetError> {
+        self.net.bind(options)
+    }
+    fn listen(&self, host: &str, port: u16) -> Result<Box<dyn Listener>, NetError> {
+        self.net.listen(host, port)
+    }
+    fn resolve(&self, host: &str, port: u16) -> Result<SocketAddr, NetError> {
+        self.net.resolve(host, port)
+    }
+    fn interfaces(&self) -> Vec<Interface> {
+        self.net.interfaces()
+    }
+}
+
+/// The client end of a connection to a [`SteppedRtl`]. Its handles share the read timeout.
+struct SteppedConn {
+    shared: Arc<Shared>,
+    conn: usize,
+    read_timeout: Arc<Mutex<Option<Duration>>>,
+}
+
+impl Read for SteppedConn {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        if buf.is_empty() {
+            return Ok(0);
+        }
+        let timeout = *self
+            .read_timeout
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let deadline = timeout.map(|t| Instant::now() + t);
+        let mut s = self.shared.lock();
+        loop {
+            if s.conn != self.conn || s.closed {
+                return Ok(0);
+            }
+            if !s.pending.is_empty() {
+                break;
+            }
+            s = match deadline {
+                None => self
+                    .shared
+                    .changed
+                    .wait(s)
+                    .unwrap_or_else(std::sync::PoisonError::into_inner),
+                Some(d) => {
+                    let left = d.saturating_duration_since(Instant::now());
+                    if left.is_zero() {
+                        return Err(io::ErrorKind::WouldBlock.into());
+                    }
+                    self.shared
+                        .changed
+                        .wait_timeout(s, left)
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .0
+                }
+            };
+        }
+        let n = buf.len().min(s.pending.len());
+        for (dst, src) in buf.iter_mut().zip(s.pending.drain(..n)) {
+            *dst = src;
+        }
+        drop(s);
+        self.shared.changed.notify_all();
+        Ok(n)
+    }
+}
+
+impl Write for SteppedConn {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let mut s = self.shared.lock();
+        if s.conn != self.conn || s.closed {
+            return Err(io::ErrorKind::BrokenPipe.into());
+        }
+        s.partial.extend_from_slice(buf);
+        while s.partial.len() >= 5 {
+            let c: Vec<u8> = s.partial.drain(..5).collect();
+            let v = u32::from_be_bytes([c[1], c[2], c[3], c[4]]);
+            s.cmds.push((c[0], v));
+            match c[0] {
+                cmd::FREQ => {
+                    let bytes = (s.takes.as_secs_f64() * s.rate * 2.0) as usize;
+                    s.tuner.command(f64::from(v), bytes);
+                }
+                cmd::RATE => s.rate = f64::from(v),
+                _ => {}
+            }
+        }
+        drop(s);
+        self.shared.changed.notify_all();
+        Ok(buf.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+impl Conn for SteppedConn {
+    fn set_read_timeout(&mut self, timeout: Option<Duration>) -> Result<(), NetError> {
+        *self
+            .read_timeout
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = timeout;
+        Ok(())
+    }
+    fn set_write_timeout(&mut self, _timeout: Option<Duration>) -> Result<(), NetError> {
+        Ok(())
+    }
+    fn set_recv_buffer(&mut self, _bytes: usize) -> Result<(), NetError> {
+        Ok(())
+    }
+    fn try_clone(&self) -> Result<Box<dyn Conn>, NetError> {
+        Ok(Box::new(SteppedConn {
+            shared: self.shared.clone(),
+            conn: self.conn,
+            read_timeout: self.read_timeout.clone(),
+        }))
+    }
+    fn shutdown(&self) {
+        let mut s = self.shared.lock();
+        if s.conn == self.conn {
+            s.closed = true;
+        }
+        drop(s);
+        self.shared.changed.notify_all();
+    }
+    fn peer_addr(&self) -> Option<SocketAddr> {
+        None
     }
 }

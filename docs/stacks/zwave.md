@@ -5,7 +5,7 @@ Z-Wave home automation (ITU-T G.9959, R1 R2 R3): networks, nodes and commands; S
 
 Stack id: `zwave`. Group: IoT, sub-GHz.
 
-Z-Wave : every channel of the `channels` setting in the capture, MPDUs at R1, R2 and R3, and tables of networks, nodes and commands. Security S0 and S2 payloads are shown as encrypted and never decoded.
+Z-Wave : every channel of the `channels` setting in the capture, MPDUs at R1, R2 and R3, and tables of networks, nodes and commands. The channels ask for the least rate that holds them all; at a lower rate the capture holds the first channels of the list, and the status names the others. Security S0 and S2 payloads are shown as encrypted and never decoded.
 
 Standard: ITU-T G.9959 (PHY and MAC)
 
