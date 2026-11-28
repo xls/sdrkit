@@ -30,7 +30,7 @@ const DELAY_RISE: f64 = 1e-3;
 /// A delay estimate that no write has renewed for this long, seconds, says nothing.
 const DELAY_AGE_S: f64 = 30.0;
 /// A hold ([`SettleGate::hold`]) keeps the stretch of a change open for at most this long, seconds of samples.
-const HOLD_MAX_S: f64 = 1.0;
+const HOLD_MAX_S: f64 = 0.5;
 
 /// A retune that has ended and whose first sample is not found yet.
 #[derive(Clone, Copy, Debug)]
@@ -195,7 +195,7 @@ impl SettleGate {
     }
 
     /// While `on`, the radio still settles (a held gain searches after a change): the stretch of a change does not end,
-    /// for at most 1 s of samples. It changes nothing when no stretch is open.
+    /// for at most 0.5 s of samples. It changes nothing when no stretch is open.
     pub fn hold(&mut self, on: bool) {
         self.held = on;
     }
@@ -426,7 +426,7 @@ mod tests {
     }
 
     #[test]
-    fn a_hold_ends_after_one_second_of_samples() {
+    fn a_hold_ends_after_half_a_second_of_samples() {
         let mut g = SettleGate::new(RATE);
         let t0 = g.epoch;
         g.begin_change();
@@ -440,7 +440,7 @@ mod tests {
                 break;
             }
         }
-        assert_eq!(end, Some(1_000_000));
+        assert_eq!(end, Some(500_000));
     }
 
     #[test]
@@ -507,6 +507,6 @@ mod tests {
                 break;
             }
         }
-        assert_eq!(end, Some(1_000_000));
+        assert_eq!(end, Some(500_000));
     }
 }

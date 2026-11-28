@@ -722,7 +722,7 @@ impl RtlStream {
                             sink.deliberate_gap((gap / 2) as u64);
                             gap = 0;
                         }
-                        // A search after a start spoils the level: the samples are left out until it holds.
+                        // A search after a start spoils the level: the samples are left out while it settles.
                         sink.settling(lock_hold(&self.hold).settling());
                         sink.write(&data[k..]);
                     }

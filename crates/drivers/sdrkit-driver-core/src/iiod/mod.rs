@@ -2245,7 +2245,8 @@ impl RadioStream for IiodStream {
                         }
                     }
                     // The level is measured before the buffer is written: a search after a start spoils the level of the
-                    // samples, which are left out until it holds, and a search that holds on this buffer lets it pass.
+                    // samples, which are left out while it settles ([`HeldGain::settling`]), and a search that holds
+                    // on this buffer lets it pass.
                     let moved = self.arrive(n, sink);
                     self.measure(n, moved, ctx);
                     sink.settling(self.holds.iter().any(|h| lock(&h.hold).settling()));

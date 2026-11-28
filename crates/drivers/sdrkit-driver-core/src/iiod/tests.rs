@@ -1079,12 +1079,17 @@ fn held_board(level: f64) -> (FakeIiod, Box<dyn Source>, RingReader) {
 
 /// [`held_board`], paced to the rate unless `fast`.
 fn held_board_at(level: f64, fast: bool) -> (FakeIiod, Box<dyn Source>, RingReader) {
+    held_board_with(level, fast, &[("readings_s", "0")])
+}
+
+/// [`held_board_at`] with `settings`.
+fn held_board_with(level: f64, fast: bool, settings: &[(&str, &str)]) -> (FakeIiod, Box<dyn Source>, RingReader) {
     let srv = FakeIiod::start(FakeOpts {
         fast,
         ..Default::default()
     });
     *srv.board.level_dbfs.lock().unwrap() = Some(level);
-    let mut t = tune(HELD_RATE, &[("readings_s", "0")]);
+    let mut t = tune(HELD_RATE, settings);
     t.gain_db = None;
     let mut src = IiodDriver::new(srv.transport())
         .open_w(&srv.addr(), &t)
@@ -1220,6 +1225,108 @@ fn a_retune_in_the_same_band_keeps_the_held_gain_without_a_step() {
     assert!(at - from < 0.15, "{:.3} s of signal to hold", at - from);
     let log = srv.board.log();
     assert!(log[n..].iter().all(|l| !l.contains("hardwaregain")), "{:?}", &log[n..]);
+    src.stop();
+}
+
+/// The samples of the fake at [`HELD_RATE`] that the settle time of a retune holds, and those of one buffer.
+fn settle_and_buffer() -> (u64, u64) {
+    ((RETUNE_SETTLE.as_secs_f64() * HELD_RATE) as u64, buffer_samples(HELD_RATE) as u64)
+}
+
+/// The most samples that the paced fake may leave out after a change when the gain needs no step: those of the settle
+/// time, `in_flight` buffers, and the window that checks the gain.
+fn no_step_bound(in_flight: u64) -> u64 {
+    let (settle, buffer) = settle_and_buffer();
+    settle + in_flight * buffer + (crate::gain::RULES.search_window_s * HELD_RATE) as u64
+}
+
+/// The samples that a search whose step does not show may add: those of the time that the search settles for, and two
+/// buffers.
+fn hidden_step_bound() -> u64 {
+    (crate::gain::RULES.settle_s * HELD_RATE) as u64 + 2 * settle_and_buffer().1
+}
+
+/// The settings of the boards of the tests that count the samples left out. With 16 kernel buffers a second of samples
+/// can be in flight, which is how long a search waits for a step that does not show.
+const COUNTED: &[(&str, &str)] = &[("readings_s", "0"), ("buffers", "16")];
+
+/// Reads and drops all that waits in `r`.
+fn drain(r: &mut RingReader) {
+    let n = r.available();
+    r.take_gaps(n);
+    r.read_with(n, |_| {});
+}
+
+/// Reads `r` until the stretch of samples left out that is open at `from`, or begins there, has ended, and returns its
+/// end. Panics after 10 s.
+fn left_out_to(r: &mut RingReader, from: u64) -> u64 {
+    let stats = r.stats();
+    let t = Instant::now();
+    loop {
+        r.wait(1, Duration::from_millis(5));
+        drain(r);
+        if let Some(to) = stats.unsettled(from).and_then(|u| u.to) {
+            return to;
+        }
+        assert!(t.elapsed() < Duration::from_secs(10), "the stretch does not end");
+    }
+}
+
+/// Retunes `src` to `centre_hz`. Returns the samples left out from the request until samples pass again.
+fn left_out_by_a_retune(src: &mut Box<dyn Source>, r: &mut RingReader, centre_hz: f64) -> u64 {
+    let stats = r.stats();
+    drain(r);
+    let from = stats.written();
+    let mut t = tune(HELD_RATE, COUNTED);
+    t.gain_db = None;
+    t.centre_hz = centre_hz;
+    src.retune(&t).unwrap();
+    let seq = stats.moves().begun;
+    let to = left_out_to(r, from);
+    assert!(wait_for(|| stats.moves().found >= seq, 10.0), "no first sample of the retune");
+    stats.moves().at.max(to) - from
+}
+
+#[test]
+fn a_retune_leaves_out_the_settle_time_and_the_samples_in_flight_and_not_a_search_that_goes_on() {
+    // Paced to the rate: one buffer is being filled and one can be on the link.
+    let (srv, mut src, mut r) = held_board_with(level_for(35.0), false, COUNTED);
+    wait_hold(&srv, &mut src, 0);
+    // The same level on the new frequency: the gain is kept.
+    let out = left_out_by_a_retune(&mut src, &mut r, 150e6);
+    assert!(out <= no_step_bound(2), "{out} samples left out, no step needed");
+    wait_hold(&srv, &mut src, -1);
+    assert_eq!(held(&mut src).map(|h| h.2), Some(0));
+    // 60 dB stronger on the next frequency: the first window clips, and the signal still clips after the first step, so
+    // that step does not show and the search waits for all that can be in flight before it steps again. The samples
+    // pass when the step has had its time to show, not when the search has ended.
+    *srv.board.level_dbfs.lock().unwrap() = Some(level_for(35.0) + 60.0);
+    let out = left_out_by_a_retune(&mut src, &mut r, 200e6);
+    assert!(
+        out <= no_step_bound(2) + hidden_step_bound(),
+        "{out} samples left out, a signal that stays clipped after the retune"
+    );
+    src.stop();
+}
+
+#[test]
+fn a_stream_start_leaves_out_the_settle_time_and_not_a_search_that_goes_on() {
+    // The signal has its peak at the target at the start gain of 43 dB: the samples of the settle time and those up to
+    // the end of the window that checks the gain are left out.
+    let (srv, mut src, mut r) = held_board_with(level_for(43.0), false, COUNTED);
+    let out = left_out_to(&mut r, 0);
+    assert!(out <= no_step_bound(1), "{out} samples left out, no step needed");
+    wait_hold(&srv, &mut src, -1);
+    assert_eq!(held(&mut src).map(|h| h.2), Some(0));
+    src.stop();
+    // 60 dB too strong: it still clips after the first step, and the samples pass when that step has had its time to
+    // show.
+    let (_srv, mut src, mut r) = held_board_with(level_for(43.0) + 60.0, false, COUNTED);
+    let out = left_out_to(&mut r, 0);
+    assert!(
+        out <= no_step_bound(1) + hidden_step_bound(),
+        "{out} samples left out, a signal that stays clipped at the start"
+    );
     src.stop();
 }
 

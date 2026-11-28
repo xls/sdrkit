@@ -8,12 +8,15 @@
 //! A hop run: `SDRKIT_HOPS=<MHz>,<MHz>,...` (in place of the strong and empty frequencies) visits the frequencies in turn,
 //! `SDRKIT_HOP_COUNT` times (default 24) for `SDRKIT_DWELL` ms each (default 600). Per hop it reports the time from the
 //! first sample at the new frequency until the samples that pass stay within 1 dB of the level the hop settles at, the
-//! samples left out later in the hop, and how steady the level that passes is.
+//! samples left out later in the hop, and how steady the level that passes is. The stay of a hop begins when its first
+//! sample has passed to the reader, as a hop of the engine does. Then per hop: the time from the request to that sample,
+//! the samples left out and those that never came, and the share of the nominal samples of the run that passed.
+//! `SDRKIT_TRACE=1` adds the level of each 10 ms of a hop. `SDRKIT_SET=<key>=<n>` sets a choice of the driver.
 
 use sdrkit_core::net::StdNet;
 use sdrkit_core::{Clock, Complex32, MemStorage, Owner, SettingSet, Value, Values};
 use sdrkit_driver_core::{ring, DriverKind, RadioSetting, RING_CAPACITY};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -43,6 +46,8 @@ struct Seen {
     moved: Vec<(u64, u64)>,
     /// The stretches that the engine leaves out, as places in the ring.
     unsettled: Vec<(u64, u64)>,
+    /// The samples that never came from the radio: the place in the signal and the count.
+    gaps: Vec<(u64, u64)>,
 }
 
 impl Seen {
@@ -111,7 +116,14 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
     if let Some(g) = gain {
         v.set(RadioSetting::Gain.id(), &Value::F64(g)).unwrap();
     }
+    // A setting of the driver by its key, as the number of one of its choices: `SDRKIT_SET=buffer_size=2`.
+    if let Some((key, n)) = env("SDRKIT_SET").as_deref().and_then(|s| s.split_once('=')) {
+        let id = schema.id(key).expect("a setting of the driver");
+        v.set(id, &Value::Choice(n.parse().expect("a choice number"))).unwrap();
+    }
+    let before_open = Instant::now();
     let mut radio = kind.open(&address, &v).expect("the radio opens");
+    let opened = before_open.elapsed();
     let (w, mut r) = ring(RING_CAPACITY, radio.sample_type());
     let stats = r.stats();
     let t0 = Instant::now();
@@ -119,8 +131,10 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
     let rate = started.rate_hz;
     let seen = Arc::new(Mutex::new(Seen::default()));
     let stop = Arc::new(AtomicBool::new(false));
+    // The number of the last retune of which a sample has passed to the reader.
+    let passed = Arc::new(AtomicU64::new(0));
     let reader = {
-        let (seen, stop) = (seen.clone(), stop.clone());
+        let (seen, stop, passed) = (seen.clone(), stop.clone(), passed.clone());
         std::thread::spawn(move || {
             let mut pos = 0u64;
             let mut buf = vec![Complex32::default(); 1 << 16];
@@ -154,6 +168,9 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                         pos += part.len() as u64;
                     }
                     done += k;
+                    if g.lost > 0 {
+                        s.gaps.push((pos, g.lost));
+                    }
                     pos += g.lost;
                 }
                 s.arrivals.push((at, pos));
@@ -168,6 +185,10 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
                     if s.unsettled.last() != Some(&to) {
                         s.unsettled.push(to);
                     }
+                }
+                let (here, q) = (r.position(), s.unsettled.last().map_or(0, |u| u.1));
+                if m.found == m.begun && here > m.at.max(q) && st.unsettled(q).is_none_or(|u| u.from >= here) {
+                    passed.store(m.found, Ordering::Release);
                 }
             }
         })
@@ -186,18 +207,24 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
             std::thread::sleep(Duration::from_millis(400));
         }
     }
-    // The hops: (frequency, number of the retune, end of the request).
+    // The hops: (frequency, number of the retune, end of the request, its start).
     let mut hopped = Vec::new();
     if hops.len() > 1 {
         for k in 0..hop_count {
             let f = hops[(k + 1) % hops.len()];
+            let began = Instant::now();
             radio
                 .apply(RadioSetting::Centre.id(), &Value::Hz(f))
                 .unwrap();
-            hopped.push((f, stats.moves().begun, Instant::now()));
+            let seq = stats.moves().begun;
+            hopped.push((f, seq, Instant::now(), began));
+            while passed.load(Ordering::Acquire) < seq && began.elapsed() < Duration::from_secs(3) {
+                std::thread::sleep(Duration::from_millis(1));
+            }
             std::thread::sleep(Duration::from_millis(dwell));
         }
     }
+    let hops_ended = Instant::now();
     stop.store(true, Ordering::Release);
     reader.join().unwrap();
     radio.stop();
@@ -208,7 +235,12 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
         .iter()
         .map(|(at, end)| at.duration_since(t0).as_secs_f64() - *end as f64 / rate)
         .fold(f64::INFINITY, f64::min);
-    println!("{address}: {:.3} Msps, least delay {:.1} ms", rate / 1e6, delay * 1e3);
+    println!(
+        "{address}: {:.3} Msps, least delay {:.1} ms, open {:.0} ms",
+        rate / 1e6,
+        delay * 1e3,
+        opened.as_secs_f64() * 1e3
+    );
     // The start: the level every 25 ms over the first 2 s.
     let step = (rate * 0.025) as u64;
     let mut line = String::new();
@@ -325,8 +357,125 @@ fn measure_the_start_and_the_settle_time_of_a_radio() {
     }
     // The place in the signal of the sample captured at `t`.
     let at = |t: Instant| ((t.duration_since(t0).as_secs_f64() - delay) * rate).max(0.0) as u64;
-    let hopped: Vec<(f64, u64, u64)> = hopped.iter().map(|&(f, seq, end)| (f, seq, at(end))).collect();
+    let delivery = hopped.iter().map(|h| (h.3, h.2)).collect::<Vec<_>>();
+    let hopped: Vec<(f64, u64, u64)> = hopped.iter().map(|&(f, seq, end, _)| (f, seq, at(end))).collect();
     report_hops(&s, &hopped, rate);
+    report_delivery(&s, &hopped, &delivery, hops_ended, rate);
+}
+
+/// Per hop (with the start and the end of its request): the time from the request to the arrival of the first sample
+/// that passes, the samples left out between the last read before the request and that sample, and those of them that
+/// never came from the radio. Then the share of the nominal samples of the whole run that passed.
+fn report_delivery(s: &Seen, hopped: &[(f64, u64, u64)], asked: &[(Instant, Instant)], ended: Instant, rate: f64) {
+    if hopped.is_empty() {
+        return;
+    }
+    let left: Vec<(u64, u64)> = s.unsettled.iter().map(|&(a, b)| (s.signal(a), s.signal(b))).collect();
+    let read_at = |t: Instant| s.arrivals.iter().take_while(|a| a.0 <= t).last().map_or(0, |a| a.1);
+    let missing = |a: u64, b: u64| s.gaps.iter().filter(|g| g.0 >= a && g.0 < b).map(|g| g.1).sum::<u64>();
+    let ms = |n: u64| n as f64 / rate * 1e3;
+    let run_from = read_at(asked[0].0);
+    let run_to = read_at(ended);
+    let (mut out_all, mut firsts, mut outs, mut lost_all) = (0u64, Vec::new(), Vec::new(), 0u64);
+    let mut steps = Vec::new();
+    for (i, &(f, seq, _)) in hopped.iter().enumerate() {
+        let (began, end) = asked[i];
+        let from = read_at(began);
+        let to = asked.get(i + 1).map_or(run_to, |n| read_at(n.0));
+        let Some(m) = s.moved.iter().find(|m| m.0 >= seq).map(|m| s.signal(m.1)) else {
+            out_all += to - from;
+            println!("to {:.3} MHz: nothing passed", f / 1e6);
+            continue;
+        };
+        let mut p = m.max(from);
+        while let Some(u) = left.iter().find(|u| u.0 <= p && p < u.1) {
+            p = u.1;
+        }
+        let p = p.min(to);
+        let later: u64 = left.iter().filter(|u| u.0 > p && u.0 < to).map(|u| u.1.min(to) - u.0).sum();
+        let lost = missing(from, to);
+        let first = s
+            .arrivals
+            .iter()
+            .find(|a| a.1 > p)
+            .map_or(f64::NAN, |a| a.0.duration_since(began).as_secs_f64() * 1e3);
+        println!(
+            "to {:.3} MHz: request {:.1} ms, first sample to the reader {first:.1} ms after the request began, \
+             {} samples ({:.1} ms) left out before it, {} ({:.1} ms) later, {lost} never came",
+            f / 1e6,
+            end.duration_since(began).as_secs_f64() * 1e3,
+            p - from,
+            ms(p - from),
+            later,
+            ms(later)
+        );
+        // The level of each 10 ms that passed: the first three against the rest of the hop.
+        let bin = (rate * 0.01) as u64;
+        let mut bins: Vec<f32> = Vec::new();
+        for k in 0..(to.saturating_sub(p)) / bin.max(1) {
+            let (a, b) = (p + k * bin, p + (k + 1) * bin);
+            if left.iter().any(|u| u.0 < b && a < u.1) {
+                continue;
+            }
+            let mut v: Vec<f32> = s.levels.iter().filter(|l| l.0 >= a && l.0 < b).map(|l| l.1).collect();
+            if !v.is_empty() {
+                bins.push(median(&mut v));
+            }
+        }
+        if bins.len() >= 8 {
+            let mut rest = bins[3..].to_vec();
+            let m = median(&mut rest);
+            steps.push(bins[..3].iter().map(|x| (x - m).abs()).fold(0.0f32, f32::max));
+        }
+        if env("SDRKIT_TRACE").is_some() {
+            // The level of each 10 ms from the last read before the request; in brackets what is left out.
+            let step = (rate * 0.01) as u64;
+            let mut line = String::new();
+            for k in 0..40u64 {
+                let (a, b) = (from + k * step, from + (k + 1) * step);
+                let mut v: Vec<f32> = s.levels.iter().filter(|l| l.0 >= a && l.0 < b).map(|l| l.1).collect();
+                if a >= to || v.is_empty() {
+                    break;
+                }
+                let out = a < p || left.iter().any(|u| u.0 <= a && a < u.1);
+                line += &if out { format!("[{:.0}] ", median(&mut v)) } else { format!("{:.0} ", median(&mut v)) };
+            }
+            println!("  {line}");
+        }
+        out_all += p - from + later;
+        lost_all += lost;
+        firsts.push(first);
+        outs.push(p - from);
+    }
+    let nominal = ended.duration_since(asked[0].0).as_secs_f64() * rate;
+    let passed = (run_to - run_from).saturating_sub(out_all);
+    firsts.sort_by(f64::total_cmp);
+    outs.sort_unstable();
+    let n = firsts.len();
+    if n == 0 {
+        return;
+    }
+    if !steps.is_empty() {
+        let worst = steps.iter().copied().fold(0.0f32, f32::max);
+        println!(
+            "the level of the first 30 ms that pass against the rest of the hop: median {:.1} dB, largest {worst:.1} dB",
+            median(&mut steps)
+        );
+    }
+    println!(
+        "{} hops: first sample to the reader median {:.1} ms, largest {:.1} ms; left out per hop median {} ({:.1} ms), \
+         largest {} ({:.1} ms); {lost_all} never came; passed {:.1} % of the nominal samples ({:.2} of {:.2} Msps)",
+        hopped.len(),
+        firsts[n / 2],
+        firsts[n - 1],
+        outs[n / 2],
+        ms(outs[n / 2]),
+        outs[n - 1],
+        ms(outs[n - 1]),
+        100.0 * passed as f64 / nominal,
+        passed as f64 / nominal * rate / 1e6,
+        rate / 1e6
+    );
 }
 
 /// Per hop (frequency, number of the retune, place in the signal of the end of the request): the time from the end of the

@@ -321,7 +321,7 @@ impl Sink {
     }
 
     /// The radio still settles after a change (a held gain that searches), or no longer: the samples of the writes that
-    /// follow are left out while it does, for at most 1 s ([`SettleGate::hold`]).
+    /// follow are left out while it does, for at most 0.5 s ([`SettleGate::hold`]).
     pub fn settling(&mut self, on: bool) {
         self.settle().hold(on);
     }

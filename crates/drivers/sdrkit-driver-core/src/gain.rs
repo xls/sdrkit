@@ -3,7 +3,7 @@
 //! scale, and holds. A window that clipped gives no peak: the control steps down, waits until the step shows, and measures
 //! again. A held gain moves again only when the level stays outside a wide window for a set time, and never sooner than a
 //! set time after its last step. The clock is the count of samples, so a backlog or a fast test source keeps the same
-//! timing. A start (a retune) begins from the gain held last in the band of 100 MHz, or else from the gain held last
+//! timing. A start (a retune) begins from the gain held last within the same 1 MHz, or else from the gain held last
 //! anywhere: one window checks it, and the gain steps only when that window clipped or lay far below the target. A gain
 //! kept so moves only when the level leaves those same bounds for a set time.
 //! The bands are kept while the radio is open, never stored.
@@ -30,6 +30,9 @@ pub struct HoldRules {
     pub search_window_s: f64,
     /// The peak-to-mean ratio taken for a clipped window before the control has measured one, in dB.
     pub peak_to_mean_db: f64,
+    /// The search after a start counts as settling ([`HeldGain::settling`]) for at most this long after its last step,
+    /// in seconds: a step that has not shown by then is one that the signal hides.
+    pub settle_s: f64,
     /// A start from a gain held before keeps it unless the first window clipped or its peak lay more than this below the
     /// target, in dB. A gain kept so moves only when the samples clip or the peak lies more than this below the target.
     pub check_below_db: f64,
@@ -37,7 +40,7 @@ pub struct HoldRules {
 
 /// The rules of every driver: peak at -10 dBFS (within 3 dB after a search), hold while the peak stays within 6 dB of it,
 /// move after 0.5 s outside, at most once in 2 s, windows of 100 ms; a search measures windows of 10 ms. A start from a
-/// gain held before steps only when the first window clipped or peaked more than 10 dB below the target.
+/// gain held before steps only when the first window clipped or peaked more than 20 dB below the target.
 pub const RULES: HoldRules = HoldRules {
     target_peak_dbfs: -10.0,
     search_tolerance_db: 3.0,
@@ -47,13 +50,15 @@ pub const RULES: HoldRules = HoldRules {
     window_s: 0.1,
     search_window_s: 0.01,
     peak_to_mean_db: 13.0,
-    check_below_db: 10.0,
+    settle_s: 0.15,
+    check_below_db: 20.0,
 };
 
-/// The width of one band of the gains held before, in Hz.
-const BAND_HZ: f64 = 100e6;
+/// The width of one band of the gains held before, in Hz. It is narrow, so that a hop that comes back to a frequency
+/// finds the gain of that frequency and steps nothing, however the levels of its neighbours differ.
+const BAND_HZ: f64 = 1e6;
 /// The most bands kept; the oldest goes first.
-const MAX_BANDS: usize = 64;
+const MAX_BANDS: usize = 512;
 
 fn band(hz: f64) -> i64 {
     (hz / BAND_HZ).floor() as i64
@@ -223,7 +228,7 @@ pub struct HeldGain {
     peak_to_mean_db: f64,
     /// The mean of the last window, against which a step is seen.
     last_mean_dbfs: f64,
-    /// The search of the last start has not held yet ([`HeldGain::settling`]).
+    /// The search of the last start has not held yet, and its last step can still show ([`HeldGain::settling`]).
     first: bool,
     /// The proposed gain came from a window that did not clip.
     exact: bool,
@@ -339,7 +344,8 @@ impl HeldGain {
     }
 
     /// The search after a start (of the stream, a retune) runs: the level of the samples is not yet the one the control
-    /// holds. Later searches of a held gain spoil only the samples around each step.
+    /// holds. It ends when the search holds, and [`HoldRules::settle_s`] after a step that does not show: a search that
+    /// the signal keeps going (bursts, a signal that stays clipped) spoils only the samples around each later step.
     pub fn settling(&self) -> bool {
         self.active && self.first
     }
@@ -370,6 +376,9 @@ impl HeldGain {
             return None;
         }
         self.since_step = self.since_step.saturating_add(l.samples);
+        if self.steps > 0 && self.since_step >= samples(self.rate, self.rules.settle_s) {
+            self.first = false;
+        }
         self.last_mean_dbfs = l.mean_dbfs;
         match &mut self.wait {
             Wait::None => {}
@@ -511,6 +520,7 @@ impl HeldGain {
 
     /// The driver could not write the proposed gain: the control waits ten windows and looks again.
     pub fn not_stepped(&mut self) {
+        self.first = false;
         self.exact = false;
         self.wait = Wait::For(10 * self.window());
     }
@@ -627,6 +637,24 @@ mod tests {
     }
 
     #[test]
+    fn a_search_whose_step_does_not_show_settles_for_a_set_time_only() {
+        let mut g = HeldGain::default();
+        g.start(100e6, 40.0, (0.0, 73.0), RATE, 2_000_000);
+        g.stream_started();
+        g.fresh();
+        // Clipped, and as strong after the step: the step does not show in the mean.
+        let w = g.feed(&at(10.0)).unwrap();
+        g.stepped(w);
+        assert!(g.settling());
+        // 0.1 s of samples after the step, then 0.2 s: past the 0.15 s that a step may take to show.
+        assert_eq!(g.feed(&at(10.0)), None);
+        assert!(g.settling());
+        assert_eq!(g.feed(&at(10.0)), None);
+        assert!(!g.settling());
+        assert_eq!(g.status().unwrap().state, GainControl::Searching);
+    }
+
+    #[test]
     fn a_search_measures_short_windows_and_a_held_gain_long_ones() {
         let mut g = HeldGain::default();
         g.start(100e6, 40.0, (0.0, 73.0), RATE, 0);
@@ -638,7 +666,7 @@ mod tests {
         assert_eq!(g.window_samples(RATE), 100_000);
     }
 
-    /// A control that has held at 30 dB in the band of 100 MHz and started again at `centre_hz` from the gain it gives.
+    /// A control that has held at 30 dB at 100 MHz and started again at `centre_hz` from the gain it gives.
     fn held_at_30_then_started_at(centre_hz: f64) -> HeldGain {
         let mut g = HeldGain::default();
         g.start(100e6, 40.0, (0.0, 73.0), RATE, 0);
@@ -654,25 +682,29 @@ mod tests {
     #[test]
     fn a_start_keeps_the_gain_held_before_unless_one_window_is_far_off() {
         // In the same band, and in another band that has none of its own: the gain held last.
-        for centre in [150e6, 2.4e9] {
+        for centre in [100.4e6, 2.4e9] {
             let mut g = held_at_30_then_started_at(centre);
             assert_eq!(g.status().unwrap().gain_db, 30.0);
             assert!(g.settling());
-            // 8 dB below the target: held without a step after one window.
-            assert_eq!(g.feed(&at(-18.0)), None);
+            // 18 dB below the target: held without a step after one window.
+            assert_eq!(g.feed(&at(-28.0)), None);
             let s = g.status().unwrap();
             assert_eq!((s.state, s.steps, g.settling()), (GainControl::Holding, 0, false));
         }
-        // 12 dB below the target: one step to it.
+        // 22 dB below the target: one step to it.
         let mut g = held_at_30_then_started_at(150e6);
-        assert_eq!(g.feed(&at(-22.0)), Some(42.0));
-        g.stepped(42.0);
+        assert_eq!(g.feed(&at(-32.0)), Some(52.0));
+        g.stepped(52.0);
+        assert!(!g.settling());
         let s = g.status().unwrap();
         assert_eq!((s.state, s.steps), (GainControl::Holding, 1));
         // Clipped: the search steps down and goes on.
         let mut g = held_at_30_then_started_at(150e6);
         assert!(g.feed(&at(10.0)).is_some_and(|w| w < 30.0));
         assert!(g.settling());
+        // A step that could not be written leaves the level as it was.
+        g.not_stepped();
+        assert!(!g.settling());
         // No gain held before: the start gain, searched.
         let g = HeldGain::default();
         assert_eq!(g.start_gain(150e6, 43.0, (0.0, 73.0)), 43.0);
@@ -680,27 +712,29 @@ mod tests {
 
     #[test]
     fn a_gain_kept_by_the_check_moves_only_outside_the_bounds_of_the_check() {
-        // 8 dB below the target for 10 s: no step.
+        // 18 dB below the target for 10 s: no step.
         let mut g = held_at_30_then_started_at(150e6);
         for _ in 0..100 {
-            assert_eq!(g.feed(&at(-18.0)), None);
+            assert_eq!(g.feed(&at(-28.0)), None);
         }
         assert_eq!(g.status().unwrap().steps, 0);
-        // 15 dB below it for good: a step after the hold rules' times.
-        let k = run(&mut g, |gain| -25.0 + gain - 30.0, 0, 60).expect("a step");
+        // 25 dB below it for good: a step after the hold rules' times.
+        let k = run(&mut g, |gain| -35.0 + gain - 30.0, 0, 60).expect("a step");
         assert!(k <= 30, "{k} windows");
-        assert!((g.status().unwrap().gain_db - 45.0).abs() <= 3.0);
+        assert!((g.status().unwrap().gain_db - 55.0).abs() <= 3.0);
     }
 
     #[test]
     fn each_band_keeps_its_own_gain() {
         let mut g = held_at_30_then_started_at(2.4e9);
-        assert_eq!(g.feed(&at(-30.0)), Some(50.0));
-        g.stepped(50.0);
-        assert_eq!(g.start_gain(2.45e9, 43.0, (0.0, 73.0)), 50.0);
-        assert_eq!(g.start_gain(120e6, 43.0, (0.0, 73.0)), 30.0);
+        assert_eq!(g.feed(&at(-35.0)), Some(55.0));
+        g.stepped(55.0);
+        assert_eq!(g.start_gain(2.4004e9, 43.0, (0.0, 73.0)), 55.0);
+        assert_eq!(g.start_gain(100.2e6, 43.0, (0.0, 73.0)), 30.0);
+        // A band with no gain of its own: the gain held last.
+        assert_eq!(g.start_gain(120e6, 43.0, (0.0, 73.0)), 55.0);
         // Within the range of the radio.
-        assert_eq!(g.start_gain(2.45e9, 43.0, (0.0, 40.0)), 40.0);
+        assert_eq!(g.start_gain(2.4004e9, 43.0, (0.0, 40.0)), 40.0);
     }
 
     #[test]
