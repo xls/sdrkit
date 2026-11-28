@@ -221,7 +221,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | Stack | What it does |
 |---|---|
 | [SCADA telemetry](stacks/scada.md) | Modbus RTU, Modbus ASCII and DNP3 over narrowband FSK radio links: the modem found by itself, the frames, polls paired with replies, and the devices with their registers and points. |
-| [Bluetooth LE](stacks/ble.md) | Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them. |
+| [Bluetooth LE](stacks/ble.md) | Bluetooth LE on every channel inside the capture: advertising on LE 1M, LE 2M and LE Coded, legacy and extended, as a scanner app shows it, and a link-activity view of the connections on the data channels, each followed from its start or found by its packets. The data-channel payloads are not decoded beyond the link-layer header. |
 | [BLE tracker detector](stacks/bletracker.md) | Finds item trackers (AirTag and Find My accessories, Tile, Chipolo, SmartTag, Google tags) that stay with you. |
 | [Wi-Fi networks](stacks/wifi.md) | The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. Works from 4 Msps with the 802.11b (DSSS) frames of 2.4 GHz only; OFDM and the 5 and 6 GHz bands need 20 Msps. |
 | [Wi-Fi HaLow (802.11ah)](stacks/halow.md) | Sub-GHz Wi-Fi HaLow networks from their S1G beacons: names, security, channels, widths and MCS. |

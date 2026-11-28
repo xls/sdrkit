@@ -1,16 +1,20 @@
-//! The Bluetooth LE advertising monitor (`ble`): the packets devices broadcast on the primary advertising channels (LE 1M and
+//! The Bluetooth LE monitor (`ble`): the packets devices broadcast on the primary advertising channels (LE 1M and
 //! LE Coded) and on the secondary channels and periodic trains inside the capture (all three PHYs, [`bank`]), extended
-//! advertising followed through its pointers ([`follow`]), a device table and a packet log. The stack sends advertising
+//! advertising followed through its pointers ([`follow`]), a device table and a packet log. Every data channel inside the
+//! capture is received as well: connections are followed from their start ([`conn`]) or found by their packets
+//! ([`blind`], LE 1M and LE 2M; a connection on LE Coded is found only from its start). The stack sends advertising
 //! packets ([`tx`]) into a transmit sink.
 //! Standard: Bluetooth Core Specification v5.4 Vol 6 Part B; Core Specification Supplement v11 Part A.
 
 pub mod adv;
 pub mod bank;
 pub mod bench;
+pub mod blind;
 pub mod broadcast;
 pub mod conn;
 pub mod follow;
 pub mod gen;
+pub mod scene;
 pub mod table;
 pub mod tx;
 
@@ -28,7 +32,7 @@ use sdrkit_graph::{
     Catalog, DecoderComponent, Graph, GraphBuilder, GraphError, Item, Registry, StackGraph,
     StackGraphBuilder,
 };
-use sdrkit_proto_wlan_phy::ble::{AdvPdu, Coding, LinkKind, Phy};
+use sdrkit_proto_wlan_phy::ble::{AdvPdu, BlindPacket, Coding, LinkKind, Phy};
 use std::sync::Arc;
 
 /// The stack id.
@@ -136,11 +140,84 @@ pub struct AdvStats {
     pub trains: u32,
     /// The connections followed.
     pub connections: u32,
+    /// The rate of the input, Hz.
+    pub rate_hz: f64,
+    /// Every data channel inside the capture is received all the time, and links not held are looked for on them.
+    pub wide: bool,
+    /// The data channels are left out but for followed links: live input came faster than the work.
+    pub shed: bool,
+    /// The counters of each channel.
+    pub per: PerChannel,
 }
 
 impl Item for AdvStats {
     const KIND: &'static str = "ble.adv_stats";
 }
+
+/// The counters of each channel's receiver since the capture was set, by channel index.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PerChannel {
+    /// Good packets.
+    pub good: [u64; 40],
+    /// Exact access-address matches of a held link whose CRC failed.
+    pub bad: [u64; 40],
+    /// Packets of links not held.
+    pub unknown: [u64; 40],
+}
+
+impl Default for PerChannel {
+    fn default() -> Self {
+        PerChannel {
+            good: [0; 40],
+            bad: [0; 40],
+            unknown: [0; 40],
+        }
+    }
+}
+
+/// What the receivers say about a link (the `ble.link_note` stream).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LinkNote {
+    /// A packet of a link the receivers do not hold.
+    Unknown {
+        /// Signal time of the end of the access address, s.
+        time_s: f64,
+        /// The packet.
+        packet: BlindPacket,
+    },
+    /// The packets of a followed connection whose access address matched and whose CRC failed, in total.
+    Failures {
+        /// The access address.
+        access_address: u32,
+        /// The count.
+        total: u64,
+    },
+}
+
+impl Item for LinkNote {
+    const KIND: &'static str = "ble.link_note";
+}
+
+/// The text of the channels inside a capture: "9 of 40 LE channels inside the capture at 20 Msps: 0 advertising, 9 data".
+/// `capture` has bit `c` for channel `c`; `rate_hz` is the rate the samples arrive at.
+pub fn capture_text(capture: u64, rate_hz: f64) -> String {
+    let adv = (capture & PRIMARY_CHANNELS).count_ones();
+    let data = (capture & !PRIMARY_CHANNELS).count_ones();
+    let msps = rate_hz / 1e6;
+    let rate = if (msps - msps.round()).abs() < 0.005 {
+        format!("{msps:.0}")
+    } else {
+        format!("{msps:.1}")
+    };
+    format!("{} of 40 LE channels inside the capture at {rate} Msps: {adv} advertising, {data} data", adv + data)
+}
+
+/// The text of the data channels left out by a live receiver that is behind its input.
+pub const DATA_CHANNELS_SHED: &str =
+    "The processor is behind: the data channels are received only for followed connections";
+/// The text of a wide capture that holds data channels and no primary advertising channel.
+pub const NO_ADVERTISING_CHANNEL_WIDE: &str =
+    "No advertising channel is inside the capture: connections are listed, devices are not; tune near 2402, 2426 or 2480 MHz for devices";
 
 /// The text of a capture that holds no primary advertising channel.
 pub const NO_ADVERTISING_CHANNEL: &str =
@@ -150,6 +227,24 @@ pub const NO_ADVERTISING_CHANNEL: &str =
 const PRIMARY_CHANNELS: u64 = 0b111 << 37;
 
 impl AdvStats {
+    /// Why devices do not show or what is left out, for a receiver that takes every data channel: no primary advertising
+    /// channel inside the capture ([`NO_ADVERTISING_CHANNEL`] when no data channel is inside either), and the data
+    /// channels left out by a receiver that is behind ([`DATA_CHANNELS_SHED`]). `None` otherwise.
+    pub fn wide_reason(&self) -> Option<String> {
+        let none = self.centre_known && self.capture & PRIMARY_CHANNELS == 0;
+        let text = match (none, self.capture & !PRIMARY_CHANNELS != 0) {
+            (true, true) => Some(NO_ADVERTISING_CHANNEL_WIDE),
+            (true, false) => Some(NO_ADVERTISING_CHANNEL),
+            _ => None,
+        };
+        match (text, self.shed) {
+            (Some(t), true) => Some(format!("{t}. {DATA_CHANNELS_SHED}")),
+            (Some(t), false) => Some(t.to_owned()),
+            (None, true) => Some(DATA_CHANNELS_SHED.to_owned()),
+            (None, false) => None,
+        }
+    }
+
     /// Why nothing can be heard: [`NO_ADVERTISING_CHANNEL`] when the centre is known and the capture holds none of the
     /// channels 37, 38 and 39. `None` otherwise.
     pub fn quiet_reason(&self) -> Option<&'static str> {
@@ -201,10 +296,14 @@ pub fn route_sender(b: StackGraphBuilder) -> Result<StackGraphBuilder, GraphErro
 ///
 /// [`GraphError`] if the graph does not build.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    with_sender(front()?, tx::BleSender::ble())
+    let front = GraphBuilder::new()
+        .add("adv", DecoderComponent::new(AdvDecoder::wide()))
+        .input("adv");
+    with_sender(front, tx::BleSender::ble())
         .add("table", table::DeviceTable::default())
         .connect("adv.adverts", "table.adverts")
         .connect("adv.stats", "table.stats")
+        .connect("adv.links", "table.links")
         .output("table.events")
         .output("table.requests")
         .clock(REPORT_S)
@@ -240,6 +339,8 @@ sdrkit_core::settings! {
         TxLevel = tx::TX_LEVEL,
         /// The whitening of the test signal.
         GenChannel = GEN_CHANNEL,
+        /// Show the access address of a connection in full.
+        AccessAddressFull = table::ACCESS_ADDRESS_FULL,
     }
 }
 
@@ -264,6 +365,9 @@ pub fn register(r: &mut Registry) {
     r.add("wlan.ble_adv", || {
         Box::new(DecoderComponent::new(AdvDecoder::default()))
     });
+    r.add("wlan.ble_wide", || {
+        Box::new(DecoderComponent::new(AdvDecoder::wide()))
+    });
     r.add("wlan.ble_devices", || {
         Box::new(table::DeviceTable::default())
     });
@@ -284,7 +388,7 @@ pub static BLE: StackDescriptor = StackDescriptor {
     id: ID,
     name: "Bluetooth LE",
     group: "Data and IoT",
-    blurb: "Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them.",
+    blurb: "Bluetooth LE on every channel inside the capture: advertising on LE 1M, LE 2M and LE Coded, legacy and extended, as a scanner app shows it, and a link-activity view of the connections on the data channels, each followed from its start or found by its packets. The data-channel payloads are not decoded beyond the link-layer header.",
     tuning: Tuning {
         kind: Some(sdrkit_core::TuningKind::Channels),
         min_hz: 2400e6,

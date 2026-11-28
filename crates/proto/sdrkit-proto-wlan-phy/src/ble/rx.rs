@@ -12,7 +12,9 @@
 
 use super::coded_rx::CodedLane;
 use super::phy::{Coding, Link, LinkKind, Phy};
-use super::{crc24_bytes, crc_ok, whiten, AdvPdu, ADV_CRC_INIT, MAX_PAYLOAD};
+use super::{
+    access_address_ok, crc24_bytes, crc24_init_of, crc_ok, whiten, AdvPdu, ADV_CRC_INIT, MAX_PAYLOAD,
+};
 use crate::{finite, Complex32, Error, Param, Result};
 use sdrkit_algo_dsp::fir::{self, Fir};
 use sdrkit_algo_dsp::fm::Discriminator;
@@ -41,6 +43,37 @@ const FLOOR_WINDOWS: usize = 256;
 const BURST_RISE: f64 = 8.0;
 /// The most links a receiver holds.
 pub const MAX_LINKS: usize = 16;
+/// How far the last 40 symbols rise above the noise of the channel for a packet of a link not held (6 dB).
+const BLIND_RISE: f64 = 4.0;
+/// The windows between two readings of the noise of the channel for that gate.
+const FLOOR_EVERY: usize = 16;
+/// The most packets of links not held that wait to be taken.
+const MAX_BLIND: usize = 4096;
+
+/// A packet of a link the receiver does not hold, found by its preamble and an access address that obeys the rules of
+/// clause 2.1.2, on an uncoded PHY. Its CRC cannot be checked: `crc_init` is the preset that would make it good. Two
+/// packets of one access address that agree on it are a connection.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BlindPacket {
+    /// The access address.
+    pub access_address: u32,
+    /// The CRC preset that makes the packet's CRC good.
+    pub crc_init: u32,
+    /// The two header bytes of the data physical channel PDU, dewhitened.
+    pub header: [u8; 2],
+    /// The opcode byte of an LL control PDU.
+    pub opcode: Option<u8>,
+    /// The RF channel.
+    pub channel: u8,
+    /// The input sample index of the last symbol of the access address.
+    pub sample: u64,
+    /// The PHY.
+    pub phy: Phy,
+    /// The mean power over the preamble and access address inside the channel filter, dBFS.
+    pub level_dbfs: f64,
+    /// The signal-to-noise ratio of the fitted levels, dB (40 dB at most).
+    pub snr_db: f64,
+}
 
 /// A good packet. It borrows the receiver's buffer for the time of the callback.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -146,6 +179,8 @@ struct Cand {
     exact: bool,
     /// The header has been read: `targets[..count]` are (bits to decide, channel) in increasing order, and `stage` is the next.
     read: bool,
+    /// The access address of a candidate of a link not held; 0 for a candidate of link `link`.
+    blind: u32,
     targets: [(usize, u8); 3],
     count: usize,
     stage: usize,
@@ -172,6 +207,8 @@ pub(super) struct Front {
     burst: bool,
     /// The mean powers of the last [`FLOOR_WINDOWS`] windows of 40 symbols, from which [`Front::power`] takes the noise.
     floors: [f64; FLOOR_WINDOWS],
+    /// The noise of the channel as [`Front::noise`] last gave it; infinite before it is known.
+    floor: f64,
     pub(super) hist: Vec<f32>,
     pub(super) hbase: u64,
 }
@@ -202,6 +239,7 @@ impl Front {
             pow1_sum: 0.0,
             burst: false,
             floors: [f64::INFINITY; FLOOR_WINDOWS],
+            floor: f64::INFINITY,
             hist: Vec::with_capacity(1 << 17),
             hbase: 0,
         })
@@ -219,6 +257,7 @@ impl Front {
         self.pow1_sum = 0.0;
         self.burst = false;
         self.floors = [f64::INFINITY; FLOOR_WINDOWS];
+        self.floor = f64::INFINITY;
     }
 
     /// Takes one sample: returns the hard symbol decision of the symbol that ends at it and the phase `n mod sps`.
@@ -239,6 +278,9 @@ impl Front {
         if pi == 0 && self.n >= 4 * len as u64 {
             let w = (self.n / len as u64) as usize % FLOOR_WINDOWS;
             self.floors[w] = self.pow_sum.max(0.0) / len as f64;
+            if w.is_multiple_of(FLOOR_EVERY) {
+                self.floor = self.noise().unwrap_or(f64::INFINITY);
+            }
         }
         // A burst far above what the channel held: the slicing level forgets that history. Without noise, a faint residue
         // of a signal outside the channel would otherwise hold the level at its own frequency and every bit of the
@@ -289,6 +331,14 @@ impl Front {
     /// quiet most of the time those windows hold noise only, and the quartile is less biased than the least of them.
     pub(super) fn power(&self) -> f64 {
         let p = self.pow_sum.max(0.0) / self.pow.len() as f64;
+        match self.noise() {
+            Some(floor) => (p - floor).max(p * 1e-3),
+            None => p,
+        }
+    }
+
+    /// The noise of the channel (see [`Front::power`]); `None` before 8 windows are in.
+    fn noise(&self) -> Option<f64> {
         let mut w = [0.0f64; FLOOR_WINDOWS];
         let mut n = 0;
         for &v in self.floors.iter().filter(|v| v.is_finite()) {
@@ -296,10 +346,16 @@ impl Front {
             n += 1;
         }
         if n < 8 {
-            return p;
+            return None;
         }
         let (_, floor, _) = w[..n].select_nth_unstable_by(n / 4, f64::total_cmp);
-        (p - *floor).max(p * 1e-3)
+        Some(*floor)
+    }
+
+    /// Whether the last 40 symbols stand above the noise of the channel far enough for a packet of a link not held.
+    #[inline]
+    fn above_noise(&self) -> bool {
+        self.pow_sum.max(0.0) / self.pow.len() as f64 > BLIND_RISE * self.floor
     }
 
     /// The averaged discriminator at sample `pos` (which the history must hold).
@@ -320,12 +376,10 @@ impl Front {
 
 /// The 40 known bits (the last 8 preamble bits and the access address) in air order, as `+1` for bit 0 and `-1` for bit 1.
 fn known_symbols(aa: u32) -> [Complex32; KNOWN] {
-    let mut bits = Vec::with_capacity(KNOWN);
-    pack::push_u64_lsb(&mut bits, super::preamble(aa) as u64, 8);
-    pack::push_u64_lsb(&mut bits, aa as u64, 32);
+    let word = u64::from(super::preamble(aa)) | u64::from(aa) << 8;
     let mut s = [Complex32::default(); KNOWN];
-    for (v, &b) in s.iter_mut().zip(&bits) {
-        *v = Complex32::new(1.0 - 2.0 * b as f32, 0.0);
+    for (j, v) in s.iter_mut().enumerate() {
+        *v = Complex32::new(1.0 - 2.0 * (word >> j & 1) as f32, 0.0);
     }
     s
 }
@@ -401,6 +455,14 @@ pub(super) struct Lane {
     sync: Vec<SyncWord>,
     holdoff: u64,
     good_end: u64,
+    /// Exact access-address matches whose CRC failed, per link.
+    link_fail: Vec<u64>,
+    /// Packets of links not held are looked for.
+    blind: bool,
+    /// The last hard symbols of each sample phase, the newest in bit 0.
+    regs: Vec<u64>,
+    blind_holdoff: u64,
+    blind_out: Vec<BlindPacket>,
     pending: VecDeque<Cand>,
     pub(super) channels: [u8; 3],
     pub(super) nch: usize,
@@ -426,6 +488,11 @@ impl Lane {
             sync: Vec::with_capacity(MAX_LINKS * sps),
             holdoff: 0,
             good_end: 0,
+            link_fail: Vec::with_capacity(MAX_LINKS),
+            blind: false,
+            regs: vec![0; sps],
+            blind_holdoff: 0,
+            blind_out: Vec::new(),
             pending: VecDeque::with_capacity(MAX_PENDING),
             channels: [37, 38, 39],
             nch: 3,
@@ -449,6 +516,7 @@ impl Lane {
         let pat = link.access_address.reverse_bits() as u128;
         let s = SyncWord::new(pat, 32, 2)?;
         self.links.push(link);
+        self.link_fail.push(0);
         self.known.push(known_symbols(link.access_address));
         for _ in 0..self.front.sps {
             self.sync.push(s);
@@ -462,11 +530,12 @@ impl Lane {
     fn remove_link(&mut self, i: usize) {
         let sps = self.front.sps;
         self.links.remove(i);
+        self.link_fail.remove(i);
         self.known.remove(i);
         self.sync.drain(i * sps..(i + 1) * sps);
-        self.pending.retain(|c| c.link != i);
+        self.pending.retain(|c| c.blind != 0 || c.link != i);
         for c in &mut self.pending {
-            if c.link > i {
+            if c.blind == 0 && c.link > i {
                 c.link -= 1;
             }
         }
@@ -481,7 +550,9 @@ impl Lane {
             s.reset();
         }
         self.pending.clear();
+        self.regs.fill(0);
         self.holdoff = self.front.n + (LEVEL_BITS * self.front.sps) as u64;
+        self.blind_holdoff = self.holdoff;
         if let Some(c) = &mut self.coded {
             c.reset(self.holdoff);
         }
@@ -512,10 +583,14 @@ impl Lane {
                         power: self.front.power(),
                         exact: h.errors() == 0,
                         read: false,
+                        blind: 0,
                         targets: [(0, 0); 3],
                         count: 0,
                         stage: 0,
                     });
+                }
+                if self.blind {
+                    self.blind_symbol(bit, k, n, warm);
                 }
             }
             if let Some(c) = &mut self.coded {
@@ -555,6 +630,68 @@ impl Lane {
         self.front.trim(oldest.saturating_sub(keep_back));
     }
 
+    /// Takes the hard symbol `bit` of sample phase `k` at sample `n` for the search of links not held: six alternating
+    /// preamble bits and 32 bits that obey the access-address rules, above the noise, start a candidate.
+    #[inline]
+    fn blind_symbol(&mut self, bit: u8, k: usize, n: u64, warm: u64) {
+        let v = self.regs[k] << 1 | u64::from(bit);
+        self.regs[k] = v;
+        // The first bit of the access address is bit 31; the preamble before it alternates and ends on its inverse.
+        let pre = if v >> 31 & 1 == 1 { 0b10_1010 } else { 0b01_0101 };
+        if v >> 32 & 0x3F != pre || n < self.blind_holdoff || n < warm {
+            return;
+        }
+        let aa = (v as u32).reverse_bits();
+        if !access_address_ok(aa)
+            || !self.front.above_noise()
+            || self.links.iter().any(|l| l.access_address == aa)
+        {
+            return;
+        }
+        self.blind_holdoff = n + self.front.sps as u64;
+        if self.pending.len() == MAX_PENDING {
+            self.pending.pop_front();
+        }
+        self.pending.push_back(Cand {
+            pos: n,
+            link: 0,
+            power: self.front.power(),
+            exact: false,
+            read: false,
+            blind: aa,
+            targets: [(0, 0); 3],
+            count: 0,
+            stage: 0,
+        });
+    }
+
+    /// Decides `bits` bits of the candidate `c` of a link not held and keeps what its header and CRC say.
+    fn decode_blind(&mut self, c: Cand, bits: usize, channel: u8) {
+        let Some((p, _, _, snr)) = self.detect(c, bits) else {
+            return;
+        };
+        let total = (bits - MARGIN_BITS) / 8;
+        if total > self.bytes.len() || total < 5 || self.blind_out.len() >= MAX_BLIND {
+            return;
+        }
+        self.trial.clear();
+        self.trial.extend_from_slice(&self.bytes[..total]);
+        let _ = whiten(&mut self.trial, channel);
+        let (pdu, crc) = self.trial.split_at(total - 3);
+        let crc = u32::from(crc[0]) | u32::from(crc[1]) << 8 | u32::from(crc[2]) << 16;
+        self.blind_out.push(BlindPacket {
+            access_address: c.blind,
+            crc_init: crc24_init_of(pdu, crc),
+            header: [pdu[0], pdu[1]],
+            opcode: (pdu[0] & 3 == 3).then(|| pdu.get(2).copied()).flatten(),
+            channel,
+            sample: p.saturating_sub(self.front.delay),
+            phy: self.phy,
+            level_dbfs: sdrkit_algo_dsp::meter::power_to_db(c.power),
+            snr_db: snr,
+        });
+    }
+
     fn drain(&mut self, on_packet: &mut impl FnMut(&BlePacket<'_>)) {
         let sps = self.front.sps;
         while let Some(&c) = self.pending.front() {
@@ -575,8 +712,19 @@ impl Lane {
                 // as its samples are in, shortest first.
                 let mut t = [(0usize, 0u8); 3];
                 let mut count = 0;
-                let kind = self.links[c.link].kind;
-                if self.detect(c, HEADER_BITS).is_some() {
+                if c.blind != 0 {
+                    // A data physical channel PDU on the one known channel: an LLID in use, no CTEInfo, the reserved
+                    // bits 0.
+                    if self.nch == 1 && self.detect(c, HEADER_BITS).is_some() {
+                        let mut h = [self.bytes[0], self.bytes[1]];
+                        let _ = whiten(&mut h, self.channels[0]);
+                        if h[0] & 3 != 0 && h[0] & 0xE0 == 0 {
+                            t[0] = (8 * (2 + h[1] as usize + 3) + MARGIN_BITS, self.channels[0]);
+                            count = 1;
+                        }
+                    }
+                } else if self.detect(c, HEADER_BITS).is_some() {
+                    let kind = self.links[c.link].kind;
                     for &ch in &self.channels[..self.nch] {
                         let mut h = [self.bytes[0], self.bytes[1]];
                         let _ = whiten(&mut h, ch);
@@ -597,9 +745,13 @@ impl Lane {
                 continue;
             }
             let (bits, ch) = c.targets[c.stage];
-            if self.decode(c, bits, ch, on_packet) || c.stage + 1 == c.count {
+            if c.blind != 0 {
+                self.decode_blind(c, bits, ch);
+                self.pending.pop_front();
+            } else if self.decode(c, bits, ch, on_packet) || c.stage + 1 == c.count {
                 if c.exact && self.good_end <= c.pos {
                     self.stats.crc_failures += 1;
+                    self.link_fail[c.link] += 1;
                 }
                 self.pending.pop_front();
             } else if let Some(f) = self.pending.front_mut() {
@@ -620,7 +772,11 @@ impl Lane {
         if c.pos < earliest {
             return None;
         }
-        let s = self.known[c.link];
+        let s = if c.blind != 0 {
+            known_symbols(c.blind)
+        } else {
+            self.known[c.link]
+        };
         // Timing: the widest eye over the access-address bits, from a quarter symbol before the match to three quarters after.
         let lo = -((sps / 4) as i64);
         let hi = (3 * sps / 4) as i64;
@@ -843,6 +999,31 @@ impl BleReceiver {
     /// The channel plan.
     pub fn channels(&self) -> ChannelPlan {
         self.plan
+    }
+
+    /// Looks for packets of links not held as well (`on`), on the uncoded PHYs of a [`ChannelPlan::Known`] channel:
+    /// [`BleReceiver::take_blind`] gives them.
+    pub fn set_blind(&mut self, on: bool) {
+        for lane in &mut self.lanes {
+            lane.blind = on && lane.uncoded;
+            lane.blind_out.clear();
+        }
+    }
+
+    /// Moves the packets of links not held that were found since the last call to the end of `out`: those of the
+    /// 1 Msym/s lane in time order, then the LE 2M lane's.
+    pub fn take_blind(&mut self, out: &mut Vec<BlindPacket>) {
+        for lane in &mut self.lanes {
+            out.append(&mut lane.blind_out);
+        }
+    }
+
+    /// Exact access-address matches of the link with `access_address` whose CRC failed, since the link was added.
+    pub fn crc_failures_of(&self, access_address: u32) -> u64 {
+        let Some(i) = self.links.iter().position(|l| l.access_address == access_address) else {
+            return 0;
+        };
+        self.lanes.iter().map(|l| l.link_fail[i]).sum()
     }
 
     /// The counters of every lane.

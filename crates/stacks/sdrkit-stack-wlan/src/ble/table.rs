@@ -3,12 +3,13 @@
 
 use super::adv::{kind_of, parse_ad, AdvInfo, DeviceKind};
 use super::broadcast::{self, Broadcast};
+use super::blind::Blind;
 use super::conn::{self, AttLine, ConnRecord};
 use super::follow::{Follower, Role};
-use super::{AdvChannel, AdvStats, Advert};
+use super::{capture_text, AdvChannel, AdvStats, Advert, LinkNote};
 use crate::report::{hex, push_history, remove_older_rows, wall, BLE_PRIVACY_NOTE};
 use crate::typed::{
-    BleDeviceEvent, BleDeviceLevelRow, BleDeviceRow, BleFields, BlePacketRow, BlePduTypeRow,
+    BleChannelRow, BleDeviceEvent, BleDeviceLevelRow, BleDeviceRow, BleFields, BlePacketRow, BlePduTypeRow, BLE_CHANNELS,
     BLE_ATT, BLE_BROADCASTS, BLE_CONNECTIONS, BLE_DEVICE, BLE_DEVICES, BLE_DEVICE_LEVELS, BLE_DEVICE_ROW, BLE_PACKETS, BLE_PDU_TYPES,
     BLE_REMOVE,
 };
@@ -101,6 +102,13 @@ pub const ATT_VALUES: Setting<field::Bool> = Setting::new("att_values", "ATT val
     .help("Keeps the value bytes of the attribute messages read on a connection. Off, the ATT log holds the handle, the type and the length only.")
     .section("Display");
 
+/// Show the access address of a connection in full.
+pub const ACCESS_ADDRESS_FULL: Setting<field::Bool> =
+    Setting::new("access_address_full", "Full access address", "", false)
+        .help("Shows the access address of a connection as its eight hex digits. Off, the connections table shows six hex digits of a hash of it: the access address identifies a private link. A change applies to the connections heard after it.")
+        .section("Display")
+        .advanced();
+
 sdrkit_core::settings! {
     /// The settings of [`DeviceTable`].
     pub enum DeviceTableSetting {
@@ -118,6 +126,8 @@ sdrkit_core::settings! {
         NamedOnly = NAMED_ONLY,
         /// Keep the ATT values.
         AttValues = ATT_VALUES,
+        /// Show the access address of a connection in full.
+        AccessAddressFull = ACCESS_ADDRESS_FULL,
     }
 }
 
@@ -371,7 +381,7 @@ impl Shift for Store {
 }
 
 impl objcmd::Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 6);
+    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 7);
     fn clear(&mut self) {
         self.broadcasts.clear();
         self.devices.clear();
@@ -424,6 +434,8 @@ pub struct Counters {
     pub aux_followed: u64,
     /// Pointers to a channel outside the capture.
     pub aux_outside: u64,
+    /// Packets of links the receivers do not hold.
+    pub unknown: u64,
 }
 
 /// The device table and packet log as a component.
@@ -451,6 +463,10 @@ pub struct DeviceTable {
     min_level_dbfs: f64,
     named_only: bool,
     att_values: bool,
+    full_aa: bool,
+    blind: Blind,
+    capture_note: String,
+    quiet: Option<String>,
     now_s: f64,
     live: bool,
     clock: Clock,
@@ -468,6 +484,7 @@ impl Default for DeviceTable {
                 BLE_CONNECTIONS.def(),
                 BLE_ATT.def(),
                 BLE_BROADCASTS.def(),
+                BLE_CHANNELS.def(),
             ]),
             store: Store::default(),
             counters: Counters::default(),
@@ -489,6 +506,10 @@ impl Default for DeviceTable {
             min_level_dbfs: MIN_LEVEL.default,
             named_only: NAMED_ONLY.default,
             att_values: ATT_VALUES.default,
+            full_aa: ACCESS_ADDRESS_FULL.default,
+            blind: Blind::default(),
+            capture_note: String::new(),
+            quiet: None,
             now_s: 0.0,
             live: false,
             clock: Clock::fixed(0.0),
@@ -573,13 +594,33 @@ impl DeviceTable {
         };
         if a.kind == LinkKind::Data {
             self.counters.conn_packets += 1;
-            conn::take(&mut self.store.conns, &mut self.store.att, a, at, self.att_values);
+            conn::take(
+                &mut self.store.conns,
+                &mut self.store.att,
+                a,
+                at,
+                self.att_values,
+                self.stats.capture,
+                self.full_aa,
+            );
             return None;
         }
         let p = a.parsed()?;
         let t = p.header.pdu_type;
         if t == PduType::ConnectInd {
-            conn::connect(&mut self.store.conns, &p, a.phy, a.channel < 37, at);
+            if let Body::Connect { ll, .. } = p.body {
+                // The connection is followed as a held link: readings of its data packets a few bits off are no new link.
+                self.blind.hold(ll.access_address);
+            }
+            conn::connect(
+                &mut self.store.conns,
+                &p,
+                a.phy,
+                a.channel < 37,
+                at,
+                self.stats.capture,
+                self.full_aa,
+            );
         }
         let f = self.follow.take(a, self.stats.capture);
         let role = f.as_ref().map_or(Role::Primary, |f| f.role);
@@ -725,6 +766,61 @@ impl DeviceTable {
         ))
     }
 
+    /// Takes what the receivers say about a link: a packet of a link not held, or the CRC failures of a followed one.
+    pub fn note(&mut self, n: &LinkNote) {
+        match *n {
+            LinkNote::Failures {
+                access_address,
+                total,
+            } => conn::failures(&mut self.store.conns, access_address, total, self.full_aa),
+            LinkNote::Unknown { time_s, packet } => {
+                self.counters.unknown += 1;
+                let outcome = self.blind.take(time_s, &packet);
+                let Some(link) = self.blind.link(packet.access_address) else {
+                    return;
+                };
+                let at = match wall(self.live, &self.clock) {
+                    Some(w) => Stamp::at(time_s).with_wall(w),
+                    None => Stamp::at(time_s),
+                };
+                if matches!(outcome, super::blind::Outcome::Good { .. }) {
+                    self.counters.conn_packets += 1;
+                    self.counters.last_good_s = Some(time_s);
+                    self.counters.last_channel = packet.channel;
+                }
+                conn::found(&mut self.store.conns, link, &packet, outcome, at, self.full_aa);
+            }
+        }
+    }
+
+    /// Writes a row for each channel inside the capture to [`BLE_CHANNELS`] and removes the others.
+    fn publish_channels(&mut self) {
+        let s = &self.stats;
+        let p = &mut self.published;
+        let mut written = 0;
+        // The highest channel first, so the lowest is the newest row.
+        for c in (0..40u8).rev().filter(|c| s.capture >> c & 1 == 1) {
+            let i = usize::from(c);
+            self.key.clear();
+            let _ = write!(self.key, "{c:02}");
+            BLE_CHANNELS.put(
+                p,
+                &self.key,
+                &BleChannelRow {
+                    channel: i64::from(c),
+                    frequency_hz: Hertz(channel_hz(c).unwrap_or(0.0)),
+                    advertising: c >= 37,
+                    received: c >= 37 || (s.wide && !s.shed),
+                    packets: s.per.good[i] as i64,
+                    bad_crc: s.per.bad[i] as i64,
+                    packets_unknown_links: s.per.unknown[i] as i64,
+                },
+            );
+            written += 1;
+        }
+        remove_older_rows(p, BLE_CHANNELS.def(), written);
+    }
+
     fn counters_since_clear(&self) -> (u64, u64) {
         (
             self.stats.aa_hits.saturating_sub(self.base.aa_hits),
@@ -737,6 +833,7 @@ impl DeviceTable {
     fn clear(&mut self) {
         self.store.clear();
         self.follow.clear();
+        self.blind.clear();
         self.counters = Counters::default();
         self.base = self.stats;
         self.published.clear_rows(BLE_PDU_TYPES.def());
@@ -755,7 +852,18 @@ impl DeviceTable {
         let (hits, bad) = self.counters_since_clear();
         let active = c.last_good_s.is_some_and(|l| now - l <= ACTIVE_S);
         let channel = self.stats.channel;
-        let quiet = self.stats.quiet_reason();
+        self.quiet = if self.stats.wide {
+            self.stats.wide_reason()
+        } else {
+            self.stats.quiet_reason().map(str::to_owned)
+        };
+        let quiet = self.quiet.as_deref();
+        self.capture_note.clear();
+        if self.stats.centre_known && self.stats.capture != 0 {
+            self.capture_note = capture_text(self.stats.capture, self.stats.rate_hz);
+        }
+        let found = self.store.conns.iter().filter(|r| r.record.found).count();
+        let conns = self.store.conns.len();
         let st = &mut self.status;
         st.lock_state = if active {
             LockState::Locked
@@ -767,8 +875,22 @@ impl DeviceTable {
         st.offset_hz = c.last_good_s.map(|_| c.offset_hz);
         st.summary.clear();
         // Writing to a String cannot fail.
-        let _ = if let Some(q) = quiet {
+        let _ = if let Some(q) = quiet.filter(|_| !self.stats.wide) {
             write!(st.summary, "{q}")
+        } else if self.stats.wide && !self.capture_note.is_empty() {
+            // The wide form always says what the capture holds, then what is left out.
+            let _ = write!(
+                st.summary,
+                "{} devices, {} connections, {} packets; {}",
+                self.store.devices.len(),
+                conns,
+                c.good + c.conn_packets,
+                self.capture_note
+            );
+            match quiet {
+                Some(q) => write!(st.summary, ". {q}"),
+                None => Ok(()),
+            }
         } else if c.good > 0 {
             write!(
                 st.summary,
@@ -815,6 +937,12 @@ impl DeviceTable {
             connections_followed: i64::from(self.stats.connections),
             connection_packets: c.conn_packets as i64,
             quiet_reason: quiet,
+            channels_advertising: i64::from((self.stats.capture >> 37).count_ones()),
+            channels_data: i64::from((self.stats.capture & ((1 << 37) - 1)).count_ones()),
+            capture_note: (!self.capture_note.is_empty()).then_some(self.capture_note.as_str()),
+            connections_found: found as i64,
+            packets_unknown_links: c.unknown as i64,
+            data_channels_shed: self.stats.shed,
         });
         for &(name, n) in &per_type {
             BLE_PDU_TYPES.put(
@@ -839,6 +967,7 @@ impl DeviceTable {
         shaped::log_rows(&self.store.att, &BLE_ATT, now, p);
         shaped::rows(&self.store.broadcasts, &BLE_BROADCASTS, now, p);
         self.publish_levels();
+        self.publish_channels();
     }
 
     /// Writes the level history of every device to [`BLE_DEVICE_LEVELS`] and removes the rows of devices that left.
@@ -892,6 +1021,7 @@ impl Component for DeviceTable {
             vec![
                 Port::typed::<Advert>("adverts"),
                 Port::typed::<AdvStats>("stats"),
+                Port::typed::<LinkNote>("links"),
             ],
             vec![
                 Port::new("events", Kind::Messages),
@@ -936,6 +1066,9 @@ impl Component for DeviceTable {
             if let Some(e) = self.take(&a.value) {
                 self.events.push(e);
             }
+        }
+        for n in io.items::<LinkNote>(2) {
+            self.note(&n.value);
         }
         if !self.events.is_empty() {
             io.messages_out(0).append(&mut self.events);
@@ -988,6 +1121,7 @@ impl Component for DeviceTable {
             DeviceTableSetting::MinLevel => self.min_level_dbfs = MIN_LEVEL.read(id, v)?,
             DeviceTableSetting::NamedOnly => self.named_only = NAMED_ONLY.read(id, v)?,
             DeviceTableSetting::AttValues => self.att_values = ATT_VALUES.read(id, v)?,
+            DeviceTableSetting::AccessAddressFull => self.full_aa = ACCESS_ADDRESS_FULL.read(id, v)?,
         }
         if self.configured {
             self.publish();
@@ -1016,6 +1150,7 @@ impl Component for DeviceTable {
             ),
             (DeviceTableSetting::NamedOnly, Value::Bool(self.named_only)),
             (DeviceTableSetting::AttValues, Value::Bool(self.att_values)),
+            (DeviceTableSetting::AccessAddressFull, Value::Bool(self.full_aa)),
         ])
     }
 

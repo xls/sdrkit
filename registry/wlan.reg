@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=4.7
+family wlan version=4.8
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -26,6 +26,12 @@ shape.BleFields.periodic_trains type=i64 unit= optional=no since=1.0
 shape.BleFields.connections_followed type=i64 unit= optional=no since=4.2
 shape.BleFields.connection_packets type=i64 unit= optional=no since=4.2
 shape.BleFields.quiet_reason type=text unit= optional=yes since=4.6
+shape.BleFields.channels_advertising type=i64 unit= optional=no since=4.8
+shape.BleFields.channels_data type=i64 unit= optional=no since=4.8
+shape.BleFields.capture_note type=text unit= optional=yes since=4.8
+shape.BleFields.connections_found type=i64 unit= optional=no since=4.8
+shape.BleFields.packets_unknown_links type=i64 unit= optional=no since=4.8
+shape.BleFields.data_channels_shed type=bool unit= optional=no since=4.8
 shape.BleTxFields since=1.0
 shape.BleTxFields.tx_sending type=bool unit= optional=no since=1.0
 shape.BleTxFields.tx_sent type=i64 unit= optional=no since=1.0
@@ -84,6 +90,12 @@ shape.BleConnectionRow.att type=i64 unit= optional=no since=4.2
 shape.BleConnectionRow.ended type=bool unit= optional=no since=4.2
 shape.BleConnectionRow.first_heard type=time unit= optional=yes since=4.2
 shape.BleConnectionRow.last_heard type=time unit= optional=yes since=4.2
+shape.BleConnectionRow.start_heard type=bool unit= optional=no since=4.8
+shape.BleConnectionRow.channels_seen type=i64 unit= optional=no since=4.8
+shape.BleConnectionRow.channels_inside type=i64 unit= optional=yes since=4.8
+shape.BleConnectionRow.bad_crc type=i64 unit= optional=no since=4.8
+shape.BleConnectionRow.empty_pdus type=f64 unit=% optional=yes since=4.8
+shape.BleConnectionRow.hop type=i64 unit= optional=yes since=4.8
 shape.BleAttRow since=4.2
 shape.BleAttRow.signal_s type=f64 unit=s optional=no since=4.2
 shape.BleAttRow.connection type=text unit= optional=no refers_to=connections since=4.2
@@ -114,6 +126,14 @@ shape.BleBroadcastRow.iso_interval_ms type=f64 unit=ms optional=yes since=4.4
 shape.BleBroadcastRow.phy type=text unit= optional=yes since=4.4
 shape.BleBroadcastRow.first_heard type=time unit= optional=yes since=4.4
 shape.BleBroadcastRow.last_heard type=time unit= optional=yes since=4.4
+shape.BleChannelRow since=4.8
+shape.BleChannelRow.channel type=i64 unit= optional=no since=4.8
+shape.BleChannelRow.frequency_hz type=hz unit=Hz optional=no since=4.8
+shape.BleChannelRow.advertising type=bool unit= optional=no since=4.8
+shape.BleChannelRow.received type=bool unit= optional=no since=4.8
+shape.BleChannelRow.packets type=i64 unit= optional=no since=4.8
+shape.BleChannelRow.bad_crc type=i64 unit= optional=no since=4.8
+shape.BleChannelRow.packets_unknown_links type=i64 unit= optional=no since=4.8
 shape.BleDeviceEvent since=1.0
 shape.BleDeviceEvent.source type=text unit= optional=no since=1.0
 shape.BleDeviceEvent.text type=text unit= optional=yes since=1.0
@@ -558,6 +578,7 @@ ble.table.device_levels row=BleDeviceLevelRow cap=9600 label=device since=1.0
 ble.table.connections row=BleConnectionRow cap=64 label=access_address sort=last_heard:descending time=last_heard since=4.2
 ble.table.att row=BleAttRow cap=400 label=opcode role=log time=signal_s since=4.2
 ble.table.broadcasts row=BleBroadcastRow cap=64 label=name sort=last_heard:descending time=last_heard since=4.4
+ble.table.channels row=BleChannelRow cap=40 sort=channel:ascending since=4.8
 ble.event.ble.device fields=BleDeviceEvent since=1.0
 ble.event.ble.tx fields=BleTxEvent since=1.0
 ble.setting.channel type=choice(37,38,39) unit= since=1.0
@@ -569,6 +590,7 @@ ble.setting.named_only type=bool unit= since=1.0
 ble.setting.att_values type=bool unit= since=4.3
 ble.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 ble.setting.gen_channel type=choice(round,37,38,39) unit= since=1.0
+ble.setting.access_address_full type=bool unit= since=4.8
 ble.command.clear args= reply= since=1.0
 ble.command.remove args=row:text reply= since=1.0
 ble.command.send args=address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;data:text?;name:text?;uuid16:text?;company:text?;manufacturer_data:text?;count:i64?;interval_ms:i64? reply= transmits=beacon stop=halt refers=address:devices.address since=1.0

@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # Bluetooth LE
 
-Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them.
+Bluetooth LE on every channel inside the capture: advertising on LE 1M, LE 2M and LE Coded, legacy and extended, as a scanner app shows it, and a link-activity view of the connections on the data channels, each followed from its start or found by its packets. The data-channel payloads are not decoded beyond the link-layer header.
 
 Stack id: `ble`. Group: Data and IoT.
 
@@ -33,6 +33,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:bl
 | `named_only` | Named only | yes or no | false |  |  |
 | `att_values` | ATT values | yes or no | true |  | Keeps the value bytes of the attribute messages read on a connection. Off, the ATT log holds the handle, the type and the length only. |
 | `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
+
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `access_address_full` | Full access address | yes or no | false |  | Shows the access address of a connection as its eight hex digits. Off, the connections table shows six hex digits of a hash of it: the access address identifies a private link. A change applies to the connections heard after it. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -69,6 +75,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `connections_followed` | Connections followed | whole number |
 | `connection_packets` | Connection packets | whole number |
 | `quiet_reason` | Why nothing shows | text |
+| `channels_advertising` | Advertising channels in the capture | whole number |
+| `channels_data` | Data channels in the capture | whole number |
+| `capture_note` | Capture | text |
+| `connections_found` | Connections found | whole number |
+| `packets_unknown_links` | Packets of unknown links | whole number |
+| `data_channels_shed` | Data channels left out | yes or no |
 | `tx_sending` | Sending | yes or no |
 | `tx_sent` | Packets sent | whole number |
 | `tx_left` | Packets left | whole number |
@@ -82,9 +94,10 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `packets` | Packets | `signal_s` (number (s)), `channel` (whole number), `pdu` (text), `address` (text), `level_dbfs` (number (dBFS)), `length` (whole number (B)), `details` (text), `phy` (text) |
 | `pdu_types` | PDU types | `pdu` (text), `packets` (whole number) |
 | `device_levels` | Device levels | `device` (text), `sample` (whole number), `level_dbfs` (number (dBFS)) |
-| `connections` | Connections | `access_address` (text), `central` (text), `peripheral` (text), `interval_ms` (number (ms)), `latency` (whole number), `timeout_ms` (number (ms)), `phy` (text), `csa` (whole number), `channels_used` (whole number), `packets` (whole number), `encrypted` (yes or no), `procedures` (text), `att` (whole number), `ended` (yes or no), `first_heard` (time), `last_heard` (time) |
+| `connections` | Connections | `access_address` (text), `central` (text), `peripheral` (text), `interval_ms` (number (ms)), `latency` (whole number), `timeout_ms` (number (ms)), `phy` (text), `csa` (whole number), `channels_used` (whole number), `packets` (whole number), `encrypted` (yes or no), `procedures` (text), `att` (whole number), `ended` (yes or no), `first_heard` (time), `last_heard` (time), `start_heard` (yes or no), `channels_seen` (whole number), `channels_inside` (whole number), `bad_crc` (whole number), `empty_pdus` (number (%)), `hop` (whole number) |
 | `att` | ATT | `signal_s` (number (s)), `connection` (text), `from_central` (yes or no), `opcode` (text), `handle` (whole number), `service` (text), `value` (text), `length` (whole number (B)) |
 | `broadcasts` | Broadcasts | `source` (text), `broadcast_id` (text), `name` (text), `encrypted` (yes or no), `bis` (whole number), `subgroups` (whole number), `codec` (text), `sampling_hz` (frequency), `frame_ms` (number (ms)), `octets_per_frame` (whole number), `bitrate_kbps` (number (kbit/s)), `channels` (whole number), `presentation_delay_ms` (number (ms)), `language` (text), `program` (text), `quality` (text), `iso_interval_ms` (number (ms)), `phy` (text), `first_heard` (time), `last_heard` (time) |
+| `channels` | Channels | `channel` (whole number), `frequency_hz` (frequency), `advertising` (yes or no), `received` (yes or no), `packets` (whole number), `bad_crc` (whole number), `packets_unknown_links` (whole number) |
 
 ## Events
 
@@ -104,7 +117,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.7. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.8. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -112,7 +125,7 @@ Key readings: `devices`.
 
 ### Result fields
 
-Struct `BleFields`. The result fields of `ble`.
+Struct `BleFields`. The result fields of `ble`. The stack receives every LE channel inside the capture at once: the advertising channels as a scanner does, and the data channels for a link-activity view of the connections on them. A connection is followed from its CONNECT_IND, or found by its packets when its start was not heard, and the connections table shows what the link-layer headers reveal: the channels seen, the packets, the bad CRC, the interval, the PHY, the empty-PDU share and whether it is encrypted. The payloads of data channels are not decoded beyond the link-layer header: there is no ATT/GATT content of a connection, no attempt at keys, and nothing is read of an encrypted payload.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
@@ -141,6 +154,12 @@ Struct `BleFields`. The result fields of `ble`.
 | `connections_followed` | whole number | always | 4.2 | Connections whose events the receivers follow now (from a CONNECT_IND or AUX_CONNECT_REQ heard). |
 | `connection_packets` | whole number | always | 4.2 | Good packets of followed connections. |
 | `quiet_reason` | text | optional | 4.6 | Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known. |
+| `channels_advertising` | whole number | always | 4.8 | The primary advertising channels (37, 38, 39) inside the capture. |
+| `channels_data` | whole number | always | 4.8 | The data channels (0 to 36) inside the capture: each is received all the time unless the receiver is behind a live input. |
+| `capture_note` | text | optional | 4.8 | The channels inside the capture in words ("9 of 40 LE channels inside the capture at 20 Msps: 0 advertising, 9 data"), at the rate the samples arrive. None when the centre of the input is not known. |
+| `connections_found` | whole number | always | 4.8 | Connections in the table whose start was not heard: found by their packets on the data channels. |
+| `packets_unknown_links` | whole number | always | 4.8 | Packets on the data channels of links the receivers do not hold: of connections found or not yet found, and chance matches of the access address rules. |
+| `data_channels_shed` | yes or no | always | 4.8 | The data channels are left out but for followed connections: live input came faster than the work. |
 
 ### Result fields
 
@@ -221,11 +240,11 @@ The column `device` names a row.
 
 ### Table `connections`
 
-Struct `BleConnectionRow`. A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address as eight hex digits.
+Struct `BleConnectionRow`. A row of the connections of `ble`: followed from their CONNECT_IND or AUX_CONNECT_REQ, or found by their packets on the data channels. The row key is the text of `access_address`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `access_address` | text | always | 4.2 | The access address of the connection, eight hex digits. |
+| `access_address` | text | always | 4.2 | The connection's identifier: six hex digits of a hash of its access address, or the access address as eight hex digits when the setting `access_address_full` is on. |
 | `central` | text | always | 4.2 | The central (the initiator of the connection). |
 | `peripheral` | text | always | 4.2 | The peripheral (the advertiser it connected to). |
 | `interval_ms` | number (ms) | always | 4.2 | The connection interval. |
@@ -241,6 +260,12 @@ Struct `BleConnectionRow`. A row of the connections of `ble`, followed from thei
 | `ended` | yes or no | always | 4.2 | LL_TERMINATE_IND was heard. |
 | `first_heard` | time | optional | 4.2 | The UTC of the CONNECT_IND. |
 | `last_heard` | time | optional | 4.2 | The UTC of the last packet. |
+| `start_heard` | yes or no | always | 4.8 | The start of the connection (its CONNECT_IND or AUX_CONNECT_REQ) was heard. False for a connection found by its packets on the data channels: it has no addresses, latency or timeout, and its interval is 0 until estimated. |
+| `channels_seen` | whole number | always | 4.8 | The channels its packets were heard on. |
+| `channels_inside` | whole number | optional | 4.8 | The data channels of its channel map that lie inside the capture: its packets on the others are not seen. No value when the channel map is not known. |
+| `bad_crc` | whole number | always | 4.8 | Packets with its access address whose CRC failed. |
+| `empty_pdus` | number (%) | optional | 4.8 | The share of its packets that are empty PDUs. No value before a packet. |
+| `hop` | whole number | optional | 4.8 | The hop increment of channel selection algorithm #1. No value for algorithm #2 or while the algorithm is not known. |
 
 The column `access_address` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
@@ -290,6 +315,22 @@ Struct `BleBroadcastRow`. A row of the LE Audio broadcast sources of `ble`: what
 
 The column `name` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
+### Table `channels`
+
+Struct `BleChannelRow`. A row of the channels of `ble`: one for each LE channel inside the capture. The row key is the channel index as two digits.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `channel` | whole number | always | 4.8 | The channel index (0 to 36 data, 37 to 39 primary advertising). |
+| `frequency_hz` | frequency | always | 4.8 | The centre frequency of the channel. |
+| `advertising` | yes or no | always | 4.8 | A primary advertising channel. |
+| `received` | yes or no | always | 4.8 | The channel is received all the time. False for a data channel that is received only for followed links. |
+| `packets` | whole number | always | 4.8 | Good packets of the links held (advertising, periodic trains, followed connections) since the capture was set. |
+| `bad_crc` | whole number | always | 4.8 | Access-address matches of those links whose CRC failed. |
+| `packets_unknown_links` | whole number | always | 4.8 | Packets of links not held: of connections found or not yet found, and chance matches. |
+
+Default order: the column `channel`, lowest first.
+
 ### Event `ble.device`
 
 Struct `BleDeviceEvent`. The fields of a good packet with an address.
@@ -336,6 +377,7 @@ The argument `address` of `send` takes the column `address` of a row of the tabl
 | `named_only` | `sdrkit_ble_get_named_only` | `sdrkit_ble_set_named_only` |
 | `att_values` | `sdrkit_ble_get_att_values` | `sdrkit_ble_set_att_values` |
 | `tx_level` | `sdrkit_ble_get_tx_level` | `sdrkit_ble_set_tx_level` |
+| `access_address_full` | `sdrkit_ble_get_access_address_full` | `sdrkit_ble_set_access_address_full` |
 
 ### Settings of the test signal generator
 

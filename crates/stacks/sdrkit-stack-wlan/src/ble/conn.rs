@@ -8,13 +8,17 @@
 //! their instant while the connection is in the clear. Once LL_START_ENC_REQ is heard the payloads are ciphertext: the
 //! connection is followed with the parameters it has, and stays followed until it ends or its supervision timeout passes
 //! with no packet heard.
+//!
+//! A connection whose start was not heard ([`super::blind`]) has a row too: the row holds what the link layer headers of
+//! its packets show, and nothing of their payloads.
 
+use super::blind::{BlindLink, Outcome};
 use super::Advert;
 use crate::typed::{BleAttRow, BleConnectionRow};
 use sdrkit_core::interface::Time;
 use sdrkit_proto_wlan_phy::ble::csa::{self, ChannelMap, Csa1};
 use sdrkit_proto_wlan_phy::ble::ll::{self, Change, DataHeader, Llid};
-use sdrkit_proto_wlan_phy::ble::{Addr, AdvPdu, Body, LlData, Phy};
+use sdrkit_proto_wlan_phy::ble::{Addr, AdvPdu, BlindPacket, Body, LlData, Phy};
 use sdrkit_util_objects::publish::columns;
 use sdrkit_util_objects::shaped::{RowOut, Shaped};
 use sdrkit_util_objects::{LogRing, ObjectTable, Seen, Shift, Stamp};
@@ -413,6 +417,22 @@ pub struct ConnRecord {
     pub ended: bool,
     /// The GATT services that a discovery on the connection gave: (first handle, last handle, 16-bit UUID).
     pub services: Vec<(u16, u16, u16)>,
+    /// The start of the connection was not heard: it was found by its packets on the data channels.
+    pub found: bool,
+    /// The channels its packets were heard on, bit `c` for channel `c`.
+    pub channels_seen: u64,
+    /// The data channels of its channel map, bit `c` for channel `c` (0 when the map is not known).
+    pub map: u64,
+    /// The data channels of its channel map inside the capture, when the map is known.
+    pub inside: Option<u8>,
+    /// Packets with its access address whose CRC failed.
+    pub bad_crc: u64,
+    /// Empty PDUs among its packets.
+    pub empty: u64,
+    /// The hop increment of channel selection algorithm #1, when known.
+    pub hop: Option<u8>,
+    /// LL control PDUs of a length that no control PDU sent in the clear has.
+    pub odd_control: u8,
 }
 
 impl ConnRecord {
@@ -450,6 +470,12 @@ impl Shaped for ConnRecord {
             ended: self.ended,
             first_heard: columns::first_heard(seen).map(Time),
             last_heard: columns::last_heard(seen).map(Time),
+            start_heard: !self.found,
+            channels_seen: i64::from(self.channels_seen.count_ones()),
+            channels_inside: self.inside.map(i64::from),
+            bad_crc: self.bad_crc as i64,
+            empty_pdus: (self.packets > 0).then(|| 100.0 * self.empty as f64 / self.packets as f64),
+            hop: self.hop.filter(|_| self.csa == Some(1)).map(i64::from),
         });
     }
 }
@@ -497,9 +523,25 @@ impl Shaped for AttLine {
     }
 }
 
-/// The row key of the connection with access address `aa`.
-pub fn conn_key(aa: u32) -> String {
-    format!("{aa:08X}")
+/// The row key of the connection with access address `aa`: six hex digits of a hash of it, or the eight hex digits of the
+/// access address itself when `full`. The access address identifies a private link, so the tables do not show it unless
+/// the user asks.
+pub fn conn_key(aa: u32, full: bool) -> String {
+    if full {
+        return format!("{aa:08X}");
+    }
+    // A multiplicative hash: the top 24 bits of the product.
+    format!("{:06X}", aa.wrapping_mul(0x9E37_79B1) >> 8)
+}
+
+/// The bits of the data channels that `map` uses.
+fn map_bits(map: &ChannelMap) -> u64 {
+    map.used().iter().fold(0, |m, &c| m | 1 << c)
+}
+
+/// How many data channels of `map` (bits, 0 when not known) lie inside `capture`.
+fn inside(map: u64, capture: u64) -> Option<u8> {
+    (map != 0 && capture != 0).then(|| (map & capture).count_ones() as u8)
 }
 
 /// The PHY name for the table.
@@ -508,12 +550,23 @@ fn phy_name(p: Phy) -> String {
 }
 
 /// Opens the row of the connection that the CONNECT_IND or AUX_CONNECT_REQ `pdu` (heard on `phy`) starts, stamped `at`.
-pub fn connect(rows: &mut ObjectTable<String, ConnRecord>, pdu: &AdvPdu<'_>, phy: Phy, aux: bool, at: Stamp) {
+/// `capture` has the bits of the channels inside the capture; `full` is as for [`conn_key`].
+pub fn connect(
+    rows: &mut ObjectTable<String, ConnRecord>,
+    pdu: &AdvPdu<'_>,
+    phy: Phy,
+    aux: bool,
+    at: Stamp,
+    capture: u64,
+    full: bool,
+) {
     let Body::Connect { init_a, adv_a, ll } = pdu.body else {
         return;
     };
-    let used = ChannelMap::from_bytes(ll.channel_map).map_or(0, |m| m.used().len() as u8);
-    let key = conn_key(ll.access_address);
+    let map = ChannelMap::from_bytes(ll.channel_map);
+    let used = map.map_or(0, |m| m.used().len() as u8);
+    let bits = map.as_ref().map_or(0, map_bits);
+    let key = conn_key(ll.access_address, full);
     let rec = ConnRecord {
         aa: key.clone(),
         central: init_a.text(),
@@ -524,6 +577,9 @@ pub fn connect(rows: &mut ObjectTable<String, ConnRecord>, pdu: &AdvPdu<'_>, phy
         phy: phy_name(if aux { phy } else { Phy::Le1M }),
         csa: (aux || !pdu.header.ch_sel).then_some(if aux { 2 } else { 1 }),
         channels_used: used,
+        map: bits,
+        inside: inside(bits, capture),
+        hop: (!aux).then_some(ll.hop),
         ..ConnRecord::default()
     };
     if let Ok(up) = rows.upsert(key.as_str(), at, || rec.clone()) {
@@ -534,15 +590,18 @@ pub fn connect(rows: &mut ObjectTable<String, ConnRecord>, pdu: &AdvPdu<'_>, phy
 }
 
 /// Takes a packet `a` of a followed connection, stamped `at`: the counters of its row, the procedures it shows, and the ATT
-/// PDU it carries in the clear (into `log`, with its value bytes when `values`).
+/// PDU it carries in the clear (into `log`, with its value bytes when `values`). `capture` and `full` are as for
+/// [`connect`].
 pub fn take(
     rows: &mut ObjectTable<String, ConnRecord>,
     log: &mut LogRing<AttLine>,
     a: &Advert,
     at: Stamp,
     values: bool,
+    capture: u64,
+    full: bool,
 ) {
-    let key = conn_key(a.access_address);
+    let key = conn_key(a.access_address, full);
     if rows.get_mut(key.as_str()).is_none() {
         return;
     }
@@ -551,10 +610,19 @@ pub fn take(
     };
     let r = up.row;
     r.packets += 1;
+    r.channels_seen |= 1 << a.channel.min(39);
+    r.inside = inside(r.map, capture);
+    // The PHY the packets are heard on, in case the LL_PHY_UPDATE_IND that switched it was on a channel outside the
+    // capture.
+    r.phy = phy_name(a.phy);
     let central = a.conn.is_some_and(|p| p.central);
     let Some(h) = DataHeader::parse(&a.pdu) else {
         return;
     };
+    if h.llid == Llid::Continuation && h.length == 0 {
+        r.empty += 1;
+    }
+
     let p = h.payload(&a.pdu);
     if r.csa.is_none() {
         // The follower placed the packet on the channel of one algorithm only once it knew which.
@@ -603,7 +671,10 @@ pub fn take(
                         r.timeout_ms = f64::from(timeout) * 10.0;
                     }
                     Some(Change::ChannelMap { map, .. }) => {
-                        r.channels_used = ChannelMap::from_bytes(map).map_or(r.channels_used, |m| m.used().len() as u8);
+                        if let Some(m) = ChannelMap::from_bytes(map) {
+                            r.channels_used = m.used().len() as u8;
+                            r.map = map_bits(&m);
+                        }
                     }
                     _ => {}
                 }
@@ -636,6 +707,82 @@ pub fn take(
                 service,
                 value: crate::report::hex(&att.value[..n]),
             });
+        }
+        _ => {}
+    }
+}
+
+/// Sets the count of packets of a followed connection whose CRC failed.
+pub fn failures(rows: &mut ObjectTable<String, ConnRecord>, aa: u32, total: u64, full: bool) {
+    if let Some(r) = rows.get_mut(conn_key(aa, full).as_str()) {
+        r.bad_crc = total;
+    }
+}
+
+/// Takes packet `p` of the link `link` found on the data channels, as `outcome` says, stamped `at`: the counters of its
+/// row and what its header shows. Only the header is read: the LLID, the length, and the opcode byte of an LL control PDU,
+/// which tells when the encryption starts. `full` is as for [`conn_key`].
+pub fn found(
+    rows: &mut ObjectTable<String, ConnRecord>,
+    link: &BlindLink,
+    p: &BlindPacket,
+    outcome: Outcome,
+    at: Stamp,
+    full: bool,
+) {
+    let key = conn_key(link.aa, full);
+    match outcome {
+        Outcome::Unknown => return,
+        Outcome::Bad => {
+            if let Some(r) = rows.get_mut(key.as_str()) {
+                r.bad_crc += 1;
+            }
+            return;
+        }
+        Outcome::Good { .. } => {}
+    }
+    let fresh = || ConnRecord {
+        aa: key.clone(),
+        found: true,
+        ..ConnRecord::default()
+    };
+    let Ok(up) = rows.upsert(key.as_str(), at, fresh) else {
+        return;
+    };
+    let r = up.row;
+    if matches!(outcome, Outcome::Good { first: true }) {
+        r.packets += u64::from(link.before);
+    }
+    r.packets += 1;
+    r.channels_seen |= 1 << p.channel.min(39);
+    r.phy = phy_name(p.phy);
+    if !r.found {
+        // The start was heard and the follower lost the connection: the row keeps what the CONNECT_IND said.
+        return;
+    }
+    if let Some(n) = link.interval {
+        r.interval_ms = f64::from(n) * UNIT_S * 1e3;
+    }
+    r.csa = link.csa;
+    r.hop = link.hop;
+    let [h, length] = p.header;
+    match (h & 3, p.opcode) {
+        (1, _) if length == 0 => r.empty += 1,
+        (3, Some(op)) => {
+            let clear = ll::control_length(op) == Some(length);
+            if clear && matches!(op, ll::opcode::ENC_REQ | ll::opcode::START_ENC_REQ) {
+                r.encrypted = true;
+            }
+            // A control PDU of an encrypted connection is 4 bytes longer than any sent in the clear, and its opcode byte is
+            // ciphertext: two such PDUs say that the connection is encrypted.
+            let odd = match ll::control_length(op) {
+                Some(l) => l != length,
+                None => usize::from(op) >= 42,
+            };
+            if odd && length >= 5 {
+                r.odd_control = r.odd_control.saturating_add(1);
+                r.encrypted |= r.odd_control >= 2;
+            }
         }
         _ => {}
     }

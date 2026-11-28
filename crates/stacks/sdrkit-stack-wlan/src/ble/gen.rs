@@ -20,7 +20,7 @@ use sdrkit_proto_wlan_phy::ble::{
 /// Silence before the first packet, s.
 const LEAD_S: f64 = 2e-3;
 /// Bits of unmodulated carrier before and after each packet.
-const PAD_BITS: usize = 3;
+pub(crate) const PAD_BITS: usize = 3;
 
 /// The PHY a packet of the schedule is sent on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

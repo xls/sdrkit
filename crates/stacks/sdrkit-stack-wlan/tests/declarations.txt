@@ -8,6 +8,7 @@ setting SettingDecl { field: FieldDecl { key: "named_only", label: "Named only",
 setting SettingDecl { field: FieldDecl { key: "att_values", label: "ATT values", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Display", advanced: false, help: "Keeps the value bytes of the attribute messages read on a connection. Off, the ATT log holds the handle, the type and the length only.", zero_means: "", special_value: 0.0, common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "tx_level", label: "Level", unit: "of full scale", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.05, max: 0.9, step: 0.0 }), default: F64(0.5), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The magnitude of the signal sent, of full scale.", zero_means: "", special_value: 0.0, common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "gen_channel", label: "Whitening", unit: "", kind: Choice, choices: [ChoiceDecl { key: "round", label: "Round the three channels" }, ChoiceDecl { key: "37", label: "All on 37" }, ChoiceDecl { key: "38", label: "All on 38" }, ChoiceDecl { key: "39", label: "All on 39" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", special_value: 0.0, common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "access_address_full", label: "Full access address", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Display", advanced: true, help: "Shows the access address of a connection as its eight hex digits. Off, the connections table shows six hex digits of a hash of it: the access address identifies a private link. A change applies to the connections heard after it.", zero_means: "", special_value: 0.0, common: Common { values: [], by: "", sets: [] }, role: None }
 field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -33,6 +34,12 @@ field FieldDecl { key: "periodic_trains", label: "Periodic trains", unit: "", ki
 field FieldDecl { key: "connections_followed", label: "Connections followed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "connection_packets", label: "Connection packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "quiet_reason", label: "Why nothing shows", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "channels_advertising", label: "Advertising channels in the capture", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "channels_data", label: "Data channels in the capture", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "capture_note", label: "Capture", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "connections_found", label: "Connections found", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "packets_unknown_links", label: "Packets of unknown links", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "data_channels_shed", label: "Data channels left out", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sent", label: "Packets sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_left", label: "Packets left", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -95,6 +102,12 @@ table "connections" "Connections" cap 64
   column FieldDecl { key: "ended", label: "Ended", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "start_heard", label: "Start heard", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channels_seen", label: "Channels seen", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channels_inside", label: "Channels inside the capture", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bad_crc", label: "Bad CRC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "empty_pdus", label: "Empty PDUs", unit: "%", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "hop", label: "Hop increment", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "att" "ATT" cap 400
   marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "signal_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -127,6 +140,15 @@ table "broadcasts" "Broadcasts" cap 64
   column FieldDecl { key: "phy", label: "PHY", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+table "channels" "Channels" cap 40
+  marks TableMarks { label: None, sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "advertising", label: "Advertising", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "received", label: "Received", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bad_crc", label: "Bad CRC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "packets_unknown_links", label: "Packets of unknown links", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "ble.device" "Bluetooth LE device"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

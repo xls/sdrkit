@@ -221,3 +221,129 @@ fn le_1m_advertising_on_a_secondary_channel_is_taken_on_its_channel() {
     rx.remove_link(ble::ADV_ACCESS_ADDRESS);
     assert_eq!(rx.links().len(), 1);
 }
+
+#[test]
+fn the_crc_preset_is_recovered_from_a_packet() {
+    // The reference packet of Vol 6 Part C clause 2.1: its CRC bytes give back the advertising preset.
+    let crc = u32::from_le_bytes([0x29, 0x0A, 0xCE, 0]);
+    assert_eq!(ble::crc24_init_of(&[0x00, 0x03, 0x42, 0x4C, 0x45], crc), ble::ADV_CRC_INIT);
+    let pdu: Vec<u8> = (0..60u8).map(|i| i.wrapping_mul(29) ^ 0xC3).collect();
+    for preset in [0x00_0001, 0x12_3456, 0xA5_0F33, 0xFF_FFFF, 0x80_0000] {
+        for n in [2, 3, 17, 60] {
+            let crc = ble::crc24(&pdu[..n], preset);
+            assert_eq!(ble::crc24_init_of(&pdu[..n], crc), preset, "{preset:x} {n}");
+        }
+    }
+}
+
+#[test]
+fn access_addresses_obey_clause_2_1_2() {
+    use ble::access_address_ok as ok;
+    assert!(ok(0x5065_17A3) && ok(0x5A3C_9617) && ok(0xAF9A_B4D1));
+    // The advertising access address, and one bit from it.
+    assert!(!ok(ble::ADV_ACCESS_ADDRESS) && !ok(ble::ADV_ACCESS_ADDRESS ^ 0x100));
+    assert!(ok(ble::ADV_ACCESS_ADDRESS ^ 0x1100));
+    // Seven equal bits in a row (six are allowed).
+    assert!(!ok(0x5065_7F23) && ok(0x5065_3F23));
+    assert!(!ok(0x5065_8023) && ok(0x5065_8123));
+    // Four equal octets.
+    assert!(!ok(0x5A5A_5A5A));
+    // More than 24 transitions.
+    assert!(!ok(0x5555_5553) && !ok(0xA955_5555));
+    // Fewer than two transitions in the six most significant bits.
+    assert!(!ok(0xF065_17A3) && !ok(0x0165_17A3) && !ok(0xE065_17A3) && ok(0xD065_17A3));
+}
+
+/// Data channel packets of two links the receiver does not hold, LE 1M and LE 2M, on channel 12.
+type LinkWants = Vec<(u32, u32, [u8; 2], Phy)>;
+fn unknown_links(sps: usize) -> (Vec<Complex32>, LinkWants) {
+    let links = [
+        Link::new(0x5065_17A3, 0x12_3456, LinkKind::Data),
+        Link::new(0xAF9A_B4D1, 0xC0_FFEE, LinkKind::Data),
+    ];
+    let mut x = Vec::new();
+    let mut want = Vec::new();
+    for i in 0..8usize {
+        let (link, phy) = (links[i % 2], if i % 2 == 0 { Uncoded::Le1M } else { Uncoded::Le2M });
+        // An empty PDU, an L2CAP start, a control PDU.
+        let mut pdu = match i % 3 {
+            0 => vec![0x01 | (i as u8 & 1) << 2, 0],
+            1 => vec![0x02, 9, 5, 0, 4, 0, 0x1B, 3, 0, 7, 8],
+            _ => vec![0x03, 6, 0x0C, 9, 1, 2, 3, 4],
+        };
+        pdu[0] |= (i as u8 & 2) << 2;
+        let mut bits = Vec::new();
+        packet_bits(&pdu, &link, 12, phy, &mut bits).unwrap();
+        let s = gfsk(&bits, if phy == Uncoded::Le2M { sps / 2 } else { sps });
+        x.extend(impair(&s, 4e6, 0.0, 0.0, 700 * sps, 0));
+        want.push((link.access_address, link.crc_init, [pdu[0], pdu[1]], phy.phy()));
+    }
+    (x, want)
+}
+
+#[test]
+fn packets_of_links_not_held_give_their_access_address_and_crc_preset() {
+    let sps = 4;
+    let (x, mut want) = unknown_links(sps);
+    // 30 kHz offset and an SNR of about 17 dB in 1 MHz.
+    let y = impair(&x, 4e6, 30e3, 0.02 * sps as f64, 3000, 11);
+    let run = |pieces: &[&[Complex32]], blind: bool| {
+        let mut rx = BleReceiver::new(sps, Phys::ALL).unwrap();
+        rx.set_channels(ChannelPlan::Known(12)).unwrap();
+        rx.set_blind(blind);
+        let mut out = Vec::new();
+        for p in pieces {
+            rx.process(p, |_| panic!("no link is held"));
+            rx.take_blind(&mut out);
+        }
+        // A stray match of the rules inside a packet is no packet of the two links: a tracker drops it, as it comes once.
+        let mut got: Vec<_> = out
+            .iter()
+            .filter(|b| [0x5065_17A3, 0xAF9A_B4D1].contains(&b.access_address))
+            .map(|b| (b.access_address, b.crc_init, b.header, b.phy))
+            .collect();
+        assert!(out.iter().all(|b| b.channel == 12 && (b.header[0] & 3 == 3) == b.opcode.is_some()));
+        got.sort_by_key(|g| (g.3 == Phy::Le2M, g.0));
+        got
+    };
+    want.sort_by_key(|g| (g.3 == Phy::Le2M, g.0));
+    let whole = run(&[&y], true);
+    let mut sorted = whole.clone();
+    sorted.sort_by_key(|g| (g.3 == Phy::Le2M, g.0, g.2));
+    want.sort_by_key(|g| (g.3 == Phy::Le2M, g.0, g.2));
+    assert_eq!(sorted, want);
+    let mut cut = run(&cuts(&y, 5000, 3), true);
+    cut.sort_by_key(|g| (g.3 == Phy::Le2M, g.0, g.2));
+    assert_eq!(cut, want, "a cut changes the output");
+    assert!(run(&[&y], false).is_empty());
+    // A held link takes its packets itself: the search leaves them alone.
+    let mut rx = BleReceiver::new(sps, Phys::ALL).unwrap();
+    rx.set_channels(ChannelPlan::Known(12)).unwrap();
+    rx.add_link(Link::new(0x5065_17A3, 0x12_3456, LinkKind::Data)).unwrap();
+    rx.set_blind(true);
+    let (mut good, mut out) = (0, Vec::new());
+    rx.process(&y, |_| good += 1);
+    rx.take_blind(&mut out);
+    assert!(out.iter().all(|b| b.access_address != 0x5065_17A3));
+    let other = out.iter().filter(|b| b.access_address == 0xAF9A_B4D1).count();
+    assert_eq!((good, other), (4, 4));
+}
+
+#[test]
+fn noise_gives_no_access_address_twice() {
+    let sps = 4;
+    let silence = vec![Complex32::default(); 4_000_000];
+    let y = impair(&silence, 4e6, 0.0, 0.5, 0, 21);
+    let mut rx = BleReceiver::new(sps, Phys::ALL).unwrap();
+    rx.set_channels(ChannelPlan::Known(5)).unwrap();
+    rx.set_blind(true);
+    let mut out = Vec::new();
+    rx.process(&y, |_| panic!("noise"));
+    rx.take_blind(&mut out);
+    let mut aas: Vec<u32> = out.iter().map(|b| b.access_address).collect();
+    let n = aas.len();
+    aas.sort_unstable();
+    aas.dedup();
+    assert_eq!(aas.len(), n);
+    assert!(n < 40, "{n} candidates in a second of noise");
+}

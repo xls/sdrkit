@@ -4,19 +4,24 @@
 //! auxiliary packet, and a periodic train that a SyncInfo described opens the channel of each of its events, which channel
 //! selection algorithm #2 gives from the train's access address and event counter. A secondary channel takes all three PHYs.
 //! The channels of a block are run primary first, so a pointer opens its channel for the same block.
+//!
+//! The wide form ([`AdvDecoder::wide`], the `ble` stack) runs every data channel all the time as well and looks there for
+//! packets of links it does not hold ([`super::blind`]). When live input comes faster than this work, the data channels
+//! go back to the windows of the followed links ([`crate::wifi::shed::Shedder`] decides); a recording never sheds.
 //! Standard: Bluetooth Core Specification v5.4 Vol 6 Part B clauses 1.4.1, 2.3.4.5, 2.3.4.6, 4.4.2.12 and 4.5.8.3.
 
 use super::adv::{parse_ad, summary};
 use super::conn::Conn;
 use super::follow::start_to_aa_end_s;
-use super::{AdvStats, Advert, HINT_TOLERANCE_HZ, RATE_HZ};
+use super::{AdvStats, Advert, LinkNote, PerChannel, HINT_TOLERANCE_HZ, RATE_HZ};
+use crate::wifi::shed::{Shed, Shedder};
 use sdrkit_algo_dsp::channel::{ChannelConfig, Channelizer};
 use sdrkit_algo_dsp::fir;
 use sdrkit_core::{Complex32, ConfigError, StageError, Values};
 use sdrkit_graph::{no_values, Decoder, Format, Kind, Outbox, Port, RunContext, Timed};
 use sdrkit_proto_wlan_phy::ble::csa::{self, ChannelMap};
 use sdrkit_proto_wlan_phy::ble::{
-    advertising_channel_at, channel_hz, AdvPdu, BlePacket, BleReceiver, Body, ChannelPlan, Link,
+    advertising_channel_at, channel_hz, AdvPdu, BlePacket, BleReceiver, BlindPacket, Body, ChannelPlan, Link,
     LinkKind, Phy, Phys, ReceiverStats, SyncInfo, MAX_LINKS,
 };
 
@@ -107,8 +112,10 @@ struct Chain {
     buf: Vec<Complex32>,
     /// The channel, or `None` when the centre is not known (a recording: one channel at the tuned frequency).
     channel: Option<u8>,
-    /// Runs all the time (a primary channel).
+    /// Runs all the time (a primary channel, or a data channel of the wide form).
     always: bool,
+    /// Packets of links not held, since the chain was made.
+    unknown: u64,
     /// The absolute input index of the receiver's sample 0, set when the chain starts running.
     start: Option<f64>,
     /// Input samples per output sample.
@@ -177,6 +184,13 @@ pub struct AdvDecoder {
     trains: Vec<Train>,
     conns: Vec<Conn>,
     out: Vec<Timed<Advert>>,
+    notes: Vec<Timed<LinkNote>>,
+    blind: Vec<BlindPacket>,
+    /// The CRC failures of each followed connection as last reported.
+    failures: Vec<(u32, u64)>,
+    wide: bool,
+    shedder: Shedder,
+    shed: bool,
     capture: u64,
     events: Vec<(f64, u8)>,
     conn_events: Vec<(f64, f64, u8)>,
@@ -196,6 +210,12 @@ impl Default for AdvDecoder {
             trains: Vec::new(),
             conns: Vec::new(),
             out: Vec::new(),
+            notes: Vec::new(),
+            blind: Vec::new(),
+            failures: Vec::new(),
+            wide: false,
+            shedder: Shedder::default(),
+            shed: false,
             capture: 0,
             events: Vec::new(),
             conn_events: Vec::new(),
@@ -271,6 +291,80 @@ fn asks(a: &Advert, out: &mut Vec<Ask>) {
 }
 
 impl AdvDecoder {
+    /// The wide form: every data channel inside the capture is received all the time (module documentation).
+    pub fn wide() -> AdvDecoder {
+        AdvDecoder {
+            wide: true,
+            ..AdvDecoder::default()
+        }
+    }
+
+    /// Whether the data channels run all the time now.
+    fn data_always(&self) -> bool {
+        self.wide && !self.shed
+    }
+
+    /// Sheds the data channels or takes them back: their receivers start again in the new form.
+    fn set_shed(&mut self, shed: bool) {
+        if shed == self.shed {
+            return;
+        }
+        self.shed = shed;
+        let always = self.data_always();
+        for c in &mut self.chains {
+            if c.channel.is_some_and(|ch| ch < 37) {
+                c.always = always;
+                c.rx.set_blind(always);
+                c.running = false;
+            }
+        }
+    }
+
+    /// Counts a piece of live input that held `signal_s` of signal and took `work_s`.
+    fn worked(&mut self, work_s: f64, signal_s: f64) {
+        let level = self.shedder.step(work_s, signal_s);
+        self.set_shed(level != Shed::Nothing);
+    }
+
+    /// The counters of each channel.
+    fn per_channel(&self) -> PerChannel {
+        let mut p = PerChannel::default();
+        for c in &self.chains {
+            if let Some(ch) = c.channel {
+                let s = c.rx.stats();
+                p.good[usize::from(ch)] = s.packets;
+                p.bad[usize::from(ch)] = s.crc_failures;
+                p.unknown[usize::from(ch)] = c.unknown;
+            }
+        }
+        p
+    }
+
+    /// Notes the CRC failures of each followed connection when their count changed.
+    fn note_failures(&mut self, time: f64) {
+        let conns = &self.conns;
+        self.failures.retain(|f| conns.iter().any(|c| c.aa == f.0));
+        for c in &self.conns {
+            let total: u64 = self.chains.iter().map(|ch| ch.rx.crc_failures_of(c.aa)).sum();
+            let known = match self.failures.iter_mut().find(|f| f.0 == c.aa) {
+                Some(f) => std::mem::replace(&mut f.1, total),
+                None => {
+                    self.failures.push((c.aa, total));
+                    0
+                }
+            };
+            if total != known {
+                self.notes.push(Timed {
+                    time,
+                    value: LinkNote::Failures {
+                        access_address: c.aa,
+                        total,
+                    },
+                });
+            }
+        }
+    }
+
     /// The advertising channel the tuned frequency is on, for a live source only (0 when not known).
     pub fn hint(&self) -> u8 {
         if self.live {
@@ -334,6 +428,8 @@ impl AdvDecoder {
             let mut rx = BleReceiver::new((RATE_HZ / 1e6) as usize, phys)
                 .map_err(|e| ConfigError::Stage(StageError::new(e)))?;
             let _ = rx.set_channels(plan(channel, self.live));
+            let always = !secondary || self.data_always();
+            rx.set_blind(secondary && always);
             for t in &self.trains {
                 let _ = rx.add_link(t.link);
             }
@@ -346,7 +442,8 @@ impl AdvDecoder {
                 rx,
                 buf: Vec::new(),
                 channel,
-                always: !secondary,
+                always,
+                unknown: 0,
                 start: None,
                 running: false,
                 open: Vec::new(),
@@ -533,7 +630,7 @@ impl AdvDecoder {
                 .fold(f64::INFINITY, f64::min);
             (((t - b0) * rate).max(0.0) as usize).min(x.len())
         };
-        if !c.always && !c.running {
+        if !c.running {
             c.ch.reset();
             c.rx.reset();
             c.start = None;
@@ -561,6 +658,18 @@ impl AdvDecoder {
                 });
             }
         });
+        c.rx.take_blind(&mut self.blind);
+        c.unknown += self.blind.len() as u64;
+        for packet in self.blind.drain(..) {
+            let time = (start + packet.sample as f64 * ratio - delay).max(0.0) / rate;
+            self.notes.push(Timed {
+                time,
+                value: LinkNote::Unknown {
+                    time_s: time,
+                    packet,
+                },
+            });
+        }
         c.running = true;
         true
     }
@@ -603,6 +712,7 @@ impl Decoder for AdvDecoder {
         vec![
             Port::typed::<Advert>("adverts"),
             Port::typed::<AdvStats>("stats"),
+            Port::typed::<LinkNote>("links"),
         ]
     }
     fn values(&self) -> Values {
@@ -624,9 +734,11 @@ impl Decoder for AdvDecoder {
         self.trains.clear();
         self.chains.clear();
         self.rebuild()?;
+        self.failures.clear();
         Ok(vec![
             Format::new(Kind::typed::<Advert>(), 0.0),
             Format::new(Kind::typed::<AdvStats>(), 0.0),
+            Format::new(Kind::typed::<LinkNote>(), 0.0),
         ])
     }
     fn retune(&mut self, input: &Format) {
@@ -636,6 +748,9 @@ impl Decoder for AdvDecoder {
     }
     fn attach(&mut self, ctx: &RunContext) {
         self.live = ctx.live;
+        // What a live run shed is taken back: the new input may be a recording.
+        self.shedder = Shedder::default();
+        self.set_shed(false);
         let live = self.live;
         for c in &mut self.chains {
             let _ = c.rx.set_channels(plan(c.channel, live));
@@ -644,7 +759,9 @@ impl Decoder for AdvDecoder {
     fn process(&mut self, x: &[Complex32], first: u64, out: &mut Outbox) {
         let rate = self.rate;
         let (b0, b1) = (first as f64 / rate, (first + x.len() as u64) as f64 / rate);
+        let started = (self.live && self.wide).then(std::time::Instant::now);
         self.out.clear();
+        self.notes.clear();
         self.open_train_events(b0, b1);
         self.open_conn_events(b0, b1);
         let mut asks_v: Vec<Ask> = Vec::new();
@@ -695,6 +812,12 @@ impl Decoder for AdvDecoder {
         self.place_conn_packets();
         self.drop_old_conns(end_s);
         out.items::<Advert>(0).append(&mut self.out);
+        self.note_failures(end_s);
+        self.notes.sort_by(|a, b| a.time.total_cmp(&b.time));
+        out.items::<LinkNote>(2).append(&mut self.notes);
+        if let Some(t) = started {
+            self.worked(t.elapsed().as_secs_f64(), x.len() as f64 / rate.max(1.0));
+        }
         let s = self.stats();
         let stats = AdvStats {
             time_s: end_s,
@@ -707,6 +830,10 @@ impl Decoder for AdvDecoder {
             centre_known: self.centre_hz > 0.0,
             trains: self.trains.len() as u32,
             connections: self.conns.len() as u32,
+            rate_hz: rate,
+            wide: self.wide,
+            shed: self.shed,
+            per: self.per_channel(),
         };
         out.items::<AdvStats>(1).push(Timed {
             time: end_s,

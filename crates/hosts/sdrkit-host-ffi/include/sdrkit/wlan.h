@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.7. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.8. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 7
+#define SDRKIT_WLAN_VERSION_MINOR 8
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -201,7 +201,7 @@ typedef enum sdrkit_espnow_gen_phy {
   SDRKIT_ESPNOW_GEN_PHY_OFDM12 = 4,
 } sdrkit_espnow_gen_phy;
 
-// The result fields of `ble`.
+// The result fields of `ble`. The stack receives every LE channel inside the capture at once: the advertising channels as a scanner does, and the data channels for a link-activity view of the connections on them. A connection is followed from its CONNECT_IND, or found by its packets when its start was not heard, and the connections table shows what the link-layer headers reveal: the channels seen, the packets, the bad CRC, the interval, the PHY, the empty-PDU share and whether it is encrypted. The payloads of data channels are not decoded beyond the link-layer header: there is no ATT/GATT content of a connection, no attempt at keys, and nothing is read of an encrypted payload.
 typedef struct sdrkit_ble_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
@@ -269,6 +269,20 @@ typedef struct sdrkit_ble_fields {
   bool has_quiet_reason;
   // Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known.
   sdrkit_string quiet_reason;
+  // The primary advertising channels (37, 38, 39) inside the capture.
+  int64_t channels_advertising;
+  // The data channels (0 to 36) inside the capture: each is received all the time unless the receiver is behind a live input.
+  int64_t channels_data;
+  // True if `capture_note` holds a value.
+  bool has_capture_note;
+  // The channels inside the capture in words ("9 of 40 LE channels inside the capture at 20 Msps: 0 advertising, 9 data"), at the rate the samples arrive. None when the centre of the input is not known.
+  sdrkit_string capture_note;
+  // Connections in the table whose start was not heard: found by their packets on the data channels.
+  int64_t connections_found;
+  // Packets on the data channels of links the receivers do not hold: of connections found or not yet found, and chance matches of the access address rules.
+  int64_t packets_unknown_links;
+  // The data channels are left out but for followed connections: live input came faster than the work.
+  bool data_channels_shed;
 } sdrkit_ble_fields;
 
 // The result fields of the advertising sender of `ble` and `bletracker`.
@@ -437,13 +451,13 @@ typedef struct sdrkit_ble_device_level_row {
   double level_dbfs;
 } sdrkit_ble_device_level_row;
 
-// A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address as eight hex digits.
+// A row of the connections of `ble`: followed from their CONNECT_IND or AUX_CONNECT_REQ, or found by their packets on the data channels. The row key is the text of `access_address`.
 typedef struct sdrkit_ble_connection_row {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
   // The row key.
   sdrkit_string key;
-  // The access address of the connection, eight hex digits.
+  // The connection's identifier: six hex digits of a hash of its access address, or the access address as eight hex digits when the setting `access_address_full` is on.
   sdrkit_string access_address;
   // The central (the initiator of the connection).
   sdrkit_string central;
@@ -481,6 +495,24 @@ typedef struct sdrkit_ble_connection_row {
   bool has_last_heard;
   // The UTC of the last packet. Seconds since 1970 (UTC).
   double last_heard;
+  // The start of the connection (its CONNECT_IND or AUX_CONNECT_REQ) was heard. False for a connection found by its packets on the data channels: it has no addresses, latency or timeout, and its interval is 0 until estimated.
+  bool start_heard;
+  // The channels its packets were heard on.
+  int64_t channels_seen;
+  // True if `channels_inside` holds a value.
+  bool has_channels_inside;
+  // The data channels of its channel map that lie inside the capture: its packets on the others are not seen. No value when the channel map is not known.
+  int64_t channels_inside;
+  // Packets with its access address whose CRC failed.
+  int64_t bad_crc;
+  // True if `empty_pdus` holds a value.
+  bool has_empty_pdus;
+  // The share of its packets that are empty PDUs. No value before a packet. Unit: %.
+  double empty_pdus;
+  // True if `hop` holds a value.
+  bool has_hop;
+  // The hop increment of channel selection algorithm #1. No value for algorithm #2 or while the algorithm is not known.
+  int64_t hop;
 } sdrkit_ble_connection_row;
 
 // A row of the Attribute Protocol log of `ble`: an ATT PDU sent in the clear on a followed connection.
@@ -594,6 +626,28 @@ typedef struct sdrkit_ble_broadcast_row {
   // The UTC of the last packet. Seconds since 1970 (UTC).
   double last_heard;
 } sdrkit_ble_broadcast_row;
+
+// A row of the channels of `ble`: one for each LE channel inside the capture. The row key is the channel index as two digits.
+typedef struct sdrkit_ble_channel_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The channel index (0 to 36 data, 37 to 39 primary advertising).
+  int64_t channel;
+  // The centre frequency of the channel. A frequency in Hz.
+  double frequency_hz;
+  // A primary advertising channel.
+  bool advertising;
+  // The channel is received all the time. False for a data channel that is received only for followed links.
+  bool received;
+  // Good packets of the links held (advertising, periodic trains, followed connections) since the capture was set.
+  int64_t packets;
+  // Access-address matches of those links whose CRC failed.
+  int64_t bad_crc;
+  // Packets of links not held: of connections found or not yet found, and chance matches.
+  int64_t packets_unknown_links;
+} sdrkit_ble_channel_row;
 
 // The result fields of `bletracker`.
 typedef struct sdrkit_bletracker_fields {
@@ -2617,6 +2671,16 @@ static inline int32_t sdrkit_ble_broadcasts_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "wlan.BleBroadcastRow", "broadcasts", rows, sizeof(sdrkit_ble_broadcast_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "channels" of the stack "ble" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `channel`, lowest first.
+static inline int32_t sdrkit_ble_channels_rows(SDRKIT_HANDLE handle,
+                                              sdrkit_ble_channel_row *rows,
+                                              uint32_t capacity,
+                                              sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wlan.BleChannelRow", "channels", rows, sizeof(sdrkit_ble_channel_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "ble.device"
 // (Bluetooth LE device). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_ble_device_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_ble_device_event *event) {
@@ -2717,6 +2781,14 @@ static inline int32_t sdrkit_ble_get_tx_level(SDRKIT_HANDLE handle, double *valu
 }
 static inline int32_t sdrkit_ble_set_tx_level(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
+}
+
+// The setting "access_address_full" (Full access address) of the stack "ble". Shows the access address of a connection as its eight hex digits. Off, the connections table shows six hex digits of a hash of it: the access address identifies a private link. A change applies to the connections heard after it.
+static inline int32_t sdrkit_ble_get_access_address_full(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "access_address_full", value);
+}
+static inline int32_t sdrkit_ble_set_access_address_full(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "access_address_full", value);
 }
 
 // The setting "gen_channel" (Whitening) of the test signal generator of the stack "ble". A value of `sdrkit_ble_gen_channel`.

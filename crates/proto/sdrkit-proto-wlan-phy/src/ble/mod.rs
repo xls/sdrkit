@@ -30,7 +30,9 @@ mod rx;
 pub use coded_rx::code as coded_fec_code;
 pub use ext::{AuxPtr, SyncInfo};
 pub use phy::{Coding, Link, LinkKind, Phy, Uncoded};
-pub use rx::{AdvReceiver, BlePacket, BleReceiver, ChannelPlan, Phys, ReceiverStats, MAX_LINKS};
+pub use rx::{
+    AdvReceiver, BlePacket, BleReceiver, BlindPacket, ChannelPlan, Phys, ReceiverStats, MAX_LINKS,
+};
 
 use crate::{Error, Malformation, Param, Result};
 use sdrkit_util_bits::crc::catalog::CRC24_BLE;
@@ -113,6 +115,43 @@ pub fn crc24_bytes(pdu: &[u8], preset: u32) -> [u8; 3] {
 /// Whether `pdu_and_crc` (header, payload, three CRC bytes) carries a good advertising-channel CRC.
 pub fn crc_ok(pdu_and_crc: &[u8]) -> bool {
     pdu_and_crc.len() >= 5 && CRC24_BLE.verify(pdu_and_crc, Trailer::Little)
+}
+
+/// The CRC preset that makes `crc` (as [`crc24`] returns it) the CRC-24 of `pdu`: the shift register of clause 3.1.1 run
+/// backwards from its final state over the PDU's bits, last bit first. A receiver that does not know a connection's CRCInit
+/// takes it from one packet this way and confirms it on the next.
+pub fn crc24_init_of(pdu: &[u8], crc: u32) -> u32 {
+    // Position 23 of the register is sent first: the register is the bit-reversed CRC value.
+    let mut s = (crc & 0xFF_FFFF).reverse_bits() >> 8;
+    for &b in pdu.iter().rev() {
+        for i in (0..8).rev() {
+            // Position 0 holds the feedback of the step that is taken back.
+            let fb = s & 1;
+            if fb == 1 {
+                s ^= 0x00_065B;
+            }
+            s = (s >> 1) | ((fb ^ (u32::from(b) >> i & 1)) << 23);
+        }
+    }
+    s
+}
+
+/// Whether `aa` obeys the rules for the access address of a connection or a periodic train on the uncoded PHYs (Vol 6
+/// Part B clause 2.1.2): at most six equal bits in a row, not the advertising access address nor one bit from it, not four
+/// equal octets, at most 24 transitions, and at least two transitions in the six most significant bits.
+pub fn access_address_ok(aa: u32) -> bool {
+    let b = aa.to_le_bytes();
+    if (aa ^ ADV_ACCESS_ADDRESS).count_ones() <= 1 || b.iter().all(|&x| x == b[0]) {
+        return false;
+    }
+    // Bit `i` of `t` is set when bits `i` and `i + 1` differ.
+    let t = (aa ^ (aa >> 1)) & 0x7FFF_FFFF;
+    if t.count_ones() > 24 || (t >> 26).count_ones() < 2 {
+        return false;
+    }
+    // Seven equal bits in a row are six positions in a row without a transition.
+    let same = !t & 0x7FFF_FFFF;
+    same & (same >> 1) & (same >> 2) & (same >> 3) & (same >> 4) & (same >> 5) == 0
 }
 
 /// The type of an advertising physical channel PDU (Vol 6 Part B clause 2.3, table 2.3).

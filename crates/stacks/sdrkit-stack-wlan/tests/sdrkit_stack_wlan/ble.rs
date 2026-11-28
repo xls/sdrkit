@@ -734,7 +734,7 @@ fn a_connection_is_followed_over_its_data_channels_until_it_is_encrypted() {
         let conns = rows(res, "connections");
         assert_eq!(conns.len(), 1, "ChSel {ch_sel}");
         let c = conns[0];
-        assert_eq!(text(c, &C::ACCESS_ADDRESS), "5A3C9617");
+        assert_eq!(text(c, &C::ACCESS_ADDRESS), ble::conn::conn_key(ble::gen::CONN_AA, false));
         assert_eq!(text(c, &C::CENTRAL), "C1:23:45:67:89:AB");
         assert_eq!(text(c, &C::PERIPHERAL), "D2:34:56:78:9A:BC");
         assert_eq!(cnum(c, &C::INTERVAL_MS), 10.0);
@@ -891,18 +891,23 @@ fn a_capture_without_an_advertising_channel_says_so() {
             .unwrap(),
         )
     });
-    for make in [ble_rx, tracker_rx] {
+    // `ble` receives the four data channels inside this capture and says that devices do not show; `bletracker` hears
+    // nothing there.
+    for (make, text) in [(ble_rx, ble::NO_ADVERTISING_CHANNEL_WIDE), (tracker_rx, ble::NO_ADVERTISING_CHANNEL)] {
         let mut r = make();
-        r.configure(&InputInfo::new(rate, 2407e6, 2407e6)).unwrap();
+        r.configure(&InputInfo::new(rate, 2407e6, 2407e6).recording()).unwrap();
         feed(r.as_mut(), &quiet, 65536);
         let res = r.results();
-        assert_eq!(reason(res).as_deref(), Some(ble::NO_ADVERTISING_CHANNEL));
-        assert_eq!(res.status().summary, ble::NO_ADVERTISING_CHANNEL);
+        assert_eq!(reason(res).as_deref(), Some(text));
+        assert!(res.status().summary.contains(text));
+        r.configure(&InputInfo::new(rate, 2407e6, 2407e6)).unwrap();
+        feed(r.as_mut(), &quiet, 65536);
+        assert!(reason(r.results()).is_some_and(|t| t.starts_with(text)));
         r.configure(&InputInfo::new(rate, 2404e6, 2402e6)).unwrap();
         feed(r.as_mut(), &quiet, 65536);
         let res = r.results();
-        assert_eq!(reason(res), None);
-        assert_ne!(res.status().summary, ble::NO_ADVERTISING_CHANNEL);
+        assert!(reason(res).is_none_or(|t| !t.contains("No advertising channel")));
+        assert!(!res.status().summary.contains("No advertising channel"));
         let mut r = make();
         r.configure(&InputInfo::new(rate, 0.0, 0.0).recording())
             .unwrap();

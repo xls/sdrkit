@@ -136,7 +136,12 @@ pub static WFB_FRAMES: Table<WfbFrameRow<'static>> =
 
 // ble
 
-/// The result fields of `ble`.
+/// The result fields of `ble`. The stack receives every LE channel inside the capture at once: the advertising channels
+/// as a scanner does, and the data channels for a link-activity view of the connections on them. A connection is followed
+/// from its CONNECT_IND, or found by its packets when its start was not heard, and the connections table shows what the
+/// link-layer headers reveal: the channels seen, the packets, the bad CRC, the interval, the PHY, the empty-PDU share and
+/// whether it is encrypted. The payloads of data channels are not decoded beyond the link-layer header: there is no
+/// ATT/GATT content of a connection, no attempt at keys, and nothing is read of an encrypted payload.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BleFields<'a> {
     /// Devices in the table.
@@ -216,6 +221,27 @@ pub struct BleFields<'a> {
     /// centre of the input is not known.
     #[field(label = "Why nothing shows")]
     pub quiet_reason: Option<&'a str>,
+    /// The primary advertising channels (37, 38, 39) inside the capture.
+    #[field(label = "Advertising channels in the capture")]
+    pub channels_advertising: i64,
+    /// The data channels (0 to 36) inside the capture: each is received all the time unless the receiver is behind a live
+    /// input.
+    #[field(label = "Data channels in the capture")]
+    pub channels_data: i64,
+    /// The channels inside the capture in words ("9 of 40 LE channels inside the capture at 20 Msps: 0 advertising, 9
+    /// data"), at the rate the samples arrive. None when the centre of the input is not known.
+    #[field(label = "Capture")]
+    pub capture_note: Option<&'a str>,
+    /// Connections in the table whose start was not heard: found by their packets on the data channels.
+    #[field(label = "Connections found")]
+    pub connections_found: i64,
+    /// Packets on the data channels of links the receivers do not hold: of connections found or not yet found, and
+    /// chance matches of the access address rules.
+    #[field(label = "Packets of unknown links")]
+    pub packets_unknown_links: i64,
+    /// The data channels are left out but for followed connections: live input came faster than the work.
+    #[field(label = "Data channels left out")]
+    pub data_channels_shed: bool,
 }
 
 /// A row of the devices of `ble`. The row key is the address and "r" (random) or "p" (public).
@@ -338,11 +364,12 @@ pub struct BleDeviceLevelRow<'a> {
     pub level_dbfs: f64,
 }
 
-/// A row of the connections of `ble`, followed from their CONNECT_IND or AUX_CONNECT_REQ. The row key is the access address
-/// as eight hex digits.
+/// A row of the connections of `ble`: followed from their CONNECT_IND or AUX_CONNECT_REQ, or found by their packets on
+/// the data channels. The row key is the text of `access_address`.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BleConnectionRow<'a> {
-    /// The access address of the connection, eight hex digits.
+    /// The connection's identifier: six hex digits of a hash of its access address, or the access address as eight hex
+    /// digits when the setting `access_address_full` is on.
     #[field(label = "Access address")]
     pub access_address: &'a str,
     /// The central (the initiator of the connection).
@@ -390,6 +417,53 @@ pub struct BleConnectionRow<'a> {
     /// The UTC of the last packet.
     #[field(shared = columns::LAST_HEARD, role = Time)]
     pub last_heard: Option<Time>,
+    /// The start of the connection (its CONNECT_IND or AUX_CONNECT_REQ) was heard. False for a connection found by its
+    /// packets on the data channels: it has no addresses, latency or timeout, and its interval is 0 until estimated.
+    #[field(label = "Start heard")]
+    pub start_heard: bool,
+    /// The channels its packets were heard on.
+    #[field(label = "Channels seen")]
+    pub channels_seen: i64,
+    /// The data channels of its channel map that lie inside the capture: its packets on the others are not seen. No value
+    /// when the channel map is not known.
+    #[field(label = "Channels inside the capture")]
+    pub channels_inside: Option<i64>,
+    /// Packets with its access address whose CRC failed.
+    #[field(label = "Bad CRC")]
+    pub bad_crc: i64,
+    /// The share of its packets that are empty PDUs. No value before a packet.
+    #[field(label = "Empty PDUs", unit = "%")]
+    pub empty_pdus: Option<f64>,
+    /// The hop increment of channel selection algorithm #1. No value for algorithm #2 or while the algorithm is not known.
+    #[field(label = "Hop increment")]
+    pub hop: Option<i64>,
+}
+
+/// A row of the channels of `ble`: one for each LE channel inside the capture. The row key is the channel index as two
+/// digits.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BleChannelRow {
+    /// The channel index (0 to 36 data, 37 to 39 primary advertising).
+    #[field(label = "Channel")]
+    pub channel: i64,
+    /// The centre frequency of the channel.
+    #[field(label = "Frequency", unit = "Hz")]
+    pub frequency_hz: Hertz,
+    /// A primary advertising channel.
+    #[field(label = "Advertising")]
+    pub advertising: bool,
+    /// The channel is received all the time. False for a data channel that is received only for followed links.
+    #[field(label = "Received")]
+    pub received: bool,
+    /// Good packets of the links held (advertising, periodic trains, followed connections) since the capture was set.
+    #[field(label = "Packets")]
+    pub packets: i64,
+    /// Access-address matches of those links whose CRC failed.
+    #[field(label = "Bad CRC")]
+    pub bad_crc: i64,
+    /// Packets of links not held: of connections found or not yet found, and chance matches.
+    #[field(label = "Packets of unknown links")]
+    pub packets_unknown_links: i64,
 }
 
 /// A row of the Attribute Protocol log of `ble`: an ATT PDU sent in the clear on a followed connection.
@@ -530,6 +604,9 @@ pub static BLE_CONNECTIONS: Table<BleConnectionRow<'static>> =
     Table::new("connections", "Connections", crate::ble::conn::CONN_CAP)
         .label(&BleConnectionRow::ACCESS_ADDRESS)
         .sorted(&BleConnectionRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
+/// The LE channels inside the capture of `ble` with their counters.
+pub static BLE_CHANNELS: Table<BleChannelRow> = Table::new("channels", "Channels", 40)
+    .sorted(&BleChannelRow::CHANNEL, sdrkit_core::SortOrder::Ascending);
 /// The ATT log of `ble`, newest first.
 pub static BLE_ATT: Table<BleAttRow<'static>> =
     Table::new("att", "ATT", crate::ble::conn::ATT_CAP)
@@ -2319,13 +2396,40 @@ const ADDED_4_6: &[&str] = &[
 /// What version 4.7 added: what `wifi` leaves out.
 const ADDED_4_7: &[&str] = &["shape.WifiFields.quiet_reason"];
 
+/// What version 4.8 added: every data channel inside the capture of `ble`, the connections found on them, the counters
+/// of each channel and the short form of the access address.
+const ADDED_4_8: &[&str] = &[
+    "shape.BleFields.channels_advertising",
+    "shape.BleFields.channels_data",
+    "shape.BleFields.capture_note",
+    "shape.BleFields.connections_found",
+    "shape.BleFields.packets_unknown_links",
+    "shape.BleFields.data_channels_shed",
+    "shape.BleConnectionRow.start_heard",
+    "shape.BleConnectionRow.channels_seen",
+    "shape.BleConnectionRow.channels_inside",
+    "shape.BleConnectionRow.bad_crc",
+    "shape.BleConnectionRow.empty_pdus",
+    "shape.BleConnectionRow.hop",
+    "ble.table.channels",
+    "shape.BleChannelRow",
+    "shape.BleChannelRow.channel",
+    "shape.BleChannelRow.frequency_hz",
+    "shape.BleChannelRow.advertising",
+    "shape.BleChannelRow.received",
+    "shape.BleChannelRow.packets",
+    "shape.BleChannelRow.bad_crc",
+    "shape.BleChannelRow.packets_unknown_links",
+    "ble.setting.access_address_full",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 7)
+        Described::new("wlan", 4, 8)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2350,6 +2454,7 @@ pub fn family() -> &'static Described {
                     .table(&BLE_CONNECTIONS)
                     .table(&BLE_ATT)
                     .table(&BLE_BROADCASTS)
+                    .table(&BLE_CHANNELS)
                     .event(&BLE_DEVICE)
                     .settings(BleSetting::SETTINGS)
                     .command(CLEAR)
@@ -2374,6 +2479,7 @@ pub fn family() -> &'static Described {
             .added(4, 5, ADDED_4_5)
             .added(4, 6, ADDED_4_6)
             .added(4, 7, ADDED_4_7)
+            .added(4, 8, ADDED_4_8)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()

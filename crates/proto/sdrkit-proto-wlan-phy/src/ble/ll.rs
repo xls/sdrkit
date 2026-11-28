@@ -110,6 +110,15 @@ pub fn control_name(op: u8) -> &'static str {
     NAMES.get(usize::from(op)).copied().unwrap_or("LL control (unknown opcode)")
 }
 
+/// The payload length (opcode and CtrData) of the LL control PDU `op` sent in the clear (clause 2.4.2), for the opcodes
+/// 0x00 to 0x19. A control PDU of an encrypted connection is 4 bytes longer (the MIC) and its opcode byte is ciphertext.
+pub fn control_length(op: u8) -> Option<u8> {
+    const LENGTHS: [u8; 26] = [
+        12, 8, 2, 23, 13, 1, 1, 2, 9, 9, 1, 1, 6, 2, 9, 24, 24, 3, 1, 1, 9, 9, 3, 3, 5, 3,
+    ];
+    LENGTHS.get(usize::from(op)).copied()
+}
+
 /// The LL control opcodes that change the connection or start its encryption (clause 2.4.2).
 pub mod opcode {
     /// LL_CONNECTION_UPDATE_IND.
